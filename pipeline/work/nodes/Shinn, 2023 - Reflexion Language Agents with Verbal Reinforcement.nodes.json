@@ -1,0 +1,93 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Shinn, 2023 - Reflexion Language Agents with Verbal Reinforcement.md",
+  "metadata": {
+    "title": "Reflexion: Language Agents with Verbal Reinforcement Learning",
+    "authors": [
+      "Noah Shinn",
+      "Federico Cassano",
+      "Edward Berman",
+      "Ashwin Gopinath",
+      "Karthik Narasimhan",
+      "Shunyu Yao"
+    ],
+    "year": 2023,
+    "venue": null,
+    "doi": "arxiv:2303.11366",
+    "abstract_summary": "An agent that, after a failed episode, generates a written verbal self-reflection on what went wrong and stores it in an episodic memory buffer replayed as context on the next attempt, improves substantially on sequential decision-making, reasoning, and coding benchmarks - without any weight update, purely through what it is told to attend to next time."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 56,
+      "text": "An agent that, after a failed episode, generates a written verbal self-reflection on what went wrong and stores it in an episodic memory buffer replayed as context on the next attempt, improves substantially on sequential decision-making, reasoning, and coding benchmarks - without any weight update, purely through what it is told to attend to next time.",
+      "claims": [
+        {
+          "text": "An agent that, after a failed episode, generates a written verbal self-reflection on what went wrong and stores it in an episodic memory buffer replayed as context on the next attempt, improves substantially on sequential decision-making, reasoning, and coding benchmarks - without any weight update, purely through what it is told to attend to next time.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 184,
+      "text": "As the authors state it:\n\n> Large language models (LLMs) have been increasingly used to interact with external environments (e.g., games, compilers, APIs) as goal-driven agents. However, it remains challenging for these language agents to quickly and efficiently learn from trial-and-error as traditional reinforcement learning methods require extensive training samples and expensive model fine-tuning. We propose Reflexion, a novel framework to reinforce language agents not by updating weights, but instead through linguistic feedback. Concretely, Reflexion agents verbally reflect on task feedback signals, then maintain their own reflective text in an episodic memory buffer to induce better decision-making in subsequent trials. Reflexion is flexible enough to incorporate various types (scalar values or free-form language) and sources (external or internally simulated) of feedback signals, and obtains significant improvements over a baseline agent across diverse tasks (sequential decision-making, coding, language reasoning). For example, Reflexion achieves a 91% pass@1 accuracy on the HumanEval coding benchmark, surpassing the previous state-of-the-art GPT-4 that achieves 80%. We also conduct ablation and analysis studies using different feedback signals, feedback incorporation methods, and agent types, and provide insights into how they affect performance.",
+      "claims": [
+        {
+          "text": "As the authors state it: Large language models (LLMs) have been increasingly used to interact with external environments (e.g., games, compilers, APIs) as goal-driven agents. However, it remains challenging for these language agents to quickly and efficiently learn from trial-and-error as traditional reinforcement learning methods require extensive training samples and expensive model fine-tuning.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 37,
+      "text": "Evaluated on AlfWorld (embodied decision-making), HotpotQA (reasoning), and HumanEval/MBPP-style coding benchmarks, comparing Reflexion against ReAct and other baselines across multiple retry attempts, with an ablation isolating the contribution of the verbal self-reflection step specifically against simple retry-with-more-attempts.",
+      "claims": [
+        {
+          "text": "Evaluated on AlfWorld (embodied decision-making), HotpotQA (reasoning), and HumanEval/MBPP-style coding benchmarks, comparing Reflexion against ReAct and other baselines across multiple retry attempts, with an ablation isolating the contribution of the verbal self-reflection step specifically agains",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 85,
+      "text": "- The retry-count-controlled comparison against ReAct (same number of attempts, with vs. without reflection) is a meaningfully strong evidentiary design - it isolates the reflection mechanism's own contribution rather than crediting \"more tries\" generally.\n- Depends on the environment providing a clear enough failure signal for the reflection to be about anything specific; the paper's own domains (a game with a defined loss condition, code with a test suite) all provide one, and it says nothing about environments where success or failure is itself ambiguous.",
+      "claims": [
+        {
+          "text": "The retry-count-controlled comparison against ReAct (same number of attempts, with vs. without reflection) is a meaningfully strong evidentiary design - it isolates the reflection mechanism's own contribution rather than crediting \"more tries\" generally.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Depends on the environment providing a clear enough failure signal for the reflection to be about anything specific; the paper's own domains (a game with a defined loss condition, code with a test suite) all provide one, and it says nothing about environments where success or failure is itself ambig",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

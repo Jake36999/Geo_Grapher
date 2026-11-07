@@ -1,0 +1,174 @@
+{
+  "file_path": "E:/Librarian research/frai-9-1820827.pdf",
+  "metadata": {
+    "title": "From LLM narratives to parameterized cooperation policies in multi-agent systems",
+    "authors": [
+      "J. de Curtò",
+      "I. de Zarzà",
+      "Jordi Cabot",
+      "Pietro Manzoni",
+      "Carlos T. Calafate"
+    ],
+    "year": 2026,
+    "venue": "Front. Artif. Intell.",
+    "doi": "10.3389/frai.2026.1820827",
+    "abstract_summary": "This paper explores the use of LLM narratives to develop parameterized cooperation policies in multi-agent systems. The authors propose a novel approach to generate adaptive cooperation policies using LLMs."
+  },
+  "sections": [
+    {
+      "heading": "REVIEWED BY",
+      "section_type": "other",
+      "position": 3,
+      "word_count": 148,
+      "text": "Yikang Lu, Yunnan University of Finance and Economics, China Michael DeBuse, Independent Researcher, Modesto, CA, United States *CORRESPONDENCE I. de Zarzà irene.zarza@list.lu RECEIVED 01 March 2026 REVISED 16 May 2026 ACCEPTED 28 May 2026 PUBLISHED 10 July 2026 CITATION de Curtò J, de Zarzà I, Cabot J, Manzoni P and Calafate CT (2026) From LLM narratives to parameterized cooperation policies in multi-agent systems. Front. Artif. Intell. 9:1820827. doi: 10.3389/frai.2026.1820827 COPYRIGHT © 2026 de Curtò, de Zarzà, Cabot, Manzoni and Calafate. This is an open-access article distributed under the terms of the Creative Commons Attribution License (CC BY) . The use, distribution or reproduction in other forums is permitted, provided the original author(s) and the copyright owner(s) are credited and that the original publication in this journal is cited, in accordance with accepted academic practice. No use, distribution or reproduction is permitted which does not comply with these terms.",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "From LLM narratives to",
+      "section_type": "other",
+      "position": 4,
+      "word_count": 14235,
+      "text": "parameterized cooperation policies in multi-agent systems J. de Curtò 1,2,3 , I. de Zarzà 3,4 *, Jordi Cabot 4,5 , Pietro Manzoni 6 and Carlos T. Calafate 6 1 Department of Computer Applications in Science & Engineering, BARCELONA Supercomputing Center, Barcelona, Spain, 2 Escuela Técnica Superior de Ingeniería (ICAI), Universidad Pontificia Comillas, Madrid, Spain, 3 Estudis d’Informàtica, Multimèdia i Telecomunicació, Universitat Oberta de Catalunya, Barcelona, Spain, 4 Human Centered AI, Data & Software, LUXEMBOURG Institute of Science and Technology, Esch-sur-Alzette, Luxembourg, 5 Interdisciplinary Centre for Security, Reliability and Trust (SNT), Université du Luxembourg, Esch-sur-Alzette, Luxembourg, 6 Departamento de Informática de Sistemas y Computadores, Universitat Politècnica de València, València, Spain Introduction: Large language models (LLMs) can generate persuasive narratives that shift agent behavior in multi-agent systems, but deploying raw, unstructured text as an influence mechanism offers no formal guarantees on effectiveness, interpretability, or controllability. Methods: We introduce the LLM Influence Compiler (LIC), a solver– critic pipeline that compiles natural-language cooperation directives into structured, parameterized influence policies defined over a five-field schema: network targeting, narrative theme, intensity, deployment timing, and compiler confidence. Each compiled policy is diffused through a network of numerical agents via an exposure model incorporating fatigue decay, susceptibility heterogeneity, and backlash. Evaluation spans nine controlled experiment blocks comprising more than 200 simulation runs across four topologies (Barabási– Albert, small-world, Erd˝os–Rényi, modular SBM), four network sizes ( n ∈ { 80, 160, 320, 640 } ), five LLM backbones, and two non-stationary perturbations. Results: Compiled policies raise the mean cooperation rate to 0.826 ± 0.010 (95% bootstrap CI [0.819, 0.834]), an 8.6 % relative improvement over the unstructured baseline (0.760 ± 0.005, Mann–Whitney p Bonf = 0.040, Cohen’s d = 7.90). A controlled decomposition attributes the gain to network-aware targeting ( ca. + 4.5 pp), dose calibration ( + 1.9 pp), and an intervention floor ( + 1.5 pp); the residual contribution of full LLM compilation over a hand-coded rule with the same parameters is statistically indistinguishable from zero under stationary conditions. Under structural non-stationarity (mid-simulation graph rewire), the LLM-mediated re-deployment architecture significantly outperforms a frozen rule (paired t-test p < 0.001, paired Cohen’s d = 2.27, 8/8 seeds). Adversarial stress testing confirms that the critic correctly flags 20/20 risky policies as high risk and rejects them, while passing a moderate-baseline policy at medium risk in all 5/5 trials. Discussion: The compiler abstraction converts an opaque generative process into a decomposable, auditable policy object whose components can be independently attributed, compared, and governed, laying the groundwork for constitutional oversight of LLM-mediated influence in artificial societies. KEYWORDS cooperative equilibria, evolutionary game theory, large language models, multi-agent systems, network influence diffusion, non-stationary adaptation, parameterized policy compilation, policy interpretability Frontiers in Artificial Intelligence 01 frontiersin.org de Curtò et al. 10.3389/frai.2026.1820827 1 Introduction and related work The capacity of large language models (LLMs) to generate contextually rich, persuasive natural-language text has opened a new design space for steering multi-agent systems toward desired collective outcomes ( Park et al., 2023 ; Guo et al., 2024 ; Xi et al., 2023 ). Rather than hand-coding incentive structures or reward signals, a system designer can now instruct an LLM to produce a narrative, a motivational appeal, a framing of collective benefit, a reputational cue, and broadcast it to a population of agents who",
+      "claims": [
+        {
+          "text": "Large language models (LLMs) can generate persuasive narratives that shift agent behavior in multi-agent systems, but deploying raw, unstructured text as an influence mechanism offers no formal guarantees on effectiveness, interpretability, or controllability.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The LLM Influence Compiler (LIC) is a solver– critic pipeline that compiles narratives into parameterized cooperation policies.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Large Language Models (LLMs)",
+          "definition": "A type of artificial intelligence model that can generate human-like text based on the input it receives.",
+          "concept_type": "model"
+        },
+        {
+          "name": "LLM Influence Compiler (LIC)",
+          "definition": "A solver– critic pipeline that compiles narratives into parameterized cooperation policies.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Multi-agent systems",
+          "definition": "A system composed of multiple interacting agents.",
+          "concept_type": "model"
+        }
+      ]
+    },
+    {
+      "heading": "LLM’s adaptive value emerges",
+      "section_type": "other",
+      "position": 5,
+      "word_count": 3340,
+      "text": "Sections 4.6–4.8 established that under stationary conditions the LLM compiler is statistically indistinguishable from a hand- coded rule with identical parameters. We now ask: is there any regime in which the LLM’s contribution exceeds rule equivalence? We test two perturbation classes: parametric (R8) and structural (R8b). 4.14.1 R8: Parametric shock At t = 50, the prosociality vector is multiplicatively reduced by 0.5 to model a sudden cooperation collapse. Two conditions, compiled (which re-deploys at every � t = 10 and may in Frontiers in Artificial Intelligence 21 frontiersin.org de Curtò et al. 10.3389/frai.2026.1820827 TABLE 10 R7 multi-model robustness: compiled-vs.-unstructured cooperation gap across five LLM backbones. Model compiled unstructured Gap Llama-3.3- 70B-Instruct 0.828 0.764 + 0.064 Qwen3-235B- A22B-Instruct 0.836 0.764 + 0.072 Hermes-4-70B 0.823 0.764 + 0.059 DeepSeek- V3.2 0.824 0.764 + 0.060 Llama-3.1-8B- Instruct 0.775 0.764 + 0.011 n = 80, BA, seed = 0. principle propose a different policy in response to the shock- altered state snapshot) and static_hub_full (which deploys the frozen ⟨ HUBS , HYBRID , 0.55, PERIODIC , 0.80 ⟩ policy at every step), are compared across five seeds. We compute phase-resolved cooperation: pre-shift ( t < 50), at-shock ( t ∈ [50, 54]), recovery ( t ≥ 60), and late ( t ≥ 80). The compiler’s adaptive value is not detectable under parametric shock. Phase-resolved cooperation is statistically identical between compiled and static_hub_full in every phase (paired Mann–Whitney all p > 0.5, | d | ≤ 0.11 in post- shock phases; the recovery-phase gap is + 0.001). The compiler keeps proposing the canonical policy (target stays HUBS , theme stays HYBRID , intensity wobbles within ± 0.02 of 0.55 across seeds) regardless of the shock; recovery dynamics are dominated by the (unchanged) diffusion and reinforcement system. The honest interpretation is that the converged policy is robust to substantial parametric perturbations rather than adaptive to them, and this robustness is a property of the policy itself, not of the LLM that proposed it. 4.14.2 R8b: Structural shock The picture changes under structural perturbation. At t = 50, the BA graph is replaced with a freshly generated BA graph (different seed, same n and m ) so that hub identity changes; mean hub overlap between the old and new top-9 degree sets is 0.58 across eight seeds, ranging from 0.44 to 0.67. compiled re-resolves the abstract token HUBS against the current graph at each deploy event, while static_hub_full ’s frozen target list (the top-9 degree set computed at t = 0) keeps blasting former hubs that are no longer central. The two conditions are paired by seed (identical agent initialization, prosociality, susceptibility, and RNG sequence; only target resolution differs), enabling paired statistical tests with substantially higher power than unpaired comparisons. Table 11 reports the phase-resolved paired analysis. In pre- shift and at-shock phases, no gap is detectable (3/8 seeds positive, paired t p > 0.1), as expected, no shock has yet differentiated the conditions. In recovery and late phases, all eight seeds align positively (paired Wilcoxon p = 0.004, the unanimous-direction floor at n = 8; paired t p = 0.0024 recovery, p = 0.0004 late; paired Cohen’s d = 1.64 recovery, d = 2.27 late). Under TABLE 11 R8 (parametric shock) and R8b (structural shock) phase-resolved cooperation: paired analysis of compiled vs. static_hub_full . Phase R8 (prosocial shock) R8b (graph rewire) Gap d paired Gap d paired pre-shift ( t < 50) + 0.002 0.38 (ns) + 0.001 0.57 (ns) at-shock ( t ∈ [50, 54]) + 0.001 0.05 (ns) + 0.001 0.20 (ns) recovery ( t ≥ 60) + 0.001 0.11 (ns) + 0.005 1.64 ∗∗ late ( t ≥ 80) + 0.001 0.06 (ns) + 0.006 2.27 ∗∗∗ R8 with five seeds, R8b with eight seeds. d paired is paired Cohen’s d ; significance markers report Bonferroni-corrected paired t ( m = 4). ∗∗ Paired Wilcoxon p = 0.004, paired t p = 0.002, p Bonf < 0.01 ( m",
+      "claims": [
+        {
+          "text": "The LLM compiler is statistically indistinguishable from a hand-coded rule with identical parameters under stationary conditions.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The LLM’s contribution exceeds rule equivalence in certain regimes, such as parametric and structural perturbations.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Parametric shock",
+          "definition": "A type of perturbation where the prosociality vector is multiplicatively reduced.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Structural perturbation",
+          "definition": "A type of perturbation that alters the state snapshot.",
+          "concept_type": "method"
+        },
+        {
+          "name": "LLM backbones",
+          "definition": "Different models used as the basis for the LLM compiler, such as Llama-3.3-70B-Instruct.",
+          "concept_type": "model"
+        }
+      ]
+    },
+    {
+      "heading": "Author contributions",
+      "section_type": "other",
+      "position": 7,
+      "word_count": 69,
+      "text": "JCu: Conceptualization, Formal analysis, Investigation, Methodology, Software, Validation, Visualization, Writing – original draft, Writing – review & editing. IZ: Conceptualization, Data curation, Formal analysis, Investigation, Methodology, Software, Validation, Visualization, Writing – original draft, Writing – review & editing. JCa: Funding acquisition, Methodology, Validation, Writing – review & editing. PM: Conceptualization, Formal analysis, Methodology, Validation, Writing – review & editing. CC: Formal analysis, Methodology, Validation, Writing – review & editing.",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Funding",
+      "section_type": "other",
+      "position": 8,
+      "word_count": 48,
+      "text": "The author(s) declared that financial support was received for this work and/or its publication. This research was supported by the LUXEMBOURG Institute of Science and Technology through the projects “ADIALab-MAST” and “LLMs4EU” (Grant Agreement No 101198470) and the BARCELONA Supercomputing Center through the project “TIFON” (File number MIG-20232039).",
+      "claims": [
+        {
+          "text": "The research was supported by the LUXEMBOURG Institute of Science and Technology through the projects “ADIALab-MAST” and “LLMs4EU”.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The research was also supported by the BARCELONA Supercomputing Center through the project “TIFON”.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "LUXEMBOURG Institute of Science and Technology",
+          "definition": "A research institution that provided funding for the project.",
+          "concept_type": "dataset"
+        },
+        {
+          "name": "BARCELONA Supercomputing Center",
+          "definition": "A research institution that provided funding for the project.",
+          "concept_type": "dataset"
+        }
+      ]
+    },
+    {
+      "heading": "Generative AI statement",
+      "section_type": "other",
+      "position": 11,
+      "word_count": 105,
+      "text": "The author(s) declared that Generative AI was used in the creation of this manuscript. During the preparation of this work, the author(s) used ChatGPT/Copilot/Gemini/Claude for code completion and pseudocode generation, Grammarly for English language editing, and Mendeley for bibliography management. The author(s) reviewed and edited the content as needed and take(s) full responsibility for the content of this publication. Any alternative text (alt text) provided alongside figures in this article has been generated by Frontiers with the support of artificial intelligence and reasonable efforts have been made to ensure accuracy, including review by the authors wherever possible. If you identify any issues, please contact us.",
+      "claims": [
+        {
+          "text": "The authors used Generative AI tools, such as ChatGPT and Grammarly, in the creation of the manuscript.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "ChatGPT",
+          "definition": "A Generative AI tool used for code completion and pseudocode generation.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Grammarly",
+          "definition": "A tool used for English language editing.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Publisher’s note",
+      "section_type": "other",
+      "position": 12,
+      "word_count": 58,
+      "text": "All claims expressed in this article are solely those of the authors and do not necessarily represent those of their affiliated organizations, or those of the publisher, the editors and the reviewers. Any product that may be evaluated in this article, or claim that may be made by its manufacturer, is not guaranteed or endorsed by the publisher.",
+      "claims": [],
+      "concepts": []
+    }
+  ],
+  "references_raw": "Akata, E., Schulz, L., Coda-Forno, J., Oh, S. J., Bethge, M., and Schulz, E. (2023). Playing repeated games with large language models. arXiv . [preprint]. arXiv:2305.16867. doi: 10.48550/arXiv.2305.16867 Anagnostopoulos, A., Becchetti, L., Cruciani, E., Pasquale, F., and Rizzo, S. (2022). Biased opinion dynamics: when the devil is in the details. Inf. Sci . 593, 49–63. doi: 10.1016/j.ins.2022.01.072 Barabási, A.-L., and Albert, R. (1999). Emergence of scaling in random networks. Science 286, 509–512. doi: 10.1126/science.286.5439.509 Brehm, S. S., and Brehm, J. W. (2013). Psychological Reactance: A Theory of Freedom and Control . New York, NY: Academic Press. de Curtò, J., and de Zarzà, I. (2025). LLM-driven social influence for cooperative behavior in multi-agent systems. IEEE Access 13, 44330–44342. doi: 10.1109/ACCESS.2025.3548451 de Zarzà, I., de Curtò, J., Roig, G., Manzoni, P., and Calafate, C. T. (2023). Emergent cooperation and strategy adaptation in multi-agent systems: an extended coevolutionary theory with LLMs. Electronics 12:2722. doi: 10.3390/electronics12122722 Du, C., Lu, Y., Meng, H., and Park, J. (2024). Evolution of cooperation on reinforcement-learning driven-adaptive networks. Chaos 34:041101. doi: 10.1063/5.0201968 Du, Y., Li, S., Torralba, A., Tenenbaum, J. B., and Mordatch, I. (2024). Improving factuality and reasoning in language models through multiagent debate. arXiv . [preprint]. arXiv:2305.14325. doi: 10.48550/arXiv.2305.14325 Eppler, M. J., and Mengis, J. (2004). The concept of information overload: a review of literature from organization science, accounting, marketing, MIS, and related disciplines. Inf. Soc . 20, 325–344. doi: 10.1080/019722404905 07974 Fan, C., Chen, J., Jin, Y., and He, H. (2024). Can large language models serve as rational players in game theory? A systematic analysis. Proc. AAAI Conf. Artif. Intell . 38, 17960–17967. doi: 10.1609/aaai.v38i16.29751 Frontiers in Artificial Intelligence 26 frontiersin.org de Curtò et al. 10.3389/frai.2026.1820827 Fontana, N., Pierri, F., and Aiello, L. M. (2024). Nicer than humans: how do large language models behave in the prisoner’s dilemma? arXiv . [preprint]. arXiv:2406.13605. doi: 10.48550/arXiv.2406.13605 Gao, C., Lan, X., Lu, Z., Mao, J., Piao, J., Wang, H., et al. (2023). S3: Social-network simulation system with large language model-empowered agents. arXiv . [preprint]. arXiv:2307.14984. doi: 10.48550/arXiv.2307.14984 Guo, T., Chen, X., Wang, Y., Chang, R., Pei, S., Chawla, N. V., et al. (2024). Large language model based multi-agents: a survey of progress and challenges. arXiv . [preprint] arXiv:2402.01680. doi: 10.48550/arXiv.2402.01680 Kaiya, Z., Naim, M., Kondic, J., Cortes, M., Ge, J., Luo, S., et al. (2023). Lyfe agents: Generative agents for low-cost real-time social interactions. arXiv . [preprint]. arXiv:2310.02172. doi: 10.48550/arXiv.2310.02172 Kempe, D., Kleinberg, J., and Tardos, É. (2003). “Maximizing the spread of influence through a socia",
+  "usage": {
+    "input_tokens": 2486,
+    "output_tokens": 905,
+    "cost_usd": 0.00057
+  }
+}

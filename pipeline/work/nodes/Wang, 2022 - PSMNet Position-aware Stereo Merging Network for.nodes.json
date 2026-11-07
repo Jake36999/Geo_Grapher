@@ -1,0 +1,90 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Wang, 2022 - PSMNet Position-aware Stereo Merging Network for.md",
+  "metadata": {
+    "title": "PSMNet: Position-aware Stereo Merging Network for Room Layout Estimation",
+    "authors": [
+      "Haiyan Wang",
+      "Will Hutchcroft",
+      "Yuguang Li",
+      "Zhiqiang Wan",
+      "Ivaylo Boyadzhiev",
+      "Yingli Tian",
+      "Sing Bing Kang"
+    ],
+    "year": 2022,
+    "venue": null,
+    "doi": "arxiv:2203.15965",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 124,
+      "text": "As the authors state it:\n\n> In this paper, we propose a new deep learning-based method for estimating room layout given a pair of 360 panoramas. Our system, called Position-aware Stereo Merging Network or PSMNet, is an end-to-end joint layout-pose estimator. PSMNet consists of a Stereo Pano Pose (SP2) transformer and a novel Cross-Perspective Projection (CP2) layer. The stereo-view SP2 transformer is used to implicitly infer correspondences between views, and can handle noisy poses. The pose-aware CP2 layer is designed to render features from the adjacent view to the anchor (reference) view, in order to perform view fusion and estimate the visible layout. Our experiments and analysis validate our method, which significantly outperforms the state-of-the-art layout estimators, especially for large and complex room spaces.",
+      "claims": [
+        {
+          "text": "As the authors state it: In this paper, we propose a new deep learning-based method for estimating room layout given a pair of 360 panoramas. Our system, called Position-aware Stereo Merging Network or PSMNet, is an end-to-end joint layout-pose estimator. PSMNet consists of a Stereo Pano Pose (SP2) transformer and a novel Cross-Perspective Projection (CP2) layer. The stereo-view SP2 transformer is",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Security & SIEM",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

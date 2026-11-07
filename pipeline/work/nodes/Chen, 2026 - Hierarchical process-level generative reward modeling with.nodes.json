@@ -1,0 +1,186 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Chen, 2026 - Hierarchical process-level generative reward modeling with.md",
+  "metadata": {
+    "title": "Hierarchical process-level generative reward modeling with adaptive long-horizon reasoning for robust LLM alignment",
+    "authors": [
+      "Shikun Chen",
+      "Yangguang Liu"
+    ],
+    "year": 2026,
+    "venue": "Information Processing &amp; Management",
+    "doi": "10.1016/j.ipm.2026.104957",
+    "abstract_summary": "Composes a reward model from three tiers (long-horizon reasoning, step-level verification, integrated judgment) and bounds adversarial-response detection by the number of verification checkpoints and reasoning depth."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 26,
+      "text": "Composes a reward model from three tiers (long-horizon reasoning, step-level verification, integrated judgment) and bounds adversarial-response detection by the number of verification checkpoints and reasoning depth.",
+      "claims": [
+        {
+          "text": "Composes a reward model from three tiers (long-horizon reasoning, step-level verification, integrated judgment) and bounds adversarial-response detection by the number of verification checkpoints and reasoning depth.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 317,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Three-tier hierarchical verification composition** (category B) - Three sequential tiers—long-horizon internal reasoning, step-level verification with correctness labels, and integrated judgment—compose into one reward model that localizes errors and resists manipulation. (section 4.4. Hierarchical process-level generative reward models, p. 5)\n  > Tier 1 provides the global context absent from process models, Tier 2 adds the step boundaries missing from unstructured GenRMs\n- **Hierarchical annotation pipeline with quality filters** (category B) - A pipeline that has a strong reasoning model draft traces, a verifier model label each step, and filters retain only consistent, high-confidence annotations. (section 6.1. Hierarchical data generation, p. 6)\n  > Quality filters retain instances where step labels are consistent with the final preference, the trace shows self-reflection markers\n- **Adaptive depth allocation** (category C) - Per-instance token budgets for reasoning and verification are predicted from uncertainty, giving easy tasks shallow passes and hard tasks deep analysis. (section 6.3. Adaptive depth allocation, p. 7)\n  > easier instances receive shallow reasoning and harder instances receive extended analysis\n- **Multi-objective SFT with curriculum RL** (category C) - Joint supervised training over all tiers followed by reinforcement learning progressing from step correctness to trajectory coherence to preference. (section 6.2. Multi-objective training, p. 7)\n  > The SFT loss jointly optimizes all hierarchical components\n- **Multi-granularity orchestration metric suite** (category A) - A four-class evaluation suite covering process quality, outcome accuracy, robustness to attacks and reward hacking, and compute efficiency. (section 7.2. Experimental setup, p. 8)\n  > Process-level: step accuracy, error localization (F1), explanation quality (ROUGE-L), and process coherence.\n- **K·D verifi",
+      "claims": [
+        {
+          "text": "Three-tier hierarchical verification composition: Three sequential tiers—long-horizon internal reasoning, step-level verification with correctness labels, and integrated judgment—compose into one reward model that localizes errors and resists manipulation. (section 4.4. Hierarchical process-level ge",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Hierarchical annotation pipeline with quality filters: A pipeline that has a strong reasoning model draft traces, a verifier model label each step, and filters retain only consistent, high-confidence annotations. (section 6.1. Hierarchical data generation, p. 6)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Adaptive depth allocation: Per-instance token budgets for reasoning and verification are predicted from uncertainty, giving easy tasks shallow passes and hard tasks deep analysis. (section 6.3. Adaptive depth allocation, p. 7)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-objective SFT with curriculum RL: Joint supervised training over all tiers followed by reinforcement learning progressing from step correctness to trajectory coherence to preference. (section 6.2. Multi-objective training, p. 7)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-granularity orchestration metric suite: A four-class evaluation suite covering process quality, outcome accuracy, robustness to attacks and reward hacking, and compute efficiency. (section 7.2. Experimental setup, p. 8)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "K·D verification-checkpoint robustness bound: A bound and metric linking adversarial-detection robustness to the product of verified steps K and reasoning depth D. (section A.2. Robustness against reward hacking, p. 22)",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Three-tier hierarchical verification composition",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Hierarchical annotation pipeline with quality filters",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Adaptive depth allocation",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Multi-objective SFT with curriculum RL",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Multi-granularity orchestration metric suite",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 211,
+      "text": "- **Three-tier hierarchical verification composition**: Tier 1 T𝜃 emits 1000–2000-token internal reasoning; Tier 2 P𝜃 splits it into K≤20 tuples (step𝑘, V𝑘, exp𝑘); Tier 3 J𝜃 combines trace, step proportion 1/𝐾 ∑𝑘 V𝑘, and explanations. HPR𝜃(𝑥, 𝑦𝑎, 𝑦𝑏) = 𝐽𝜃◦𝑃𝜃◦𝑇𝜃(𝑥, 𝑦𝑎, 𝑦𝑏).\n- **Hierarchical annotation pipeline with quality filters**: Sample M=10 traces from 𝜋reasoning; keep the longest trace whose judgment matches ground truth (Eq. 19); annotate each of K steps with 𝜋verifier (Eq. 20); filter on label–preference consistency, self-reflection markers, Kmin=5, confidence>0.8, retaining 50%–60%.\n- **Adaptive depth allocation**: Uncertainty U(𝑥, 𝑦𝑎, 𝑦𝑏) = [H(p), 1−maxₛ p(s), 1−Aens] from a 100-token shallow prediction and K=4 agreement; MLP(3,256,2) outputs depths normalized to budget B and clipped: 𝐷internal = clip(𝐵⋅𝐷̃internal∕(𝐷̃internal+𝐷̃process), 500, 2500).\n- **Multi-objective SFT with curriculum RL**: Loss (21) weights α1=0.2, α2=0.3, α3=0.25, α4=0.1, α5=0.15 across trace, step, label, explanation, preference terms; then PPO phases with ε=0.2 and KL penalties βstep=10−3, βtraj=5×10−4, βpref=10−4 decreasing.\n- **Multi-granularity orchestration metric suite**: Process-level: step accuracy, error localization F1, ROUGE-L, coherence; outcome: preference accuracy, ECE; robustness: held-out accuracy, reward-hacking resistance, adversarial robustness, sampling stability; efficiency: tokens/query, uncertainty–depth correlation, speedup versus fixed depth.\n- **K·D verification-checkpoint robustness bound**: Under Assumptions A.3–A.4, P(𝐸hack) ≤exp(−𝛼⋅𝐾⋅𝐷∕𝜎2); with average step-failure correlation 𝜌, replace K by 𝐾eff = 𝐾∕(1+(𝐾−1)𝜌), preserving monotonicity in K·D.",
+      "claims": [
+        {
+          "text": "Three-tier hierarchical verification composition: Tier 1 T𝜃 emits 1000–2000-token internal reasoning; Tier 2 P𝜃 splits it into K≤20 tuples (step𝑘, V𝑘, exp𝑘); Tier 3 J𝜃 combines trace, step proportion 1/𝐾 ∑𝑘 V𝑘, and explanations. HPR𝜃(𝑥, 𝑦𝑎, 𝑦𝑏) = 𝐽𝜃◦𝑃𝜃◦𝑇𝜃(𝑥, 𝑦𝑎, 𝑦𝑏). - **Hierarchical annotation pipe",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 328,
+      "text": "- Evidence the authors report:\n  - Three-tier hierarchical verification composition: Table 7 ablation: full hierarchy reaches 82.3% RM-Bench, 89.1% MATH-500, 58.3% AlpacaEval2 versus 74.2% for Tier 1 alone.\n  - Hierarchical annotation pipeline with quality filters: Cross-verifier Cohen's κ=0.81 on 200 MATH-500 items; filter ablation varies RM-Bench accuracy by ±1.5%; 1500-instance audit finds 90.0% step-label accuracy.\n  - Adaptive depth allocation: Table 5: 1820 versus 2100 tokens/query (13.3% saving), 1.15× speedup, uncertainty–depth correlation 0.78; hard-quartile accuracy 86.9% versus 87.2% fixed.\n  - Multi-objective SFT with curriculum RL: Table 7: SFT+RL raises RM-Bench 78.5→82.3%, MATH-500 86.4→89.1%, AlpacaEval2 51.2→58.3% over SFT-only.\n  - Multi-granularity orchestration metric suite: Tables 2–5 report all classes on MATH-500, RM-Bench, CodeContests, AlpacaEval2; HPR-GenRM reaches 89.1% step accuracy, F1 0.83, ECE 0.058.\n  - K·D verification-checkpoint robustness bound: Fig. 6(b): detection rises 61.3% to 90.2% with K·D; Best-of-500 detection stays 88.4% at K=15, D=1500; measured ρ=0.12 gives 𝐾eff≈5.6.\n- Limitations the authors state:\n  - Three-tier hierarchical verification composition: Intended for offline reward labeling and batch RLHF; per-query latency of several seconds makes real-time use prohibitive without distillation.\n  - Hierarchical annotation pipeline with quality filters: Verifier step depends on frontier APIs (GPT-4o or DeepSeek-R1); filtering discards 40%–50% of data; residual ~10% per-step annotation error floor.\n  - Adaptive depth allocation: Trained post-hoc on 2K validation instances; accuracy drops 0.4–0.5%; transfer correlation falls to 0.71 and 0.69 on MATH-500 and CodeContests.\n  - Multi-objective SFT with curriculum RL: No formal convergence proof for the three-phase curriculum; empirical convergence within 6 epochs; adds five loss weights and three KL penalties.\n  - Multi-granularity orchestration metric suite: AlpacaEval2 win-ra",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Three-tier hierarchical verification composition: Table 7 ablation: full hierarchy reaches 82.3% RM-Bench, 89.1% MATH-500, 58.3% AlpacaEval2 versus 74.2% for Tier 1 alone.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Hierarchical annotation pipeline with quality filters: Cross-verifier Cohen's κ=0.81 on 200 MATH-500 items; filter ablation varies RM-Bench accuracy by ±1.5%; 1500-instance audit finds 90.0% step-label accuracy.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Adaptive depth allocation: Table 5: 1820 versus 2100 tokens/query (13.3% saving), 1.15× speedup, uncertainty–depth correlation 0.78; hard-quartile accuracy 86.9% versus 87.2% fixed.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-objective SFT with curriculum RL: Table 7: SFT+RL raises RM-Bench 78.5→82.3%, MATH-500 86.4→89.1%, AlpacaEval2 51.2→58.3% over SFT-only.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-granularity orchestration metric suite: Tables 2–5 report all classes on MATH-500, RM-Bench, CodeContests, AlpacaEval2; HPR-GenRM reaches 89.1% step accuracy, F1 0.83, ECE 0.058.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "K·D verification-checkpoint robustness bound: Fig. 6(b): detection rises 61.3% to 90.2% with K·D; Best-of-500 detection stays 88.4% at K=15, D=1500; measured ρ=0.12 gives 𝐾eff≈5.6.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Three-tier hierarchical verification composition: Intended for offline reward labeling and batch RLHF; per-query latency of several seconds makes real-time use prohibitive without distillation.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Hierarchical annotation pipeline with quality filters: Verifier step depends on frontier APIs (GPT-4o or DeepSeek-R1); filtering discards 40%–50% of data; residual ~10% per-step annotation error floor.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Adaptive depth allocation: Trained post-hoc on 2K validation instances; accuracy drops 0.4–0.5%; transfer correlation falls to 0.71 and 0.69 on MATH-500 and CodeContests.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-objective SFT with curriculum RL: No formal convergence proof for the three-phase curriculum; empirical convergence within 6 epochs; adds five loss weights and three KL penalties.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-granularity orchestration metric suite: AlpacaEval2 win-rate variance is largest (SD = 1.2%) due to GPT-4 judging sensitivity to prompt phrasing.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "K·D verification-checkpoint robustness bound: Assumes conditionally independent step failures and Gaussian noise; correlated failures weaken the bound; idealized form overestimates robustness by ~2.7× in the exponent.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

@@ -1,0 +1,94 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Kinny, 1996 - A methodology and modelling technique for.md",
+  "metadata": {
+    "title": "A methodology and modelling technique for systems of BDI agents",
+    "authors": [
+      "David Kinny",
+      "Michael Georgeff",
+      "Anand Rao"
+    ],
+    "year": 1996,
+    "venue": "Lecture Notes in Computer Science",
+    "doi": "10.1007/bfb0031846",
+    "abstract_summary": "A BDI (Belief-Desire-Intention) agent's behavior can be specified and validated through explicit external and internal agent models - roles, goals, plans, beliefs - before implementation, giving BDI systems a real design methodology rather than only a runtime execution architecture."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 39,
+      "text": "A BDI (Belief-Desire-Intention) agent's behavior can be specified and validated through explicit external and internal agent models - roles, goals, plans, beliefs - before implementation, giving BDI systems a real design methodology rather than only a runtime execution architecture.",
+      "claims": [
+        {
+          "text": "A BDI (Belief-Desire-Intention) agent's behavior can be specified and validated through explicit external and internal agent models - roles, goals, plans, beliefs - before implementation, giving BDI systems a real design methodology rather than only a runtime execution architecture.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 2,
+      "text": "<claim: unread>",
+      "claims": [
+        {
+          "text": "<claim: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 42,
+      "text": "Presents a structured modelling technique (an external agent model covering roles/responsibilities/interactions, and an internal model covering beliefs/goals/plans) and validates it by applying the full methodology to a substantial real-world case study, an air-traffic-management system, implemented on the authors' own dMARS BDI platform.",
+      "claims": [
+        {
+          "text": "Presents a structured modelling technique (an external agent model covering roles/responsibilities/interactions, and an internal model covering beliefs/goals/plans) and validates it by applying the full methodology to a substantial real-world case study, an air-traffic-management system, implemented",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 79,
+      "text": "- Validated by one substantial, real case study (air-traffic management), not a controlled comparison against alternative design methodologies.\n- The underlying BDI theoretical claims - rational commitment, when an agent should reconsider an intention - rest on the authors' separately published formal semantics and are assumed, not re-derived, in this paper.\n- Influential as one of the first systematic BDI design methodologies; later work (Prometheus, Tropos) built further structured methodologies partly in response to gaps this one left open.",
+      "claims": [
+        {
+          "text": "Validated by one substantial, real case study (air-traffic management), not a controlled comparison against alternative design methodologies.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "The underlying BDI theoretical claims - rational commitment, when an agent should reconsider an intention - rest on the authors' separately published formal semantics and are assumed, not re-derived, in this paper.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Influential as one of the first systematic BDI design methodologies; later work (Prometheus, Tropos) built further structured methodologies partly in response to gaps this one left open.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

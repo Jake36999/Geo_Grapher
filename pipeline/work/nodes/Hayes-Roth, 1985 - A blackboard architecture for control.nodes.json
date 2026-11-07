@@ -1,0 +1,92 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Hayes-Roth, 1985 - A blackboard architecture for control.md",
+  "metadata": {
+    "title": "A blackboard architecture for control",
+    "authors": [
+      "Barbara Hayes-Roth"
+    ],
+    "year": 1985,
+    "venue": "Artificial Intelligence",
+    "doi": "10.1016/0004-3702(85)90063-3",
+    "abstract_summary": "A blackboard system solves a problem through independent knowledge sources that read and write a shared, structured workspace (the blackboard), coordinated by a separate control component that decides which knowledge source acts next - useful specifically when the right problem-solving strategy cannot be fixed in advance."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 46,
+      "text": "A blackboard system solves a problem through independent knowledge sources that read and write a shared, structured workspace (the blackboard), coordinated by a separate control component that decides which knowledge source acts next - useful specifically when the right problem-solving strategy cannot be fixed in advance.",
+      "claims": [
+        {
+          "text": "A blackboard system solves a problem through independent knowledge sources that read and write a shared, structured workspace (the blackboard), coordinated by a separate control component that decides which knowledge source acts next - useful specifically when the right problem-solving strategy cannot be fixed in advance.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 2,
+      "text": "<claim: unread>",
+      "claims": [
+        {
+          "text": "<claim: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 36,
+      "text": "A conceptual and architectural paper: defines the three generic components (knowledge sources, blackboard, control), then grounds the definition in the HEARSAY-II speech-understanding system and other implemented blackboard systems as worked examples of the architecture in practice.",
+      "claims": [
+        {
+          "text": "A conceptual and architectural paper: defines the three generic components (knowledge sources, blackboard, control), then grounds the definition in the HEARSAY-II speech-understanding system and other implemented blackboard systems as worked examples of the architecture in practice.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 76,
+      "text": "- Architectural description grounded in a real, implemented system (HEARSAY-II), not a purely theoretical proposal.\n- Explicit that blackboard systems trade a clean, prescribed control flow for flexibility, and offers no formal guarantee about efficiency or termination - a cost later blackboard-system critiques focused on directly.\n- Still the standard citation for the pattern itself, independent of whether a given modern system calls it a \"blackboard\" or something else (a shared event bus, a tuple space).",
+      "claims": [
+        {
+          "text": "Architectural description grounded in a real, implemented system (HEARSAY-II), not a purely theoretical proposal.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Explicit that blackboard systems trade a clean, prescribed control flow for flexibility, and offers no formal guarantee about efficiency or termination - a cost later blackboard-system critiques focused on directly.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Still the standard citation for the pattern itself, independent of whether a given modern system calls it a \"blackboard\" or something else (a shared event bus, a tuple space).",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

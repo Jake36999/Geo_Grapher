@@ -1,0 +1,87 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Nakamura, 2018 - Chameleon Field in a Spherical Shell.md",
+  "metadata": {
+    "title": "Chameleon Field in a Spherical Shell System",
+    "authors": [
+      "Tomohiro Nakamura",
+      "Taishi Ikeda",
+      "Ryo Saito",
+      "Chul-Moon Yoo"
+    ],
+    "year": 2018,
+    "venue": "Phys. Rev. D 99, 044024 (2019)",
+    "doi": "arxiv:1804.05485",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 205,
+      "text": "As the authors state it:\n\n> We investigate the validity of screening mechanism of the fifth force for chameleon field in highly inhomogeneous density profile. For simplicity, we consider a static and spherically symmetric system which is composed of concentric infinitely thin shells. We calculate the fifth force profile by using a numerical method for a relatively large Compton wavelength of the chameleon field. An approximate solution is also derived for the small Compton wavelength limit. Our results show that, if the thin-shell condition for the corresponding smoothed density profile is satisfied, the fifth force is safely screened outside the system irrespective of the configuration of the shells inside the system. In contrast to the screening outside the system, we find that the fifth force can be comparable to the Newtonian gravitational force inside the system. If the system is highly inhomogeneous, the chameleon field cannot trace the potential minimum varying with the density and repeats being kicked, climbing up and rolling down the potential even when the effective mass of the chameleon field is sufficiently large in the system on average. One should not feel complacent about the wellbehavedness of the fifth force field with an averaged density distribution when we consider inhomogeneous objects.",
+      "claims": [
+        {
+          "text": "As the authors state it: We investigate the validity of screening mechanism of the fifth force for chameleon field in highly inhomogeneous density profile. For simplicity, we consider a static and spherically symmetric system which is composed of concentric infinitely thin shells. We calculate the fifth force profile by using a numerical method for a relatively large Compton wavelength of the cham",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

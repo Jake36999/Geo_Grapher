@@ -1,0 +1,85 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Euchner, 2024 - ESPARGOS Phase-Coherent WiFi CSI Datasets for.md",
+  "metadata": {
+    "title": "ESPARGOS: Phase-Coherent WiFi CSI Datasets for Wireless Sensing Research",
+    "authors": [
+      "Florian Euchner",
+      "Stephan ten Brink"
+    ],
+    "year": 2024,
+    "venue": null,
+    "doi": "arxiv:2408.16377",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 143,
+      "text": "As the authors state it:\n\n> The use of WiFi signals to sense the physical environment is gaining popularity, with some common applications being motion detection and transmitter localization. Standard-compliant WiFi provides a cost effective, easy and backward-compatible approach to Joint Communication and Sensing and enables a seamless transfer of results from experiments to practical applications. However, most WiFi sensing research is conducted on channel state information (CSI) data from current-generation devices, which are usually not meant for sensing applications and thus lack sufficient spatial diversity or phase synchronization. With ESPARGOS, we previously developed a phase-coherent, real-time capable many-antenna WiFi channel sounder specifically for wireless sensing. We describe how we use ESPARGOS to capture large CSI datasets that we make publicly available. The datasets are extensively documented and labeled, for example with information from reference positioning systems, enabling data-driven and machine learning-based research.",
+      "claims": [
+        {
+          "text": "As the authors state it: The use of WiFi signals to sense the physical environment is gaining popularity, with some common applications being motion detection and transmitter localization. Standard-compliant WiFi provides a cost effective, easy and backward-compatible approach to Joint Communication and Sensing and enables a seamless transfer of results from experiments to practical applications. ",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Security & SIEM",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

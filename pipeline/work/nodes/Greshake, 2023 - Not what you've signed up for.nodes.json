@@ -1,0 +1,97 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Greshake, 2023 - Not what you've signed up for.md",
+  "metadata": {
+    "title": "Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection",
+    "authors": [
+      "Kai Greshake",
+      "Sahar Abdelnabi",
+      "Shailesh Mishra",
+      "Christoph Endres",
+      "Thorsten Holz",
+      "Mario Fritz"
+    ],
+    "year": 2023,
+    "venue": null,
+    "doi": "arxiv:2302.12173",
+    "abstract_summary": "An attacker who can plant content in a place an LLM-integrated application will later retrieve - a webpage, a search result, an email, a code comment - can execute a prompt injection without ever interacting with the victim application directly: a materially different, harder-to-defend threat model than a user typing a malicious prompt themselves."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 54,
+      "text": "An attacker who can plant content in a place an LLM-integrated application will later retrieve - a webpage, a search result, an email, a code comment - can execute a prompt injection without ever interacting with the victim application directly: a materially different, harder-to-defend threat model than a user typing a malicious prompt themselves.",
+      "claims": [
+        {
+          "text": "An attacker who can plant content in a place an LLM-integrated application will later retrieve - a webpage, a search result, an email, a code comment - can execute a prompt injection without ever interacting with the victim application directly: a materially different, harder-to-defend threat model than a user typing a malicious prompt themselves.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 252,
+      "text": "As the authors state it:\n\n> Large Language Models (LLMs) are increasingly being integrated into various applications. The functionalities of recent LLMs can be flexibly modulated via natural language prompts. This renders them susceptible to targeted adversarial prompting, e.g., Prompt Injection (PI) attacks enable attackers to override original instructions and employed controls. So far, it was assumed that the user is directly prompting the LLM. But, what if it is not the user prompting? We argue that LLM-Integrated Applications blur the line between data and instructions. We reveal new attack vectors, using Indirect Prompt Injection, that enable adversaries to remotely (without a direct interface) exploit LLM-integrated applications by strategically injecting prompts into data likely to be retrieved. We derive a comprehensive taxonomy from a computer security perspective to systematically investigate impacts and vulnerabilities, including data theft, worming, information ecosystem contamination, and other novel security risks. We demonstrate our attacks' practical viability against both real-world systems, such as Bing's GPT-4 powered Chat and code-completion engines, and synthetic applications built on GPT-4. We show how processing retrieved prompts can act as arbitrary code execution, manipulate the application's functionality, and control how and if other APIs are called. Despite the increasing integration and reliance on LLMs, effective mitigations of these emerging threats are currently lacking. By raising awareness of these vulnerabilities and providing key insights into their implications, we aim to promote the safe and responsible deployment of these powerful models and the development of robust defenses that protect users and systems from potential attacks.",
+      "claims": [
+        {
+          "text": "As the authors state it: Large Language Models (LLMs) are increasingly being integrated into various applications. The functionalities of recent LLMs can be flexibly modulated via natural language prompts. This renders them susceptible to targeted adversarial prompting, e.g., Prompt Injection (PI) attacks enable attackers to override original instructions and employed controls. So far, it was assu",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Security & SIEM",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 38,
+      "text": "Constructs and demonstrates working attacks against real, deployed systems (Bing's GPT-4-powered Chat, code-completion engines) and synthetic GPT-4 applications, then derives a taxonomy of resulting harms - data exfiltration, worming/self-propagation, persistent information-ecosystem contamination - from a computer-security threat-modeling perspective.",
+      "claims": [
+        {
+          "text": "Constructs and demonstrates working attacks against real, deployed systems (Bing's GPT-4-powered Chat, code-completion engines) and synthetic GPT-4 applications, then derives a taxonomy of resulting harms - data exfiltration, worming/self-propagation, persistent information-ecosystem contamination -",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 80,
+      "text": "- Attacks demonstrated against real, production systems at the time, not only synthetic ones - strong practical evidence the threat is real rather than theoretical.\n- Explicit that effective mitigations did not yet exist at publication; the paper names the problem class rather than solving it.\n- Directly names the threat model this catalogue's own tooling is exposed to: `librarian/lens.py` reads untrusted PDF-extracted text and hands it to a model as context, and `populate.py` reads untrusted READMEs the same way.",
+      "claims": [
+        {
+          "text": "Attacks demonstrated against real, production systems at the time, not only synthetic ones - strong practical evidence the threat is real rather than theoretical.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Explicit that effective mitigations did not yet exist at publication; the paper names the problem class rather than solving it.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Directly names the threat model this catalogue's own tooling is exposed to: `librarian/lens.py` reads untrusted PDF-extracted text and hands it to a model as context, and `populate.py` reads untrusted READMEs the same way.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

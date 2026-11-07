@@ -1,0 +1,18 @@
+{
+  "file_path": "E:/Librarian research/XML_and_then_some.pdf",
+  "metadata": {
+    "title": "",
+    "authors": [],
+    "year": null,
+    "venue": null,
+    "doi": null,
+    "abstract_summary": ""
+  },
+  "sections": [],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 121,
+    "output_tokens": 37,
+    "cost_usd": 2.6e-05
+  }
+}

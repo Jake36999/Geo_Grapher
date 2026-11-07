@@ -1,0 +1,200 @@
+{
+  "file_path": "E:/Librarian research/45_70685_EE411_2013_1__1_1_Control System I-state space.pdf",
+  "page_count": 84,
+  "first_page_text": "Control System I\nEE 411\nState Space Analysis\nState Space Analysis\nLecture 11\nDr. Mostafa Abdel-geliel\n",
+  "sections": [
+    {
+      "heading": "The state variables are",
+      "section_type": "other",
+      "position": 44,
+      "text": "an internal description of the system which completely characterize the system state at any time t , and from which any output variables yi ( t ) may be computed. The State Equations A standard form for the state equations is used throughout system dynamics. In the standard form the mathematical description of the system is expressed as a set of n coupled first-order ordinary differential equations, known as the state equations , in which the time derivative of each state variable is expressed in terms of the state variables x 1( t ) , . . . , xn ( t ) and the system inputs u 1( t ) , . . . , ur ( t ). It is common to express the state equations in a vector form, in which the set of n state variables is written as a state vector x ( t ) = [ x 1 ( t ) , x 2 ( t ) , . . . , x n ( t )] T , and the set of r inputs is written as an input vector u ( t ) = [ u 1 ( t ) , u 2 ( t ) , . . . , u r ( t )] T . Each state variable is a time varying component of the column vector x ( t ). ٩ In this note we restrict attention primarily to a description of systems that are linear and time-invariant (LTI), that is systems described by linear differential equations with constant coefficients. where the coefficients a ij and b ij are constants that describe the system. This set of n equations defines the derivatives of the state variables to be a weighted sum of the state variables and the system inputs. ٠١ where the state vector x is a column vector of length n , the input vector u is a column vector of length r , A is an n × n square matrix of the constant coefficients a ij , and B is an n × r matrix of the coefficients b ij that weight the inputs. A system output is defined to be any system variable of interest. A description of a physical system in terms of a set of state variables does not necessarily include all of ١١ physical system in terms of a set of state variables does not necessarily include all of the variables of direct engineering interest. An important property of the linear state equation description is that all system variables may be represented by a linear combination of the state variables xi and the system inputs ui . An arbitrary output variable in a system of order n with r inputs may be written: ٢١ ٣١ where y is a column vector of the output variables y i ( t ), C is an m×n matrix of the constant coefficients c ij that weight the state variables, and D is an m × r matrix of the constant coefficients d ij that weight the system inputs. For many physical systems the matrix D is the null matrix, and the output equation reduces to a simple weighted combination of the state variables:",
+      "page_start": 3,
+      "word_count": 539
+    },
+    {
+      "heading": "Example",
+      "section_type": "other",
+      "position": 45,
+      "text": "Find the State equations for the series R-L-C electric circuit shown in ٤١ Solution: capacitor voltage v C ( t ) and the inductor current i L ( t ) are state variables )1( * ) ( K dt di L v i R t v c s + + =",
+      "page_start": 1,
+      "word_count": 51
+    },
+    {
+      "heading": "The relation of capacitor voltage and current",
+      "section_type": "other",
+      "position": 48,
+      "text": "1 1 dv then dt dv c i c = 1 2 1 2 2 2 1 )] ( * [ 1 ) ( * )1( 1 1 x v y t u x R x L x t v i R v dt di x equation from x c i c dt dv x c s c c = = + − − = + − − = = = = = & & &",
+      "page_start": 3,
+      "word_count": 76
+    },
+    {
+      "heading": "Solution",
+      "section_type": "other",
+      "position": 51,
+      "text": "we define state variables as , 13 , , 3 2 1 u y x and y x y x + = = = && & ٦١ we define state variables as then the state space representation is 1 1 2 3 1 2 3 3 3 2 2 1 117 13 19 7 26 13 19 ) 13 ( 7 26 13 19 7 13 13 x y u x x x u x x u x u y y y u y x u x y x x y x = + − − − = + − − − − = + − − − = − = − = = = = & && & &&& & && & & & [ ] ) ( ] 0 [ ) ( 0 0 1 ) ( ) ( 117 13 0 ) ( 7 19 13 1 0 0 0 1 0 ) ( t u t t y t u t t + =           − +           − − − = x x x &",
+      "page_start": 2,
+      "word_count": 198
+    },
+    {
+      "heading": "Then the model will be",
+      "section_type": "other",
+      "position": 52,
+      "text": "[ ] 0 , 0 0 1 117 13 0 , 7 19 13 1 0 0 0 1 0 = =           − =           − − − = D C B A [ ] ) ( ] 0 [ ) ( 0 0 1 ) ( where",
+      "page_start": 24,
+      "word_count": 67
+    },
+    {
+      "heading": "State Space Representation",
+      "section_type": "other",
+      "position": 54,
+      "text": "The complete system model for a linear time-invariant system consists of: (i) a set of n state equations, defined in terms of the matrices A and B , and (ii) a set of output equations that relate any output variables of interest to the state variables and inputs, and expressed in terms of the C and D matrices. The task of modeling the system is to derive the elements of the matrices, and to write The task of modeling the system is to derive the elements of the matrices, and to write the system model in the form: The matrices A and B are properties of the system and are determined by the system structure and elements. The output equation matrices C and D are determined by the particular choice of output variables.",
+      "page_start": 1,
+      "word_count": 133
+    },
+    {
+      "heading": "Described by State Equations",
+      "section_type": "other",
+      "position": 56,
+      "text": "Step 1: Draw n integrator ( S− 1) blocks, and assign a state variable to the output of each block. Step 2: At the input to each block (which represents the derivative of its state variable) draw a summing element. Step 3: Use the state equations to connect the state variables and inputs to the ٢٢ Step 3: Use the state equations to connect the state variables and inputs to the summing elements through scaling operator blocks. Step 4: Expand the output equations and sum the state variables and inputs through a set of scaling operators to form the components of the output. Example 1 Draw a block diagram for the general second-order, single-input single-output system: The overall modeling procedure developed in this chapter is based on the following steps: 1. Determination of the system order n and selection of a set of state variables from the linear graph system representation. from the linear graph system representation. 2. Generation of a set of state equations and the system A and B matrices using a well defined methodology. This step is also based on the linear graph system description. 3. Determination of a suitable set of output equations and derivation of the appropriate C and D matrices.",
+      "page_start": 1,
+      "word_count": 206
+    },
+    {
+      "heading": "Can you derive this TF?",
+      "section_type": "other",
+      "position": 61,
+      "text": "), ( ), ( 2 1 t i x t v x L c = = ). ( ˆ ), ( ˆ 2 1 t v x t v x L c = = . 1 ) ( ) ( 2 0 + + = RCs LCs R s U s V",
+      "page_start": 4,
+      "word_count": 52
+    },
+    {
+      "heading": "We recall Mason’s gain formula when all feedback loops are",
+      "section_type": "other",
+      "position": 68,
+      "text": "touching and also touch all forward paths, Consider a 4 th- order TF 0 1 2 2 3 3 4 0 ) ( ) ( ) ( + + + + = = a s a s a s a s b s U s Y s G gain loop feedback of sum 1 gain path forward of Sum 1 1 − = − = ∆ ∆ = ∑ ∑ ∑ = N q q k k k k k L P P T ٨٢ We notice the similarity between this TF and Mason’s gain formula above. To represent the system, we use 4 state variables Why? 4 0 3 1 2 2 1 3 4 0 0 1 2 3 1 ) ( − − − − − + + + + = + + + + s a s a s a s a s b a s a s a s a s s U",
+      "page_start": 1,
+      "word_count": 158
+    },
+    {
+      "heading": "This 4",
+      "section_type": "other",
+      "position": 70,
+      "text": "th -order system can be represented by 4 0 3 1 2 2 1 3 4 0 1 ) ( ) ( ) ( − − − − − + + + + = = s a s a s a s a s b s U s Y s G ٩٢",
+      "page_start": 2,
+      "word_count": 52
+    },
+    {
+      "heading": "Again, this 4",
+      "section_type": "other",
+      "position": 73,
+      "text": "th -order TF can be represented by the block diagram as shown 4 0 3 1 2 2 1 3 4 0 0 1 2 2 3 3 4 0 1 ) ( ) ( ) ( − − − − − + + + + = + + + + = = s a s a s a s a s b a s a s a s a s b s U s Y s G ٠٣ can be represented by the block diagram as shown",
+      "page_start": 2,
+      "word_count": 88
+    },
+    {
+      "heading": "With either the signal-flow graph or block diagram of",
+      "section_type": "other",
+      "position": 74,
+      "text": "the previous 4 th -order system, we define state variables as , , , , x x x x x x b y x & & & = = = = ١٣ we define state variables as then the state space representation is , , , , 3 4 2 3 1 2 0 1 x x x x x x b y x & & & = = = = 1 0 4 3 3 2 2 1 1 0 4 4 3 3 2 2 1 x b y u x a x a x a x a x x x x x x x = + − − − − = = = = & & & &",
+      "page_start": 1,
+      "word_count": 121
+    },
+    {
+      "heading": "Writing in matrix form",
+      "section_type": "other",
+      "position": 75,
+      "text": "we have ) ( ) ( ) ( ) ( ) ( ) ( t t t t t t Du Cx y Bu Ax x + = + = & ٢٣ [ ] 0 , 0 0 0 1 0 0 0 , 1 0 0 0 0 1 0 0 0 0 1 0 0 3 2 1 0 = =             =             − − − − = D b a a a a C B A When studying an actual control system block diagram, we wish to select the physical variables as state variables. For example, the block diagram of an open loop DC motor is 1 5 5 − + s 1 − s 1 6 − s ٣٣",
+      "page_start": 1,
+      "word_count": 146
+    },
+    {
+      "heading": "We draw the signal-flow diagraph of each block separately",
+      "section_type": "other",
+      "position": 76,
+      "text": "and then connect them. We select x 1 =y(t), x 2 =i(t) and x 3 = (1/4) r(t)- (1/20) u(t) to form the state space representation. 1 5 1 5 5 − + + s s 1 2 1 − + s s 1 3 1 6 − + s s",
+      "page_start": 4,
+      "word_count": 51
+    },
+    {
+      "heading": "The corresponding state space equation is",
+      "section_type": "other",
+      "position": 78,
+      "text": "x x x ] 0 0 1[ ) ( 1 5 0 5 0 0 20 2 0 0 6 3 =           +           − − − − = y t r &",
+      "page_start": 3,
+      "word_count": 52
+    },
+    {
+      "heading": "Controllable Canonical Form General case",
+      "section_type": "other",
+      "position": 85,
+      "text": "٧٤ 2- Observable Canonical Form u b u dt d b u dt d b u dt d b y a y dt d a y dt d a y dt d n n n n n n n n n n n n n n + + + + = + + + + − − − − − − − − ..... ..... 2 2 2 1 1 1 0 2 2 2 1 1 1 ) ( ..... ) ( ) ( 2 2 2 2 1 1 1 1 0 y a u b y a u b dt d y a u b dt d u dt d b y dt d n n n n n n n n n n − + + − + − + = − − − − rearrange Integrate both side n times Prove ٨٤ dt y a u b dt y a u b dt y a u b u b y n n n ∫∫∫ − + + ∫∫ − + ∫ − + = ) ( ..... ) ( ) ( 2 2 1 1 0 Integrate both side n times ʃ - + + + y xn bo ʃ - + + Xn-1 b1 + b2 ʃ a n - + bn x1 u a2 - a1 General Form 3- Diagonal Canonical Form ٠٥ General Form ١٥ 4- cascade Form 1 5 5 − + s 1 − s 1 6 − s ٢٥ 1 5 1 5 5 − + + s s 1 2 1 − + s s 1 3 1 6 − + s s ٣٥",
+      "page_start": 1,
+      "word_count": 276
+    },
+    {
+      "heading": "The corresponding state space equation is",
+      "section_type": "other",
+      "position": 86,
+      "text": "x x x ] 0 0 1[ ) ( 1 5 0 5 0 0 20 2 0 0 6 3 =           +           − − − − = y t r & 1- Consider the system given by Obtain state-space representations in the controllable canonical form, observable canonical form, and diagonal canonical form.",
+      "page_start": 2,
+      "word_count": 73
+    },
+    {
+      "heading": "Tanking the Laplace transform and neglect initial condition then",
+      "section_type": "other",
+      "position": 99,
+      "text": ") ( ) 0 ( ) ( ) ( then (2) (1) and ) ( ) ( ) 0 ( ) ( s B s A s s (s) D (s) C (s) s B s A s s U x X X U X Y U X x X + = − + = + = − ( ) ) ( ) ( ) ( then condition intial neglecting by ) ( ) 0 ( ) ( ) ( 1 s B s A sI s B s A s s U X U x X X − − = = − + = − ( ) ) ( ) ( 1 s B A sI s U X − − = ( ) ( ) D B A sI s G s s s D s B A sI + − = = + − = − − 1 1 C ) ( ) ( /) ( ) ( ) ( C",
+      "page_start": 5,
+      "word_count": 164
+    },
+    {
+      "heading": "State-Transition Matrix",
+      "section_type": "other",
+      "position": 101,
+      "text": "We can write the solution of the homogeneous state equation Laplace transform ٢٦ The inverse Laplace transform Note that Hence, the inverse Laplace transform of ٣٦ State-Transition Matrix Note that Where If the eigenvalues of the matrix A are distinct, than will contain the n exponentials ٤٦",
+      "page_start": 1,
+      "word_count": 47
+    },
+    {
+      "heading": "NON- homogeneous",
+      "section_type": "other",
+      "position": 103,
+      "text": "state equation ٩٦ Integrating the preceding equation between 0 and t gives or unit-step function ٠٧ ١٧ 10 ٢٧ Prove Transfer function of the given ss Solution D B A sI C s G + − = − 1 ) ( ) (",
+      "page_start": 2,
+      "word_count": 43
+    },
+    {
+      "heading": "For a given system G(s) has two different ss representations",
+      "section_type": "other",
+      "position": 106,
+      "text": ") ( ) ( ) ( ) ( ) ( ) ( : M : Rep.1 1 1 1 1 1 t D t C t t B t A t u x y u x x + = + = ) ( ) ( ) ( ) ( ) ( ) ( : M : Rep.2 2 2 2 2 2 t D t C t t B t A t u z y u z x + = + =",
+      "page_start": 2,
+      "word_count": 82
+    },
+    {
+      "heading": "For example",
+      "section_type": "other",
+      "position": 109,
+      "text": "y y y x y y y x y y x take & && && & & + = = + = = = = 1 3 2 2 1 1 z , z , z , y y y x y y y x y y x take & && && & & + = = + = = = = 3 3 2 2 1 1 z , z , z , 1 2 2 1 1 z z x x x then + = = 2 3 3 1 2 2 z z x x x x + = + = x z z T x x x z z z =                     =           = 3 2 1 3 2 1 1 1 0 0 1 1 0 0 1           = 1 1 0 0 1 1 0 0 1 T Sub. By z=Tx in rep. 2 ) ( ) ( ) ( ) ( ) ( ) ( ) ( T by mutiply ) ( ) ( ) ( ) ( 2 2 2 1 2 1 1 1 -1 2 2 t D t T C t y t B T t T A T t T T t z T t B t T A t T t z u x u x x u x x + = + = = + = = − − − − & & & ) ( ) ( ) ( 2 2 t D t T C t y u x + = Compare with M1;rep.1 ) ( ) ( ) ( ) ( ) ( ) ( : M : Rep.1 1 1 1 1 1 t D t C t t B t A t u x y u x x + = + = then 2 1 2 1 2 1 1 2 1 1 D D T C C B T B T A T A = = = = − − 2 1 1 1 2 1 2 1 2 2 D D T C C TB B T TA A = = = = − −",
+      "page_start": 22,
+      "word_count": 395
+    },
+    {
+      "heading": "Matrix A.",
+      "section_type": "other",
+      "position": 117,
+      "text": "The eigenvalues are also called the characteristic roots. Consider, for example, the following matrix A : ٧٧ The eigenvalues of A are the roots of the characteristic equation, or –1, –2, and –3. Example     − = 2 8 1 0 A 0 ) 2 ( 8 1 0 A - I of solution the is eign value then the = + − − = − = λ λ λ λ A I ) 2 ( 8 + − λ 2 4 ) 2 )( 4 ( 0 8 2 2 1 2 = − = − + = = − + λ λ λ λ λ λ and then − = ∴ =         − − − − = = 0 2 8 1 4 . . 0 A) - I ( -4 12 11 1 1 v v e i v at λ λ =         − − = = 0 4 8 1 2 . . 0 A) - I ( 2 22 21 2 2 2 v v e i v at λ λ Eign vectors are obtained as     − = − = ∴ 4 1 4 1 11 12 v let v v     = = ∴     2 1 2 2 2 22 22 v let v v ] [ 2 1 n V v v v L = Eign vector matrix For all eign values and vectors n i A i i i , ,1,0 ; K = = v v λ These equations can be written in matrix form Λ = V V A where n ] [ 2 1 L = v v v V { } n i diag i n n , ,2,1 , 0 0 0 0 0 0 ] [ 2 1 2 1 L L M O M M L L L = =             = Λ = λ λ λ λ v v v V thus 1 − Λ = V V A V V A 1 − = Λ thus 1 2 2 ... !2 ) ( − Λ = + + + = = V Ve e t A At I t e t At At φ ) ,..., 2,1 , ( ... !2 ) ( 2 1 2 2 n i e diag e e e t t I t e t t t t t i = =         = + Λ + Λ + = = − Λ Λ λ λ λ φ O e t n       λ O Then for a given system has a system matrix A and a state vector X The diagonal system matrix A d and state Xd 2 1 1 1 1 1 1 1 ; D D T C C B V B AV V A matrix vector eign V T T T AT T A d d d d d d = = = = = = = = = Λ = − − − − x x x x Example 2: find the transformation into diagonal form and the state transition matrix of example1 1 2 4 0 0 2 0 0 4 − Λ − Λ =     =     − = Λ V Ve e e e e t At t t t = V Ve e     −         − =     −         − = − − − 1 4 1 2 0 0 2 4 1 1 6 1 2 4 1 1 0 0 2 4 1 1 2 4 1 2 4 t t At t t At e e e e e e Discus how to obtain the transformation matrix between two representation",
+      "page_start": 1,
+      "word_count": 687
+    },
+    {
+      "heading": "Diagonal Canonical Form",
+      "section_type": "other",
+      "position": 118,
+      "text": "٣٨ Alternative Form of the Condition for Complete State Controllability. If the eigenvectors of A are distinct, then it is possible to find a transformation matrix ٤٨ If the eigenvectors of A are distinct, then it is possible to find a transformation matrix P such that",
+      "page_start": 1,
+      "word_count": 46
+    }
+  ],
+  "references_raw": ""
+}

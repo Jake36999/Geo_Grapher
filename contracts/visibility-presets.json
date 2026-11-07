@@ -1,0 +1,5 @@
+{
+  "exact": {"label": "Exact", "resolution_statuses": ["exact"], "include_external": true},
+  "internal_candidates": {"label": "Internal exact + candidates", "resolution_statuses": ["exact", "candidate"], "include_external": false},
+  "all_uncertainty": {"label": "All uncertainty", "resolution_statuses": ["exact", "candidate", "unresolved"], "include_external": true}
+}

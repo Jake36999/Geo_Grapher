@@ -1,0 +1,90 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Nau, 2003 - SHOP2 An HTN Planning System.md",
+  "metadata": {
+    "title": "SHOP2: An HTN Planning System",
+    "authors": [
+      "D. S. Nau",
+      "T. C. Au",
+      "O. Ilghami",
+      "U. Kuter",
+      "J. W. Murdock",
+      "D. Wu",
+      "F. Yaman"
+    ],
+    "year": 2003,
+    "venue": "Journal of Artificial Intelligence Research",
+    "doi": "10.1613/jair.1141",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 52,
+      "text": "As the authors state it:\n\n> The SHOP2 planning system received one of the awards for distinguished performance in the 2002 International Planning Competition. This paper describes the features of SHOP2 which enabled it to excel in the competition, especially those aspects of SHOP2 that deal with temporal and metric planning domains.",
+      "claims": [
+        {
+          "text": "As the authors state it: The SHOP2 planning system received one of the awards for distinguished performance in the 2002 International Planning Competition. This paper describes the features of SHOP2 which enabled it to excel in the competition, especially those aspects of SHOP2 that deal with temporal and metric planning domains.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

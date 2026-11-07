@@ -1,0 +1,103 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Kleppmann et al., 2019 - Local-first software.md",
+  "metadata": {
+    "title": "Local-first software: you own your data, in spite of the cloud",
+    "authors": [
+      "Martin Kleppmann",
+      "Adam Wiggins",
+      "Peter van Hardenberg",
+      "Mark McGranaghan"
+    ],
+    "year": 2019,
+    "venue": "Proceedings of Onward! 2019 (ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software), Essays track",
+    "doi": null,
+    "abstract_summary": "Names and formalises \"local-first software\" as an architecture where the device holds the primary, authoritative copy of a user's data and any server holds only a secondary copy — sets out seven ideals this should satisfy at once — surveys existing storage/sync technologies against all seven and finds none satisfies more than a handful — and names CRDTs the most promising foundation for closing th"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 65,
+      "text": "Names and formalises \"local-first software\" as an architecture where the device holds the primary, authoritative copy of a user's data and any server holds only a secondary copy — sets out seven ideals this should satisfy at once — surveys existing storage/sync technologies against all seven and finds none satisfies more than a handful — and names CRDTs the most promising foundation for closing th",
+      "claims": [
+        {
+          "text": "Names and formalises \"local-first software\" as an architecture where the device holds the primary, authoritative copy of a user's data and any server holds only a secondary copy — sets out seven ideals this should satisfy at once — surveys existing storage/sync technologies against all seven and finds none satisfies more than a handful — and names CRDTs the most promising foundation for closing th",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 230,
+      "text": "As the authors state it: \"In cloud apps, the data on the server is treated as the primary, authoritative copy of the data; if a client has a copy of the data, it is merely a cache... In local-first applications we swap these roles: we treat the copy of the data on your local device... as the primary copy.\" They propose seven ideals for software built this way: (1) no spinners — work is available at your fingertips because reads/writes never wait on a server round-trip; (2) your work is not trapped on one device — data syncs across the devices you use; (3) the network is optional — full function offline; (4) seamless collaboration with your colleagues — real-time multi-user editing on par with the best cloud apps; (5) the Long Now — data and the means to read it survive independently of any vendor staying in business; (6) security and privacy by default — no centralized database of every user's data to breach; (7) you retain ultimate ownership and control — the bytes are yours to do with as you like, including export, backup, and processing outside the vendor's own tools. They then claim that \"data ownership and real-time collaboration are not at odds with each other\" and that CRDTs are the most promising known foundation for realizing all seven ideals simultaneously, based on three years of prototyping.",
+      "claims": [
+        {
+          "text": "As the authors state it: \"In cloud apps, the data on the server is treated as the primary, authoritative copy of the data; if a client has a copy of the data, it is merely a cache... In local-first applications we swap these roles: we treat the copy of the data on your local device... as the primary copy.\" They propose seven ideals for software built this way: (1) no spinners — work is available a",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Infrastructure & Observability",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 96,
+      "text": "A structured qualitative survey rather than an experiment: the authors score a range of real technologies (plain files + email attachments, Google Docs/Trello/Pinterest-style web apps, Dropbox/Google Drive-style file sync, Git/GitHub, thin-client web apps, mobile thick clients, Firebase/CloudKit/Realm-style backend-as-a-service, and CouchDB/PouchDB) against the seven ideals using a three-value scale (meets / partially meets / does not meet), then separately reports on three in-house Electron/React prototypes built on Automerge (a Trello-like kanban board, a Figma-like collaborative drawing tool, and a further prototype) to evaluate technology viability, user experience, and developer experience of a CRDT-based data layer in practice.",
+      "claims": [
+        {
+          "text": "A structured qualitative survey rather than an experiment: the authors score a range of real technologies (plain files + email attachments, Google Docs/Trello/Pinterest-style web apps, Dropbox/Google Drive-style file sync, Git/GitHub, thin-client web apps, mobile thick clients, Firebase/CloudKit/Rea",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 258,
+      "text": "- The survey table is the paper's central evidence and it is explicit and legible: no surveyed technology scores full marks on all seven ideals; Git/GitHub comes closest among non-CRDT options (\"perhaps the closest thing we have to a true local-first software package\") but is stated to lack fine-grained real-time collaboration and to treat non-text formats as opaque blobs.\n- The prototype evidence is qualitative and self-reported by the same lab that built both the prototypes and Automerge — the authors state directly \"we do not claim that these libraries fully realize local-first ideals — more work is still required,\" which is an honest limitation stated in the authors' own words rather than one this note is supplying.\n- No user study, no adoption data, no performance benchmarks are presented; the seven ideals themselves are argued from the authors' own interviews with creative professionals, not validated against a broader or more diverse user population.\n- The essay explicitly scopes itself away from banking, e-commerce, social networking, and ride-sharing — domains it says are \"well served by centralized systems\" — and confines its claims to document/file-creation and personal-data-repository software. That scoping is a limit on where the paper's own claims are meant to apply, stated by the authors themselves, not an interpretation added here.\n- Also published with a DOI (10.1145/3359591.3359737) in the Onward! 2019 Essays track proceedings — recorded here for completeness, though this note's `identifier_kind` is set to `url` per this catalogue's convention for essays read from their canonical web publication rather than a formal proceedings PDF.",
+      "claims": [
+        {
+          "text": "The survey table is the paper's central evidence and it is explicit and legible: no surveyed technology scores full marks on all seven ideals; Git/GitHub comes closest among non-CRDT options (\"perhaps the closest thing we have to a true local-first software package\") but is stated to lack fine-grain",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "The prototype evidence is qualitative and self-reported by the same lab that built both the prototypes and Automerge — the authors state directly \"we do not claim that these libraries fully realize local-first ideals — more work is still required,\" which is an honest limitation stated in the authors",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "No user study, no adoption data, no performance benchmarks are presented; the seven ideals themselves are argued from the authors' own interviews with creative professionals, not validated against a broader or more diverse user population.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "The essay explicitly scopes itself away from banking, e-commerce, social networking, and ride-sharing — domains it says are \"well served by centralized systems\" — and confines its claims to document/file-creation and personal-data-repository software. That scoping is a limit on where the paper's own",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Also published with a DOI (10.1145/3359591.3359737) in the Onward! 2019 Essays track proceedings — recorded here for completeness, though this note's `identifier_kind` is set to `url` per this catalogue's convention for essays read from their canonical web publication rather than a formal proceeding",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

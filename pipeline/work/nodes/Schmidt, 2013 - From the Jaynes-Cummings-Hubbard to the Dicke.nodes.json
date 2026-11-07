@@ -1,0 +1,86 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Schmidt, 2013 - From the Jaynes-Cummings-Hubbard to the Dicke.md",
+  "metadata": {
+    "title": "From the Jaynes-Cummings-Hubbard to the Dicke model",
+    "authors": [
+      "Sebastian Schmidt",
+      "Gianni Blatter",
+      "Jonathan Keeling"
+    ],
+    "year": 2013,
+    "venue": "J. Phys. B: At. Mol. Opt. Phys. 46 224020 (2013)",
+    "doi": "arxiv:1307.2389",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 184,
+      "text": "As the authors state it:\n\n> We discuss the Jaynes-Cummings-Hubbard model (JCHM) describing the superfluid-Mott insulator transition of polaritons (i.e., dressed photon-qubit states) in coupled qubit-cavity arrays in the crossover from strong to weak correlations. In the strongly correlated regime the phase diagram and the elementary excitations of lattice polaritons near the Mott lobes are calculated analytically using a slave boson theory (SBT). The opposite regime of weakly interacting polariton superfluids is described by a weak-coupling mean-field theory (MFT) for a generalised multi-mode Dicke model. We show that a remarkable relation between the two theories exists in the limit of large photon bandwidth and large negative detuning, i.e., when the nature of polariton quasiparticles becomes qubit-like. In this regime, the weak coupling theory predicts the existence of a single Mott lobe with a change of the universality class of the phase transition at the tip of the lobe, in perfect agreement with the slave-boson theory. Moreover, the spectra of low energy excitations, i.e., the sound velocity of the Goldstone mode and the gap of the amplitude mode match exactly as calculated from both theories.",
+      "claims": [
+        {
+          "text": "As the authors state it: We discuss the Jaynes-Cummings-Hubbard model (JCHM) describing the superfluid-Mott insulator transition of polaritons (i.e., dressed photon-qubit states) in coupled qubit-cavity arrays in the crossover from strong to weak correlations. In the strongly correlated regime the phase diagram and the elementary excitations of lattice polaritons near the Mott lobes are calculated",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

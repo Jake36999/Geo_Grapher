@@ -1,0 +1,101 @@
+{
+  "file_path": "E:/Librarian research/Homo-agenticus-in-the-age-of-agentic-AI--Agency-loops--po_2025_Information-a.pdf",
+  "metadata": {
+    "title": "Homo agenticus in the age of agentic AI: Agency loops, power displacement, and the circulation of responsibility",
+    "authors": [
+      "Paul M. Leonardi"
+    ],
+    "year": null,
+    "venue": null,
+    "doi": null,
+    "abstract_summary": "The rise of agentic AI systems disrupts human attribution processes, leading to power displacement and a reduced sense of control and responsibility. Understanding agency loops and strategic attribution processes can help humans develop new forms of expertise and authority."
+  },
+  "sections": [
+    {
+      "heading": "A B S T R A C T",
+      "section_type": "other",
+      "position": 4,
+      "word_count": 492,
+      "text": "As attribution-making creatures, humans constantly seek to locate agency somewhere in their environment. Where we choose to attribute agency has profound consequences for our own sense of power, responsibility, and capacity to act. The rise of agentic AI systems disrupts these attri­ bution processes, as humans encounter technologies that appear to act autonomously and control outcomes affecting human lives. Drawing on psychological research on apparent mental causa­ tion, I argue that agency attribution operates as an active process of power redistribution. When humans attribute agency to AI systems, they experience systematic “ power dis­ placement ”— reduced sense of control and responsibility — even while retaining formal authority. This creates a paradox: the more autonomous AI appears, the less autonomous humans feel, regardless of their actual control. However, this displacement is neither permanent nor unidi­ rectional. Agency circulates through predictable “ agency loops ”— recursive patterns involving delegation, attribution, contingency, reassertion, and reconfiguration — that can be strategically managed. Humans who understand how agency loops operate and intervene in them through strategic attribution processes can develop new forms of expertise and authority. The future belongs to those who understand that agency is always attributed somewhere — and that where we choose to place it determines who has power to act. A defining characteristic of humanity is our relentless pursuit of control over our environment and our own destinies. We are, in essence, homo agenticus — humans defined by our search for agency. Philosophers have grappled with questions of voluntarism and determinism at least since the time of Aristotle, creating entire ethical frameworks predicated on a belief in human agency ( Kane, 2005 ). Psychologists routinely investigate agency and locus of control, arguing that they are foundational to human motivation ( Bandura, 1997 ). Economists build models of markets based on assumptions of human agency and self-maximization ( Sen, 1999 ). Legal systems distribute punishment based on evaluations of intentional, goal-oriented action ( Moore, 2010 ). And religious traditions debate divine determination versus human agency ( Swinburne, 2013 ). Within our own studies at the intersection of organizational theory and information systems, we have moved from discussing the agency of technological systems in deterministic ways (e.g., Leavitt & Whistler, 1958 ; Perrow, 1967 ; Woodward, 1958 ) to arguments that human agents shape technological outcomes ( Boudreau & Robey, 2005 ; Neff & Nagy, 2018 ; Orlikowski, 1992 ; Rose et al., 2005 ), to approaches that treat agency as materializing out of sociomaterial practices ( Leonardi, 2023 ; Scott & Orlikowski, 2025 ). Today, scholars from across the fields of information systems, organization studies, communication, and beyond have begun to treat agency not as something to aid in explanation, but as the thing to be explained. It has become central to theorizing. As some examples, Murray et al. (2021) responded to the evolving capabilities of machine learning models by theorizing about “ conjoined E-mail address: leonardi@ucsb.edu . Contents lists available at ScienceDirect",
+      "claims": [
+        {
+          "text": "The rise of agentic AI systems disrupts attribution processes, as humans encounter technologies that appear to act autonomously and control outcomes affecting human lives. This disruption has profound consequences for our own sense of power, responsibility, and capacity to act.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "When humans attribute agency to AI systems, they experience systematic power displacement — reduced sense of control and responsibility — even while retaining formal authority.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Agency circulates through predictable agency loops — recursive patterns involving delegation, attribution, contingency, reassertion, and reconfiguration — that can be strategically managed.",
+          "claim_type": "hypothesis"
+        },
+        {
+          "text": "The more autonomous AI appears, the less autonomous humans feel, regardless of their actual control.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "agency attribution",
+          "definition": "The process of locating agency somewhere in the environment, which has profound consequences for our own sense of power, responsibility, and capacity to act.",
+          "concept_type": "method"
+        },
+        {
+          "name": "agentic AI systems",
+          "definition": "Technologies that appear to act autonomously and control outcomes affecting human lives.",
+          "concept_type": "model"
+        },
+        {
+          "name": "agency loops",
+          "definition": "Recursive patterns involving delegation, attribution, contingency, reassertion, and reconfiguration that can be strategically managed.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Information and Organization",
+      "section_type": "other",
+      "position": 5,
+      "word_count": 12430,
+      "text": "journal homepage: www.elsevier.com/locate/infoandorg https://doi.org/10.1016/j.infoandorg.2025.100582 Received 14 December 2024; Received in revised form 9 June 2025; Accepted 14 June 2025 Information and Organization 35 (2025) 100582 Available online 20 June 2025 1471-7727/© 2025 The Author. Published by Elsevier Ltd. This is an open access article under the CC BY license ( http://creativecommons.org/licenses/by/4.0/ ). agency, ” Chandra et al. (2022) asked what it means to be “ human ” in a world filled by machine agency, and Vanneste and Puranam (2024) proposed that the ways we perceive AI to have agency affect whether and how people trust the technologies they use. Suddenly, discussions of agency are everywhere. This swift embrace of theorizing about agency at the dawn of the agentic AI era makes sense. With their conversational user interfaces and their generative capabilities, technologies powered by AI certainly have a capacity for action that seems to mirror, though less fully, the capacity that humans have. Companies are now racing to build AI agents that can reason and act autonomously. As the tech giant Amazon defines it, an AI agent is a “ software program that can interact with its environment, collect data, and use the data to perform self-determined tasks to meet predetermined goals. Humans set goals, but an AI agent independently chooses the best actions it needs to perform to achieve those goals. ” 1 To the casual observer, that certainly sounds like a technology that has agency. Why such an interest in agency, generally, and in the context of AI agents specifically? Across all of these different areas of work, it seems that scholars are responding to the same human imperative: our need to understand and assert control within our changing environment. The multiplicity of approaches to the conceptualization and study of agency reflect our need to make sense of agency from every possible angle. As the philosopher Berlin (1969: 178) noted, “ The desire to be self-directed … is a desire to be somebody, not nobody; a doer — deciding, rather than being decided for. ” Decades of research demonstrate that feeling in control is desirable and beneficial for human psychological health and functioning. When nursing home residents are given just a bit of control over their daily schedules, their health outcomes dramatically improve and mortality rates decline ( Langer & Rodin, 1976 ). When workers lose autonomy, they experience heightened stress, reduced motivation, and diminished well-being ( Theorell, 1992 ). Infants as young as eight months old exhibit agentive frustration when their actions fail to produce expected outcomes ( Watson, 1972 ). Yet for all this scholarly attention to defining, measuring, and theorizing agency, we have largely overlooked an important question: what happens when we attribute agency? While researchers continue to debate the ontological foundations of agency and seek ever more precise conceptualizations, I argue that we must shift our focus to the performative effects of agency attribution itself. This shift is crucial because the act of attributing agency does something beyond description — it actively creates the conditions for action and responsibility. When we attribute agency to ourselves, we claim the capacity to act, accepting both the possibilities and burdens that come with such attribution. When we attribute agency to others — whether human colleagues, organizational structures, or increasingly, AI agents — we simultaneously divest ourselves of that capacity. This divestment represents a transfer of both power and responsibility. The entity to whom we attribute agency becomes, in our understanding, the locus of intentional action and the bearer of consequences. In the emerging landscape of agentic AI systems, these attributions take on heightened significance as we delegate decision-making authority to algorithmic agents, effectively ceding control over outcomes that profoundly affe",
+      "claims": [
+        {
+          "text": "The ways we perceive AI to have agency affect whether and how people trust the technologies they use.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Companies are now racing to build AI agents that can reason and act autonomously.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Technologies powered by AI have a capacity for action that seems to mirror, though less fully, the capacity that humans have.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "machine agency",
+          "definition": "The capacity of machines to act and make decisions autonomously.",
+          "concept_type": "model"
+        },
+        {
+          "name": "AI agents",
+          "definition": "Software programs that can interact with and adapt to their environment, such as conversational user interfaces and generative capabilities.",
+          "concept_type": "model"
+        },
+        {
+          "name": "conversational user interfaces",
+          "definition": "Interfaces that allow humans to interact with machines using natural language.",
+          "concept_type": "method"
+        }
+      ]
+    }
+  ],
+  "references_raw": "Abdelnour, S., Hasselbladh, H., & Kallinikos, J. (2017). Agency and institutions in organization studies. Organization Studies, 38 (12), 1775 – 1792 . Bailey, D. E., Faraj, S., Hinds, P. J., Leonardi, P. M., & von Krogh, G. (2022). We are all theorists of technology now: A relational perspective on emerging technology and organizing. Organization Science, 33 (1), 1 – 18 . Bandura, A. (1989). Human agency in social cognitive theory. American Psychologist, 44 (9), 1175 – 1184 . Bandura, A. (1997). Self-efficacy: The exercise of control . W. H. Freeman . Barad, K. (2007). Meeting the universe halfway: Quantum physics and the entanglement of matter and meaning . Duke University Press . Beane, M. I., & Leonardi, P. M. (2025). Pace Layering as a Metaphor for Organizing in the Age of Intelligent Technologies: Considering the Future of Work by Theorizing the Future of Organizing. Journal of Management Studies, 62 (5), 2025 – 2052 . Berberian, B., Sarrazin, J. C., Le Blaye, P., & Haggard, P. (2012). Automation technology and sense of control: A window on human agency. PLoS One, 7 (3), Article e34075 . Berente, N., Gu, B., Recker, J., & Santhanam, R. (2021). Managing artificial intelligence. MIS Quarterly, 45 (3) . Berlin, I. (1969). Four essays on liberty . Oxford University Press . Boudreau, M. C., & Robey, D. (2005). Enacting integrated information technology: A human agency perspective. Organization Science, 16 (1), 3 – 18 . Brynjolfsson, E., & McAfee, A. (2017). Machine, platform, crowd: Harnessing our digital future. 4 pp. 1448 – 1476). New York: WW Norton & Company. No. 1 . Chandra, S., Shirish, A., & Srivastava, S. C. (2022). To be or not to be … human? Theorizing the role of human-like competencies in conversational artificial intelligence agents. Journal of Management Information Systems, 39 (4), 969 – 1005 . Ciardo, F., Beyer, F., De Tommaso, D., & Wykowska, A. (2020). Attribution of intentional agency towards robots reduces one ’ s own sense of agency. Cognition, 194 , Article 104109 . Coyle, D., Moore, J., Kristensson, P. O., Fletcher, P., & Blackwell, A. (2012). I did that! Measuring users ’ experience of agency in their own actions. In Proceedings of the SIGCHI conference on human factors in computing systems (pp. 2025 – 2034) . Dell ’ Acqua, F., McFowland, E., III, Mollick, E., Lifshitz-Assaf, H., Kellogg, K., Rajendran, S., … Lakhani, K. R. (2023). Navigating the jagged technological frontier: Field experimental evidence of the effects of AI on knowledge worker productivity and quality. In Harvard business school technology & operations management unit working paper no. 24-013 . Emirbayer, M., & Mische, A. (1998). What is agency? American Journal of Sociology, 103 (4), 962 – 1023 . Endacott, C. G., & Leonardi, P. M. (2022). Artificial intelligence and impression management: Consequences of autonomous conversational agents communicating on one ’ s behalf. Human Communication Research, 48 (3), 462 – 490 . Evans, N., Gale, S., Schurger, A., &",
+  "usage": {
+    "input_tokens": 1197,
+    "output_tokens": 673,
+    "cost_usd": 0.000346
+  }
+}

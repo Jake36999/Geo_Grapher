@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geo-grapher"
+version = "0.1.0"
+description = "Evidence-backed multi-scale repository architecture explorer"
+requires-python = ">=3.11"
+dependencies = [
+    "jsonschema>=4.23,<5",
+    "mcp==1.30.0",
+    "pydantic>=2.10,<3",
+    "pyyaml>=6,<7",
+    "tiktoken>=0.12,<1",
+    "uvicorn>=0.34,<1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<9"]
+papers = ["PyMuPDF>=1.24,<2"]
+treesitter = [
+    "tree-sitter>=0.23,<0.26",
+    "tree-sitter-javascript>=0.23,<0.26",
+    "tree-sitter-typescript>=0.23,<0.24",
+]
+
+[project.scripts]
+geographer = "geographer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.data-files]
+"share/geographer/contracts" = ["contracts/geographer.schema.sql", "contracts/geographer.wire.d.ts", "contracts/geographer.rules.schema.json", "contracts/geographer.rules.example.yaml", "contracts/visibility-presets.json"]
+"share/geographer/contracts/generated" = ["contracts/generated/geographer.wire.schema.json"]
+"share/geographer/contracts/v1.1" = ["contracts/v1.1/geographer.wire.d.ts", "contracts/v1.1/ACTOR_SCHEMA.md", "contracts/v1.1/PACKING_ADDENDUM.md", "contracts/v1.1/WORKSPACE_ADDENDUM.md", "contracts/v1.1/geographer.trace.schema.json", "contracts/v1.1/RUNTIME_ADDENDUM.md"]
+"share/geographer/contracts/v1.1/generated" = ["contracts/v1.1/generated/geographer.wire.schema.json"]
+"share/geographer/assets/tiktoken" = ["assets/tiktoken/*.tiktoken", "assets/tiktoken/README.md", "assets/tiktoken/LICENSE"]
+"share/geographer/frontend/dist" = ["frontend/dist/index.html", "frontend/dist/favicon.svg", "frontend/dist/THIRD_PARTY_NOTICES.txt"]
+"share/geographer/frontend/dist/assets" = ["frontend/dist/assets/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = ["integration: pinned real-repository ingestion"]

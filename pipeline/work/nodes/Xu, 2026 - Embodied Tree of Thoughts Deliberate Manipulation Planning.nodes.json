@@ -1,0 +1,189 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Xu, 2026 - Embodied Tree of Thoughts Deliberate Manipulation Planning.md",
+  "metadata": {
+    "title": "Embodied Tree of Thoughts: Deliberate Manipulation Planning With Embodied World Model",
+    "authors": [
+      "Wenjiang Xu",
+      "Mingkang Zhang",
+      "Cindy Wang",
+      "Rui Fang",
+      "Lusong Li",
+      "Jing Xu",
+      "Jiayuan Gu",
+      "Zecui Zeng",
+      "Rui Chen"
+    ],
+    "year": 2026,
+    "venue": "IEEE Robotics and Automation Letters",
+    "doi": "10.1109/LRA.2026.3716133",
+    "abstract_summary": "Plans robot manipulation by searching a tree of discrete action skills, branching from priors and reflecting on failed branches, with parallel search across simulated worlds."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 25,
+      "text": "Plans robot manipulation by searching a tree of discrete action skills, branching from priors and reflecting on failed branches, with parallel search across simulated worlds.",
+      "claims": [
+        {
+          "text": "Plans robot manipulation by searching a tree of discrete action skills, branching from priors and reflecting on failed branches, with parallel search across simulated worlds.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 330,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Discrete action skills set** (category B) - Standardizes agent task plans as five discrete semantic action primitives, each backed by a dedicated API, so a VLM can structure executable action sequences. (section III. A. Action Skills Set, p. 3)\n  > we model robot skills as a set of discrete semantic action primitives.\n- **Priori Branching** (category C) - Generates diverse candidate plan branches from semantic and spatial scene analysis before execution, forming the initial planning tree. (section III. C. 1) Priori Branching, p. 4)\n  > The model is encouraged to explicitly branch at decision points where multiple feasible action choices exist.\n- **Reflective Branching** (category C) - Diagnoses simulated execution failures and expands the planning tree with corrective branches instead of committing to a failing plan. (section III. C. 2) Tree Searching and Reﬂective Branching, p. 4)\n  > Reﬂective Branching analyzes simulated execution outcomes, identiﬁes failure causes, and dynamically generates revised branches during the tree search process.\n- **BFS planning-tree search (Algorithm 1)** (category C) - Searches the world-model-grounded planning tree breadth-first, evaluating each node action in simulation and returning the shortest feasible root-to-leaf plan. (section III. C. 2) Tree Searching and Reﬂective Branching, p. 4)\n  > We adopt a breadth-ﬁrst search (BFS) strategy to traverse the planning tree layer by layer\n- **Multi-world parallelism** (category D) - Evaluates sibling child nodes concurrently from shared parent terminal states, exploiting BFS layer structure to cut simulation latency. (section IV. F. Parallel Acceleration, p. 8)\n  > we adopt a multi-world parallelism strategy, where newly generated child nodes are evaluated in parallel from their parent terminal states.\n- **Task success rate metric** (category A) - Measures orchestration reliability as trials achieving the goal without h",
+      "claims": [
+        {
+          "text": "Discrete action skills set: Standardizes agent task plans as five discrete semantic action primitives, each backed by a dedicated API, so a VLM can structure executable action sequences. (section III. A. Action Skills Set, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Priori Branching: Generates diverse candidate plan branches from semantic and spatial scene analysis before execution, forming the initial planning tree. (section III. C. 1) Priori Branching, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Reflective Branching: Diagnoses simulated execution failures and expands the planning tree with corrective branches instead of committing to a failing plan. (section III. C. 2) Tree Searching and Reﬂective Branching, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "BFS planning-tree search (Algorithm 1): Searches the world-model-grounded planning tree breadth-first, evaluating each node action in simulation and returning the shortest feasible root-to-leaf plan. (section III. C. 2) Tree Searching and Reﬂective Branching, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-world parallelism: Evaluates sibling child nodes concurrently from shared parent terminal states, exploiting BFS layer structure to cut simulation latency. (section IV. F. Parallel Acceleration, p. 8)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Task success rate metric: Measures orchestration reliability as trials achieving the goal without harmful environmental side effects, reported per task and averaged. (section IV. A. Experimental Setup, p. 5)",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Discrete action skills set",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Priori Branching",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Reflective Branching",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "BFS planning-tree search (Algorithm 1)",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Multi-world parallelism",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 217,
+      "text": "- **Discrete action skills set**: Primitives: [PICK UP, obj], [PUT ON, surface], [PUT INTO, container], [OPEN, obj], [CLOSE, obj]; PICK UP uses AnyGrasp pose estimation; OPEN/CLOSE use scripted primitives; optional [PICK UP, obj] (POSE) disambiguates grasps.\n- **Priori Branching**: VLM parses object instances, relational predicates and articulation states, then emits branches at decision points: instance-level branching (object choice) and manipulation-parameter branching (grasp configuration); shared action prefixes are merged into a compact tree.\n- **Reflective Branching**: VLM compares object states before/after simulated execution; unsafe if changes cannot be recovered with available skills. Corrections: relocate collision-affected objects before retrying, or reorder conflicting actions; failed subtrees are removed and revised branches merged.\n- **BFS planning-tree search (Algorithm 1)**: T ←PrioriBranching(I, t); Q ←[T.root.children]; loop: N ←Q.pop(), I ←S.execute(N.A), R ←VLMJudge(N.A, I); success pushes children or returns extractPath(N); failure calls extractPaths(N), T.removeSubtree(N), merges reﬂective branches and queues nnew.\n- **Multi-world parallelism**: Newly generated child nodes are rolled out in parallel from their parent terminal states; BFS depth equals high-level action count, so same-parent rollouts run concurrently without violating causal structure.\n- **Task success rate metric**: Success rate = proportion of trials that achieve the speciﬁed goal without causing harmful changes to the environment; each task repeated for 30 independent trials; failure modes also broken into execution, depth, and world-model planning errors.",
+      "claims": [
+        {
+          "text": "Discrete action skills set: Primitives: [PICK UP, obj], [PUT ON, surface], [PUT INTO, container], [OPEN, obj], [CLOSE, obj]; PICK UP uses AnyGrasp pose estimation; OPEN/CLOSE use scripted primitives; optional [PICK UP, obj] (POSE) disambiguates grasps. - **Priori Branching**: VLM parses object insta",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 261,
+      "text": "- Evidence the authors report:\n  - Discrete action skills set: Seven real-world tabletop tasks on an xArm6 with 30 independent trials per task; skills executed end-to-end via API implementations.\n  - Priori Branching: Ablation shows removing Priori Branching yields a single-branch tree and wrong decisions on multi-path Tasks 2, 5, 7.\n  - Reflective Branching: Ablation without Reflective Branching drops overall success to 32.08%; module accuracy measured at 98.75%.\n  - BFS planning-tree search (Algorithm 1): Algorithm 1 evaluated on seven tasks plus a disturbance task, 30 trials each; highest success on every task, average 80.42%.\n  - Multi-world parallelism: Task 5 simulation time reduced from 55 s to 26 s with parallel rollouts.\n  - Task success rate metric: Seven tasks plus disturbance task, 30 trials each; EToT averages 80.42% versus lower baselines, with failure analysis percentages reported.\n- Limitations the authors state:\n  - Discrete action skills set: OPEN and CLOSE rely on manually scripted control primitives; most actions do not model multiple candidate poses.\n  - Priori Branching: Initial branches may be invalid or unsafe due to incomplete physical reasoning.\n  - Reflective Branching: Reﬂective Branching errors occur on Task 7; diagnosis depends on simulated rollout fidelity.\n  - BFS planning-tree search (Algorithm 1): Tree-based planning becomes increasingly expensive as the search depth and branching factor grow.\n  - Multi-world parallelism: Parallelism applies to same-parent children; overall cost remains high at 13341.63 tokens and 153.00 s per task on average.\n- Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Discrete action skills set: Seven real-world tabletop tasks on an xArm6 with 30 independent trials per task; skills executed end-to-end via API implementations.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Priori Branching: Ablation shows removing Priori Branching yields a single-branch tree and wrong decisions on multi-path Tasks 2, 5, 7.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Reflective Branching: Ablation without Reflective Branching drops overall success to 32.08%; module accuracy measured at 98.75%.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "BFS planning-tree search (Algorithm 1): Algorithm 1 evaluated on seven tasks plus a disturbance task, 30 trials each; highest success on every task, average 80.42%.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-world parallelism: Task 5 simulation time reduced from 55 s to 26 s with parallel rollouts.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Task success rate metric: Seven tasks plus disturbance task, 30 trials each; EToT averages 80.42% versus lower baselines, with failure analysis percentages reported.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Discrete action skills set: OPEN and CLOSE rely on manually scripted control primitives; most actions do not model multiple candidate poses.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Priori Branching: Initial branches may be invalid or unsafe due to incomplete physical reasoning.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Reflective Branching: Reﬂective Branching errors occur on Task 7; diagnosis depends on simulated rollout fidelity.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "BFS planning-tree search (Algorithm 1): Tree-based planning becomes increasingly expensive as the search depth and branching factor grow.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-world parallelism: Parallelism applies to same-parent children; overall cost remains high at 13341.63 tokens and 153.00 s per task on average.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

@@ -1,0 +1,94 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/ISA, 2015 - ANSI-ISA-101.01 Human Machine Interfaces for Process Automation Systems.md",
+  "metadata": {
+    "title": "ANSI/ISA-101.01-2015: Human Machine Interfaces for Process Automation Systems",
+    "authors": [
+      "ISA101 Committee (G. Lehmann and M. Wilkins",
+      "co-chairs",
+      "and 31 named voting members)"
+    ],
+    "year": 2015,
+    "venue": "International Society of Automation (ISA), approved as an American National Standard",
+    "doi": null,
+    "abstract_summary": "ANSI/ISA-101.01-2015 is a real, actively-maintained, committee-developed American National Standard (33 named voting members from process-industry vendors and owner-operators, approved 9 July 2015) whose stated purpose is \"to address the philosophy, design, implementation, operation, and maintenance of Human Machine Interfaces (HMIs) for process automation systems... to achieve a safer, more effec"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 50,
+      "text": "ANSI/ISA-101.01-2015 is a real, actively-maintained, committee-developed American National Standard (33 named voting members from process-industry vendors and owner-operators, approved 9 July 2015) whose stated purpose is \"to address the philosophy, design, implementation, operation, and maintenance of Human Machine Interfaces (HMIs) for process automation systems... to achieve a safer, more effec",
+      "claims": [
+        {
+          "text": "ANSI/ISA-101.01-2015 is a real, actively-maintained, committee-developed American National Standard (33 named voting members from process-industry vendors and owner-operators, approved 9 July 2015) whose stated purpose is \"to address the philosophy, design, implementation, operation, and maintenance of Human Machine Interfaces (HMIs) for process automation systems... to achieve a safer, more effec",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 149,
+      "text": "The standard's own stated purpose, from its Introduction:\n\n> \"The purpose of this standard is to address the philosophy, design, implementation, operation, and maintenance of Human Machine Interfaces (HMIs) for process automation systems, including multiple work processes throughout the HMI lifecycle... Use of this standard should: a) provide guidance to design, build, operate and maintain HMIs to achieve a safer, more effective, and more efficient process control system under all operating conditions; b) improve the user's abilities to detect, diagnose, and properly respond to abnormal situations.\"\n\nIt defines an HMI, notably, as covering both directions of interaction rather than only display: \"The HMI is the collection of hardware and software used to monitor and interact with the control system and ultimately with the process\" (emphasis on \"and interact\" — read literally, the standard's own scope statement treats monitoring and interaction as one integrated HMI concept, not two separated concerns).",
+      "claims": [
+        {
+          "text": "The standard's own stated purpose, from its Introduction: \"The purpose of this standard is to address the philosophy, design, implementation, operation, and maintenance of Human Machine Interfaces (HMIs) for process automation systems, including multiple work processes throughout the HMI lifecycle... Use of this standard should: a) provide guidance to design, build, operate and maintain HMIs to ac",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Cognitive Science & Human Performance",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 84,
+      "text": "Not applicable in the research-paper sense — this is a consensus industry standard, developed by an ISA101 committee (named individuals from AECOM, Yokogawa, ExxonMobil, Honeywell, Rockwell Automation, DuPont, PAS, Emerson, and others) and approved by the ISA Standards and Practices Board (16 June 2015). It is organized into nine clauses following IEC-standard structure: Scope, Normative References, Definitions (Clauses 1–3); the HMI lifecycle model (Clause 4); then Human Factors Engineering & Ergonomics, Display Styles and Overall HMI Structure, User Interaction, Performance, and Training (Clauses 5–9).",
+      "claims": [
+        {
+          "text": "Not applicable in the research-paper sense — this is a consensus industry standard, developed by an ISA101 committee (named individuals from AECOM, Yokogawa, ExxonMobil, Honeywell, Rockwell Automation, DuPont, PAS, Emerson, and others) and approved by the ISA Standards and Practices Board (16 June 2",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 362,
+      "text": "**This note is built from a publicly hosted excerpt of the actual standard, not a summary of it — but the excerpt is small.** The source read is a 9-page front-matter excerpt (title page, preface, copyright notice, the two committee rosters, and the full table of contents through page 9's Introduction/Purpose/Organization text) hosted by G. Nasby of Eramosa Engineering, a named ISA101 voting member — i.e., a legitimate, publisher-adjacent excerpt, not a third party's paraphrase. This is genuinely primary-source text, read directly.\n\nHowever, **the body of the standard — Clauses 4 through 9, pages 10 through 61, covering \"HMI System Management,\" \"Human Factors Engineering & Ergonomics,\" \"Display Styles and Overall HMI Structure,\" \"User Interaction\" (including both \"Software Methods for User Interaction\" and \"Hardware Interfaces\"), \"Performance,\" and \"Training\" — is behind ISA's commercial paywall (ISBN 978-1-941546-46-8) and was not read in this pass.** This means:\n\n- I cannot confirm from the source whether the standard states anywhere, in so many words, a principle equivalent to \"a display must never become a control input.\" The table-of-contents structure (Clause 6 \"Display Styles,\" Clause 7 \"User Interaction\" with a subsection specifically on \"Hardware Interfaces,\" Clause 8 \"Performance\" with subsection \"HMI Duty Factors\") suggests the standard treats display and control interaction as points on one continuum within a single document, which is a structurally different framing from the four projects' hard separation — but this is an inference from section headings only, not a reading of the clause text, and must be reported as such rather than as a finding.\n- Per this gap analysis's own instruction: where a standard is paywalled and only secondary commentary or a front-matter excerpt is available, that must be said explicitly rather than writing as if the primary text had been read in full. That is the case here.\n- The standard is scoped to *process automation* HM",
+      "claims": [
+        {
+          "text": "I cannot confirm from the source whether the standard states anywhere, in so many words, a principle equivalent to \"a display must never become a control input.\" The table-of-contents structure (Clause 6 \"Display Styles,\" Clause 7 \"User Interaction\" with a subsection specifically on \"Hardware Interf",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Per this gap analysis's own instruction: where a standard is paywalled and only secondary commentary or a front-matter excerpt is available, that must be said explicitly rather than writing as if the primary text had been read in full. That is the case here.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "The standard is scoped to *process automation* HMIs (SCADA/DCS control-room displays) specifically — its findings, whatever they turn out to be once the body is read, would need to be checked for whether they transfer to the four projects' domains (a physics-simulation dashboard, an RF-sensing wallb",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

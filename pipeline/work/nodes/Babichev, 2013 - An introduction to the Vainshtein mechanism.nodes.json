@@ -1,0 +1,85 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Babichev, 2013 - An introduction to the Vainshtein mechanism.md",
+  "metadata": {
+    "title": "An introduction to the Vainshtein mechanism",
+    "authors": [
+      "Eugeny Babichev",
+      "Cedric Deffayet"
+    ],
+    "year": 2013,
+    "venue": "Class. Quantum Grav. 30 (2013) 184001",
+    "doi": "arxiv:1304.7240",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 147,
+      "text": "As the authors state it:\n\n> We introduce the Vainshtein mechanism which plays a crucial role in massive gravities, as well as in related theories such as Galileons and their extensions. This mechanism, also known as k-mouflage, allows to hide via non linear effects - typically for source distances smaller than a so-called Vainshtein radius which depends on the source and on the theory considered - some degrees of freedom whose effects are then only left important at large distances, e.g. for cosmology. It is introduced here in non linear Fierz-Pauli theories (massive gravities), including the dRGT theories, in their decoupling limits, as well as in other models such as DGP model or generalized Galileons. This presentation is self-contained and before discussing the Vainshtein mechanism we introduce some useful results and concepts concerning massive gravity, such as the vDVZ discontinuity, the decoupling limits or the Boulware-Deser ghost.",
+      "claims": [
+        {
+          "text": "As the authors state it: We introduce the Vainshtein mechanism which plays a crucial role in massive gravities, as well as in related theories such as Galileons and their extensions. This mechanism, also known as k-mouflage, allows to hide via non linear effects - typically for source distances smaller than a so-called Vainshtein radius which depends on the source and on the theory considered - so",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

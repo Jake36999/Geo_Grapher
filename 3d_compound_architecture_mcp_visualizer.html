@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GGT-MCP // 3D Volumetric Compound Architecture & Fisheye HEB Visualizer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: '#060911',
+            panel: 'rgba(11, 16, 28, 0.86)',
+            borderGlow: 'rgba(56, 189, 248, 0.25)',
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #060911;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+    }
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    canvas:active {
+      cursor: grabbing;
+    }
+    /* Custom Scrollbars for HUD Panels */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.65);
+    }
+    .glass-panel {
+      background: rgba(10, 15, 27, 0.84);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    .node-label {
+      position: absolute;
+      pointer-events: none;
+      transform: translate(-50%, -100%);
+      transition: opacity 0.18s ease;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(30, 41, 59, 0.9);
+      height: 6px;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #0f172a;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    }
+    .selectable-text {
+      user-select: text;
+    }
+  </style>
+</head>
+<body class="relative w-full h-full overflow-hidden">
+
+  <!-- 3D WebGL Viewport Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Dynamic 3D Projected Labels Overlay -->
+  <div id="labels-container" class="absolute inset-0 pointer-events-none overflow-hidden z-10"></div>
+
+  <!-- Top Telemetry Header Bar -->
+  <header class="absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl glass-panel">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-sky-400 animate-pulse shadow-[0_0_12px_#38bdf8]"></div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm md:text-base font-bold tracking-tight text-white font-mono">
+            GGT-MCP // VOLUMETRIC COMPOUND GRAPH ENGINE
+          </h1>
+          <span class="hidden sm:inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">
+            C = (T, D) + HEB + Fisheye DOI
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400 hidden md:block">
+          Planets-in-Planets Non-Collinear Fibonacci Packing &bull; Furnas Tree DOI Pruning &bull; Holten Cubic B-Spline Bundles &bull; Quasi-Isometric MCP Skeleton
+        </p>
+      </div>
+    </div>
+
+    <!-- Top Live Summary Counters -->
+    <div class="flex items-center gap-3 md:gap-5 font-mono text-xs">
+      <div class="flex flex-col items-end">
+        <span class="text-[10px] text-slate-400 uppercase">Visible Spheres</span>
+        <span id="stat-visible-nodes" class="text-sky-400 font-semibold">53 / 53</span>
+      </div>
+      <div class="h-6 w-px bg-slate-700/70"></div>
+      <div class="flex flex-col items-end">
+        <span class="text-[10px] text-slate-400 uppercase">Active B-Splines</span>
+        <span id="stat-visible-arcs" class="text-emerald-400 font-semibold">42</span>
+      </div>
+      <div class="h-6 w-px bg-slate-700/70"></div>
+      <div class="flex flex-col items-end">
+        <span class="text-[10px] text-slate-400 uppercase">MCP Token Compression</span>
+        <span id="stat-compression-ratio" class="text-amber-400 font-semibold">91.4% (11.6x)</span>
+      </div>
+      <div class="flex items-center gap-1.5 ml-1">
+        <button id="btn-toggle-left" class="lg:hidden px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-600">
+          Controls
+        </button>
+        <button id="btn-toggle-right" class="lg:hidden px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-600">
+          Inspector
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Left HUD Panel: Mathematical Controls & Hierarchy Selector -->
+  <aside id="left-panel" class="absolute top-20 bottom-4 left-3 z-20 w-80 sm:w-96 rounded-xl glass-panel flex flex-col overflow-hidden transition-transform duration-300">
+    <div class="px-4 py-3 border-b border-slate-800/80 flex items-center justify-between">
+      <span class="text-xs font-mono uppercase tracking-wider text-sky-400 font-semibold">
+        1. Focus &amp; Mathematical Controls
+      </span>
+      <button id="btn-reset-camera" class="text-[11px] font-mono px-2.5 py-1 rounded bg-slate-800/90 hover:bg-sky-500/20 text-slate-300 hover:text-sky-300 border border-slate-700 transition">
+        Reset View
+      </button>
+    </div>
+
+    <div class="p-4 space-y-4 overflow-y-auto flex-1 text-xs">
+      <!-- Focus Node Selector (y) -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <label for="select-focus-node" class="font-semibold text-slate-200 flex items-center gap-1.5">
+            <span>Focal Entity <code class="text-sky-400 font-mono">y</code></span>
+          </label>
+          <span id="focus-depth-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+            Depth 2 (File)
+          </span>
+        </div>
+        <select id="select-focus-node" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-2.5 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-sky-400">
+        </select>
+        <!-- Quick Focus Presets -->
+        <div class="grid grid-cols-4 gap-1.5 pt-1">
+          <button data-preset="repo" class="preset-focus-btn px-2 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-slate-700/80">
+            Root (d=0)
+          </button>
+          <button data-preset="subsystem" class="preset-focus-btn px-2 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-slate-700/80">
+            Solver (d=1)
+          </button>
+          <button data-preset="file" class="preset-focus-btn px-2 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-slate-700/80">
+            File (d=2)
+          </button>
+          <button data-preset="leaf" class="preset-focus-btn px-2 py-1 rounded bg-slate-800/80 hover:bg-slate-700 text-[10px] font-mono text-slate-300 border border-slate-700/80">
+            Method (d=3)
+          </button>
+        </div>
+      </div>
+
+      <hr class="border-slate-800" />
+
+      <!-- Furnas Generalized Fisheye DOI Filter -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-slate-200">Furnas Tree Fisheye Threshold <code class="text-sky-400 font-mono">k</code></span>
+          <span id="label-doi-k" class="font-mono text-sky-400 font-bold">k = -5 (1st Order)</span>
+        </div>
+        <div class="p-2 rounded-lg bg-slate-900/80 border border-slate-800 font-mono text-[11px] text-slate-300">
+          DOI(x | y) = -(d<sub>tree</sub>(x, y) + d<sub>tree</sub>(x, root)) &ge; k
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button data-k="-3" class="doi-k-btn py-1.5 px-2 rounded-lg font-mono text-[11px] border transition flex flex-col items-center">
+            <span class="font-bold">k = -3</span>
+            <span class="text-[9px] opacity-75">0-Order Spine</span>
+          </button>
+          <button data-k="-5" class="doi-k-btn py-1.5 px-2 rounded-lg font-mono text-[11px] border transition flex flex-col items-center">
+            <span class="font-bold">k = -5</span>
+            <span class="text-[9px] opacity-75">1st Siblings</span>
+          </button>
+          <button data-k="-7" class="doi-k-btn py-1.5 px-2 rounded-lg font-mono text-[11px] border transition flex flex-col items-center">
+            <span class="font-bold">k = -7</span>
+            <span class="text-[9px] opacity-75">2nd Cousins</span>
+          </button>
+          <button data-k="-99" class="doi-k-btn py-1.5 px-2 rounded-lg font-mono text-[11px] border transition flex flex-col items-center">
+            <span class="font-bold">All</span>
+            <span class="text-[9px] opacity-75">Unfiltered</span>
+          </button>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          Nodes with <code class="text-slate-300">DOI &lt; k</code> collapse into their highest visible ancestor planet <code class="text-sky-300">&pi;(x)</code>, rolling leaf calls into <strong class="text-slate-200">Quotient Witness Arcs</strong>.
+        </p>
+      </div>
+
+      <hr class="border-slate-800" />
+
+      <!-- Holten 3D Hierarchical Edge Bundling (HEB) -->
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-slate-200">Holten Bundling Strength <code class="text-sky-400 font-mono">&beta;</code></span>
+          <span id="label-beta" class="font-mono text-emerald-400 font-bold">&beta; = 0.85</span>
+        </div>
+        <input id="slider-beta" type="range" min="0" max="1" step="0.01" value="0.85" class="w-full" />
+        <div class="flex justify-between text-[10px] font-mono text-slate-400">
+          <span>0.00 (Euclidean Chord)</span>
+          <span>0.85 (Optimal)</span>
+          <span>1.00 (Tree Conduit)</span>
+        </div>
+
+        <!-- N > 3 LCA Removal Rule Toggle -->
+        <label class="flex items-start gap-2.5 pt-1 cursor-pointer">
+          <input id="chk-lca-rule" type="checkbox" checked class="mt-0.5 rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0" />
+          <div>
+            <span class="font-medium text-slate-200 block">Enforce <code class="text-sky-400 font-mono">N &gt; 3</code> LCA Removal Rule</span>
+            <span class="text-[11px] text-slate-400 block">
+              Strips acute LCA point on deep paths (<code class="text-slate-300">N &gt; 3</code>) while preserving quadratic curvature on sibling calls (<code class="text-slate-300">N = 3</code>) to prevent straight-line overlap.
+            </span>
+          </div>
+        </label>
+
+        <!-- EdgeLens 3D Local Unbundling Toggle -->
+        <label class="flex items-start gap-2.5 pt-0.5 cursor-pointer">
+          <input id="chk-edgelens" type="checkbox" class="mt-0.5 rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0" />
+          <div>
+            <span class="font-medium text-slate-200 block">Interactive <code class="text-amber-400 font-mono">EdgeLens</code> Focal Unbundling</span>
+            <span class="text-[11px] text-slate-400 block">
+              Locally relaxes <code class="text-slate-300">&beta;</code> near the active focus sphere <code class="text-slate-300">y</code> to inspect individual termination pins without breaking global bundles.
+            </span>
+          </div>
+        </label>
+      </div>
+
+      <hr class="border-slate-800" />
+
+      <!-- Multilayer Adjacency Tensor & Reflexion Model Filters -->
+      <div class="space-y-2.5">
+        <span class="font-semibold text-slate-200 block">Multilayer Tensor Slices <code class="text-sky-400 font-mono">A<sub>i,j,k</sub></code></span>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer">
+            <input id="chk-layer-k2" type="checkbox" checked class="rounded bg-slate-950 border-slate-700 text-sky-500" />
+            <div class="font-mono text-[11px]">
+              <div class="text-slate-200 font-semibold">K2_STATIC</div>
+              <div class="text-[10px] text-slate-400">AST Calls / Imports</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer">
+            <input id="chk-layer-k3" type="checkbox" checked class="rounded bg-slate-950 border-slate-700 text-sky-500" />
+            <div class="font-mono text-[11px]">
+              <div class="text-slate-200 font-semibold">K3_DYNAMIC</div>
+              <div class="text-[10px] text-slate-400">Telemetry Spans (Hz)</div>
+            </div>
+          </label>
+        </div>
+
+        <span class="font-semibold text-slate-200 block pt-1">Software Reflexion States</span>
+        <div class="grid grid-cols-3 gap-1.5 font-mono text-[11px]">
+          <label class="flex items-center gap-1.5 p-1.5 rounded bg-emerald-950/40 border border-emerald-500/30 cursor-pointer">
+            <input id="chk-ref-conv" type="checkbox" checked class="rounded text-emerald-500" />
+            <span class="text-emerald-300">CONVERGE</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-1.5 rounded bg-fuchsia-950/40 border border-fuchsia-500/30 cursor-pointer">
+            <input id="chk-ref-div" type="checkbox" checked class="rounded text-fuchsia-500" />
+            <span class="text-fuchsia-300">DIVERGE</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-1.5 rounded bg-cyan-950/40 border border-cyan-500/30 cursor-pointer">
+            <input id="chk-ref-abs" type="checkbox" checked class="rounded text-cyan-500" />
+            <span class="text-cyan-300">ABSENCE</span>
+          </label>
+        </div>
+
+        <!-- Permutation Orbit Clones (X/G) Highlighter -->
+        <label class="flex items-center justify-between p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 cursor-pointer mt-2">
+          <div class="flex items-center gap-2">
+            <input id="chk-highlight-orbits" type="checkbox" class="rounded bg-slate-900 border-amber-400 text-amber-400" />
+            <div>
+              <span class="font-semibold text-amber-300 block">Highlight Permutation Orbits (X/G)</span>
+              <span class="text-[10px] text-amber-200/70 block">Pulses AST &amp; Weisfeiler-Lehman clones across subsystems</span>
+            </div>
+          </div>
+          <span class="font-mono text-xs font-bold text-amber-300 px-1.5 py-0.5 rounded bg-amber-500/20">3 Orbits</span>
+        </label>
+      </div>
+
+      <!-- Directional Color Legend -->
+      <div class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2">
+        <div class="text-[10px] font-mono uppercase text-slate-400 font-semibold">
+          HEB Spline Encoding &amp; EXT_blend_minmax
+        </div>
+        <div class="flex items-center gap-2 text-[11px] font-mono">
+          <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Caller (t=0)</span>
+          <div class="flex-1 h-2 rounded-full bg-gradient-to-r from-emerald-400 via-amber-300 to-rose-500"></div>
+          <span class="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">Callee (t=1)</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 pt-1">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-fuchsia-400 shadow-[0_0_8px_#e879f9]"></span>
+            <span>Divergence (Layer Bypass)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
+            <span>Absence (Expected Link)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right HUD Panel: Dual-Consumer Inspector (Mathematical Diagnostics + Live MCP JSON) -->
+  <aside id="right-panel" class="absolute top-20 bottom-4 right-3 z-20 w-80 sm:w-[430px] rounded-xl glass-panel flex flex-col overflow-hidden transition-transform duration-300 translate-x-full lg:translate-x-0">
+    <!-- Tab Navigation -->
+    <div class="grid grid-cols-2 border-b border-slate-800 font-mono text-xs">
+      <button id="tab-btn-math" class="py-3 px-3 font-semibold text-sky-400 border-b-2 border-sky-400 bg-sky-500/10 transition">
+        1. Algebraic &amp; GGT Math
+      </button>
+      <button id="tab-btn-mcp" class="py-3 px-3 font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition">
+        2. Live MCP Payload
+      </button>
+    </div>
+
+    <!-- Tab 1: Mathematical Diagnostics -->
+    <div id="tab-content-math" class="p-4 space-y-4 overflow-y-auto flex-1 text-xs">
+      <!-- Focused Entity Summary Card -->
+      <div class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span id="inspect-kind" class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
+            FILE (DEPTH 2)
+          </span>
+          <span id="inspect-layer" class="text-[10px] font-mono text-emerald-400">
+            Canonical DAG Layer L2 &bull; SCC=1
+          </span>
+        </div>
+        <div id="inspect-id" class="font-mono font-bold text-sm text-white break-all selectable-text">
+          quantule_mapper::core.solver.jax_fdtd
+        </div>
+        <div class="grid grid-cols-3 gap-2 pt-1 font-mono">
+          <div class="p-2 rounded bg-slate-950/80 border border-slate-800/80">
+            <div class="text-[10px] text-slate-400">API(y)</div>
+            <div id="inspect-api" class="text-sm font-bold text-sky-400">-2</div>
+          </div>
+          <div class="p-2 rounded bg-slate-950/80 border border-slate-800/80">
+            <div class="text-[10px] text-slate-400">DOI(y | y)</div>
+            <div id="inspect-doi" class="text-sm font-bold text-emerald-400">-2</div>
+          </div>
+          <div class="p-2 rounded bg-slate-950/80 border border-slate-800/80">
+            <div class="text-[10px] text-slate-400">Sphere R</div>
+            <div id="inspect-radius" class="text-sm font-bold text-amber-300">9.5u</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ancestral Lineage Invariance Proof (Furnas Theorem) -->
+      <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-semibold text-sky-300 uppercase">
+            Ancestral Spine Invariance Proof
+          </span>
+          <span class="text-[10px] font-mono text-slate-400">d(x,y) + d(x,root) = d(y,root)</span>
+        </div>
+        <p class="text-[11px] text-slate-400">
+          Every ancestor along the containment path from <code class="text-slate-200">y</code> to <code class="text-slate-200">Root</code> has an identical <code class="text-emerald-400">DOI</code> score, guaranteeing an un-severed containment spine at <code class="text-sky-300">k = -3</code>:
+        </p>
+        <div id="lineage-trace-list" class="space-y-1 font-mono text-[11px]"></div>
+      </div>
+
+      <!-- Subsystem GGT & Algebraic Metrics (Cheeger h(G) & Cayley Completion Bound) -->
+      <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-semibold text-amber-300 uppercase">
+            GGT Bottleneck &amp; Cayley Triage Metrics
+          </span>
+          <span id="inspect-subsystem-tag" class="text-[10px] font-mono text-slate-400">core.solver</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 font-mono">
+          <div class="p-2.5 rounded bg-slate-950/90 border border-slate-800">
+            <div class="text-[10px] text-slate-400 flex justify-between">
+              <span>Cheeger h(S)</span>
+              <span>|&part;S| / |S|</span>
+            </div>
+            <div id="inspect-cheeger" class="text-base font-bold text-amber-400 mt-0.5">0.250</div>
+            <div id="inspect-cheeger-status" class="text-[10px] text-emerald-400 mt-0.5">Well-Expanded Boundary</div>
+          </div>
+
+          <div class="p-2.5 rounded bg-slate-950/90 border border-slate-800">
+            <div class="text-[10px] text-slate-400 flex justify-between">
+              <span>Cayley Bound &gamma;<sup>+</sup></span>
+              <span>n&Delta;<sup>*</sup>/2m - 1</span>
+            </div>
+            <div id="inspect-cayley" class="text-base font-bold text-sky-400 mt-0.5">0.286</div>
+            <div id="inspect-cayley-status" class="text-[10px] text-slate-400 mt-0.5">Moderate Irregularity</div>
+          </div>
+        </div>
+
+        <!-- Multi-Level Cycle Trap Diagnostic (+1 / Section 6.6) -->
+        <div class="p-2 rounded bg-indigo-950/40 border border-indigo-500/30 text-[11px] space-y-1">
+          <div class="font-mono font-semibold text-indigo-300 flex items-center justify-between">
+            <span>Quotient Cycle Trap (D<sub>k</sub> = D / &pi;<sub>k</sub>)</span>
+            <span id="inspect-cycle-badge" class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-[10px]">Verified</span>
+          </div>
+          <p id="inspect-cycle-desc" class="text-slate-300 text-[11px] leading-relaxed">
+            File digraph D<sub>2</sub> is a clean 6-layer DAG (max cycle = 1), but Subsystem quotient D<sub>1</sub> forms a 2-subsystem SCC cycle between <code>core.solver</code> and <code>network.zmq_csi</code> due to opposite sibling file dependencies.
+          </p>
+        </div>
+      </div>
+
+      <!-- Permutation Orbit Clones (X/G) -->
+      <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-semibold text-amber-300 uppercase">
+            Permutation Group Orbits (X / G Clones)
+          </span>
+          <span class="text-[10px] font-mono text-slate-400">Burnside / WL-Hash</span>
+        </div>
+        <div id="orbit-clones-list" class="space-y-1.5 font-mono text-[11px]"></div>
+      </div>
+
+      <!-- Active Witness / Quotient Arcs Connected to Focus -->
+      <div class="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-semibold text-emerald-300 uppercase">
+            Incident Quotient &amp; Leaf Witness Arcs
+          </span>
+          <span id="inspect-arc-count" class="text-[10px] font-mono text-slate-400">6 arcs</span>
+        </div>
+        <div id="witness-arcs-list" class="space-y-1.5 max-h-52 overflow-y-auto pr-1 font-mono text-[11px]"></div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Live Token-Compressed MCP JSON Payload -->
+    <div id="tab-content-mcp" class="hidden p-4 flex-col flex-1 overflow-hidden space-y-3 text-xs">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="font-mono text-xs font-bold text-emerald-400 block">mcp_get_fisheye_architecture()</span>
+          <span class="text-[11px] text-slate-400">Quasi-Isometric Skeleton + Cheeger &amp; Reflexion Delta</span>
+        </div>
+        <button id="btn-copy-mcp" class="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/30 font-mono text-xs transition">
+          Copy JSON
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 font-mono text-[11px]">
+        <div class="p-2 rounded bg-slate-900 border border-slate-800">
+          <div class="text-[10px] text-slate-400">Raw AST Tokens</div>
+          <div id="mcp-raw-tokens" class="text-slate-200 font-bold">18,420</div>
+        </div>
+        <div class="p-2 rounded bg-slate-900 border border-slate-800">
+          <div class="text-[10px] text-slate-400">QI Skeleton Tokens</div>
+          <div id="mcp-qi-tokens" class="text-emerald-400 font-bold">412</div>
+        </div>
+        <div class="p-2 rounded bg-slate-900 border border-slate-800">
+          <div class="text-[10px] text-slate-400">Token Savings</div>
+          <div id="mcp-token-savings" class="text-amber-400 font-bold">97.8%</div>
+        </div>
+      </div>
+
+      <pre id="mcp-json-output" class="selectable-text flex-1 p-3 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-sky-200 overflow-auto leading-relaxed"></pre>
+    </div>
+  </aside>
+
+  <!-- Bottom Interactive Hint Pill -->
+  <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none hidden md:flex items-center gap-3 px-4 py-1.5 rounded-full glass-panel text-[11px] font-mono text-slate-300">
+    <span><strong class="text-sky-400">Click Sphere:</strong> Set Focus <code class="text-sky-300">y</code></span>
+    <span>&bull;</span>
+    <span><strong class="text-sky-400">Drag:</strong> 3D Orbit</span>
+    <span>&bull;</span>
+    <span><strong class="text-sky-400">Scroll:</strong> Semantic Zoom</span>
+    <span>&bull;</span>
+    <span><strong class="text-emerald-400">Slider &beta;:</strong> Morph B-Spline Control Polygons</span>
+  </div>
+
+  <script>
+    /***************************************************************************
+     * 1. COMPOUND ARCHITECTURE DATASET: C = (T, D)
+     *    - Tree T = (V, E_I): 4 Levels (0: Repo, 1: Subsystem, 2: File, 3: Method)
+     *    - Multilayer Tensor D = (V, E_A): K2_STATIC_DEP & K3_DYNAMIC_TRACE
+     *    - Permutation Orbits (X/G): Cloned AST / WL hashes across subsystems
+     ***************************************************************************/
+    const NODES_DATA = [
+      // DEPTH 0: REPOSITORY ROOT
+      { id: "quantule_mapper::root", name: "quantule_mapper", kind: "Repository", depth: 0, parent: null, dagLayer: 0, sccSize: 1 },
+
+      // DEPTH 1: 4 SUBSYSTEMS (Planets)
+      { id: "sub::core.solver", name: "core.solver", kind: "Subsystem", depth: 1, parent: "quantule_mapper::root", dagLayer: 1, sccSize: 2, color: 0x38bdf8 },
+      { id: "sub::network.zmq_csi", name: "network.zmq_csi", kind: "Subsystem", depth: 1, parent: "quantule_mapper::root", dagLayer: 1, sccSize: 2, color: 0x34d399 },
+      { id: "sub::mcp.librarian", name: "mcp.librarian", kind: "Subsystem", depth: 1, parent: "quantule_mapper::root", dagLayer: 2, sccSize: 1, color: 0xa78bfa },
+      { id: "sub::ui.viewport", name: "ui.viewport", kind: "Subsystem", depth: 1, parent: "quantule_mapper::root", dagLayer: 3, sccSize: 1, color: 0xfb923c },
+
+      // DEPTH 2: 12 FILES (3 per Subsystem)
+      // core.solver files
+      { id: "file::jax_fdtd.py", name: "jax_fdtd.py", kind: "File", depth: 2, parent: "sub::core.solver", dagLayer: 1, sccSize: 1 },
+      { id: "file::spectral_cheeger.py", name: "spectral_cheeger.py", kind: "File", depth: 2, parent: "sub::core.solver", dagLayer: 2, sccSize: 1 },
+      { id: "file::cayley_triage.py", name: "cayley_triage.py", kind: "File", depth: 2, parent: "sub::core.solver", dagLayer: 2, sccSize: 1 },
+
+      // network.zmq_csi files
+      { id: "file::zmq_streamer.py", name: "zmq_streamer.py", kind: "File", depth: 2, parent: "sub::network.zmq_csi", dagLayer: 1, sccSize: 1 },
+      { id: "file::ring_buffer.py", name: "ring_buffer.py", kind: "File", depth: 2, parent: "sub::network.zmq_csi", dagLayer: 0, sccSize: 1 },
+      { id: "file::packet_codec.py", name: "packet_codec.py", kind: "File", depth: 2, parent: "sub::network.zmq_csi", dagLayer: 1, sccSize: 1 },
+
+      // mcp.librarian files
+      { id: "file::qi_skeleton.py", name: "qi_skeleton.py", kind: "File", depth: 2, parent: "sub::mcp.librarian", dagLayer: 3, sccSize: 1 },
+      { id: "file::fisheye_doi.py", name: "fisheye_doi.py", kind: "File", depth: 2, parent: "sub::mcp.librarian", dagLayer: 3, sccSize: 1 },
+      { id: "file::sqlite_store.py", name: "sqlite_store.py", kind: "File", depth: 2, parent: "sub::mcp.librarian", dagLayer: 2, sccSize: 1 },
+
+      // ui.viewport files
+      { id: "file::heb_splines.py", name: "heb_splines.py", kind: "File", depth: 2, parent: "sub::ui.viewport", dagLayer: 4, sccSize: 1 },
+      { id: "file::sphere_packer.py", name: "sphere_packer.py", kind: "File", depth: 2, parent: "sub::ui.viewport", dagLayer: 4, sccSize: 1 },
+      { id: "file::reflexion_hud.py", name: "reflexion_hud.py", kind: "File", depth: 2, parent: "sub::ui.viewport", dagLayer: 5, sccSize: 1 },
+
+      // DEPTH 3: 36 FUNCTIONS / METHODS (3 per File)
+      // Note: Orbits O1, O2, O3 represent duplicated/isomorphic AST bodies across files!
+      // file::jax_fdtd.py
+      { id: "fn::jax_fdtd.step_pml", name: "step_pml()", kind: "Method", depth: 3, parent: "file::jax_fdtd.py", dagLayer: 1, sccSize: 1, qiCluster: "QI_SOLVER_CORE" },
+      { id: "fn::jax_fdtd.curl_eh", name: "curl_eh()", kind: "Method", depth: 3, parent: "file::jax_fdtd.py", dagLayer: 0, sccSize: 1, qiCluster: "QI_SOLVER_CORE" },
+      { id: "fn::jax_fdtd.sha256_state", name: "sha256_state()", kind: "Method", depth: 3, parent: "file::jax_fdtd.py", dagLayer: 0, sccSize: 1, orbitId: "ORBIT_SHA256_CLONE", orbitType: "EXACT_AST (50.4% floor)", qiCluster: "QI_SOLVER_CORE" },
+
+      // file::spectral_cheeger.py
+      { id: "fn::cheeger.cut_ratio", name: "cut_ratio()", kind: "Method", depth: 3, parent: "file::spectral_cheeger.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_SPECTRAL" },
+      { id: "fn::cheeger.laplacian_eig", name: "laplacian_eig()", kind: "Method", depth: 3, parent: "file::spectral_cheeger.py", dagLayer: 1, sccSize: 1, qiCluster: "QI_SPECTRAL" },
+      { id: "fn::cheeger.pinch_edges", name: "pinch_edges()", kind: "Method", depth: 3, parent: "file::spectral_cheeger.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_SPECTRAL" },
+
+      // file::cayley_triage.py
+      { id: "fn::cayley.degree_bound", name: "degree_bound()", kind: "Method", depth: 3, parent: "file::cayley_triage.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_CAYLEY" },
+      { id: "fn::cayley.wl_fingerprint", name: "wl_fingerprint()", kind: "Method", depth: 3, parent: "file::cayley_triage.py", dagLayer: 1, sccSize: 1, orbitId: "ORBIT_WL_HASH", orbitType: "WL_ISOMORPHIC", qiCluster: "QI_CAYLEY" },
+      { id: "fn::cayley.abelian_census", name: "abelian_census()", kind: "Method", depth: 3, parent: "file::cayley_triage.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_CAYLEY" },
+
+      // file::zmq_streamer.py
+      { id: "fn::zmq.poll_CSI_socket", name: "poll_CSI_socket()", kind: "Method", depth: 3, parent: "file::zmq_streamer.py", dagLayer: 1, sccSize: 1, qiCluster: "QI_ZMQ_INGEST" },
+      { id: "fn::zmq.dispatch_batch", name: "dispatch_batch()", kind: "Method", depth: 3, parent: "file::zmq_streamer.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_ZMQ_INGEST" },
+      { id: "fn::zmq.serialize_json", name: "serialize_json()", kind: "Method", depth: 3, parent: "file::zmq_streamer.py", dagLayer: 1, sccSize: 1, orbitId: "ORBIT_JSON_WRITER", orbitType: "EXACT_AST (write_json)", qiCluster: "QI_ZMQ_INGEST" },
+
+      // file::ring_buffer.py
+      { id: "fn::ring.push_frame", name: "push_frame()", kind: "Method", depth: 3, parent: "file::ring_buffer.py", dagLayer: 0, sccSize: 1, qiCluster: "QI_RING_BUF" },
+      { id: "fn::ring.pop_window", name: "pop_window()", kind: "Method", depth: 3, parent: "file::ring_buffer.py", dagLayer: 0, sccSize: 1, qiCluster: "QI_RING_BUF" },
+      { id: "fn::ring.sha256_state", name: "sha256_state()", kind: "Method", depth: 3, parent: "file::ring_buffer.py", dagLayer: 0, sccSize: 1, orbitId: "ORBIT_SHA256_CLONE", orbitType: "EXACT_AST (50.4% floor)", qiCluster: "QI_RING_BUF" },
+
+      // file::packet_codec.py
+      { id: "fn::codec.decode_iq", name: "decode_iq()", kind: "Method", depth: 3, parent: "file::packet_codec.py", dagLayer: 1, sccSize: 1, qiCluster: "QI_CODEC" },
+      { id: "fn::codec.phase_unwrap", name: "phase_unwrap()", kind: "Method", depth: 3, parent: "file::packet_codec.py", dagLayer: 1, sccSize: 1, qiCluster: "QI_CODEC" },
+      { id: "fn::codec.crc_verify", name: "crc_verify()", kind: "Method", depth: 3, parent: "file::packet_codec.py", dagLayer: 0, sccSize: 1, qiCluster: "QI_CODEC" },
+
+      // file::qi_skeleton.py
+      { id: "fn::qi.coarse_ball_net", name: "coarse_ball_net()", kind: "Method", depth: 3, parent: "file::qi_skeleton.py", dagLayer: 3, sccSize: 1, qiCluster: "QI_MCP_SKEL" },
+      { id: "fn::qi.word_metric_bfs", name: "word_metric_bfs()", kind: "Method", depth: 3, parent: "file::qi_skeleton.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_MCP_SKEL" },
+      { id: "fn::qi.wl_fingerprint", name: "wl_fingerprint()", kind: "Method", depth: 3, parent: "file::qi_skeleton.py", dagLayer: 1, sccSize: 1, orbitId: "ORBIT_WL_HASH", orbitType: "WL_ISOMORPHIC", qiCluster: "QI_MCP_SKEL" },
+
+      // file::fisheye_doi.py
+      { id: "fn::doi.lca_binary_lift", name: "lca_binary_lift()", kind: "Method", depth: 3, parent: "file::fisheye_doi.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_DOI_FILTER" },
+      { id: "fn::doi.compute_doi_score", name: "compute_doi_score()", kind: "Method", depth: 3, parent: "file::fisheye_doi.py", dagLayer: 3, sccSize: 1, qiCluster: "QI_DOI_FILTER" },
+      { id: "fn::doi.quotient_rollup", name: "quotient_rollup()", kind: "Method", depth: 3, parent: "file::fisheye_doi.py", dagLayer: 3, sccSize: 1, qiCluster: "QI_DOI_FILTER" },
+
+      // file::sqlite_store.py
+      { id: "fn::sql.commit_compound", name: "commit_compound()", kind: "Method", depth: 3, parent: "file::sqlite_store.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_STORAGE" },
+      { id: "fn::sql.query_witnesses", name: "query_witnesses()", kind: "Method", depth: 3, parent: "file::sqlite_store.py", dagLayer: 2, sccSize: 1, qiCluster: "QI_STORAGE" },
+      { id: "fn::sql.serialize_json", name: "serialize_json()", kind: "Method", depth: 3, parent: "file::sqlite_store.py", dagLayer: 1, sccSize: 1, orbitId: "ORBIT_JSON_WRITER", orbitType: "EXACT_AST (write_json)", qiCluster: "QI_STORAGE" },
+
+      // file::heb_splines.py
+      { id: "fn::heb.straighten_cp", name: "straighten_cp()", kind: "Method", depth: 3, parent: "file::heb_splines.py", dagLayer: 4, sccSize: 1, qiCluster: "QI_HEB_RENDER" },
+      { id: "fn::heb.eval_cubic_bspline", name: "eval_cubic_bspline()", kind: "Method", depth: 3, parent: "file::heb_splines.py", dagLayer: 4, sccSize: 1, qiCluster: "QI_HEB_RENDER" },
+      { id: "fn::heb.strip_lca_n3", name: "strip_lca_n3()", kind: "Method", depth: 3, parent: "file::heb_splines.py", dagLayer: 3, sccSize: 1, qiCluster: "QI_HEB_RENDER" },
+
+      // file::sphere_packer.py
+      { id: "fn::pack.fibonacci_shell", name: "fibonacci_shell()", kind: "Method", depth: 3, parent: "file::sphere_packer.py", dagLayer: 4, sccSize: 1, qiCluster: "QI_PACKER" },
+      { id: "fn::pack.repel_siblings", name: "repel_siblings()", kind: "Method", depth: 3, parent: "file::sphere_packer.py", dagLayer: 4, sccSize: 1, qiCluster: "QI_PACKER" },
+      { id: "fn::pack.sha256_state", name: "sha256_state()", kind: "Method", depth: 3, parent: "file::sphere_packer.py", dagLayer: 0, sccSize: 1, orbitId: "ORBIT_SHA256_CLONE", orbitType: "EXACT_AST (50.4% floor)", qiCluster: "QI_PACKER" },
+
+      // file::reflexion_hud.py
+      { id: "fn::hud.render_mcp_panel", name: "render_mcp_panel()", kind: "Method", depth: 3, parent: "file::reflexion_hud.py", dagLayer: 5, sccSize: 1, qiCluster: "QI_HUD_VIEW" },
+      { id: "fn::hud.audit_divergences", name: "audit_divergences()", kind: "Method", depth: 3, parent: "file::reflexion_hud.py", dagLayer: 5, sccSize: 1, qiCluster: "QI_HUD_VIEW" },
+      { id: "fn::hud.serialize_json", name: "serialize_json()", kind: "Method", depth: 3, parent: "file::reflexion_hud.py", dagLayer: 1, sccSize: 1, orbitId: "ORBIT_JSON_WRITER", orbitType: "EXACT_AST (write_json)", qiCluster: "QI_HUD_VIEW" }
+    ];
+
+    // LEAF DEPENDENCY ARCS E_A (Multilayer Tensor K2_STATIC_DEP & K3_DYNAMIC_TRACE)
+    const LEAF_ARCS_DATA = [
+      // Intra-file sibling calls (N = 3 control points: [Start, File_LCA, End] -> tests N > 3 LCA rule!)
+      { id: "arc_01", source: "fn::jax_fdtd.step_pml", target: "fn::jax_fdtd.curl_eh", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 1200, ms: 0.8 },
+      { id: "arc_02", source: "fn::jax_fdtd.step_pml", target: "fn::jax_fdtd.sha256_state", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 60, ms: 0.2 },
+      { id: "arc_03", source: "fn::cheeger.cut_ratio", target: "fn::cheeger.laplacian_eig", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 45, ms: 4.5 },
+      { id: "arc_04", source: "fn::cheeger.pinch_edges", target: "fn::cheeger.cut_ratio", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 45, ms: 1.2 },
+      { id: "arc_05", source: "fn::cayley.degree_bound", target: "fn::cayley.wl_fingerprint", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 30, ms: 2.1 },
+      { id: "arc_06", source: "fn::zmq.poll_CSI_socket", target: "fn::zmq.dispatch_batch", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 4200, ms: 0.4 },
+      { id: "arc_07", source: "fn::ring.pop_window", target: "fn::ring.push_frame", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 4200, ms: 0.1 },
+      { id: "arc_08", source: "fn::codec.decode_iq", target: "fn::codec.phase_unwrap", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 2400, ms: 0.6 },
+      { id: "arc_09", source: "fn::qi.coarse_ball_net", target: "fn::qi.word_metric_bfs", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 15, ms: 3.4 },
+      { id: "arc_10", source: "fn::doi.compute_doi_score", target: "fn::doi.lca_binary_lift", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 240, ms: 0.05 },
+      { id: "arc_11", source: "fn::heb.eval_cubic_bspline", target: "fn::heb.straighten_cp", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 60, ms: 1.1 },
+      { id: "arc_12", source: "fn::heb.straighten_cp", target: "fn::heb.strip_lca_n3", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 60, ms: 0.2 },
+
+      // Intra-subsystem cross-file calls (N = 5 control points)
+      { id: "arc_13", source: "fn::cheeger.laplacian_eig", target: "fn::jax_fdtd.curl_eh", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 20, ms: 5.2 },
+      { id: "arc_14", source: "fn::cayley.abelian_census", target: "fn::cheeger.cut_ratio", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 10, ms: 8.4 },
+      { id: "arc_15", source: "fn::zmq.poll_CSI_socket", target: "fn::codec.decode_iq", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 4200, ms: 0.9 },
+      { id: "arc_16", source: "fn::codec.decode_iq", target: "fn::ring.push_frame", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 4200, ms: 0.3 },
+      { id: "arc_17", source: "fn::doi.quotient_rollup", target: "fn::sql.query_witnesses", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 120, ms: 1.8 },
+      { id: "arc_18", source: "fn::qi.coarse_ball_net", target: "fn::sql.commit_compound", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 12, ms: 6.0 },
+      { id: "arc_19", source: "fn::hud.render_mcp_panel", target: "fn::heb.eval_cubic_bspline", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 60, ms: 2.3 },
+      { id: "arc_20", source: "fn::heb.eval_cubic_bspline", target: "fn::pack.fibonacci_shell", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 60, ms: 0.7 },
+
+      // Cross-subsystem calls (N = 7 control points through Repository Root)
+      // Note how network.zmq_csi -> core.solver AND core.solver -> network.zmq_csi create the Subsystem Quotient Cycle Trap!
+      { id: "arc_21", source: "fn::zmq.dispatch_batch", target: "fn::jax_fdtd.step_pml", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 1200, ms: 14.2 },
+      { id: "arc_22", source: "fn::jax_fdtd.step_pml", target: "fn::ring.pop_window", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 1200, ms: 1.9 },
+      { id: "arc_23", source: "fn::qi.word_metric_bfs", target: "fn::cheeger.pinch_edges", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 15, ms: 3.1 },
+      { id: "arc_24", source: "fn::qi.coarse_ball_net", target: "fn::cayley.degree_bound", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 15, ms: 2.0 },
+      { id: "arc_25", source: "fn::hud.render_mcp_panel", target: "fn::doi.compute_doi_score", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 60, ms: 1.4 },
+      { id: "arc_26", source: "fn::hud.audit_divergences", target: "fn::qi.coarse_ball_net", layer: "K2_STATIC_DEP", reflexion: "CONVERGENCE", hz: 30, ms: 4.1 },
+      { id: "arc_27", source: "fn::sql.commit_compound", target: "fn::ring.pop_window", layer: "K3_DYNAMIC_TRACE", reflexion: "CONVERGENCE", hz: 180, ms: 2.7 },
+
+      // REFLEXION DIVERGENCES (Illegal architectural layer bypasses caught in static/dynamic analysis!)
+      { id: "arc_28", source: "fn::hud.render_mcp_panel", target: "fn::ring.push_frame", layer: "K3_DYNAMIC_TRACE", reflexion: "DIVERGENCE", hz: 450, ms: 19.8, note: "UI Viewport bypassing MCP Librarian to mutate ZMQ Ring Buffer directly" },
+      { id: "arc_29", source: "fn::heb.straighten_cp", target: "fn::jax_fdtd.curl_eh", layer: "K2_STATIC_DEP", reflexion: "DIVERGENCE", hz: 60, ms: 11.4, note: "UI Spline renderer importing raw FDTD curl kernel directly" },
+      { id: "arc_30", source: "fn::zmq.serialize_json", target: "fn::sql.commit_compound", layer: "K3_DYNAMIC_TRACE", reflexion: "DIVERGENCE", hz: 890, ms: 28.5, note: "Unapproved synchronous SQLite write inside high-rate ZMQ socket loop" },
+
+      // REFLEXION ABSENCES (Expected conceptual links missing from implementation / unexecuted in traces)
+      { id: "arc_31", source: "fn::hud.audit_divergences", target: "fn::cayley.abelian_census", layer: "K2_STATIC_DEP", reflexion: "ABSENCE", hz: 0, ms: 0.0, note: "Expected HUD conformance audit hook to Cayley census is unwired" },
+      { id: "arc_32", source: "fn::doi.quotient_rollup", target: "fn::cheeger.cut_ratio", layer: "K2_STATIC_DEP", reflexion: "ABSENCE", hz: 0, ms: 0.0, note: "Expected automatic Cheeger bottleneck weighting in DOI rollup missing" }
+    ];
+
+    /***************************************************************************
+     * 2. TREE INDEXING, FIBONACCI NON-COLLINEAR SPHERE PACKING & LCA TABLE
+     ***************************************************************************/
+    const nodeMap = new Map();
+    NODES_DATA.forEach(n => {
+      n.children = [];
+      n.ancestors = []; // Ordered from Root (index 0) to self (index depth)
+      nodeMap.set(n.id, n);
+    });
+
+    NODES_DATA.forEach(n => {
+      if (n.parent && nodeMap.has(n.parent)) {
+        nodeMap.get(n.parent).children.push(n);
+      }
+    });
+
+    // Populate ancestor chains for O(1) Least Common Ancestor (LCA) lookup
+    function buildAncestors(node, chain) {
+      node.ancestors = [...chain, node.id];
+      node.apiScore = -node.depth; // Furnas API(x) = -d_tree(x, root)
+      node.children.forEach(child => buildAncestors(child, node.ancestors));
+    }
+    const rootNode = nodeMap.get("quantule_mapper::root");
+    buildAncestors(rootNode, []);
+
+    // Non-Collinear 3D Golden-Angle Fibonacci Sphere Packing ("Planets-in-Planets")
+    // Guarantees no 3 sibling spheres are ever collinear so B-splines never suffer axial occlusion
+    const LEVEL_RADII = { 0: 54.0, 1: 21.0, 2: 8.2, 3: 2.1 };
+    const LEVEL_ORBIT_FRAC = { 1: 0.56, 2: 0.54, 3: 0.52 };
+
+    function computeNonCollinearPacking(node, centerVec, phaseSeed = 0) {
+      node.pos = centerVec.clone();
+      node.radius = LEVEL_RADII[node.depth] || 2.0;
+
+      // Assign inherit color from Subsystem
+      if (node.depth === 0) {
+        node.color = 0x38bdf8;
+      } else if (node.depth > 1) {
+        const subId = node.ancestors[1];
+        node.color = nodeMap.get(subId)?.color || 0x38bdf8;
+      }
+
+      const kCount = node.children.length;
+      if (kCount === 0) return;
+
+      const orbitRadius = node.radius * (LEVEL_ORBIT_FRAC[node.depth + 1] || 0.5);
+      const goldenRatio = (1 + Math.sqrt(5)) / 2;
+
+      node.children.forEach((child, idx) => {
+        // Non-collinear 3D tetrahedral / Fibonacci spherical distribution with phase offset
+        let dir;
+        if (kCount === 4) {
+          // Exact regular tetrahedron vertices (maximally non-collinear in 3D)
+          const tet = [
+            new THREE.Vector3(1, 1, 1),
+            new THREE.Vector3(1, -1, -1),
+            new THREE.Vector3(-1, 1, -1),
+            new THREE.Vector3(-1, -1, 1)
+          ];
+          dir = tet[idx].normalize();
+        } else if (kCount === 3) {
+          // Non-collinear tilted triangle in 3D (tilted in Z so no axis alignment occurs)
+          const angle = (idx * 2 * Math.PI) / 3 + phaseSeed * 0.73;
+          const zTilt = (idx === 0 ? 0.42 : idx === 1 ? -0.38 : 0.15);
+          dir = new THREE.Vector3(Math.cos(angle), zTilt, Math.sin(angle)).normalize();
+        } else {
+          const t = (idx + 0.5) / kCount;
+          const inclination = Math.acos(1 - 2 * t);
+          const azimuth = (2 * Math.PI * idx) / goldenRatio + phaseSeed;
+          dir = new THREE.Vector3(
+            Math.sin(inclination) * Math.cos(azimuth),
+            Math.cos(inclination),
+            Math.sin(inclination) * Math.sin(azimuth)
+          ).normalize();
+        }
+
+        const childCenter = centerVec.clone().add(dir.multiplyScalar(orbitRadius));
+        computeNonCollinearPacking(child, childCenter, phaseSeed + (idx + 1) * 1.618);
+      });
+    }
+
+    computeNonCollinearPacking(rootNode, new THREE.Vector3(0, 0, 0), 0.35);
+
+    /***************************************************************************
+     * 3. MATHEMATICAL KERNELS:
+     *    - LCA & Furnas Tree Fisheye DOI: DOI(x | y) = -(d_tree(x,y) + d_tree(x,root))
+     *    - Holten Control Polygon Extraction, N > 3 LCA Removal & Straightening
+     *    - Open Uniform B-Spline Evaluator (Cubic p=3, Quadratic p=2, Linear p=1)
+     *    - Cheeger Isoperimetric Constant h(S) & Cayley Completion Bound
+     ***************************************************************************/
+    function findLCA(nodeA, nodeB) {
+      const len = Math.min(nodeA.ancestors.length, nodeB.ancestors.length);
+      let lcaId = rootNode.id;
+      for (let i = 0; i < len; i++) {
+        if (nodeA.ancestors[i] === nodeB.ancestors[i]) {
+          lcaId = nodeA.ancestors[i];
+        } else {
+          break;
+        }
+      }
+      return nodeMap.get(lcaId);
+    }
+
+    function computeTreeDistance(nodeA, nodeB) {
+      const lca = findLCA(nodeA, nodeB);
+      return nodeA.depth + nodeB.depth - 2 * lca.depth;
+    }
+
+    // Furnas (1986) Generalized Tree Fisheye DOI
+    function computeFisheyeDOI(targetNode, focusNode) {
+      const dTreeXY = computeTreeDistance(targetNode, focusNode);
+      const dTreeXRoot = targetNode.depth;
+      return -(dTreeXY + dTreeXRoot);
+    }
+
+    // Highest visible ancestor \pi_vis(x) for Upstream DOI Quotient Rollup
+    function getHighestVisibleAncestor(node) {
+      let curr = node;
+      while (curr && !curr.isVisible) {
+        curr = nodeMap.get(curr.parent);
+      }
+      return curr || rootNode;
+    }
+
+    // Extract Control Polygon along inclusion tree T between sourceNode and targetNode
+    function extractControlPolygonNodes(sourceNode, targetNode, enforceLcaRuleN3) {
+      const lca = findLCA(sourceNode, targetNode);
+      const upPath = [];
+      let curr = sourceNode;
+      while (curr && curr.id !== lca.id) {
+        upPath.push(curr);
+        curr = nodeMap.get(curr.parent);
+      }
+      const downPath = [];
+      curr = targetNode;
+      while (curr && curr.id !== lca.id) {
+        downPath.push(curr);
+        curr = nodeMap.get(curr.parent);
+      }
+      downPath.reverse();
+
+      const fullPolygon = [...upPath, lca, ...downPath];
+      const N = fullPolygon.length;
+
+      // Holten's LCA Removal Rule:
+      // Remove LCA if and only if N > 3.
+      // When N === 3 (sibling call), keep LCA so curve remains quadratic rather than collapsing to a colliding line.
+      if (enforceLcaRuleN3) {
+        if (N > 3) {
+          return {
+            points: [...upPath, ...downPath],
+            rawCount: N,
+            lcaRemoved: true,
+            lcaNode: lca
+          };
+        } else {
+          return {
+            points: fullPolygon,
+            rawCount: N,
+            lcaRemoved: false,
+            lcaNode: lca
+          };
+        }
+      } else {
+        // When rule is unchecked by user, remove LCA even for N=3 so user can see sibling straight-line collapse!
+        if (N >= 3) {
+          return {
+            points: [...upPath, ...downPath],
+            rawCount: N,
+            lcaRemoved: true,
+            lcaNode: lca
+          };
+        }
+        return { points: fullPolygon, rawCount: N, lcaRemoved: false, lcaNode: lca };
+      }
+    }
+
+    // Holten Method 1: Control Polygon Straightening (O(N) operations per bundle)
+    function straightenControlPolygon(controlPoints3D, beta, focusPos, edgeLensEnabled) {
+      const N = controlPoints3D.length;
+      if (N <= 1) return controlPoints3D.map(p => p.clone());
+      const P0 = controlPoints3D[0];
+      const PN_1 = controlPoints3D[N - 1];
+      const chordVec = new THREE.Vector3().subVectors(PN_1, P0);
+
+      return controlPoints3D.map((Pi, i) => {
+        if (i === 0 || i === N - 1) return Pi.clone();
+        const frac = i / (N - 1);
+        const lerpPt = new THREE.Vector3().copy(P0).addScaledVector(chordVec, frac);
+
+        // Optional EdgeLens: locally reduces bundling strength \beta near focus sphere
+        let effectiveBeta = beta;
+        if (edgeLensEnabled && focusPos) {
+          const distToFocus = Pi.distanceTo(focusPos);
+          const lensRadius = 26.0;
+          if (distToFocus < lensRadius) {
+            const lensFactor = Math.pow(distToFocus / lensRadius, 1.5);
+            effectiveBeta = beta * (0.15 + 0.85 * lensFactor);
+          }
+        }
+
+        return new THREE.Vector3()
+          .copy(Pi)
+          .multiplyScalar(effectiveBeta)
+          .addScaledVector(lerpPt, 1 - effectiveBeta);
+      });
+    }
+
+    // Cox-de Boor Open Uniform B-Spline Evaluation
+    // Automatically steps degree p = min(3, N - 1) so endpoints S(0)=P_0 and S(1)=P_{N-1} are strictly interpolated
+    function evaluateOpenUniformBSpline(controlPts, numSegments = 48) {
+      const N = controlPts.length;
+      if (N < 2) return controlPts;
+      if (N === 2) {
+        const out = [];
+        for (let s = 0; s <= numSegments; s++) {
+          const t = s / numSegments;
+          out.push(new THREE.Vector3().lerpVectors(controlPts[0], controlPts[1], t));
+        }
+        return out;
+      }
+
+      const p = Math.min(3, N - 1); // Degree 3 (cubic) for N>=4, Degree 2 (quadratic) for N=3
+      const m = N + p;              // Knot vector length = m + 1
+      const U = new Array(m + 1);
+      const internalCount = N - p;
+
+      for (let j = 0; j <= m; j++) {
+        if (j <= p) U[j] = 0.0;
+        else if (j >= N) U[j] = 1.0;
+        else U[j] = (j - p) / internalCount;
+      }
+
+      // De Boor's algorithm for open uniform knot vector
+      const curvePoints = [];
+      for (let s = 0; s <= numSegments; s++) {
+        let t = s / numSegments;
+        if (t <= 0) {
+          curvePoints.push(controlPts[0].clone());
+          continue;
+        }
+        if (t >= 1) {
+          curvePoints.push(controlPts[N - 1].clone());
+          continue;
+        }
+
+        // Find knot span k such that U[k] <= t < U[k+1]
+        let k = p;
+        for (let j = p; j < N; j++) {
+          if (t >= U[j] && t < U[j + 1]) {
+            k = j;
+            break;
+          }
+        }
+
+        const d = [];
+        for (let j = 0; j <= p; j++) {
+          d.push(controlPts[k - p + j].clone());
+        }
+
+        for (let r = 1; r <= p; r++) {
+          for (let j = p; j >= r; j--) {
+            const i = k - p + j;
+            const denom = U[i + p - r + 1] - U[i];
+            const alpha = denom > 1e-8 ? (t - U[i]) / denom : 0.0;
+            d[j].lerpVectors(d[j - 1], d[j], alpha);
+          }
+        }
+        curvePoints.push(d[p]);
+      }
+      return curvePoints;
+    }
+
+    // Compute Subsystem Cheeger Isoperimetric Constant h(S) & Linear-Time Cayley Degree Lower Bound
+    function computeSubsystemDiagnostics(subsystemId) {
+      const subNode = nodeMap.get(subsystemId) || nodeMap.get("sub::core.solver");
+      // Collect all leaf methods inside this subsystem
+      const subLeaves = NODES_DATA.filter(n => n.depth === 3 && n.ancestors.includes(subNode.id));
+      const leafIdSet = new Set(subLeaves.map(n => n.id));
+      const volumeS = Math.max(1, subLeaves.length);
+
+      let boundaryCutEdges = 0;
+      const degrees = new Map();
+      subLeaves.forEach(l => degrees.set(l.id, 0));
+      let internalEdgesM = 0;
+
+      LEAF_ARCS_DATA.forEach(arc => {
+        if (arc.reflexion === "ABSENCE") return;
+        const inSource = leafIdSet.has(arc.source);
+        const inTarget = leafIdSet.has(arc.target);
+        if (inSource && !inTarget) boundaryCutEdges++;
+        if (!inSource && inTarget) boundaryCutEdges++;
+        if (inSource && inTarget) {
+          internalEdgesM++;
+          degrees.set(arc.source, (degrees.get(arc.source) || 0) + 1);
+          degrees.set(arc.target, (degrees.get(arc.target) || 0) + 1);
+        }
+      });
+
+      const cheegerH = boundaryCutEdges / volumeS;
+
+      // Theorem 5 (Souop & Bitjoka): \gamma^+(G) >= (n * \Delta^*) / (2m) - 1
+      const n = volumeS;
+      const m = Math.max(n - 1, internalEdgesM + 2);
+      let maxDelta = 2;
+      degrees.forEach(deg => { if (deg > maxDelta) maxDelta = deg; });
+      let deltaStar = maxDelta;
+      if ((n * deltaStar) % 2 !== 0) deltaStar += 1;
+      const cayleyBound = Math.max(0, (n * deltaStar) / (2 * m) - 1);
+
+      return {
+        subsystemName: subNode.name,
+        volumeS,
+        boundaryCutEdges,
+        cheegerH,
+        cayleyBound,
+        n,
+        m,
+        deltaStar
+      };
+    }
+
+    /***************************************************************************
+     * 4. THREE.JS 3D VOLUMETRIC SCENE SETUP ("PLANETS-IN-PLANETS")
+     ***************************************************************************/
+    const container = document.getElementById("canvas-container");
+    const labelsContainer = document.getElementById("labels-container");
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x060911, 0.0032);
+
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.5, 600);
+    camera.position.set(0, 42, 118);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x060911, 1);
+    container.appendChild(renderer.domElement);
+
+    // Subtle Ambient & Directional Lighting for Volumetric Depth
+    scene.add(new THREE.AmbientLight(0x94a3b8, 0.75));
+    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 0.9);
+    dirLight1.position.set(70, 90, 60);
+    scene.add(dirLight1);
+    const dirLight2 = new THREE.DirectionalLight(0xa78bfa, 0.5);
+    dirLight2.position.set(-70, -60, -50);
+    scene.add(dirLight2);
+
+    // Subtle Starfield / Metric Space Grid Backdrop
+    const starsGeom = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(900 * 3);
+    for (let i = 0; i < 900; i++) {
+      starPositions[i * 3] = (Math.random() - 0.5) * 360;
+      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 360;
+      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 360;
+    }
+    starsGeom.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    const starsMat = new THREE.PointsMaterial({ color: 0x475569, size: 0.7, transparent: true, opacity: 0.45 });
+    scene.add(new THREE.Points(starsGeom, starsMat));
+
+    // Groups for Spheres, Containment Spokes, and B-Spline Bundles
+    const spheresGroup = new THREE.Group();
+    const containmentTreeGroup = new THREE.Group();
+    const bundlesGroup = new THREE.Group();
+    scene.add(containmentTreeGroup);
+    scene.add(spheresGroup);
+    scene.add(bundlesGroup);
+
+    // Build 3D Planet Meshes & HTML Labels for Each Node
+    const meshToNodeMap = new Map();
+    const nodeMeshRecords = new Map();
+
+    const sphereGeoHigh = new THREE.SphereGeometry(1, 32, 24);
+    const sphereGeoMed = new THREE.SphereGeometry(1, 22, 16);
+    const sphereGeoLeaf = new THREE.SphereGeometry(1, 16, 12);
+
+    NODES_DATA.forEach(node => {
+      const group = new THREE.Group();
+      group.position.copy(node.pos);
+      group.scale.setScalar(node.radius);
+
+      let mesh, wireMesh;
+      if (node.depth === 0) {
+        // Repository Root: Outer translucent celestial boundary
+        const mat = new THREE.MeshPhongMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.035,
+          depthWrite: false,
+          side: THREE.BackSide
+        });
+        mesh = new THREE.Mesh(sphereGeoHigh, mat);
+
+        const wireMat = new THREE.MeshBasicMaterial({
+          color: 0x38bdf8,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.06,
+          depthWrite: false
+        });
+        wireMesh = new THREE.Mesh(sphereGeoMed, wireMat);
+        group.add(mesh, wireMesh);
+      } else if (node.depth === 1) {
+        // Depth 1: Subsystem Planet Bubble
+        const mat = new THREE.MeshPhongMaterial({
+          color: node.color,
+          emissive: node.color,
+          emissiveIntensity: 0.12,
+          transparent: true,
+          opacity: 0.11,
+          depthWrite: false,
+          shininess: 60
+        });
+        mesh = new THREE.Mesh(sphereGeoHigh, mat);
+
+        const wireMat = new THREE.MeshBasicMaterial({
+          color: node.color,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.15,
+          depthWrite: false
+        });
+        wireMesh = new THREE.Mesh(sphereGeoMed, wireMat);
+        group.add(mesh, wireMesh);
+      } else if (node.depth === 2) {
+        // Depth 2: File Planet Bubble
+        const mat = new THREE.MeshPhongMaterial({
+          color: node.color,
+          emissive: node.color,
+          emissiveIntensity: 0.22,
+          transparent: true,
+          opacity: 0.19,
+          depthWrite: false,
+          shininess: 80
+        });
+        mesh = new THREE.Mesh(sphereGeoMed, mat);
+
+        const wireMat = new THREE.MeshBasicMaterial({
+          color: node.color,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.24,
+          depthWrite: false
+        });
+        wireMesh = new THREE.Mesh(sphereGeoLeaf, wireMat);
+        group.add(mesh, wireMesh);
+      } else {
+        // Depth 3: Function / Method Core Node
+        const isOrbitClone = Boolean(node.orbitId);
+        const mat = new THREE.MeshPhongMaterial({
+          color: isOrbitClone ? 0xfbbf24 : node.color,
+          emissive: isOrbitClone ? 0xf59e0b : node.color,
+          emissiveIntensity: isOrbitClone ? 0.65 : 0.45,
+          transparent: true,
+          opacity: 0.92,
+          shininess: 100
+        });
+        mesh = new THREE.Mesh(sphereGeoLeaf, mat);
+        group.add(mesh);
+      }
+
+      mesh.userData = { nodeId: node.id };
+      meshToNodeMap.set(mesh, node);
+      spheresGroup.add(group);
+
+      // Create subtle inclusion tree spoke connecting node to parent
+      let treeLine = null;
+      if (node.parent) {
+        const parentNode = nodeMap.get(node.parent);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([parentNode.pos, node.pos]);
+        const lineMat = new THREE.LineBasicMaterial({
+          color: node.color,
+          transparent: true,
+          opacity: 0.14,
+          depthWrite: false
+        });
+        treeLine = new THREE.Line(lineGeo, lineMat);
+        containmentTreeGroup.add(treeLine);
+      }
+
+      // Create floating HTML label for Subsystems, Files, and focused leaves
+      const labelEl = document.createElement("div");
+      labelEl.className = "node-label px-1.5 py-0.5 rounded font-mono text-[10px] border backdrop-blur-sm";
+      if (node.depth === 0) {
+        labelEl.className += " bg-sky-950/80 text-sky-300 border-sky-500/40 font-bold";
+      } else if (node.depth === 1) {
+        labelEl.className += " bg-slate-900/90 text-white border-slate-600 font-semibold text-[11px]";
+      } else if (node.depth === 2) {
+        labelEl.className += " bg-slate-950/80 text-slate-200 border-slate-700/80";
+      } else {
+        labelEl.className += " bg-slate-950/90 text-amber-200 border-amber-500/40 text-[9px]";
+      }
+      labelEl.textContent = node.name;
+      labelsContainer.appendChild(labelEl);
+
+      nodeMeshRecords.set(node.id, { group, mesh, wireMesh, treeLine, labelEl, baseOpacity: mesh.material.opacity });
+    });
+
+    // Focus Highlight Ring
+    const focusRingGeo = new THREE.RingGeometry(1.08, 1.18, 48);
+    const focusRingMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+    const focusRingMesh = new THREE.Mesh(focusRingGeo, focusRingMat);
+    scene.add(focusRingMesh);
+
+    /***************************************************************************
+     * 5. APPLICATION STATE & REACTIVE FISHEYE + HEB BUNDLE ENGINE
+     ***************************************************************************/
+    const state = {
+      focusNodeId: "file::jax_fdtd.py",
+      doiThresholdK: -5,          // -3 (0-Order Spine), -5 (1st-Order Siblings), -7 (2nd-Order Cousins), -99 (All)
+      beta: 0.85,                 // Holten bundling tightness [0, 1]
+      enforceLcaRuleN3: true,     // Strip LCA iff N > 3
+      edgeLensEnabled: false,     // Local unbundling around focus node
+      showLayerK2: true,
+      showLayerK3: true,
+      showConvergence: true,
+      showDivergence: true,
+      showAbsence: true,
+      highlightOrbits: false,
+      activeRightTab: "math",
+      activeRenderedArcs: []      // Holds current leaf/quotient arcs for HUD & MCP serialization
+    };
+
+    // Populate Focus Node Dropdown
+    const selectFocusEl = document.getElementById("select-focus-node");
+    NODES_DATA.forEach(node => {
+      const opt = document.createElement("option");
+      opt.value = node.id;
+      const indent = "\u00A0\u00A0".repeat(node.depth);
+      opt.textContent = `${indent}[d=${node.depth}] ${node.name} (${node.kind})`;
+      selectFocusEl.appendChild(opt);
+    });
+    selectFocusEl.value = state.focusNodeId;
+
+    // Update Fisheye DOI Visibility & Rebuild 3D B-Spline Bundles
+    function updateArchitectureGraph() {
+      const focusNode = nodeMap.get(state.focusNodeId) || rootNode;
+
+      // 1. Evaluate Furnas Tree DOI for every node x
+      let visibleCount = 0;
+      NODES_DATA.forEach(node => {
+        node.doiScore = computeFisheyeDOI(node, focusNode);
+        node.isVisible = node.doiScore >= state.doiThresholdK;
+        if (node.isVisible) visibleCount++;
+      });
+
+      document.getElementById("stat-visible-nodes").textContent = `${visibleCount} / ${NODES_DATA.length}`;
+      document.getElementById("focus-depth-badge").textContent = `Depth ${focusNode.depth} (${focusNode.kind})`;
+
+      // 2. Update 3D Sphere Opacities & Scales based on Fisheye DOI
+      NODES_DATA.forEach(node => {
+        const rec = nodeMeshRecords.get(node.id);
+        if (!rec) return;
+
+        const isFocus = node.id === focusNode.id;
+        const isAncestorOfFocus = focusNode.ancestors.includes(node.id);
+        const isOrbitClone = Boolean(node.orbitId);
+
+        if (node.isVisible) {
+          rec.group.visible = true;
+          let targetOpacity = rec.baseOpacity;
+          if (isFocus) {
+            targetOpacity = Math.min(0.95, rec.baseOpacity * 1.9 + 0.15);
+          } else if (isAncestorOfFocus) {
+            targetOpacity = Math.min(0.65, rec.baseOpacity * 1.35);
+          }
+          rec.mesh.material.opacity = targetOpacity;
+
+          if (rec.wireMesh) {
+            rec.wireMesh.material.opacity = isFocus ? 0.55 : isAncestorOfFocus ? 0.28 : 0.14;
+          }
+          if (rec.treeLine) {
+            rec.treeLine.visible = true;
+            rec.treeLine.material.opacity = isAncestorOfFocus ? 0.42 : 0.12;
+          }
+
+          // Orbit Clone Highlighting
+          if (node.depth === 3) {
+            if (state.highlightOrbits && isOrbitClone) {
+              rec.mesh.material.color.setHex(0xfbbf24);
+              rec.mesh.material.emissive.setHex(0xf59e0b);
+              rec.mesh.material.emissiveIntensity = 0.95;
+            } else {
+              rec.mesh.material.color.setHex(isOrbitClone ? 0xfbbf24 : node.color);
+              rec.mesh.material.emissive.setHex(isOrbitClone ? 0xd97706 : node.color);
+              rec.mesh.material.emissiveIntensity = isFocus ? 0.9 : 0.45;
+            }
+          }
+        } else {
+          // Pruned by Upstream Fisheye DOI Filter!
+          rec.group.visible = false;
+          if (rec.treeLine) rec.treeLine.visible = false;
+          rec.labelEl.style.opacity = "0";
+        }
+      });
+
+      // Position Focus Ring on active focus sphere
+      focusRingMesh.position.copy(focusNode.pos);
+      focusRingMesh.scale.setScalar(focusNode.radius);
+
+      // 3. Upstream DOI Pruning & Quotient Witness Roll-up (D_k = D / \pi_k)
+      // Any leaf edge whose endpoints are pruned rolls up to its highest visible ancestor spheres!
+      const aggregatedArcsMap = new Map();
+
+      LEAF_ARCS_DATA.forEach(arc => {
+        if (arc.layer === "K2_STATIC_DEP" && !state.showLayerK2) return;
+        if (arc.layer === "K3_DYNAMIC_TRACE" && !state.showLayerK3) return;
+        if (arc.reflexion === "CONVERGENCE" && !state.showConvergence) return;
+        if (arc.reflexion === "DIVERGENCE" && !state.showDivergence) return;
+        if (arc.reflexion === "ABSENCE" && !state.showAbsence) return;
+
+        const rawSource = nodeMap.get(arc.source);
+        const rawTarget = nodeMap.get(arc.target);
+        if (!rawSource || !rawTarget) return;
+
+        const visSource = getHighestVisibleAncestor(rawSource);
+        const visTarget = getHighestVisibleAncestor(rawTarget);
+
+        // Skip self-loops when both endpoints collapse into the same visible ancestor sphere
+        if (visSource.id === visTarget.id) return;
+
+        const key = `${visSource.id}==>:${visTarget.id}::${arc.reflexion}`;
+        if (!aggregatedArcsMap.has(key)) {
+          aggregatedArcsMap.set(key, {
+            key,
+            sourceNode: visSource,
+            targetNode: visTarget,
+            isQuotientRollup: (visSource.id !== rawSource.id || visTarget.id !== rawTarget.id),
+            reflexion: arc.reflexion,
+            dominantLayer: arc.layer,
+            witnessArcs: [],
+            totalHz: 0,
+            maxLatencyMs: 0
+          });
+        }
+        const entry = aggregatedArcsMap.get(key);
+        entry.witnessArcs.push(arc);
+        entry.totalHz += arc.hz || 0;
+        if ((arc.ms || 0) > entry.maxLatencyMs) entry.maxLatencyMs = arc.ms || 0;
+      });
+
+      // 4. Rebuild 3D B-Spline Geometries with Directional RGB Gradients & Length-Sorted Alpha
+      while (bundlesGroup.children.length > 0) {
+        const child = bundlesGroup.children[0];
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+        bundlesGroup.remove(child);
+      }
+
+      const renderedArcs = Array.from(aggregatedArcsMap.values());
+
+      // Compute chord length for each bundle and sort (long curves rendered first, short local curves on top)
+      renderedArcs.forEach(bundle => {
+        bundle.chordLength = bundle.sourceNode.pos.distanceTo(bundle.targetNode.pos);
+      });
+      renderedArcs.sort((a, b) => b.chordLength - a.chordLength);
+
+      state.activeRenderedArcs = renderedArcs;
+      document.getElementById("stat-visible-arcs").textContent = String(renderedArcs.length);
+
+      renderedArcs.forEach((bundle, drawIdx) => {
+        const cpResult = extractControlPolygonNodes(
+          bundle.sourceNode,
+          bundle.targetNode,
+          state.enforceLcaRuleN3
+        );
+        bundle.rawControlPointCount = cpResult.rawCount;
+        bundle.lcaRemoved = cpResult.lcaRemoved;
+        bundle.lcaNodeId = cpResult.lcaNode.id;
+
+        const rawCoords = cpResult.points.map(n => n.pos);
+        const straightenedCoords = straightenControlPolygon(
+          rawCoords,
+          state.beta,
+          focusNode.pos,
+          state.edgeLensEnabled
+        );
+
+        const splinePts = evaluateOpenUniformBSpline(straightenedCoords, 48);
+        const numPts = splinePts.length;
+
+        const positions = new Float32Array(numPts * 3);
+        const colors = new Float32Array(numPts * 3);
+
+        // Directional RGB Gradient:
+        // CONVERGENCE: Caller Green (t=0) -> Callee Red (t=1)
+        // DIVERGENCE: Bright Magenta-to-Amber warning pulse
+        // ABSENCE: Cyan ghosted expectation path
+        const cStart = new THREE.Color();
+        const cMid = new THREE.Color();
+        const cEnd = new THREE.Color();
+
+        if (bundle.reflexion === "DIVERGENCE") {
+          cStart.setRGB(0.95, 0.22, 0.88);
+          cMid.setRGB(1.0, 0.45, 0.35);
+          cEnd.setRGB(1.0, 0.15, 0.25);
+        } else if (bundle.reflexion === "ABSENCE") {
+          cStart.setRGB(0.15, 0.85, 0.95);
+          cMid.setRGB(0.25, 0.65, 0.95);
+          cEnd.setRGB(0.45, 0.40, 0.98);
+        } else {
+          // Standard Holten Green -> Yellow-Amber -> Red directional gradient
+          cStart.setRGB(0.08, 0.92, 0.48); // Caller (t = 0.0)
+          cMid.setRGB(0.95, 0.78, 0.20);   // Mid-conduit
+          cEnd.setRGB(0.98, 0.22, 0.32);   // Callee (t = 1.0)
+        }
+
+        const tempCol = new THREE.Color();
+        for (let i = 0; i < numPts; i++) {
+          const t = i / (numPts - 1);
+          positions[i * 3] = splinePts[i].x;
+          positions[i * 3 + 1] = splinePts[i].y;
+          positions[i * 3 + 2] = splinePts[i].z;
+
+          if (t < 0.5) {
+            tempCol.lerpColors(cStart, cMid, t * 2.0);
+          } else {
+            tempCol.lerpColors(cMid, cEnd, (t - 0.5) * 2.0);
+          }
+          colors[i * 3] = tempCol.r;
+          colors[i * 3 + 1] = tempCol.g;
+          colors[i * 3 + 2] = tempCol.b;
+        }
+
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        geom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+        // Length-dependent alpha modulation: short local curves have higher opacity than long global curves
+        const isIncidentToFocus = (
+          bundle.sourceNode.id === focusNode.id ||
+          bundle.targetNode.id === focusNode.id ||
+          bundle.sourceNode.ancestors.includes(focusNode.id) ||
+          bundle.targetNode.ancestors.includes(focusNode.id)
+        );
+        const lengthNorm = Math.min(1.0, bundle.chordLength / 85.0);
+        let alpha = 0.78 - 0.42 * lengthNorm;
+        if (bundle.reflexion === "DIVERGENCE") alpha = 0.95;
+        if (isIncidentToFocus) alpha = Math.min(1.0, alpha + 0.25);
+
+        const mat = new THREE.LineBasicMaterial({
+          vertexColors: true,
+          transparent: true,
+          opacity: alpha,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+
+        const lineMesh = new THREE.Line(geom, mat);
+        lineMesh.renderOrder = 10 + drawIdx; // Enforces short-over-long draw ordering
+        bundlesGroup.add(lineMesh);
+      });
+
+      // 5. Refresh Right HUD Diagnostics & Live MCP Payload
+      updateRightInspectorPanel(focusNode);
+    }
+
+    /***************************************************************************
+     * 6. RIGHT HUD INSPECTOR: ALGEBRAIC DIAGNOSTICS & LIVE MCP PAYLOAD
+     ***************************************************************************/
+    function updateRightInspectorPanel(focusNode) {
+      document.getElementById("inspect-kind").textContent = `${focusNode.kind.toUpperCase()} (DEPTH ${focusNode.depth})`;
+      document.getElementById("inspect-layer").textContent = `Canonical DAG Layer L${focusNode.dagLayer} \u2022 SCC=${focusNode.sccSize}`;
+      document.getElementById("inspect-id").textContent = focusNode.id;
+      document.getElementById("inspect-api").textContent = String(focusNode.apiScore);
+      document.getElementById("inspect-doi").textContent = String(focusNode.doiScore);
+      document.getElementById("inspect-radius").textContent = `${focusNode.radius.toFixed(1)}u`;
+
+      // 1. Ancestral Spine Invariance Proof Table
+      const lineageListEl = document.getElementById("lineage-trace-list");
+      lineageListEl.innerHTML = "";
+      focusNode.ancestors.forEach(ancId => {
+        const anc = nodeMap.get(ancId);
+        const dXY = computeTreeDistance(anc, focusNode);
+        const dXRoot = anc.depth;
+        const doiVal = -(dXY + dXRoot);
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between px-2 py-1 rounded bg-slate-950/80 border border-slate-800/80";
+        row.innerHTML = `
+          <span class="text-slate-200 truncate max-w-[170px]">[d=${anc.depth}] ${anc.name}</span>
+          <span class="text-slate-400">-(${dXY} + ${dXRoot}) = <strong class="text-emerald-400">${doiVal}</strong></span>
+        `;
+        lineageListEl.appendChild(row);
+      });
+
+      // 2. Subsystem Cheeger Constant h(S) & Cayley Completion Bound
+      const subId = focusNode.depth === 0 ? "sub::core.solver" : focusNode.ancestors[1];
+      const diag = computeSubsystemDiagnostics(subId);
+      document.getElementById("inspect-subsystem-tag").textContent = diag.subsystemName;
+      document.getElementById("inspect-cheeger").textContent = `${diag.cheegerH.toFixed(3)} (${diag.boundaryCutEdges}/${diag.volumeS})`;
+      const cheegerStatusEl = document.getElementById("inspect-cheeger-status");
+      if (diag.cheegerH < 0.4) {
+        cheegerStatusEl.textContent = "Pinch-Point Bottleneck Risk";
+        cheegerStatusEl.className = "text-[10px] text-amber-400 mt-0.5";
+      } else {
+        cheegerStatusEl.textContent = "Well-Expanded Boundary";
+        cheegerStatusEl.className = "text-[10px] text-emerald-400 mt-0.5";
+      }
+
+      document.getElementById("inspect-cayley").textContent = diag.cayleyBound.toFixed(3);
+      document.getElementById("inspect-cayley-status").textContent =
+        `n=${diag.n}, m=${diag.m}, \u0394*=${diag.deltaStar}`;
+
+      // 3. Permutation Orbit Clones (X/G)
+      const orbitListEl = document.getElementById("orbit-clones-list");
+      orbitListEl.innerHTML = "";
+      const orbitGroups = new Map();
+      NODES_DATA.filter(n => n.orbitId).forEach(n => {
+        if (!orbitGroups.has(n.orbitId)) orbitGroups.set(n.orbitId, []);
+        orbitGroups.get(n.orbitId).push(n);
+      });
+
+      orbitGroups.forEach((members, orbitId) => {
+        const card = document.createElement("div");
+        const isFocusedOrbit = focusNode.orbitId === orbitId;
+        card.className = `p-2 rounded border ${
+          isFocusedOrbit ? "bg-amber-500/15 border-amber-400/50" : "bg-slate-950/80 border-slate-800"
+        }`;
+        const memberNames = members.map(m => {
+          const fileParent = nodeMap.get(m.parent)?.name || "";
+          return `<button data-jump="${m.id}" class="orbit-jump-btn underline hover:text-sky-300 mr-2">${fileParent}::${m.name}</button>`;
+        }).join("");
+        card.innerHTML = `
+          <div class="flex items-center justify-between text-[10px] text-amber-300 font-semibold">
+            <span>${orbitId}</span>
+            <span>${members.length} Clones &bull; ${members[0].orbitType}</span>
+          </div>
+          <div class="text-slate-300 mt-1 flex flex-wrap gap-y-1">${memberNames}</div>
+        `;
+        orbitListEl.appendChild(card);
+      });
+
+      orbitListEl.querySelectorAll(".orbit-jump-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const targetId = btn.getAttribute("data-jump");
+          setFocusNode(targetId);
+        });
+      });
+
+      // 4. Incident Quotient & Leaf Witness Arcs
+      const witnessListEl = document.getElementById("witness-arcs-list");
+      witnessListEl.innerHTML = "";
+      const incidentBundles = state.activeRenderedArcs.filter(b =>
+        b.sourceNode.id === focusNode.id ||
+        b.targetNode.id === focusNode.id ||
+        b.sourceNode.ancestors.includes(focusNode.id) ||
+        b.targetNode.ancestors.includes(focusNode.id)
+      );
+
+      document.getElementById("inspect-arc-count").textContent = `${incidentBundles.length} visible bundles`;
+
+      incidentBundles.forEach(bundle => {
+        const badgeColor =
+          bundle.reflexion === "DIVERGENCE"
+            ? "bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40"
+            : bundle.reflexion === "ABSENCE"
+            ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+            : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+
+        const item = document.createElement("div");
+        item.className = "p-2 rounded bg-slate-950/90 border border-slate-800/90 space-y-1";
+        item.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="px-1.5 py-0.5 rounded text-[9px] border ${badgeColor}">
+              ${bundle.reflexion} ${bundle.isQuotientRollup ? "\u2022 QUOTIENT D_k" : "\u2022 LEAF"}
+            </span>
+            <span class="text-[10px] text-slate-400">
+              Witnesses: <strong class="text-white">${bundle.witnessArcs.length}</strong> &bull; CP N=${bundle.rawControlPointCount}
+            </span>
+          </div>
+          <div class="text-slate-200 truncate">
+            <span class="text-emerald-400">${bundle.sourceNode.name}</span>
+            <span class="text-slate-500"> &rarr; </span>
+            <span class="text-rose-400">${bundle.targetNode.name}</span>
+          </div>
+          ${
+            bundle.witnessArcs[0]?.note
+              ? `<div class="text-[10px] text-fuchsia-300/90">${bundle.witnessArcs[0].note}</div>`
+              : `<div class="text-[10px] text-slate-400">Rate: ${bundle.totalHz} Hz &bull; Max p95: ${bundle.maxLatencyMs} ms</div>`
+          }
+        `;
+        witnessListEl.appendChild(item);
+      });
+
+      // 5. Build Live Token-Compressed MCP JSON Payload
+      const rawAstTokenEstimate = 18420;
+      const visibleQiNodes = NODES_DATA.filter(n => n.isVisible).map(n => ({
+        id: n.id,
+        kind: n.kind,
+        doi: n.doiScore,
+        dag_layer: n.dagLayer,
+        scc_size: n.sccSize,
+        ...(n.orbitId ? { orbit_clone_class: n.orbitId } : {}),
+        ...(n.qiCluster ? { qi_skeleton_cluster: n.qiCluster } : {})
+      }));
+
+      const mcpPayload = {
+        mcp_tool: "mcp_get_fisheye_architecture",
+        query_context: {
+          repository: "quantule_mapper",
+          focus_entity_y: focusNode.id,
+          fisheye_threshold_k: state.doiThresholdK,
+          ancestral_spine_doi_invariant: -focusNode.depth
+        },
+        ggt_subsystem_diagnostics: {
+          subsystem: diag.subsystemName,
+          cheeger_isoperimetric_hG: Number(diag.cheegerH.toFixed(4)),
+          cayley_completion_lower_bound: Number(diag.cayleyBound.toFixed(4)),
+          quotient_cycle_trap_detected: true
+        },
+        visible_compound_nodes: visibleQiNodes.slice(0, 14),
+        quotient_and_witness_arcs: incidentBundles.map(b => ({
+          source: b.sourceNode.id,
+          target: b.targetNode.id,
+          is_quotient_projection: b.isQuotientRollup,
+          witness_count: b.witnessArcs.length,
+          witness_sample_ids: b.witnessArcs.slice(0, 3).map(w => w.id),
+          reflexion_state: b.reflexion,
+          span_rate_hz: b.totalHz,
+          max_p95_latency_ms: b.maxLatencyMs
+        }))
+      };
+
+      const jsonString = JSON.stringify(mcpPayload, null, 2);
+      const qiTokens = Math.max(120, Math.round(jsonString.length / 3.8));
+      const savingsPct = ((1 - qiTokens / rawAstTokenEstimate) * 100).toFixed(1);
+      const ratioMult = (rawAstTokenEstimate / qiTokens).toFixed(1);
+
+      document.getElementById("mcp-raw-tokens").textContent = rawAstTokenEstimate.toLocaleString();
+      document.getElementById("mcp-qi-tokens").textContent = qiTokens.toLocaleString();
+      document.getElementById("mcp-token-savings").textContent = `${savingsPct}%`;
+      document.getElementById("stat-compression-ratio").textContent = `${savingsPct}% (${ratioMult}x)`;
+      document.getElementById("mcp-json-output").textContent = jsonString;
+    }
+
+    /***************************************************************************
+     * 7. CAMERA ORBIT, SEMANTIC ZOOM & RAYCAST INTERACTION
+     ***************************************************************************/
+    const camSpherical = {
+      radius: 122,
+      theta: 0.45,
+      phi: 1.18,
+      target: new THREE.Vector3(0, 0, 0),
+      desiredTarget: new THREE.Vector3(0, 0, 0),
+      desiredRadius: 122
+    };
+
+    function setFocusNode(nodeId, adjustZoom = true) {
+      const targetNode = nodeMap.get(nodeId);
+      if (!targetNode) return;
+      state.focusNodeId = nodeId;
+      selectFocusEl.value = nodeId;
+      camSpherical.desiredTarget.copy(targetNode.pos);
+
+      if (adjustZoom) {
+        const zoomLookup = { 0: 128, 1: 72, 2: 38, 3: 24 };
+        camSpherical.desiredRadius = zoomLookup[targetNode.depth] || 65;
+      }
+      updateArchitectureGraph();
+    }
+
+    // Pointer / Touch Camera Controls + Raycaster Click Selection
+    let isDragging = false;
+    let pointerDownPos = { x: 0, y: 0 };
+    let prevPointerPos = { x: 0, y: 0 };
+    const raycaster = new THREE.Raycaster();
+    const mouseNDC = new THREE.Vector2();
+
+    const domCanvas = renderer.domElement;
+
+    domCanvas.addEventListener("pointerdown", e => {
+      isDragging = true;
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+      prevPointerPos = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener("pointermove", e => {
+      if (!isDragging) return;
+      const dx = e.clientX - prevPointerPos.x;
+      const dy = e.clientY - prevPointerPos.y;
+      prevPointerPos = { x: e.clientX, y: e.clientY };
+
+      camSpherical.theta -= dx * 0.0065;
+      camSpherical.phi = Math.max(0.15, Math.min(Math.PI - 0.15, camSpherical.phi - dy * 0.0065));
+    });
+
+    window.addEventListener("pointerup", e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const moveDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      if (moveDist < 6 && e.target === domCanvas) {
+        // Raycast click to select 3D sphere
+        const rect = domCanvas.getBoundingClientRect();
+        mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouseNDC, camera);
+
+        const candidateMeshes = [];
+        nodeMeshRecords.forEach((rec, id) => {
+          const n = nodeMap.get(id);
+          if (n && n.isVisible && n.depth > 0) {
+            candidateMeshes.push(rec.mesh);
+          }
+        });
+
+        const hits = raycaster.intersectObjects(candidateMeshes, false);
+        if (hits.length > 0) {
+          // Prefer deeper (more specific) sphere hit when ray passes through nested planets
+          hits.sort((a, b) => {
+            const nodeA = meshToNodeMap.get(a.object);
+            const nodeB = meshToNodeMap.get(b.object);
+            return (nodeB?.depth || 0) - (nodeA?.depth || 0);
+          });
+          const pickedNode = meshToNodeMap.get(hits[0].object);
+          if (pickedNode) setFocusNode(pickedNode.id, true);
+        }
+      }
+    });
+
+    domCanvas.addEventListener("wheel", e => {
+      e.preventDefault();
+      camSpherical.desiredRadius = Math.max(
+        14,
+        Math.min(210, camSpherical.desiredRadius + e.deltaY * 0.075)
+      );
+    }, { passive: false });
+
+    /***************************************************************************
+     * 8. UI EVENT LISTENERS & CONTROLS BINDING
+     ***************************************************************************/
+    selectFocusEl.addEventListener("change", e => {
+      setFocusNode(e.target.value, true);
+    });
+
+    document.querySelectorAll(".preset-focus-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const preset = btn.getAttribute("data-preset");
+        if (preset === "repo") setFocusNode("quantule_mapper::root", true);
+        if (preset === "subsystem") setFocusNode("sub::core.solver", true);
+        if (preset === "file") setFocusNode("file::jax_fdtd.py", true);
+        if (preset === "leaf") setFocusNode("fn::jax_fdtd.step_pml", true);
+      });
+    });
+
+    function refreshDoiButtonStyles() {
+      document.querySelectorAll(".doi-k-btn").forEach(btn => {
+        const kVal = Number(btn.getAttribute("data-k"));
+        if (kVal === state.doiThresholdK) {
+          btn.className = "doi-k-btn py-1.5 px-2 rounded-lg font-mono text-[11px] border transition flex flex-col items-center bg-sky-500/25 text-sky-300 border-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.25)]";
+        } else {
+          btn.className = "doi-k-btn py-1.5 px-2 rounded-lg font-mono text-[11px] border transition flex flex-col items-center bg-slate-900/80 text-slate-400 border-slate-800 hover:bg-slate-800";
+        }
+      });
+      const labelMap = {
+        "-3": "k = -3 (0-Order Spine)",
+        "-5": "k = -5 (1st-Order Siblings)",
+        "-7": "k = -7 (2nd-Order Cousins)",
+        "-99": "k = -\u221E (Full Graph)"
+      };
+      document.getElementById("label-doi-k").textContent = labelMap[String(state.doiThresholdK)] || `k = ${state.doiThresholdK}`;
+    }
+
+    document.querySelectorAll(".doi-k-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.doiThresholdK = Number(btn.getAttribute("data-k"));
+        refreshDoiButtonStyles();
+        updateArchitectureGraph();
+      });
+    });
+    refreshDoiButtonStyles();
+
+    const sliderBetaEl = document.getElementById("slider-beta");
+    sliderBetaEl.addEventListener("input", e => {
+      state.beta = parseFloat(e.target.value);
+      document.getElementById("label-beta").textContent = `\u03B2 = ${state.beta.toFixed(2)}`;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-lca-rule").addEventListener("change", e => {
+      state.enforceLcaRuleN3 = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-edgelens").addEventListener("change", e => {
+      state.edgeLensEnabled = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-layer-k2").addEventListener("change", e => {
+      state.showLayerK2 = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-layer-k3").addEventListener("change", e => {
+      state.showLayerK3 = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-ref-conv").addEventListener("change", e => {
+      state.showConvergence = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-ref-div").addEventListener("change", e => {
+      state.showDivergence = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-ref-abs").addEventListener("change", e => {
+      state.showAbsence = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("chk-highlight-orbits").addEventListener("change", e => {
+      state.highlightOrbits = e.target.checked;
+      updateArchitectureGraph();
+    });
+
+    document.getElementById("btn-reset-camera").addEventListener("click", () => {
+      setFocusNode("quantule_mapper::root", true);
+      camSpherical.theta = 0.45;
+      camSpherical.phi = 1.18;
+    });
+
+    // Right Panel Tabs
+    const tabBtnMath = document.getElementById("tab-btn-math");
+    const tabBtnMcp = document.getElementById("tab-btn-mcp");
+    const tabContentMath = document.getElementById("tab-content-math");
+    const tabContentMcp = document.getElementById("tab-content-mcp");
+
+    tabBtnMath.addEventListener("click", () => {
+      tabBtnMath.className = "py-3 px-3 font-semibold text-sky-400 border-b-2 border-sky-400 bg-sky-500/10 transition";
+      tabBtnMcp.className = "py-3 px-3 font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition";
+      tabContentMath.classList.remove("hidden");
+      tabContentMcp.classList.add("hidden");
+      tabContentMcp.classList.remove("flex");
+    });
+
+    tabBtnMcp.addEventListener("click", () => {
+      tabBtnMcp.className = "py-3 px-3 font-semibold text-emerald-400 border-b-2 border-emerald-400 bg-emerald-500/10 transition";
+      tabBtnMath.className = "py-3 px-3 font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition";
+      tabContentMcp.classList.remove("hidden");
+      tabContentMcp.classList.add("flex");
+      tabContentMath.classList.add("hidden");
+    });
+
+    // Clipboard Copy for MCP JSON
+    document.getElementById("btn-copy-mcp").addEventListener("click", () => {
+      const text = document.getElementById("mcp-json-output").textContent;
+      const tempArea = document.createElement("textarea");
+      tempArea.value = text;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempArea);
+
+      const copyBtn = document.getElementById("btn-copy-mcp");
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => { copyBtn.textContent = orig; }, 1400);
+    });
+
+    // Responsive Mobile Drawers
+    const leftPanelEl = document.getElementById("left-panel");
+    const rightPanelEl = document.getElementById("right-panel");
+    document.getElementById("btn-toggle-left").addEventListener("click", () => {
+      leftPanelEl.classList.toggle("-translate-x-[110%]");
+    });
+    document.getElementById("btn-toggle-right").addEventListener("click", () => {
+      rightPanelEl.classList.toggle("translate-x-full");
+    });
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /***************************************************************************
+     * 9. MAIN ANIMATION LOOP & 3D LABEL PROJECTION
+     ***************************************************************************/
+    const tempProjVec = new THREE.Vector3();
+
+    function updateProjectedLabels() {
+      const halfW = window.innerWidth / 2;
+      const halfH = window.innerHeight / 2;
+      const focusNode = nodeMap.get(state.focusNodeId);
+
+      NODES_DATA.forEach(node => {
+        const rec = nodeMeshRecords.get(node.id);
+        if (!rec) return;
+
+        // Show labels for Subsystems, Files, and focused or orbit-highlighted leaf methods
+        const shouldShowLabel =
+          node.isVisible &&
+          (node.depth === 1 ||
+            node.depth === 2 ||
+            node.id === state.focusNodeId ||
+            (node.depth === 3 && focusNode && node.parent === focusNode.id) ||
+            (state.highlightOrbits && node.orbitId));
+
+        if (!shouldShowLabel) {
+          rec.labelEl.style.opacity = "0";
+          return;
+        }
+
+        tempProjVec.copy(node.pos);
+        tempProjVec.y += node.radius * 0.92;
+        tempProjVec.project(camera);
+
+        if (tempProjVec.z > 1.0) {
+          rec.labelEl.style.opacity = "0";
+          return;
+        }
+
+        const screenX = tempProjVec.x * halfW + halfW;
+        const screenY = -tempProjVec.y * halfH + halfH;
+        rec.labelEl.style.left = `${screenX}px`;
+        rec.labelEl.style.top = `${screenY}px`;
+        rec.labelEl.style.opacity = node.id === state.focusNodeId ? "1" : "0.82";
+      });
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Smoothly damp camera target and spherical radius (Scale-Space Geodesic transition)
+      camSpherical.target.lerp(camSpherical.desiredTarget, 0.08);
+      camSpherical.radius += (camSpherical.desiredRadius - camSpherical.radius) * 0.08;
+
+      camera.position.x =
+        camSpherical.target.x +
+        camSpherical.radius * Math.sin(camSpherical.phi) * Math.sin(camSpherical.theta);
+      camera.position.y =
+        camSpherical.target.y +
+        camSpherical.radius * Math.cos(camSpherical.phi);
+      camera.position.z =
+        camSpherical.target.z +
+        camSpherical.radius * Math.sin(camSpherical.phi) * Math.cos(camSpherical.theta);
+
+      camera.lookAt(camSpherical.target);
+
+      // Billboard the active focus ring toward the camera
+      focusRingMesh.lookAt(camera.position);
+
+      updateProjectedLabels();
+      renderer.render(scene, camera);
+    }
+
+    window.onload = function () {
+      updateArchitectureGraph();
+      animate();
+    };
+  </script>
+</body>
+</html>

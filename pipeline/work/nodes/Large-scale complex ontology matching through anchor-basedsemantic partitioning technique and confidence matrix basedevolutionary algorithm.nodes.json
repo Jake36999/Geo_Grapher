@@ -1,0 +1,149 @@
+{
+  "file_path": "E:/Librarian research/Large-scale complex ontology matching through anchor-basedsemantic partitioning technique and confidence matrix basedevolutionary algorithm.pdf",
+  "metadata": {
+    "title": "Large-scale complex ontology matching through anchor-based semantic partitioning technique and confidence matrix based evolutionary algorithm",
+    "authors": [
+      "Xingsi Xue",
+      "Pei-Wei Tsai",
+      "Junfeng Chen"
+    ],
+    "year": 2022,
+    "venue": "Applied Soft Computing",
+    "doi": null,
+    "abstract_summary": "This work presents an Anchor-based Semantic Partitioning Technique to divide large-scale ontologies into semantic segments, addressing the challenge of automatically discovering simple and complex correspondences. The technique aims to improve the inter-operability between heterogeneous ontologies by determining entity correspondences."
+  },
+  "sections": [
+    {
+      "heading": "Xingsi Xue",
+      "section_type": "other",
+      "position": 3,
+      "word_count": 1007,
+      "text": "a , ∗ , Pei-Wei Tsai b , Junfeng Chen c a Fujian Provincial Key Laboratory of Big Data Mining and Applications, Fujian University of Technology, Fuzhou, Fujian, 350118, China b Department of Computer Science and Software Engineering, Swinburne University of Technology, John Street, Hawthorn, Victoria, 3122, Australia c College of Internet of Things Engineering, Hohai University, Changzhou, 213022, China a r t i c l e i n f o Article history: Received 17 May 2022 Received in revised form 17 July 2022 Accepted 10 August 2022 Available online 18 August 2022 MSC: 00-01 99-00 Keywords: Large-scale ontology Complex ontology matching Anchor-based semantic partitioning Pattern-based similarity measure Confidence matrix based evolutionary algorithm a b s t r a c t Ontology presents a field knowledge by defining the meaning of domain concepts and relations among them. To conduct the inter-operability between two heterogeneous ontologies, we need to determine a number of entity correspondences, the so-called Ontology Matching (OM). Traditional OM techniques dedicate to find the simple correspondences which cannot sufficiently express the diverse kinds of heterogeneity, and therefore, complex correspondences are required, which maps one or multiple entities from one ontology to those from the other. Due to the semantic complexity, automatically discovering large-scale simple and complex correspondences has become a challenge. To face this challenge, in this work, an Anchor-based Semantic Partitioning Technique (ASPT) is first presented to divide the large-scale ontologies into several semantic segments, whose computational complexity is lower than the existing ontology partitioning algorithms. Then, a Pattern-based Similarity Measure (PSM) is used to distinguish both simple and complex correspondences. Finally, a Confidence Matrix based Evolutionary Algorithm (CM-EA) is proposed to efficiently match the ontology segments. We compare our proposal with EA-based matching technique and state-of-the-art ontology matching systems on OAEI’s Complex track, and the experimental results show that our approach is able to efficiently match large-scale complex ontologies. © 2022 Elsevier B.V. All rights reserved. 1. Introduction Semantic Web (SW) [ 1 ] is an important branch of Artifi- cial Intelligence (AI), and as the core technology of SW, on- tology is the most advanced knowledge representation model, which presents a domain knowledge by defining the meaning of domain concepts and relations among them [ 2 ]. However, ontology engineers might use different ways of describing the same concepts in different ontologies, resulting in the ontol- ogy heterogeneity problem. Fig. 1 shows an example of two heterogeneous ontologies in the domain of conference, where the symbol of rectangle denotes the class, the word on the line denotes its datatype property or object property. Addition- ally, a datatype property’s domain is a class, and its range is a data type whose symbol is an ellipse, e.g. the datatype property ‘‘ O 1 .author’’’s domain is class ‘‘ O 1 .Paper’’ and its range is the data type ‘‘String’’. An object property’s domain and range are both classes, e.g. the object property ‘‘ O 2 .hasEvaluation’’’s domain is ∗ Corresponding author. E-mail address: jack8375@gmail.com (X. Xue). class ‘‘ O 2 .Paper’’ and its range is class ‘‘ O 2 .Evaluation’’. The line connecting two classes represents their subsumption relation- ship, e.g. class ‘‘ O 1 .PositiveReviewedPaper’’ is the sub-class of class ‘‘ O 1 .SubmittedPaper’’, and class ‘‘ O 2 .Positive’’ is the super- class of class ‘‘ O 2 .Evaluation’’. Due to the human subjectivity, the ontologies in the same domain might have different ways of defining a class, yielding the ontology heterogeneity problem. In this example, Person and Human is two heterogeneous enti- ties, since they both mean the author or researcher but being expressed with different terminologies or context. To implement two heterogeneous",
+      "claims": [
+        {
+          "text": "Ontology presents a field knowledge by defining the meaning of domain concepts and relations among them.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "Traditional OM techniques dedicate to find the simple correspondences which cannot sufficiently express the diverse kinds of heterogeneity.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "To conduct the inter-operability between two heterogeneous ontologies, we need to determine a number of entity correspondences, the so-called Ontology Matching (OM).",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The authors propose a method for large-scale ontology complex ontology matching using anchor-based semantic partitioning and pattern-based similarity measure.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Ontology",
+          "definition": "A field knowledge by defining the meaning of domain concepts and relations among them.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Ontology Matching (OM)",
+          "definition": "Determining a number of entity correspondences between two heterogeneous ontologies.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Anchor-based semantic partitioning",
+          "definition": null,
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "]. COMA++ [",
+      "section_type": "other",
+      "position": 4,
+      "word_count": 2706,
+      "text": "8 ] is the first ontology matching system that uses the segment matching strategy. It first divides two ontologies into two segment sets, and then matches the most similar segments. However, COMA++ always yields two segment sets with different cardinalities, which significantly affects the final alignment’s quality. Falcon-AO [ 9 ] makes use of the concept hierarchical structure to execute the clustering process on concepts, and then it finds out the similar segments and match them. Similar to Falcon-AO, Algergawy et al. [ 10 ] proposes a new measure to determine the similar segments efficiently. Zhong et al. [ 11 ] dedicates to match the unbalanced ontologies, i.e. the scale of two ontologies differs a lot. They try to dig out a segment from the larger ontology that is similar to the smaller one. On this basis, Hamdi et al. [ 12 ] and Xue et al. [ 13 ] improve Falcon-AO by executing the partitioning process on the source ontology, and then reasons the target ontology’s segment set according to the source ontology’s partitioning results. Similar idea is also taken by Patel et al. [ 14 ], where they first use the Wordnet [ 15 ] based measure to execute the clustering process and partition the source ontology and then partition the target ontology accordingly. The obtained segment pairs are matched in parallel to improve the efficiency. The advantage is that the cardinalities of two segment sets are identical, and it is not nec- essary to find the similar segment pair any more. More recently, Xue et al. [ 16 ] propose an adaptive K-means based method to improve the clustering process’s efficiency. They use the idea of centrality from the society network to determine the central concept set of two large-scale ontologies, and then a central concept relevance measure is used to cluster the rest concepts. The similar segments are also determined by the similarity of their central concepts. Anchor-Flood [ 17 ] works on the basis of the anchors, which are highly similar concept pairs. It gradually matches the neighboring concepts of an anchor to exploit more correspondences. The segment’s quality depends on the flooding strategy, which directly decides the scale of the segment. The existing ontology partitioning techniques use the hierar- chy based clustering algorithm, such as HSCAN [ 18 ] and ROCK [ 19 ], to execute the partitioning process, whose time and space complexity could be as high as O ( n 2 ) where n is the number of concepts. In addition, the obtained segment pairs cannot meet the semantic requirements of COM tasks. To overcome these draw- backs, this work propose a ASPT, which makes use of the anchors and query-based clustering strategy to efficiently partition two ontologies. 2.2. Evolutionary algorithm based ontology matching technique Although various intelligent computational techniques, such as deep learning [ 20 ] and Generative Adversarial Learning [ 21 ], have been proposed to match ontologies, due to the complicated semantics and large searching space, Evolutionary Algorithm (EA) [ 22 , 23 ] has become a popular method of optimizing the align- ment’s quality. Martinez-Gil et al. [ 24 ] first propose an EA-based ontology meta-matching technique, which dedicate to optimize aggregating weights for similarity measures, and indirectly im- prove the alignment’s quality. Ginsca et al. [ 25 ] further improves 2 X. Xue, P.-W. Tsai and J. Chen Applied Soft Computing 128 (2022) 109516 this work by optimizing the threshold for filtering process, re- spectively. After that, Xue et al. [ 26 – 28 ] present different metrics to approximately evaluate the alignment’s quality, which is of help to enhance the practical application of EA-based OM tech- niques. They also propose to combine the traditional f-measure [ 29 ] with the Unanimous Improvement Ratio (UIR) [ 30 ] to eval- uate the alignment’s quality, which makes EA be able to simul- taneously optimize several pairs of ontologies. Acampora et al. [ 31 ] apply a local search ",
+      "claims": [
+        {
+          "text": "COMA++ is the first ontology matching system that uses the segment matching strategy.",
+          "claim_type": "method"
+        },
+        {
+          "text": "COMA++ always yields two segment sets with different cardinalities, which significantly affects the final alignment’s quality.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Falcon-AO makes use of the concept hierarchical structure to execute the clustering process on concepts, and then it finds out the similar segments and match them.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Zhong et al. dedicates to match the unbalanced ontologies, i.e. the scale of two ontologies differs a lot.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "COMA++",
+          "definition": "The first ontology matching system that uses the segment matching strategy.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Falcon-AO",
+          "definition": "A method that makes use of the concept hierarchical structure to execute the clustering process on concepts.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Segment matching strategy",
+          "definition": null,
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Algorithm",
+      "section_type": "other",
+      "position": 5,
+      "word_count": 2600,
+      "text": "1 The Framework of Confidence Matrix based Evolutionary Algorithm **** Initialization **** Initialize the population P ; Evaluate P ; Initialize elite solution elite ; Initialize the confidence matrix CM ; gen = 0; **** Evolution **** while gen < maxGeneration do P ′ = crosso v er ( P , CM ); P ′ = mutation ( P , CM ); P = Selection ( P ∪ P ′ ); Update and Save elite ; Update CM ; gen = gen + 1; end while that, the elite solution elite is initialized, and on this basis, the confidence matrix CM is initialized. In each generation, a tem- porary population P ′ is generation by executing the CM-based crossover and mutation, and the tournament selection is used to select the next generation’s population from P ∪ P ′ . Finally, the elite individual is updated, which is used to replace the new population’s worse individual and update CM . The algorithm terminates when the generation gen reaches the maximum gen- eration maxGen . We need to point out that this framework is a general one for EA-based ontology matching approaches, it is also possible to implement solutions based on other technique such as Mamdani fuzzy inference [ 47 ] since both fuzzy sets and rules can be encoded as genes of an individual. 5.1. Encoding mechanism and confidence matrix Given two ontology segments, we select the one with smaller scale as the source segment, and the other as the target segment. This work uses the decimal encoding mechanism, and Fig. 3 gives an example of the encoding mechanism. In the figure, the class ‘‘SubmittedPaper’’ in source segment with index 3 is mapped with the datatype property ‘‘submission’’ in target segment with index 2. 4 X. Xue, P.-W. Tsai and J. Chen Applied Soft Computing 128 (2022) 109516 Fig. 2. Anchor-based class partition. Fig. 3. An example of encoding mechanism. A CM is a matrix with row and column the entities of source and target ontology segments, and its element is the confidence value of a correspondence with two corresponding entities. To be specific, given a confidence matrix CM , its element CM i , j is calculated with the following formula: CM i , j = (1 − α ) × sim i , j + α × (( 1 firstAppearTime + totalAppearTime maxGen ) / 2) (4) where sim i , j is two entities’ similarity value, and firstAppearTime is the generation that this correspondence first appears in the elite individual, and totalAppearTime is the number of generations that this correspondence appears in the elite individual. It is obvious that a correspondence’s confidence is directly proportional to its similarity value, and the earlier and longer a correspondence appears in the elite individual, the more possible that it is a true positive one. The parameter α ∈[ 0 , 1 ] is an adaptive parame- ter that controls the importance of these two metrics, which is calculated as follows: α gen = α gen − 1 + gen maxGen (5) where α 0 = 0. The motivation behind Eq. (5) is that with the increasing evolutionary generations, the effect of ( 1 firstAppearTime + totalAppearTime maxGen ) / 2 should gradually increase. 5.2. Confidence matrix based evolutionary operator Confidence-based crossover operator is based on the single- point crossover. Given two parent individuals, after randomly selecting a gene bit as the crossover point, the offsprings are generated by combining the left-part (or right-part) gene bits of one parent with the right-part (or left-part) gene bits of the other. When two genes’ values are the same, i.e. two source entities are mapped with one target entity, the one with lower confidence value in CM will be mapped with other target entity that has not been mapped. In this way, we can keep those mappings with higher confidence value in the chromosome, and meanwhile, ensure there are no duplicated gene values since we dedicate to find the alignment where one source entity is mapped with only one target entity, and verse visa. Confidence-based mutation operator execute the mutating op- eration by switching several gene bits’ values to ensur",
+      "claims": [
+        {
+          "text": "The framework of Confidence Matrix based Evolutionary Algorithm is a general one for EA-based ontology matching approaches.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm terminates when the generation gen reaches the maximum generation maxGen.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The elite individual is updated, which is used to replace the new population’s worse individual and update CM.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm uses tournament selection to select the next generation’s population from P ∪ P ′.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Confidence Matrix based Evolutionary Algorithm",
+          "definition": "A general framework for EA-based ontology matching approaches.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Mamdani fuzzy inference",
+          "definition": "A technique that can be used to implement solutions based on fuzzy sets and rules.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Tournament selection",
+          "definition": "A method used to select the next generation’s population from P ∪ P ′.",
+          "concept_type": "method"
+        }
+      ]
+    }
+  ],
+  "references_raw": "[1] T. Berners-Lee, J. Hendler, O. Lassila, et al., The semantic web, Sci. Am. 284 (5) (2001) 28–37. [2] P. Shvaiko, J. Euzenat, Ontology matching: state of the art and future challenges, IEEE Trans. Knowl. Data Eng. 25 (1) (2011) 158–176. [3] E. Thiéblin, O. Haemmerlé, N. Hernandez, C. Trojahn, Survey on complex ontology matching, Semant. Web 11 (4) (2020) 689–727. [4] L. Otero-Cerdeira, F.J. Rodríguez-Martínez, A. Gómez-Rodríguez, Ontology matching: A literature review, Expert Syst. Appl. 42 (2) (2015) 949–971. [5] G.O. Consortium, The gene ontology resource: 20 years and still going strong, Nucleic Acids Res. 47 (D1) (2019) D330–D338. 10 X. Xue, P.-W. Tsai and J. Chen Applied Soft Computing 128 (2022) 109516 [6] P. Ochieng, S. Kyanda, Large-scale ontology matching: State-of-the-art analysis, ACM Comput. Surv. 51 (4) (2018) 1–35. [7] E. Rahm, Towards large-scale schema and ontology matching, in: Schema Matching and Mapping, 2011, pp. 3—27. [8] H.H. Do, E. Rahm, Matching large schemas: Approaches and evaluation, Inf. Syst. 32 (6) (2007) 857—885. [9] Y.Q. W. Hu, G. Cheng, Matching large ontologies: A divide-and-conquer approach, Data Knowl. Eng. 67 (1) (2008) 140–160. [10] A. Algergawy, S. Massmann, E. Rahm, A clustering-based approach for large-scale ontology matching, in: East European Conference on Advances in Databases and Information Systems, Springer, 2011, pp. 415–428. [11] Q. Zhong, H. Li, J. Li, et al., A Gauss function based approach for unbalanced ontology matching, in: Proceedings of the 2009 ACM SIGMOD Interna- tional Conference on Management of Data, Providence, RI, USA, 2009, pp. 669–680. [12] F. Hamdi, B. Safar, C. Reynaud, H. Zargayouna, Alignment-based parti- tioning of large-scale ontologies, Adv. Knowl. Discov. Manage. 292 (2010) 251–269. [13] X. Xue, J.-S. Pan, A segment-based approach for large-scale ontology matching, Knowl. Inf. Syst. 52 (2) (2017) 467–484. [14] A. Patel, S. Jain, A partition based framework for large scale ontology matching, Recent Patents Eng. 14 (3) (2020) 488–501. [15] G.A. Miller, WordNet: A lexical database for English, Commun. ACM 38 (11) (1995) 39–41. [16] X. Xue, J. Zhang, Matching large-scale biomedical ontologies with central concept based partitioning algorithm and adaptive compact evolutionary algorithm, Appl. Soft Comput. 106 (2021) 107343. [17] M.H. Seddiquia, M. Aono, An efficient and scalable algorithm for segmented alignment of ontologies of arbitrary size, Web Semant. 7 (4) (2009) 344—356. [18] N. Yuruk, M. Mete, X. Xu, T.A. Schweiger, A divisive hierarchical struc- tural clustering algorithm for networks, in: Seventh IEEE International Conference on Data Mining Workshops (ICDMW 2007), IEEE, 2007, pp. 441–448. [19] S. Guha, R. Rastogi, K. Shim, ROCK: A robust clustering algorithm for categorical attributes, Inf. Syst. 25 (5) (2000) 345–366. [20] J. Wu, J. Lv, H. Guo, S. Ma, Daeom: A deep attentional embedding approach for biomedical ontology matching, Appl. Sci. 10 (21) (2020) 7909. [21]",
+  "usage": {
+    "input_tokens": 1521,
+    "output_tokens": 902,
+    "cost_usd": 0.000453
+  }
+}

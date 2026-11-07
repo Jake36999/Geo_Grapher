@@ -1,0 +1,84 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Verlinde, 2010 - On the Origin of Gravity and.md",
+  "metadata": {
+    "title": "On the Origin of Gravity and the Laws of Newton",
+    "authors": [
+      "Erik P. Verlinde"
+    ],
+    "year": 2010,
+    "venue": "JHEP 1104:029,2011",
+    "doi": "arxiv:1001.0785",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 101,
+      "text": "As the authors state it:\n\n> Starting from first principles and general assumptions Newton's law of gravitation is shown to arise naturally and unavoidably in a theory in which space is emergent through a holographic scenario. Gravity is explained as an entropic force caused by changes in the information associated with the positions of material bodies. A relativistic generalization of the presented arguments directly leads to the Einstein equations. When space is emergent even Newton's law of inertia needs to be explained. The equivalence principle leads us to conclude that it is actually this law of inertia whose origin is entropic.",
+      "claims": [
+        {
+          "text": "As the authors state it: Starting from first principles and general assumptions Newton's law of gravitation is shown to arise naturally and unavoidably in a theory in which space is emergent through a holographic scenario. Gravity is explained as an entropic force caused by changes in the information associated with the positions of material bodies. A relativistic generalization of the presented a",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

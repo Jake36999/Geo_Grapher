@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:geographer:rules:1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "world_policy", "components", "rules"],
+  "properties": {
+    "version": {"const": "1.0"},
+    "world_policy": {"enum": ["open", "closed"]},
+    "components": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "selectors"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "selectors": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["repo_id"],
+              "anyOf": [{"required": ["path_glob"]}, {"required": ["qualified_name_regex"]}],
+              "properties": {
+                "repo_id": {"type": "string", "minLength": 1},
+                "path_glob": {"type": "string", "minLength": 1, "maxLength": 1024},
+                "qualified_name_regex": {"type": "string", "minLength": 1, "maxLength": 1024}
+              }
+            }
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "type", "source", "target", "rationale"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "type": {"enum": ["require", "allow", "forbid"]},
+          "source": {"$ref": "#/$defs/id"},
+          "target": {"$ref": "#/$defs/id"},
+          "rationale": {"type": "string", "minLength": 1, "maxLength": 4096}
+        }
+      }
+    }
+  },
+  "$defs": {"id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"}}
+}

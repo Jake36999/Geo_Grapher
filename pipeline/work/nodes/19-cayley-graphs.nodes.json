@@ -1,0 +1,262 @@
+{
+  "file_path": "E:/Librarian research/19-cayley-graphs.pdf",
+  "metadata": {
+    "title": "Lecture 19 : Cayley graphs",
+    "authors": [
+      "Clinton Conley",
+      "Rajeev Godse"
+    ],
+    "year": 2022,
+    "venue": null,
+    "doi": null,
+    "abstract_summary": "This lecture discusses Cayley graphs, which are labeled, directed graphs on vertex set G with an edge labeled by s from g to h when h = gs for s ∈S. The lecture also covers commutators and the commutator subgroup, and provides examples and proofs of various properties of these concepts."
+  },
+  "sections": [
+    {
+      "heading": "Lecture 19 : Cayley graphs",
+      "section_type": "other",
+      "position": 1,
+      "word_count": 246,
+      "text": "Lecturer: Clinton Conley Scribe: Rajeev Godse 1 (Right) Cayley graphs Given a group G and subsets S ⊆ G , the corresponding (right) Cayley graph , Cay( G, S ), is the labeled, directed graph on vertex set G with an edge labeled by s from g to h when h = gs for s ∈ S . Examples : 1. G = Z , S = { 1 } 0 1 2 − 1 − 2 . . . . . . 1 1 1 1 1 1 2. G = Z , S = { 2 , 3 } . Similar to above. 3. G = ⟨ a, b : a 2 = 1 , b 5 = 1 , aba = b − 1 ⟩ , S = { a, b } . You can work it out for yourself, but we get two “circles” acting in opposite directions, connected at each vertex bidirectionally by reflections. 4. G = F 2 = ⟨ a, b ⟩ , S = { a, b } . The Cayley graph is an infinite 4-regular tree, as each reduced word represents a sequence of operations such that the inverse of a previous operation does not occur after that operation. 5. G = ⟨ a, b : aba − 1 b − 1 = e ⟩ , S = { a, b } . The Cayley graph gives us good intuition that G ≃ Z 2 . 2",
+      "claims": [
+        {
+          "text": "The corresponding (right) Cayley graph, Cay(G, S), is the labeled, directed graph on vertex set G with an edge labeled by s from g to h when h = gs for s ∈ S.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "Examples of Cayley graphs include G = Z, S = {1} and G = Z, S = {2, 3}.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The Cayley graph of G = F2 = ⟨a, b⟩, S = {a, b} is an infinite 4-regular tree.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The Cayley graph of G = ⟨a, b : aba−1b−1 = e⟩, S = {a, b} gives good intuition that G ≃ Z2.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Cayley graph",
+          "definition": "The labeled, directed graph on vertex set G with an edge labeled by s from g to h when h = gs for s ∈ S.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Group",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Subsets",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Commutators (again!)",
+      "section_type": "other",
+      "position": 2,
+      "word_count": 94,
+      "text": "Recall, for g, h ∈ G , their commutator is [ g, h ] = ghg − 1 h − 1 , and [ g, h ] = 1 ⇐⇒ gh = hg by extreme obviousness. Further recall the commutator subgroup , or derived subgroup , G ′ = [ G, G ], is ⟨ [ a, b ] : a, b ∈ G ⟩ . More generally, for A, B ⊆ G , define [ A, B ] = ⟨ [ a, b ] : a ∈ A, b ∈ B ⟩ .",
+      "claims": [
+        {
+          "text": "The commutator of g, h ∈ G is [g, h] = ghg−1h−1, and [g, h] = 1 ⇐⇒ gh = hg.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The commutator subgroup, or derived subgroup, G′ = [G, G] is ⟨[a, b] : a, b ∈ G⟩.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "For A, B ⊆ G, define [A, B] = ⟨[a, b] : a ∈ A, b ∈ B⟩.",
+          "claim_type": "definition"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Commutator",
+          "definition": "The commutator of g, h ∈ G is [g, h] = ghg−1h−1.",
+          "concept_type": "term"
+        },
+        {
+          "name": "Commutator subgroup",
+          "definition": "The commutator subgroup, or derived subgroup, G′ = [G, G] is ⟨[a, b] : a, b ∈ G⟩.",
+          "concept_type": "term"
+        },
+        {
+          "name": "Derived subgroup",
+          "definition": "The derived subgroup is another name for the commutator subgroup.",
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Lemma",
+      "section_type": "other",
+      "position": 3,
+      "word_count": 124,
+      "text": ": Let G be a group, H ≤ G . The following are equivalent: (I) H ◁G (II) [ H, G ] ≤ H Proof : Suppose H ◁G . Let h ∈ H , g ∈ G . [ h, g ] = h ( h − 1 ) g ∈ H . So [ H, G ] ≤ H . Now suppose [ H, G ] ≤ H . Let h ∈ H , g ∈ G . h g = h [ h − 1 , g ] ∈ H . So H ◁G . Certainly, we have [ G ′ , G ] ≤ [ G, G ] = G ′ . So by the lemma, G ′ ◁G .",
+      "claims": [
+        {
+          "text": "If H ◁G, then [H, G] ≤ H.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "If [H, G] ≤ H, then H ◁G.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "G′ ◁G.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The lemma states that H ◁G if and only if [H, G] ≤ H.",
+          "claim_type": "definition"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Normal subgroup",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Commutator subgroup",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Subgroup",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Claim",
+      "section_type": "other",
+      "position": 4,
+      "word_count": 56,
+      "text": ": For any group G , G/G ′ is abelian. Proof : Let aG ′ , bG ′ ∈ G/G ′ . ( aG ′ )( bG ′ ) = abG ′ = [ a, b ] baG ′ = ([ a, b ] G ′ ) baG ′ = bG ′ aG ′ . 1",
+      "claims": [
+        {
+          "text": "For any group G, G/G′ is abelian.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The proof shows that (aG′)(bG′) = abG′ = [a, b]baG′ = bG′aG′.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Abelian group",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Quotient group",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Commutator subgroup",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Theorem",
+      "section_type": "other",
+      "position": 5,
+      "word_count": 140,
+      "text": ": Let G be a group, H ≤ G . The following are equivalent: (I) G ′ ≤ H (II) H ◁G and G/H is abelian. So G ′ is the least subgroup with abelian quotient. Proof : Suppose G ′ ≤ H . Certainly, [ H, G ] ≤ [ G, G ] = G ′ ≤ H . So from the lemma, H ◁G . Then, as above, ab = [ a, b ] ba , so ( aH )( bH ) = abH = baH = ( bH )( aH ). Now, suppose G/H is abelian. Then ∀ a, b ∈ G , abH = baH . Equivalently, aba − 1 b − 1 H = H , i.e. aba − 1 b − 1 ∈ H . Hence, [ G, G ] ∈ H . 2.1",
+      "claims": [
+        {
+          "text": "The following are equivalent: (I) G′ ≤ H, (II) H ◁G and G/H is abelian.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "G′ is the least subgroup with abelian quotient.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "If G′ ≤ H, then H ◁G and G/H is abelian.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "If G/H is abelian, then G′ ≤ H.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Subgroup",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Normal subgroup",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Abelian quotient",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "As a universal property",
+      "section_type": "other",
+      "position": 6,
+      "word_count": 152,
+      "text": "The abelianization of a group G is the quotient map q : G → G/G ′ . It is characterized by the following universal property : Given any abelian group A and any homomorphism ϕ : G → A , there exists a unique homomorphism ψ : G/G ′ → A such that ϕ = ψ ◦ q . Proof : Note that by the first IM theorem, G/ ker( ϕ ) ≃ im( ϕ ) ≤ A , so G/ ker( ϕ ) is abelian. Accordingly, G ′ ≤ ker( ϕ ). Thus, whenever gG ′ = hG ′ , we know that ϕ ( g ) = ϕ ( h ) since g − 1 h ∈ G ′ ≤ ker( ϕ ). We may thus unambiguously define ψ : G/G ′ → A by gG ′ �→ ϕ ( g ). Certainly, it works, so ψ is unique. 2",
+      "claims": [
+        {
+          "text": "The abelianization of a group G is the quotient map q: G → G/G′.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The universal property states that for any abelian group A and any homomorphism ϕ: G → A, there exists a unique homomorphism ψ: G/G′ → A such that ϕ = ψ ∘ q.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The proof shows that G/ker(ϕ) ≃ im(ϕ) ≤ A, so G/ker(ϕ) is abelian.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "G′ ≤ ker(ϕ) and ψ: G/G′ → A is defined by gG′ ↦ ϕ(g).",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Abelianization",
+          "definition": "The abelianization of a group G is the quotient map q: G → G/G′.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Universal property",
+          "definition": "The universal property states that for any abelian group A and any homomorphism ϕ: G → A, there exists a unique homomorphism ψ: G/G′ → A such that ϕ = ψ ∘ q.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Homomorphism",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 2115,
+    "output_tokens": 1536,
+    "cost_usd": 0.000715
+  }
+}

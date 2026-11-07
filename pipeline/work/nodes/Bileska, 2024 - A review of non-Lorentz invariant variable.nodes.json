@@ -1,0 +1,84 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Bileska, 2024 - A review of non-Lorentz invariant variable.md",
+  "metadata": {
+    "title": "A review of non-Lorentz invariant variable speed of light theories",
+    "authors": [
+      "Mila Bileska"
+    ],
+    "year": 2024,
+    "venue": "Classical and Quantum Gravity",
+    "doi": "10.1088/1361-6382/ad68f0",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 191,
+      "text": "As the authors state it:\n\n> Abstract\n               This work re-derives and discusses non-Lorentz invariant variable speed of light (VSL) theories in the context of cosmological problems. Following a thorough introduction to the subject, an explicit solution demonstrating a possible dependence of the speed of light on the cosmological scale factor is presented and analyzed. The parameters of the initial ansatz, \n                     \n                     \n                        \n                           c\n                           (\n                           t\n                           )\n                           =\n                           \n                              c\n                              0\n                           \n                           \n                              a\n                              n\n                           \n                        \n                     \n                  , are constrained by requiring the VSL formulation to be a solution to the flatness and horizon problems. The theoretical section is concluded with a derivation of the change of entropy in a VSL Universe. Even though such findings imply that the speed of light can vary only in non-flat spacetime, an adapted approach using the Generalized Second Law of Thermodynamics is shown to loosen this restriction. Further, in the experimental section, recent evidence for a temporally varying fine structure constant at \n                     \n                     \n                        \n                           \n                              ≈\n                           \n                           4\n                           σ\n                        \n                     \n                   significance is presented as a potential test for the VSL hypothesis. Overall, this work introduces and evaluates many aspects of non-Lorentz invariant VSL theories whilst encouraging future research and serving as a largely self-sufficient comprehensive overview paper.",
+      "claims": [
+        {
+          "text": "As the authors state it: Abstract This work re-derives and discusses non-Lorentz invariant variable speed of light (VSL) theories in the context of cosmological problems. Following a thorough introduction to the subject, an explicit solution demonstrating a possible dependence of the speed of light on the cosmological scale factor is presented and analyzed. The parameters of the initial ansatz, c ",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

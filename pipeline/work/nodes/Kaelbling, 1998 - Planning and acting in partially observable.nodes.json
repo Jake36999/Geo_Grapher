@@ -1,0 +1,94 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Kaelbling, 1998 - Planning and acting in partially observable.md",
+  "metadata": {
+    "title": "Planning and acting in partially observable stochastic domains",
+    "authors": [
+      "Leslie Pack Kaelbling",
+      "Michael L. Littman",
+      "Anthony R. Cassandra"
+    ],
+    "year": 1998,
+    "venue": "Artificial Intelligence",
+    "doi": "10.1016/s0004-3702(98)00023-x",
+    "abstract_summary": "An agent that cannot directly observe its true state, only noisy or partial observations, should maintain and act on a belief distribution over states rather than a single best guess - this turns a POMDP into a continuous-state MDP over beliefs, exactly solvable in principle but intractable in practice beyond small problems."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 52,
+      "text": "An agent that cannot directly observe its true state, only noisy or partial observations, should maintain and act on a belief distribution over states rather than a single best guess - this turns a POMDP into a continuous-state MDP over beliefs, exactly solvable in principle but intractable in practice beyond small problems.",
+      "claims": [
+        {
+          "text": "An agent that cannot directly observe its true state, only noisy or partial observations, should maintain and act on a belief distribution over states rather than a single best guess - this turns a POMDP into a continuous-state MDP over beliefs, exactly solvable in principle but intractable in practice beyond small problems.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 2,
+      "text": "<claim: unread>",
+      "claims": [
+        {
+          "text": "<claim: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 38,
+      "text": "A survey and tutorial paper: gives the formal POMDP definition, derives exact value-iteration solution methods and their computational complexity, then reviews the approximate and heuristic methods of the time (QMDP, grid-based approximations, policy search) and their respective tradeoffs.",
+      "claims": [
+        {
+          "text": "A survey and tutorial paper: gives the formal POMDP definition, derives exact value-iteration solution methods and their computational complexity, then reviews the approximate and heuristic methods of the time (QMDP, grid-based approximations, policy search) and their respective tradeoffs.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 88,
+      "text": "- Survey paper - its evidentiary weight is the correctness of its formal derivations and the fidelity of its account of the surveyed methods, not new experimental results of its own.\n- States plainly that exact POMDP solving is intractable beyond toy problems, a limitation the field spent the following two decades working around (particle filters, deep RL) rather than resolving inside this paper's own framework.\n- Remains the standard tutorial reference for the POMDP formalism itself, independent of which approximate solver a given later system actually uses.",
+      "claims": [
+        {
+          "text": "Survey paper - its evidentiary weight is the correctness of its formal derivations and the fidelity of its account of the surveyed methods, not new experimental results of its own.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "States plainly that exact POMDP solving is intractable beyond toy problems, a limitation the field spent the following two decades working around (particle filters, deep RL) rather than resolving inside this paper's own framework.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Remains the standard tutorial reference for the POMDP formalism itself, independent of which approximate solver a given later system actually uses.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

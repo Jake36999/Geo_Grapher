@@ -1,0 +1,85 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Schmidt, 2009 - Strong coupling theory for the Jaynes-Cummings-Hubbard.md",
+  "metadata": {
+    "title": "Strong coupling theory for the Jaynes-Cummings-Hubbard model",
+    "authors": [
+      "S. Schmidt",
+      "G. Blatter"
+    ],
+    "year": 2009,
+    "venue": "Phys. Rev. Lett. 103, 086403 (2009)",
+    "doi": "arxiv:0905.3344",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 87,
+      "text": "As the authors state it:\n\n> We present an analytic strong-coupling approach to the phase diagram and elementary excitations of the Jaynes-Cummings-Hubbard model describing a superfluid-insulator transition of polaritons in an array of coupled QED cavities. In the Mott phase, we find four modes corresponding to particle/hole excitations with lower and upper polaritons, respectively. Simple formulas are derived for the dispersion relation and spectral weights within a strong-coupling random-phase approximation (RPA). The phase boundary is calculated beyond RPA by including the leading correction due to quantum fluctuations.",
+      "claims": [
+        {
+          "text": "As the authors state it: We present an analytic strong-coupling approach to the phase diagram and elementary excitations of the Jaynes-Cummings-Hubbard model describing a superfluid-insulator transition of polaritons in an array of coupled QED cavities. In the Mott phase, we find four modes corresponding to particle/hole excitations with lower and upper polaritons, respectively. Simple formulas ar",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

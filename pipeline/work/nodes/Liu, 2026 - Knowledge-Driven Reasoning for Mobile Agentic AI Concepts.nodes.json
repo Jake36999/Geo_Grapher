@@ -1,0 +1,189 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Liu, 2026 - Knowledge-Driven Reasoning for Mobile Agentic AI Concepts.md",
+  "metadata": {
+    "title": "Knowledge-Driven Reasoning for Mobile Agentic AI: Concepts, Approaches, and Directions",
+    "authors": [
+      "Guangyuan Liu",
+      "Changyuan Zhao",
+      "Yinqiu Liu",
+      "Haoxiang Luo",
+      "Biplab Sikdar"
+    ],
+    "year": 2026,
+    "venue": "IEEE Wireless Communications",
+    "doi": "10.1109/MWC.2026.3731149",
+    "abstract_summary": "Argues that resource-limited mobile agents should reason with structured, cacheable knowledge packs requested and verified at the moment of need, and reports fewer reasoning steps and violations in a simulated UAV setting."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 32,
+      "text": "Argues that resource-limited mobile agents should reason with structured, cacheable knowledge packs requested and verified at the moment of need, and reports fewer reasoning steps and violations in a simulated UAV setting.",
+      "claims": [
+        {
+          "text": "Argues that resource-limited mobile agents should reason with structured, cacheable knowledge packs requested and verified at the moment of need, and reports fewer reasoning steps and violations in a simulated UAV setting.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 361,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Trajectory cost and violation metrics** (category A) - Measures macro-reasoning cost as Reasoning Steps and Reasoning Tokens from LLM traces, plus Violation aggregating NFZ entry, obstacle collision, and failed service attempts. (section IV.A. MACRO REASONING WITH DETERMINISTIC EXECUTION, p. 6)\n  > We measure reasoning cost by counting Reasoning Steps and Reasoning Tokens from the LLM trace\n- **DIKW time-scale knowledge lifecycle** (category B) - Separates data, episode-scoped information, context, and persistent knowledge by lifetime, defining a lifecycle of extraction, synchronization, and relevance-aware activation. (section II.A. BASIC CONCEPTS: REASONING AND KNOWLEDGE IN AGENTIC PIPELINES, p. 3)\n  > Context is the within-episode working pack assembled to condition inference for the current task, and it expires with the episode.\n- **Four-representation activation stack** (category B) - Categorizes knowledge as retrieval, structured, procedural, and parametric, each with distinct trajectory effects, costs, and failure modes, combined in a coordinated activation stack. (section II.B. KNOWLEDGE REPRESENTATIONS AND OPERATIONAL CAPABILITIES, p. 3)\n  > These four representations are complementary rather than mutually exclusive.\n- **Non-monotonic knowledge activation** (category C) - Shows reasoning cost is non-monotonic in knowledge exposure: too little forces search-heavy replanning, too much adds redundancy and reconciliation overhead. (section III.B. REASONING AS A COST-BEARING TRAJECTORY AND THE NON-MONOTONIC TRADEOFF OF KNOWLEDGE ACTIVATION, p. 5)\n  > the objective of knowledge engineering for mobile agentic AI reasoning is not to maximize knowledge volume, but to optimize relevance-aware activation.\n- **Request-inject-verify knowledge pack** (category B) - A compact Home-promoted pack of structured constraints, retrieval reference plans, and procedural workflow, activated via a request-inject-",
+      "claims": [
+        {
+          "text": "Trajectory cost and violation metrics: Measures macro-reasoning cost as Reasoning Steps and Reasoning Tokens from LLM traces, plus Violation aggregating NFZ entry, obstacle collision, and failed service attempts. (section IV.A. MACRO REASONING WITH DETERMINISTIC EXECUTION, p. 6)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "DIKW time-scale knowledge lifecycle: Separates data, episode-scoped information, context, and persistent knowledge by lifetime, defining a lifecycle of extraction, synchronization, and relevance-aware activation. (section II.A. BASIC CONCEPTS: REASONING AND KNOWLEDGE IN AGENTIC PIPELINES, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Four-representation activation stack: Categorizes knowledge as retrieval, structured, procedural, and parametric, each with distinct trajectory effects, costs, and failure modes, combined in a coordinated activation stack. (section II.B. KNOWLEDGE REPRESENTATIONS AND OPERATIONAL CAPABILITIES, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Non-monotonic knowledge activation: Shows reasoning cost is non-monotonic in knowledge exposure: too little forces search-heavy replanning, too much adds redundancy and reconciliation overhead. (section III.B. REASONING AS A COST-BEARING TRAJECTORY AND THE NON-MONOTONIC TRADEOFF OF KNOWLEDGE ACTIVAT",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Request-inject-verify knowledge pack: A compact Home-promoted pack of structured constraints, retrieval reference plans, and procedural workflow, activated via a request-inject-verify loop with caching. (section IV.B. KNOWLEDGE PROMOTION AT HOME AND EXPERIMENTAL SETTING, p. 6)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Cacheable knowledge synchronization: Communicates reusable knowledge once per update over intermittent links, amortizing payload across episodes instead of paying per-disruption cloud replanning exchanges. (section IV.C. RESULTS AND ANALYSIS: RELIABILITY, REASONING COST, AND WIRELESS TRADEOFFS, p. 8",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Trajectory cost and violation metrics",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "DIKW time-scale knowledge lifecycle",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Four-representation activation stack",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Non-monotonic knowledge activation",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Request-inject-verify knowledge pack",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 200,
+      "text": "- **Trajectory cost and violation metrics**: A reasoning step is a marked macro reasoning step, not a UAV movement step; Violation counts NFZ entry during its active window, obstacle collision, and access rate below the 8 Mbps threshold.\n- **DIKW time-scale knowledge lifecycle**: Information is promoted to knowledge when reused beyond its episode, persisting across episodes with acquisition cost amortized over future missions; context expires with the episode.\n- **Four-representation activation stack**: A fast parametric default is refined by retrieval when matched instances exist, stabilized by structured constraints, and compressed by procedural workflows; simple inputs use parametric shortcuts, novel cases activate more forms.\n- **Non-monotonic knowledge activation**: Reasoning cost arises from token generation and compute, memory and history retention, and branching and backtracking; relevance-aware activation, not knowledge volume, is the optimization target.\n- **Request-inject-verify knowledge pack**: The agent requests knowledge when a disruption invalidates the plan and backhaul exceeds the threshold; the pack is injected into the prompt and cached; candidates pass access, backhaul, and legality checks before commit.\n- **Cacheable knowledge synchronization**: One-time backhaul payload grows from 125 tokens at K=1 to 1,234 tokens at K=5, versus a 1,870-token closed-loop exchange per disruption for home_replan; the pack is cacheable.",
+      "claims": [
+        {
+          "text": "Trajectory cost and violation metrics: A reasoning step is a marked macro reasoning step, not a UAV movement step; Violation counts NFZ entry during its active window, obstacle collision, and access rate below the 8 Mbps threshold. - **DIKW time-scale knowledge lifecycle**: Information is promoted t",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 297,
+      "text": "- Evidence the authors report:\n  - Trajectory cost and violation metrics: Reported over 50 inference episodes per method for Qwen_with_k, Qwen_no_k, Gemini_no_k, home_replan; DRL_PPO compared only on success and violation rate.\n  - DIKW time-scale knowledge lifecycle: Instantiated in the UAV case study where the NFZ activation schedule is discoverable only from historical logs and stored at Home.\n  - Four-representation activation stack: Case study instantiates structured constraints, retrieval reference plans, and a procedural serve-and-verify workflow; Gemini_no_k probes parametric priors.\n  - Non-monotonic knowledge activation: Sweeping exposure level K for Qwen_with_k shows moderate K=3 minimizes reasoning steps and tokens per step across 50 episodes.\n  - Request-inject-verify knowledge pack: Qwen_with_k using Qwen2.5-3B attains zero violation across evaluated episodes while reducing reasoning steps and tokens per step versus Qwen_no_k.\n  - Cacheable knowledge synchronization: Token payload comparison and 50-episode evaluation show the cached pack outperforms cloud replanning in reliability under backhaul outages.\n- Limitations the authors state:\n  - Trajectory cost and violation metrics: DRL_PPO reasoning-cost entries are not applicable because PPO acts at the per-tile movement level.\n  - DIKW time-scale knowledge lifecycle: The NFZ activation schedule is available only at Home, a deliberate modeling choice.\n  - Four-representation activation stack: Representations are partially overlapping and partially convertible rather than strictly parallel layers.\n  - Non-monotonic knowledge activation: K follows an incremental-additive schedule, so each level supersedes the previous one and amount and composition vary jointly.\n  - Request-inject-verify knowledge pack: The pack is delivered within a single decision interval once the backhaul threshold is met, a deliberate simplification.\n  - Cacheable knowledge synchronization: Synchronization is event-triggered and occur",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Trajectory cost and violation metrics: Reported over 50 inference episodes per method for Qwen_with_k, Qwen_no_k, Gemini_no_k, home_replan; DRL_PPO compared only on success and violation rate.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "DIKW time-scale knowledge lifecycle: Instantiated in the UAV case study where the NFZ activation schedule is discoverable only from historical logs and stored at Home.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Four-representation activation stack: Case study instantiates structured constraints, retrieval reference plans, and a procedural serve-and-verify workflow; Gemini_no_k probes parametric priors.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Non-monotonic knowledge activation: Sweeping exposure level K for Qwen_with_k shows moderate K=3 minimizes reasoning steps and tokens per step across 50 episodes.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Request-inject-verify knowledge pack: Qwen_with_k using Qwen2.5-3B attains zero violation across evaluated episodes while reducing reasoning steps and tokens per step versus Qwen_no_k.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Cacheable knowledge synchronization: Token payload comparison and 50-episode evaluation show the cached pack outperforms cloud replanning in reliability under backhaul outages.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Trajectory cost and violation metrics: DRL_PPO reasoning-cost entries are not applicable because PPO acts at the per-tile movement level.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "DIKW time-scale knowledge lifecycle: The NFZ activation schedule is available only at Home, a deliberate modeling choice.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Four-representation activation stack: Representations are partially overlapping and partially convertible rather than strictly parallel layers.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Non-monotonic knowledge activation: K follows an incremental-additive schedule, so each level supersedes the previous one and amount and composition vary jointly.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Request-inject-verify knowledge pack: The pack is delivered within a single decision interval once the backhaul threshold is met, a deliberate simplification.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Cacheable knowledge synchronization: Synchronization is event-triggered and occurs at most once per knowledge update rather than once per disruption.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

@@ -1,0 +1,657 @@
+{
+  "file_path": "E:/Librarian research/Double-deep-Q-network-based-multi-objective-optimization-f_2026_Expert-Syste.pdf",
+  "metadata": {
+    "title": "Double deep Q-network based multi-objective optimization for flexible job shop scheduling problem with heterogeneous automatic guided vehicles",
+    "authors": [
+      "Rensheng Chen",
+      "Bin Wu"
+    ],
+    "year": null,
+    "venue": "Expert Systems With Applications",
+    "doi": null,
+    "abstract_summary": "This paper proposes a double deep Q-network based non-dominated sorting genetic algorithm II to minimize the makespan and total energy consumption in flexible job shop scheduling problems with heterogeneous automatic guided vehicles. The algorithm is evaluated by comparing with four other advanced algorithms and a real-world case is used to analyze its effectiveness."
+  },
+  "sections": [
+    {
+      "heading": "Bin",
+      "section_type": "other",
+      "position": 9,
+      "word_count": 225,
+      "text": "Wu ∗ School of Economics and Management, Nanjing Tech University, Nanjing, 211816, China a r t i c l e i n f o Keywords: Flexible job shop scheduling problem Heterogeneous automatic guided vehicles Double deep Q-network Non-dominated sorting genetic algorithm II Local search a b s t r a c t In highly flexible automated manufacturing workshops, jobs need to be transported frequently between ma- chines, so the limitations of transportation resources are receiving increasing attention. This paper investigates the flexible job shop scheduling problem with heterogeneous automatic guided vehicles (AGVs). A double deep Q- network (double DQN) based non-dominated sorting genetic algorithm II is proposed to minimize the makespan and total energy consumption. Firstly, an initialization strategy based on multiple heuristic methods is designed for better performance. Secondly, critical paths and blocks within the problem are identified using a disjunc- tive graph, from which six problem-driven local search operators are developed. Thirdly, double DQN is used to recommend the optimal local search operator. 13 features are selected to describe the current state of an individual, and the proposed operators are employed as actions. The effectiveness of the proposed algorithm is evaluated by comparing with four other advanced algorithms. Finally, a real world case is used to analyze the greater potential of heterogeneous AGVs compared with homogeneous AGVs in optimizing two objective values. 1.",
+      "claims": [
+        {
+          "text": "This paper investigates the flexible job shop scheduling problem with heterogeneous automatic guided vehicles (AGVs).",
+          "claim_type": "definition"
+        },
+        {
+          "text": "A double deep Q-network (double DQN) based non-dominated sorting genetic algorithm II is proposed to minimize the makespan and total energy consumption.",
+          "claim_type": "method"
+        },
+        {
+          "text": "An initialization strategy based on multiple heuristic methods is designed for better performance.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Six problem-driven local search operators are developed to identify critical paths and blocks within the problem.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Flexible job shop scheduling problem",
+          "definition": "A problem of scheduling jobs on multiple machines with the goal of minimizing makespan and total energy consumption.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Heterogeneous automatic guided vehicles (AGVs)",
+          "definition": "A type of AGV that has different speeds, energy consumption, battery capacities, and charging speeds.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Double deep Q-network (double DQN)",
+          "definition": "A type of reinforcement learning algorithm used to recommend the optimal local search operator.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Introduction",
+      "section_type": "intro",
+      "position": 10,
+      "word_count": 1189,
+      "text": "With the rise of Industry 4.0, the manufacturing industry, as the core of the industry and the pillar of the national economy, is facing many key challenges of transformation and upgrading, among which the flex- ible job shop scheduling problem (FJSP) is one of the important prob- lems to be solved urgently ( Dauzère-Pérès et al. , 2024 ; Gao et al. , 2019 ). The complexity of this problem is further exacerbated in the context of intelligent manufacturing, especially with the rapid development and widespread application of Automatic Guided Vehicles (AGVs) technol- ogy ( Tan et al. , 2021 ). The flexible job scheduling problem with AGV (FJSP-A) has made job transportation a crucial element of scheduling decisions, enhancing both the flexibility and automation of workshops while simultaneously increasing the complexity of interactions between jobs, machines, and AGVs ( Berterottière et al. , 2024 ). In particular, as production environments and task requirements evolve, intelligent fac- tories are increasingly deploying heterogeneous AGVs fleet. Heteroge- neous AGVs have their own advantages and disadvantages in terms of battery capacity, transportation speed, energy consumption and charg- ing speed. How to reasonably allocate heterogeneous AGVs according to task demand and scheduling situation to reduce schedule delay and ∗ Corresponding author. E-mail address: wubin@njtech.edu.cn (B. Wu). resource waste has become a key focus for managing heterogeneous AGVs fleet ( Singh et al. , 2022 ). Therefore, the flexible job shop schedul- ing problem with heterogeneous AGVs (FJSP-HA) is of great significance for meeting production requirements while minimizing costs and im- proving work efficiency. The FJSP-A problem not only demands the optimization of produc- tion operations within job shops but also necessitates the coordination of the AGV transportation system to ensure the smooth and efficient func- tioning of the entire production process ( Pan et al. , 2022 ; Yao et al. , 2024b ). While, several literatures have focused on the optimization of AGV paths and tasks in FJSP-A problem ( Amirteimoori et al. , 2023 ; Gao et al. , 2024 ), but there is still a lack of research on the FJSP-A problem with limited battery capacity. The task execution of AGVs is often inter- rupted by charging constraints, resulting in production schedule delays, which is further complicated when heterogeneous AGVs are used ( Li & Huang , 2024 ). Due to the unique performance parameters of heteroge- neous AGVs, there are differences in the selection of AGVs for differ- ent transportation tasks and scheduling time nodes ( Li et al. , 2022a ). For example, underride AGV has the characteristics of lightweight, high flexibility and high speed, which can complete transportation tasks in a short time, and is suitable for jobs that need to be delivered quickly https://doi.org/10.1016/j.eswa.2025.128992 Received 13 May 2025; Received in revised form 4 July 2025; Accepted 9 July 2025 Expert Systems With Applications 296 (2026) 128992 Available online 23 July 2025 0957-4174/© 2025 Elsevier Ltd. All rights are reserved, including those for text and data mining, AI training, and similar technologies. R. Chen et al. in FJSP-A problem. However, early arrival is of limited benefit for jobs that the subsequent machine is still occupied. Additionally, since their small size limits the battery capacity, over-reliance on underride AGVs will lead to frequent recharging, which will reduce the overall schedul- ing efficiency ( Song et al. , 2024 ). In contrast, the towing AGV, although slower due to lack of flexibility, has longer battery life due to its larger battery capacity. However, its low transport speed may lead to the de- lay of some transport tasks, causing the waiting of processing machines and the delay of the completion time of operations ( Xing et al. , 2023 ). Therefore, effectively allocating transportation tasks to different types of AGVs to complement their advan",
+      "claims": [
+        {
+          "text": "The flexible job shop scheduling problem (FJSP) is one of the important problems to be solved urgently in the manufacturing industry.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The complexity of FJSP is further exacerbated in the context of intelligent manufacturing, especially with the rapid development and widespread application of Automatic Guided Vehicles (AGVs) technology.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The flexible job scheduling problem with AGV (FJSP-A) has made job transportation a crucial element of scheduling decisions.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "Heterogeneous AGVs have their own advantages and disadvantages in terms of battery capacity, transportation speed, energy consumption, and other factors.",
+          "claim_type": "definition"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Flexible job shop scheduling problem (FJSP)",
+          "definition": "A problem of scheduling jobs on multiple machines with the goal of minimizing makespan and total energy consumption.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Automatic Guided Vehicles (AGVs)",
+          "definition": "A type of vehicle used for transportation in manufacturing systems.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Intelligent manufacturing",
+          "definition": "A type of manufacturing that uses advanced technologies such as AGVs and artificial intelligence to improve efficiency and productivity.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Literature",
+      "section_type": "related_work",
+      "position": 11,
+      "word_count": 1114,
+      "text": "review 2.1. Flexible job shop scheduling problem with AGVs The widespread adoption of AGV in modern manufacturing has spurred global research and exploration into integrated solutions for production and transportation scheduling. Fontes et al. ( 2024 ) proposed a multi-population biased random-key genetic algorithm to study the joint scheduling of variable-speed machines and AGVs. Barak et al. ( 2021 ) developed a mathematical model for the FJSP-A problem, in- corporating fuel consumption constraints in AGV systems, and intro- duced an improved particle swarm optimization algorithm. Pan et al. ( 2022 ) presented a learning-based evolutionary optimization algorithm, designing a RL-based multi-population strategy and problem-oriented local search operator. Liu et al. ( 2023 ) designed a bi-level program- ming model, constructing an integrated schedule with jobs, machines, and transportation device, and proposed an SLGA-D algorithm based on Q-learning and time windows. Cheng et al. ( 2021 ) developed a BPNN integration model based on clustering and resampling operations and proposed a dynamic weight combination strategy based on KNN for calculating completion time in FJSP-A. Yan et al. ( 2021 ) analyzed the FJSP under limited transportation resources and designed an improved genetic algorithm and a physical-Javascript object notation. Xu et al. ( 2023 ) proposed a heuristic algorithm (EHA) to solve the FJSP-A model, and designed an initialization method focused on makespan and TEC and a specific local search strategy. Li et al. ( 2020 ) investigated the FJSP-A problem with energy consumption and makespan objectives, developed several problem-specific local search operators and an im- proved Jaya algorithm. Yao et al. ( 2024b ) decomposed the FJSP-A prob- lem into four sub-decision problems and proposed a new disjunctive graph-based MILP model, with extensive instance testing demonstrat- ing the model’s superiority. 2.2. Heterogeneous AGVs and battery constraints Dang et al. ( 2021 ) investigated the scheduling of multi-load and multi-capacity AGVs with battery constraints, and considered load ca- pacity, battery thresholds, charge/discharge rates, and transportation costs of heterogeneous AGVs. Qiu et al. ( 2015 ) investigated the rout- ing problem of heterogeneous AGVs in a three-dimensional warehouse environment, and focused on the relationship between energy consump- tion and load of AGVs with different functions. Foroutan et al. ( 2020 ) considered the reverse logistics of cargo recycling and analyzed the ve- hicle routing problem for a heterogeneous fleet. Li and Huang ( 2024 ) investigated the route planning and task assignment problems of het- erogeneous AGVs with charging constraints in a logistics warehouse, and discussed the effects of the number of tasks, the number of AGVs, the maximum capacity, and the batch size on the experiment. Sabar et al. ( 2020 ) discussed the problem of fleet vehicle routing with two- dimensional loading constraints, and used heterogeneous fleets with dif- ferent capacities, operating costs, sizes, and loading constraints to serve customers. At present, the research on heterogeneous AGVs is only lim- ited to the AGV scheduling problem, and there is no research on the constraints and capabilities of heterogeneous AGVs in the FJSP-A model. 2.3. NSGA-II NSGA-II is widely applied in solving production scheduling problems due to its robustness, efficiency, and ability to handle multi-objective problems. Tao et al. ( 2024 ) designed a data-driven NSGA-II to solve the distributed flexible flow shop problem. Lim et al. ( 2022 ) constructed a three-layer planning model for cloud manufacturing service, proposed an improved NSGA-II with progressive and inheritance functions to en- hance the correlation between the three layers, and improved the coding method and population screening mechanism. Burmeister et al. ( 2023 ) developed a memetic algorithm based on NSGA-II to solve the makespan Expert Systems ",
+      "claims": [
+        {
+          "text": "Fontes et al. (2024) proposed a multi-population biased random-key genetic algorithm to study the joint scheduling of variable-speed machines and AGVs.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Barak et al. (2021) developed a mathematical model for the FJSP-A problem, incorporating fuel consumption constraints in AGV systems.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Pan et al. (2022) presented a learning-based evolutionary optimization algorithm, designing a RL-based multi-population strategy and problem-oriented local search operator.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Liu et al. (2023) designed a bi-level programming model, constructing an integrated schedule with jobs, machines, and transportation devices.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Multi-population biased random-key genetic algorithm",
+          "definition": "A type of genetic algorithm used to solve the joint scheduling problem of variable-speed machines and AGVs.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Mathematical model for FJSP-A",
+          "definition": "A model used to incorporate fuel consumption constraints in AGV systems.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Learning-based evolutionary optimization algorithm",
+          "definition": "A type of algorithm used to solve the FJSP-A problem.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "FJSP-HA",
+      "section_type": "other",
+      "position": 12,
+      "word_count": 1907,
+      "text": "model In FJSP-HA, a set of jobs 𝑖 ∈{1 , 2 , … , 𝑁 } is processed on a group of machines 𝑚 ∈{1 , 2 , … , 𝑀 } . Each job 𝑖 has 𝑂 𝑖 operations. 𝑂 𝑖𝑗 denotes the 𝑗 𝑡ℎ operation of job 𝑖 . Each operation 𝑂 𝑖𝑗 can be processed by any of its optional machines, and using different machines may change the processing time and energy consumption. The transport tasks for each job are handled by a fleet of heterogeneous AGVs 𝑘 ∈{1 , 2 , … , 𝐾 } . Sim- ilarly, heterogeneous AGVs also have different speeds, energy consump- tion, battery capacities and charging speeds. The initial distribution cen- ter for the heterogeneous AGVs fleet is the load/unload area. At the start of each task, the battery level must be above a critical threshold. If an AGV’s battery level falls below this threshold during travel, it must visit a charging station after completing the current task. The charging station has sufficient space to allow multiple AGVs to charge simultaneously, ensuring no wait time. 3.1. Problem description Although processing tasks and transportation tasks are executed by machines and AGVs respectively, the start-up time of tasks on the two devices will affect and restrict each other. As shown in Fig. 1 , the FJSP- HA in this paper can be described into five interrelated parts: (1) Assign operations to suitable machines for processing. (2) Assign AGVs to each operation for transportation. (3) Determine the sequence of transporta- tion for each job. (4) Ensure adequate AGV power. (5) Determine the sequence of processing operations for each machine. The main objective of FJSP-HA is to minimize the makespan and the TEC. Within the con- straints, the system aims to optimize the performance of various AGVs, ensuring that jobs are efficiently transported to the corresponding ma- chines for processing. In FJSP-HA, the following assumptions are made: Table 1 Summary of relevant literature. Ref. Problem AGV Algorithm class Method Objective ( Du et al. , 2022 ) FJSP – Meta-heuristic+DRL DQN based estimation of distribution algorithm Makespan, TEC ( Lin et al. , 2022 ) FJSP – Meta-heuristic+DRL Learning based grey wolf optimization Makespan ( Li et al. , 2022b ) Fuzzy FJSP – Meta-heuristic+RL Q-learning based MOEA/D Makespan, Total machine workload ( Dang et al. , 2021 ) AGV scheduling Heterog. Meta-heuristic Hybrid adaptive large neighborhood search algorithm Total cost ( Qiu et al. , 2015 ) AGV scheduling Heterog. Meta-heuristic Particle swarm optimization TEC ( Foroutan et al. , 2020 ) AGV scheduling Heterog. Meta-heuristic GA Total cost ( Li & Huang , 2024 ) AGV scheduling Heterog. heuristic Improved task assignment algorithm Total cost ( Sabar et al. , 2020 ) AGV scheduling Heterog. Meta-heuristic Adaptive memetic approach Total cost ( Fontes et al. , 2024 ) FJSP-A Homog. Meta-heuristic Random-key genetic algorithm Makespan ( Barak et al. , 2021 ) FJSP-A Homog. Meta-heuristic Improved particle swarm optimization Fuel consumption, Total cost ( Yan et al. , 2021 ) FJSP-A Homog. Meta-heuristic Improved genetic algorithm Makespan ( Xu et al. , 2023 ) FJSP-A Homog. Meta-heuristic Improved NSGA-II Makespan, TEC ( Li et al. , 2020 ) FJSP-A Homog. Meta-heuristic Improved Jaya algorithm Makespan, TEC ( Yao et al. , 2024b ) FJSP-A Homog. Exact MILP model Makespan ( Pan et al. , 2022 ) FJSP-A Homog. Meta-heuristic+RL Learning-based multi-population evolutionary optimization Makespan ( Liu et al. , 2023 ) FJSP-A Homog. Meta-heuristic+RL Q-learning based SLGA-D Makespan ( Cheng et al. , 2021 ) FJSP-A Homog. Meta-heuristic+SL BPNN integration with GA Makespan ( Yao et al. , 2024a ) FJSP-A Homog. Meta-heuristic+DRL DQN based memetic algorithm Makespan, TEC ( Chen et al. , 2024 ) Dynamic FJSP-A Homog. Meta-heuristic+RL Q-learning based NSGA-II Makespan, TEC ( Tang et al. , 2024 ) Dynamic FJSP-A Homog. Meta-heuristic+DRL DQN based NSGA-III algorithm Makespan, TEC, Machine deviation Note: Homog.: Homogeneous; Heterog.: Heterogeneous; TEC: Total Energy Consumption;",
+      "claims": [
+        {
+          "text": "In FJSP-HA, a set of jobs is processed on a group of machines, and each job has multiple operations.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "Each operation can be processed by any of its optional machines, and using different machines may change the processing time and energy consumption.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The transport tasks for each job are handled by a fleet of heterogeneous AGVs.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The initial distribution center for the heterogeneous AGVs fleet is the load/unload area.",
+          "claim_type": "definition"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "FJSP-HA",
+          "definition": "A type of flexible job shop scheduling problem with heterogeneous AGVs.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Heterogeneous AGVs",
+          "definition": "A type of AGV that has different speeds, energy consumption, battery capacities, and charging speeds.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Load/unload area",
+          "definition": "The initial distribution center for the heterogeneous AGVs fleet.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "NSGA-II",
+      "section_type": "other",
+      "position": 15,
+      "word_count": 158,
+      "text": "algorithm Current meta-heuristic algorithms often encounter challenges when solving multi-objective FJSP-A problems, such as insufficient solution accuracy, slow convergence, and sub-optimal solution quality. There- fore, D2NSGA-II is proposed in this paper to solve these problems. In this section, we introduce the framework of D2NSGA-II, encoding and decod- ing, initialization strategy, crossover and mutation operators, problem- driven local search operators and double DQN based local search. 4.1. Framework of D2NSGA-II The framework of D2NSGA-II is shown as Algorithm 1 , and the spe- cific steps are as follows: Firstly, the initialization strategy of a diverse population structure is used. Secondly, the crossover and mutation oper- ators are selected to generate a new population. Again, the local search operator is selected based on the trained neural network. Next, the gen- erated non-dominated neighborhood solution is retained. Then, at each generation, the first 𝑛𝑝 individuals are selected as the new population. Finally, the Pareto optimal solution is output after multiple iterations.",
+      "claims": [
+        {
+          "text": "Current meta-heuristic algorithms often encounter challenges when solving multi-objective FJSP-A problems.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "D2NSGA-II is proposed to solve these problems, which uses a double deep Q-network (double DQN) based local search.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The framework of D2NSGA-II includes initialization, crossover, mutation, local search, and selection of the Pareto optimal solution.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The initialization strategy of a diverse population structure is used to improve the performance of D2NSGA-II.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "D2NSGA-II",
+          "definition": "A type of algorithm used to solve multi-objective FJSP-A problems.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Double deep Q-network (double DQN)",
+          "definition": "A type of reinforcement learning algorithm used to recommend the optimal local search operator.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Pareto optimal solution",
+          "definition": "A solution that is optimal in terms of multiple objectives.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Output:",
+      "section_type": "other",
+      "position": 18,
+      "word_count": 397,
+      "text": "Parato solution set 𝑃𝐹 1 𝐸𝑃 ← Initialization; 2 for 𝑔 in 𝑇 𝑖𝑡𝑒𝑟 do 3 𝐸𝑃 ′ ← Crossover and Mutation( 𝐸𝑃 ); 4 𝑁 𝑔 ← Get Pareto front( 𝐸𝑃 ′ ); 5 for 𝑖 in 𝑁 𝑔 do 6 𝐴 𝑡 ← Double DQN based operator recommendation( 𝑄 𝑡𝑎𝑟 , 𝜖 ); 7 𝑁 𝑔 ( 𝑖 ′ ) , 𝑅 ← Local search( 𝑁 𝑔 ( 𝑖 ) , 𝐴 𝑡 ); 8 if 𝑁 𝑔 ( 𝑖 ′ ) is not dominated by 𝑁 𝑔 ( 𝑖 ) then 9 VNS_ 𝑃 𝑔 ← VNS_ 𝑃 𝑔 ∪ 𝑁 𝑔 ( 𝑖 ′ ) ; 10 𝐸𝑃 ′ ← 𝐸𝑃 ′ ∪ VNS_ 𝑃 𝑔 ; 11 𝐸𝑃 ← Get Pareto front( 𝑛𝑝 , 𝐸𝑃 ′ ); //Select the first 𝑛𝑝 individuals 12 𝑃𝐹 ← Get Pareto front( 𝐸𝑃 ); 4.2. Encoding and decoding In this paper, the three resources to be scheduled are operations, ma- chines and AGVs, represented by using a three-layer encoding method for a feasible solution. Yan et al. ( 2021 ) used operation sequence to de- termine the order in which tasks are executed on machines and AGVs, specifically, changes in the sequence of operation affect the assignment of machines and AGVs. However, due to the different set of devices available for different operations, subsequent crossover and mutation mechanisms are highly likely to generate infeasible solutions. There- fore, we adopt a novel three-layer coding method similar to Pan et al. ( 2022 ) to overcome the above weaknesses. Expert Systems With Applications 296 (2026) 128992 5 R. Chen et al. Fig. 2. Three-layer coding diagram. As shown in Fig. 2 , the first layer is the operation sequence ( OS ), which represents the order of operations. The numbers correspond to the job IDs and the number of occurrences 𝑗 indicates the 𝑗 𝑡ℎ operation of that job. The second layer is the machine sequence ( MS ), and the third layer is the AGV sequence ( AS ), which correspond to the processing machines and AGVs for 𝑂 11 , 𝑂 12 , ⋯ , 𝑂 13 . This mapping order remains unchanged in subsequent iterations to ensure that resource assignment is not affected by the operation sequence. An proactive decoding method is designed to decode the solution generated by the above encoding method as follows:",
+      "claims": [
+        {
+          "text": "Initial solution is generated using a random method or heuristics.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm generates a random number to determine which heuristic to use.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm selects the shortest cumulative processing time machine or the minimum energy consumption machine.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm selects the AGV that arrives earliest or the AGV with the minimum energy consumption.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Initial solution",
+          "definition": "The starting point for the algorithm.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Heuristics",
+          "definition": "Methods used to generate solutions.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Random method",
+          "definition": "A method used to generate random solutions.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Step",
+      "section_type": "other",
+      "position": 26,
+      "word_count": 113,
+      "text": "8 : Repeat until all operations are completed, and calculate the values of the two objective functions. 4.3. Initialization strategy An effective initialization strategy helps to improve the performance of the algorithm in complex optimization problems. In particular, the problem-driven heuristic strategies, which deeply consider the problem structure and constraints, have been widely proven to significantly en- hance the algorithm convergence ( Li et al. , 2023 ; Zhang et al. , 2022 ). In this paper, an initialization Algorithm 2 based on several heuristics is designed for FJSP-HA problem. Specifically, problem-driven heuris- tics are designed for each coding layer separately, focusing on different sub-problems. The details about these heuristics are as follows.",
+      "claims": [
+        {
+          "text": "An effective initialization strategy helps to improve the performance of the algorithm in complex optimization problems.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Problem-driven heuristic strategies have been widely proven to significantly enhance the algorithm convergence.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The initialization Algorithm 2 based on several heuristics is designed for FJSP-HA problem.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Problem-driven heuristics are designed for each coding layer separately, focusing on different sub-problems.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Initialization strategy",
+          "definition": "A strategy to improve the performance of the algorithm in complex optimization problems.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Problem-driven heuristic strategies",
+          "definition": "Strategies that consider the problem structure and constraints to enhance algorithm convergence.",
+          "concept_type": "method"
+        },
+        {
+          "name": "FJSP-HA problem",
+          "definition": "A complex optimization problem.",
+          "concept_type": "dataset"
+        }
+      ]
+    },
+    {
+      "heading": "Output:",
+      "section_type": "other",
+      "position": 29,
+      "word_count": 114,
+      "text": "Initial solution 1 for 𝑖 _ 𝑛𝑢𝑚 in 𝑛𝑝 do 2 Randomly generate OS sequences; 3 Generate a random numbers 𝛼 1 in (0, 1]; 4 if 𝛼 1 ≤ 0 . 5 then 5 Randomly generated an individual string; 6 else if 0 . 5 < 𝛼 1 ≤ 0 . 75 then 7 // Construct individual string by heuristic 2; 8 Select the shortest cumulative processing time machine; 9 Select the AGV that arrives earliest; 10 else if 0 . 75 < 𝛼 1 ≤ 1 then 11 // Construct individual string by heuristic 3; 12 Select the minimum energy consumption machine or select randomly; 13 Select the minimum energy consumption AGV;",
+      "claims": [
+        {
+          "text": "Initial solution is generated using a random method or heuristics.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm generates a random number to determine which heuristic to use.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm selects the shortest cumulative processing time machine or the minimum energy consumption machine.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm selects the AGV that arrives earliest or the AGV with the minimum energy consumption.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Initial solution",
+          "definition": "The starting point for the algorithm.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Heuristics",
+          "definition": "Methods used to generate solutions.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Random method",
+          "definition": "A method used to generate random solutions.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Heuristic",
+      "section_type": "other",
+      "position": 30,
+      "word_count": 143,
+      "text": "1 : A time-first heuristic 1 is proposed to generate solutions with smaller makespan. OS is generated using a random method. In the MS , the cumulative processing time record for each machine is first cal- culated. For operation 𝑂 𝑖𝑗 , the machine with the shortest cumulative processing time in the optional machine set is selected to improve load balance and machine utilization. If multiple machines have the mini- mum cumulative processing time, one is randomly chosen. In the AS , the earliest available time, transportation distance, and AGV speed of each AGV are used to calculate the earliest AGV arrival time. The AGV with the earliest arrival is selected to minimize job waiting time. Similarly, if multiple AGVs have the same earliest arrival time, one is randomly selected. These steps are repeated until all jobs are assigned to machines and AGVs.",
+      "claims": [
+        {
+          "text": "A random method is used to generate OS, and the corresponding devices in MS and AS are randomly selected.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The diversification of the initial population is generated by combining the three heuristics.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Half of the initial solutions are generated by heuristic 3, while the other half are generated using heuristic 1 and heuristic 2 methods with equal probability.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The diverse population structure initialization strategy helps the initial population to be closer to the optimal or high-quality solutions.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Random method",
+          "definition": "A method used to generate random solutions.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Diversification",
+          "definition": "The process of generating a diverse population.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Population structure",
+          "definition": "The composition of the initial population.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Heuristic",
+      "section_type": "other",
+      "position": 31,
+      "word_count": 123,
+      "text": "2 : To address the low energy consumption requirement of the proposed model, an energy-focused heuristic is introduced. For an operation in the random OS , the processing energy consumption on al- ternative machines is calculated. The machine with the lowest energy consumption is preferred with a 50 % probability, while a random ma- chine is selected with the other 50 %, balancing low energy consumption with solution flexibility. Additionally, in the AS , the transportation dis- tance and unit energy consumption of each AGV are calculated. The AGV with the lowest energy consumption for the journey from its current po- sition to the transportation starting point is selected to minimize AGV energy consumption. This process is repeated until all jobs are assigned.",
+      "claims": [
+        {
+          "text": "A random method is used to generate OS, and the corresponding devices in MS and AS are randomly selected.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The diversification of the initial population is generated by combining the three heuristics.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Half of the initial solutions are generated by heuristic 3, while the other half are generated using heuristic 1 and heuristic 2 methods with equal probability.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The diverse population structure initialization strategy helps the initial population to be closer to the optimal or high-quality solutions.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Random method",
+          "definition": "A method used to generate random solutions.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Diversification",
+          "definition": "The process of generating a diverse population.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Population structure",
+          "definition": "The composition of the initial population.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Heuristic",
+      "section_type": "other",
+      "position": 32,
+      "word_count": 1771,
+      "text": "3 : A random method is used to generate OS , and the corre- sponding devices in MS and AS are randomly selected in their respective optional device sets, so as to maintain the diversity of population. The diversification of the initial population is generated by combin- ing the three heuristics above. Half of the initial solutions are gener- ated by heuristic 3 , while the other half are generated using heuristic 1 and heuristic 2 methods with equal probability. This diverse population structure initialization strategy helps the initial population to be closer to the optimal or high-quality solutions, thereby reducing convergence time and mitigating the risk of premature convergence. 4.4. Crossover and mutation operators In the proposed D2NSGA-II, a binary tournament mechanism is used to select two parents. Since the FJSP-HA problem involves three sub- problems, this paper proposes a different crossover mechanism for the three levels of coding. A recedence operation crossover (POX) ( Li et al. , 2022c ) is used to ensure the legitimacy of the OS on the offspring Expert Systems With Applications 296 (2026) 128992 6 R. Chen et al. Fig. 3. Schematic diagram of POX, MPX and TPX. chromosomes. multi-point crossover (MPX) ( An et al. , 2023 ) is used for MS . Two-point crossover (TPX) ( Qin et al. , 2021 ) is used for AS . The resulting three-layer code represents a viable solution. Fig. 3 illustrates examples of POX, MPX and TPX. The mutation operator broadens the algorithm’s exploration of the solution space by introducing small perturbations to the solution. For the OS , a swap mutation is used, where two different jobs in the sequence are exchanged. For MS and AS , the current device used for either operation is replaced with other device in the optional device set. 4.5. Problem-driven local search operators The solution of FJSP-HA can be represented by a disjunctive graph. The solution shown in Fig. 2 can be converted to a disjunctive graph, as shown in Fig. 4 . In this disjunctive graph, The virtual nodes 𝑆 and 𝐸 rep- resent the start and end of the solution, respectively. 𝑇 𝑖𝑗 represents the transportation process of a certain operation of AGV, and 𝑂 𝑖𝑗 represents the processing process of a certain operation. The black solid arrow is the set of connecting arcs, which represents the sequential relation con- necting two adjacent nodes in the disjunctive graph. The blue dashed line is the machine disjunctive arcs arc, indicating the arc connecting the two corresponding operations of a certain machine in the disjunc- tive graph, and the arc direction indicates the processing sequence of the two connected operations on the machine. The orange dotted lines are AGV disjunctive arcs, which represent adjacent transportation tasks on the same AGV. Similarly, the arc direction indicates the transportation sequence of the AGV. In this disjunctive graph, the length of the machine arc between two nodes is equal to the processing time of the precursor task, and the length of the AGV arc between two nodes is equal to the sum of the no-load time, the load time, and the possible charging task time. An executable condition for a node is that all the predecessor nodes corresponding to that node on the disjunctive graph were completed. By identifying the Fig. 4. The FJSP-HA disjunctive graph. longest time from node 𝑆 to node 𝐸 , the corresponding critical path Π can be found. The critical path is calculated as follows: (1) Earliest completion time EF(i) : earliest start time ES(i) plus the duration of the task. If the precursor tasks of task 𝑖 are 𝑎 and 𝑏 , then ES(i) = max(EF(a), EF(b)) . (2) Latest start time LS(i) : latest completion time LF(i) minus the duration of the task. If the successors of task 𝑖 are 𝑎 and 𝑏 , then LF(i) = min(LS(a), LS(b)) . (3) Start and End nodes: ES and LS of the start node of the project are both 0. EF and LF of the end node of the project are both the longest duration of the project. (4) Determine the critical pat",
+      "claims": [
+        {
+          "text": "A random method is used to generate OS, and the corresponding devices in MS and AS are randomly selected.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The diversification of the initial population is generated by combining the three heuristics.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Half of the initial solutions are generated by heuristic 3, while the other half are generated using heuristic 1 and heuristic 2 methods with equal probability.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The diverse population structure initialization strategy helps the initial population to be closer to the optimal or high-quality solutions.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Random method",
+          "definition": "A method used to generate random solutions.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Diversification",
+          "definition": "The process of generating a diverse population.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Population structure",
+          "definition": "The composition of the initial population.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "State",
+      "section_type": "other",
+      "position": 33,
+      "word_count": 53,
+      "text": ". As shown in Table 3 , this paper uses a combination of 13 char- acteristic indicators from three aspects of the objective value, instance scale and solution features as the state, which well describes the char- acteristics of the current solution. The Q-network is fed to each solution from the elite population.",
+      "claims": [
+        {
+          "text": "A combination of 13 characteristic indicators from three aspects of the objective value, instance scale, and solution features is used as the state.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The Q-network is fed to each solution from the elite population.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The state well describes the characteristics of the current solution.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The state is used to describe the objective value, instance scale, and solution features.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "State",
+          "definition": "A combination of characteristic indicators that describe the current solution.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Q-network",
+          "definition": "A network used to feed solutions from the elite population.",
+          "concept_type": "model"
+        },
+        {
+          "name": "Elite population",
+          "definition": "A set of high-quality solutions.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Reward",
+      "section_type": "other",
+      "position": 35,
+      "word_count": 328,
+      "text": ". The reward is defined in terms of the dominance relation- ship between the old and new solutions: if the new solution dominates Expert Systems With Applications 296 (2026) 128992 8 R. Chen et al. Fig. 7. Selection of local search operators based on double DQN. Table 3 State features for D2NSGA-II. Source NO. Feature Formulation Objective value 1 Makespan 𝐶 max 2 TEC TEC Instance 3 job number 𝑁 4 machine number 𝑀 5 AGV number 𝐾 6 Total number of operations ∑ 𝑁 𝑖 =1 𝑂 𝑖 Solution 7 Standard deviation of machine utilization 𝑠𝑡𝑑 ( 𝑢 𝑚 ) = √ 1 𝑚 ∑ 𝑀 𝑚 =1 ( 𝑢 𝑚 − ̄𝑢 𝑚 ) 2 , 𝑢 𝑚 = ∑ 𝑁 𝑖 =1 ∑ 𝑂𝑖 𝑗 =1 𝑡 𝑚 𝑖,𝑗 ⋅ 𝑥 𝑚 𝑖,𝑗 𝐶 𝑚 8 Standard deviation of AGV utilization 𝑠𝑡𝑑 ( 𝑢 𝑘 ) = √ 1 𝑘 ∑ 𝐾 𝑘 =1 ( 𝑢 𝑘 − ̄𝑢 𝑘 ) 2 , 𝑢 𝑘 = ∑ 𝑁 𝑖 =1 ∑ 𝑂𝑖 𝑗 =1 ∑ 𝐾 𝑘 =1 𝑑 𝐿 𝑖,𝑗 𝑣𝑘 + 𝑑 𝑈 𝑖,𝑗 𝑣𝑘 𝐶 𝑘 9 Total idle time of the machine ∑ 𝑀 𝑚 =1 ( 𝐶 𝑚 − ∑ 𝑁 𝑖 =1 ∑ 𝑂 𝑖 𝑗 =1 𝑡 𝑚 𝑖,𝑗 ⋅ 𝑥 𝑚 𝑖,𝑗 ) 10 Duration of AGV non-transport tasks ∑ 𝐾 𝑘 =1 [ 𝐶 𝑘 − ∑ 𝑁 𝑖 =1 ∑ 𝑂 𝑖 𝑗 =1 ( 𝑑 𝐿 𝑖,𝑗 𝑣 𝑘 + 𝑑 𝑈 𝑖,𝑗 𝑣 𝑘 )] 11 Average processing time of operation ∑ 𝑀 𝑚 =1 𝐶 𝑚 ∕ ∑ 𝑁 𝑖 =1 𝑂 𝑖 12 Average transportation time of operation ∑ 𝐾 𝑘 =1 𝐶 𝑘 ∕ ∑ 𝑁 𝑖 =1 𝑂 𝑖 13 Total charging times ∑ 𝐾 𝑘 =1 𝑛 𝑐ℎ𝑎𝑟𝑔𝑒 𝑘 the old solution or if both are non-dominated, the reward is 10; other- wise, the reward is 0. 5.",
+      "claims": [
+        {
+          "text": "The reward is defined in terms of the dominance relationship between the old and new solutions, where the new solution dominates the old solution or if both are non-dominated.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The reward function is used to guide the selection of local search operators based on double DQN.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The state features for D2NSGA-II include makespan, TEC, job number, machine number, AGV number, and total number of operations.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The standard deviation of machine utilization and AGV utilization are used as performance metrics.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Dominance relationship",
+          "definition": "A relationship between two solutions where one solution is better than the other in at least one objective and not worse in any other objective.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Double DQN",
+          "definition": "A type of reinforcement learning algorithm used to select local search operators.",
+          "concept_type": "method"
+        },
+        {
+          "name": "State features",
+          "definition": "A set of features used to describe the state of the system, including makespan, TEC, job number, machine number, AGV number, and total number of operations.",
+          "concept_type": "method"
+        },
+        {
+          "name": "TEC",
+          "definition": "Total energy consumption.",
+          "concept_type": "metric"
+        }
+      ]
+    },
+    {
+      "heading": "Experimental",
+      "section_type": "results",
+      "position": 36,
+      "word_count": 3284,
+      "text": "analysis In this section, three parts of experiments are designed to verify the effectiveness of the algorithm and model. Experiment 1 and Experiment 2 validate the effectiveness of the improved strategy in this paper and the superiority of D2NSGA-II over other compared algorithms. Experi- ment 3 verifies the effectiveness of heterogeneous AGVs in the FJSP-HA model. All algorithms were implemented in MATLAB 2021b, running on a computer equipped with an Intel Core i9-14900K processor 3.20 GHz and 64.0 GB RAM. 5.1. Benchmarks and performance metrics We selected the benchmarks designed by Brandimarte ( 1993 ), Der- oussi and Norre ( 2010 ) respectively, and extended relevant conditions on their basis to adapt to FJSP-HA, constituting a total of 20 extended instances of eDN01-eDN10 and eMK01-eMK10. The training set was ran- domly generated and contains instances of different sizes. We use M-J- O-A to denote the size of each type of instance, where 𝑀 is the number of machines, 𝑁 is the number of jobs, 𝑂 is the number of jobs, and 𝐴 is the number of AGVs. The number of operations varies between 13 and 21 for eDN instances and between 55 and 240 for eMK instances. The job numbers are in the range {5,6,7,8,10,15,20} and the machine numbers are in the range {4,5,6,8,10,15}. Two types of heterogeneous AGVs were generated with different performances in no-load power, load power, transportation speed, battery threshold and charging rate. The AGV fleet was configured based on the number of AGVs required for each instance. All machines and AGVs are scheduled in rectangular intelligence workshop. In order to measure the actual performance of the algorithm, we use the Hypervolume (HV) and Inverse Generation Distance (IGD) ( Guer- reiro et al. , 2021 ; Ishibuchi et al. , 2015 ) as reference metrics to measure the performance of the algorithm. HV can be used to measure the per- formance in terms of convergence and diversity, with higher HV values indicating better performance. A smaller IGD value indicates that the algorithm has better overall performance. Their formulas are shown in Eqs. 24 and 25 . 𝐻𝑉 = 𝜆 (⋃ | 𝑁𝑆 | 𝑖 =1 𝑣 𝑖 ) (24) Where 𝜆 represents the Leberger measure and 𝑣 𝑖 represents the hy- pervolume consisting of the reference point 𝑟 and the non-dominated Expert Systems With Applications 296 (2026) 128992 9 R. Chen et al. individuals in the approximation set 𝑁𝑆 . 𝐼𝐺𝐷 ( 𝑃, 𝑃 ∗ ) = ∑ 𝑥 ∈ 𝑝 ∗ 𝑑𝑖𝑠 ( 𝑥, 𝑃 ) | 𝑃 ∗ | (25) 𝑃 is the optimal solution set obtained by the D2NSGA-II algorithm, 𝑃 ∗ is the true Pareto frontier, and 𝑑𝑖𝑠 ( 𝑥, 𝑃 ) is the minimum Euclidean distance between the Pareto optimal surface point 𝑥 and the individual 𝑖 in the algorithm’s optimal solution set. 5.2. Parameter setting For D2NSGA-II with many hyper-parameters, we used the Taguchi parameter experiment method for six key parameters, which are: popu- lation size 𝑛𝑝 , crossover probability 𝑝𝑐 , mutation probability 𝑝𝑚 , learn- ing rate 𝛼 , discount factor 𝛾 , and greedy factor 𝜖 . We chose the eMK08 instance for the experimental design to avoid the case of premature con- vergence due to too small instances. Each parameter is set to three lev- els as shown in Table 4 , and an orthogonal arrays 𝐿 27 (3 6 ) is created to determine the optimal parameters. In the experiments, D2NSGA-II is executed 20 times independently on each instance, and the average HV value is used as the response value for this parameter combination. The main effect plots for these six parameters are shown in Fig. 8 . The final optimal parameter combination is as follows: 𝑛𝑝 = 120 , 𝑝𝑐 = 0 . 9 , 𝑝𝑚 = 0 . 15 , 𝛼 = 0 . 005 , 𝛾 = 0 . 85 , 𝜖 = 0 . 85 . We refer to the literature of Zhang et al. ( 2024 ), and set the other hyper-parameters of the algorithm as follows: maximum iteration number 𝑇 𝑖𝑡𝑒𝑟 = 200 , experience pool size 𝑆 = 1024 , batch size 𝑏𝑠 = 50 , network update frequency 𝑇 𝑠 = 7 , and start training threshold 𝐸 𝑠 = 50 . 5.3. Comparison of improved strategies Experiment 1 aims to evaluate the t",
+      "claims": [
+        {
+          "text": "The effectiveness of the algorithm and model is verified through three parts of experiments.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Experiment 1 and Experiment 2 validate the effectiveness of the improved strategy and the superiority of D2NSGA-II over other compared algorithms.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Experiment 3 verifies the effectiveness of heterogeneous AGVs in the FJSP-HA model.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithms were implemented in MATLAB 2021b and ran on a computer with an Intel Core i9-14900K processor and 64.0 GB RAM.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "FJSP-HA",
+          "definition": "Flexible job shop scheduling problem with heterogeneous AGVs.",
+          "concept_type": "method"
+        },
+        {
+          "name": "D2NSGA-II",
+          "definition": "An improved NSGA-II algorithm based on double DQN.",
+          "concept_type": "method"
+        },
+        {
+          "name": "MATLAB",
+          "definition": "A programming language and environment used for implementation.",
+          "concept_type": "method"
+        }
+      ]
+    },
+    {
+      "heading": "Conclusions",
+      "section_type": "conclusion",
+      "position": 37,
+      "word_count": 291,
+      "text": "In this paper, an improved NSGA-II algorithm based on double DQN is proposed to solve the multi-objective flexible job shop scheduling problem with heterogeneous AGVs. Firstly, the mathematical model of FJSP-HA is constructed, and a population initialization strategy com- bining multiple heuristic methods is designed to improve the diversity and quality of the initial population. Secondly, the concepts of critical path and critical block in FJSP-HA are introduced. On this basis, six local search operators based on problem characteristics are designed to enhance the effectiveness of local search. Subsequently, an operator recommendation strategy based on double DQN is proposed to guide NSGA-II to select the optimal operator and improve the convergence performance of the algorithm. Through computational experiments on 20 extended instances, we find that D2NSGA-II achieves significant improvements in multiple per- formance indicators, and outperforms four comparison algorithms in all instances. Finally, we use a real world case from an auto parts supplier. The research shows that, compared with the homogeneous AGVs, the Expert Systems With Applications 296 (2026) 128992 14 R. Chen et al. heterogeneous AGVs have improved in both makespan and TEC, and the optimization effect increases with the increase in the number of processed jobs. We can conclude that heterogeneous AGVs have more potential to solve the multi-objective FJSP-A problem with battery con- straints. In future work, we will make efforts in the following aspects, in- cluding: (1) Exploring the problem properties in complex scenarios of FJSP-A problem with battery constraints to ensure the effectiveness of local search operators. (2) Investigating dynamic events in FJSP-A prob- lems to exploit the advantages of DRL in solving dynamic scheduling problems. (3) Considering the problem of partial charging of AGV, and developing a dynamic charging strategy to minimize the downtime.",
+      "claims": [
+        {
+          "text": "An improved NSGA-II algorithm based on double DQN is proposed to solve the multi-objective flexible job shop scheduling problem with heterogeneous AGVs.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm achieves significant improvements in multiple performance indicators and outperforms four comparison algorithms in all instances.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The research shows that heterogeneous AGVs outperform homogeneous AGVs in a real-world case from an auto parts supplier.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The algorithm is effective in solving the FJSP-HA problem and can be applied to real-world scenarios.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "NSGA-II",
+          "definition": "A type of evolutionary algorithm used for multi-objective optimization.",
+          "concept_type": "method"
+        },
+        {
+          "name": "Double DQN",
+          "definition": "A type of reinforcement learning algorithm used to select local search operators.",
+          "concept_type": "method"
+        },
+        {
+          "name": "FJSP-HA",
+          "definition": "Flexible job shop scheduling problem with heterogeneous AGVs.",
+          "concept_type": "method"
+        }
+      ]
+    }
+  ],
+  "references_raw": "Alcaraz, J., Landete, M., Monge, J. F., & Sainz-Pardo, J. L. (2020). Multi-objective evolu- tionary algorithms for a reliability location problem. European Journal of Operational Research , 283 (1), 83–93. Amirteimoori, A., Tirkolaee, E. B., Simic, V., & Weber, G.-W. (2023). A parallel heuristic for hybrid job shop scheduling problem considering conflict-free AGV routing. Swarm and Evolutionary Computation , 79 , 101312. An, Y., Chen, X., Gao, K., Zhang, L., Li, Y., & Zhao, Z. (2023). Integrated optimization of real-time order acceptance and flexible job-shop rescheduling with multi-level imper- fect maintenance constraints. Swarm and Evolutionary Computation , 77 , 101243. Barak, S., Moghdani, R., & Maghsoudlou, H. (2021). Energy-efficient multi-objective flex- ible manufacturing scheduling. Journal of Cleaner Production , 283 , 124610. Bengio, Y., Lodi, A., & Prouvost, A. (2021). Machine learning for combinatorial opti- mization: A methodological tour d’horizon. European Journal of Operational Research , 290 (2), 405–421. Berterottière, L., Dauzère-Pérès, S., & Yugma, C. (2024). Flexible job-shop scheduling with transportation resources. European Journal of Operational Research , 312 (3), 890–909. Brandimarte, P. (1993). Routing and scheduling in a flexible job shop by tabu search. Annals of Operations Research , 41 (3), 157–183. Burmeister, S. C., Guericke, D., & Schryen, G. (2023). A memetic NSGA-II for the multi- objective flexible job shop scheduling problem with real-time energy tariffs. Flexible Services and Manufacturing Journal , (pp. 1–41). Chen, R., Wu, B., Wang, H., Tong, H., & Yan, F. (2024). A q-learning based NSGA-II for dynamic flexible job shop scheduling with limited transportation resources. Swarm and Evolutionary Computation , 90 , 101658. Chen, R., Yang, B., Li, S., & Wang, S. (2020). A self-learning genetic algorithm based on reinforcement learning for flexible job-shop scheduling problem. Computers & Industrial Engineering , 149 , 106778. Cheng, L., Tang, Q., Zhang, Z., & Wu, S. (2021). Data mining for fast and accurate makespan estimation in machining workshops. Journal of Intelligent Manufacturing , 32 , 483–500. Dang, Q.-V., Singh, N., Adan, I., Martagan, T., & van de Sande, D. (2021). Scheduling het- erogeneous multi-load AGVs with battery constraints. Computers & Operations Research , 136 , 105517. Dauzère-Pérès, S., Ding, J., Shen, L., & Tamssaouet, K. (2024). The flexible job shop scheduling problem: A review. European Journal of Operational Research , 314 (2), 409–432. Deb, K., Pratap, A., Agarwal, S., & Meyarivan, T. (2002). A fast and elitist multiobjec- tive genetic algorithm: NSGA-II. IEEE Transactions on Evolutionary Computation , 6 (2), 182–197. Deroussi, L., & Norre, S. (2010). Simultaneous scheduling of machines and vehicles for the flexible job shop problem. In International conference on metaheuristics and nature inspired computing (pp. 1–2). Djerba Island Tunisia. Du, Y., Li, J., Chen, X., Duan, P., & Pa",
+  "usage": {
+    "input_tokens": 5146,
+    "output_tokens": 3945,
+    "cost_usd": 0.001801
+  }
+}

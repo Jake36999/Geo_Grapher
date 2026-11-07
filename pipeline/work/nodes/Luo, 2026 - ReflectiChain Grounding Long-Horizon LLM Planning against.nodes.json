@@ -1,0 +1,169 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Luo, 2026 - ReflectiChain Grounding Long-Horizon LLM Planning against.md",
+  "metadata": {
+    "title": "ReflectiChain: Grounding Long-Horizon LLM Planning against Semantic-Execution Drift",
+    "authors": [
+      "Jia Luo"
+    ],
+    "year": 2026,
+    "venue": "IEEE Signal Processing Letters",
+    "doi": "10.1109/LSP.2026.3726840",
+    "abstract_summary": "Grounds long-horizon LLM planning in a latent world model and a reflection step, and evaluates it on the Sema-Sim benchmark with rationale-consistency, constraint-compliance and trajectory-instability scores."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 26,
+      "text": "Grounds long-horizon LLM planning in a latent world model and a reflection step, and evaluates it on the Sema-Sim benchmark with rationale-consistency, constraint-compliance and trajectory-instability scores.",
+      "claims": [
+        {
+          "text": "Grounds long-horizon LLM planning in a latent world model and a reflection step, and evaluates it on the Sema-Sim benchmark with rationale-consistency, constraint-compliance and trajectory-instability scores.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 289,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Rationale Consistency Score (RCS)** (category A) - Measures semantic alignment between step-wise rationales and initial hard constraints via average NLI entailment probability. (section IV.A. Experimental Setup and Baseline Models, p. 3)\n  > quantifies the semantic alignment between the agent’s step-wise reasoning and the initial constraints.\n- **Constraint Compliance Rate (CCR)** (category A) - Measures trajectory-level constraint adherence as the fraction of steps whose state-action pairs satisfy every hard constraint. (section IV.A. Experimental Setup and Baseline Models, p. 3)\n  > It is defined as the ratio of steps strictly satisfying all constraints:\n- **Trajectory Instability (TI)** (category A) - Measures reasoning oscillation and semantic drift as average cosine distance between consecutive rationale embeddings. (section IV.A. Experimental Setup and Baseline Models, p. 3)\n  > captures reasoning oscillation and semantic drift during the agent’s execution.\n- **Sema-Sim benchmark schema** (category B) - Multi-agent supply-chain simulation injecting natural-language hard constraints and dynamic policy shocks to force conflicts between absolute constraints and local task success. (section IV.B. The Sema-Sim Benchmark, p. 3)\n  > The environment simulates a 4-tier supply chain (Supplier, Manufacturer, Distributor, Retailer) comprising 10 heterogeneous nodes and approximately 30 transportation edges.\n- **World-Grounded Latent Dynamics** (category C) - Projects environment states into low-dimensional latent space and rolls out a fixed analytic transition to score physical feasibility of candidate trajectories. (section III.A. World-Grounded Latent Dynamics, p. 2)\n  > zt+1 = zt + ∆t · fω(zt, at).\n- **Retrospective reflection with semantic advantage** (category C) - Treats rationale embeddings as a drifting signal, estimates drift from world-model rollouts, and updates the policy using a rationale-c",
+      "claims": [
+        {
+          "text": "Rationale Consistency Score (RCS): Measures semantic alignment between step-wise rationales and initial hard constraints via average NLI entailment probability. (section IV.A. Experimental Setup and Baseline Models, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Constraint Compliance Rate (CCR): Measures trajectory-level constraint adherence as the fraction of steps whose state-action pairs satisfy every hard constraint. (section IV.A. Experimental Setup and Baseline Models, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Trajectory Instability (TI): Measures reasoning oscillation and semantic drift as average cosine distance between consecutive rationale embeddings. (section IV.A. Experimental Setup and Baseline Models, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Sema-Sim benchmark schema: Multi-agent supply-chain simulation injecting natural-language hard constraints and dynamic policy shocks to force conflicts between absolute constraints and local task success. (section IV.B. The Sema-Sim Benchmark, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "World-Grounded Latent Dynamics: Projects environment states into low-dimensional latent space and rolls out a fixed analytic transition to score physical feasibility of candidate trajectories. (section III.A. World-Grounded Latent Dynamics, p. 2)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Retrospective reflection with semantic advantage: Treats rationale embeddings as a drifting signal, estimates drift from world-model rollouts, and updates the policy using a rationale-consistency advantage. (section III.C. Reflection-Based Rationale Alignment, p. 2)",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Rationale Consistency Score (RCS)",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Constraint Compliance Rate (CCR)",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Trajectory Instability (TI)",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Sema-Sim benchmark schema",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "World-Grounded Latent Dynamics",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 194,
+      "text": "- **Rationale Consistency Score (RCS)**: Using DeBERTa-NLI MNLI, constraints C are premise and rationale rt hypothesis; sequence-level average: RCS = 1 T T X t=1 Pentail MNLI(rt, C) (3)\n- **Constraint Compliance Rate (CCR)**: Symbolic check over all constraints: CCR = 1 T T X t=1 Y ci∈C I(st, at |= ci) (4), where I(·) indicates whether (st, at) satisfies ci.\n- **Trajectory Instability (TI)**: TI = 1 T −1 T −1 X t=1 (1 −cos(ht, ht+1)) (5), where ht is the dense embedding of rt; higher TI indicates context switching or contradiction.\n- **Sema-Sim benchmark schema**: 4-tier supply chain with 10 heterogeneous nodes, ~30 certified/uncertified edges with varying latency and disruption; 10 constraint categories; violation difficulty measured over 3,000 heuristic trajectories.\n- **World-Grounded Latent Dynamics**: zt+1 = zt + ∆t · fω(zt, at). Six-dimensional state (inventory, congestion, demand, carbon, stockout, tension); fixed coefficients ω; one matrix–vector product O(d2), d = 6; yields likelihood pWM.\n- **Retrospective reflection with semantic advantage**: Models ht = st + vt; reflection recursively estimates vt and re-anchors ht toward st. Policy gradient: ∇θJ (θ) ≈E [Asem(s, a)∇θ log πθ(a | s)] (2), with Asem driven by rationale consistency.",
+      "claims": [
+        {
+          "text": "Rationale Consistency Score (RCS): Using DeBERTa-NLI MNLI, constraints C are premise and rationale rt hypothesis; sequence-level average: RCS = 1 T T X t=1 Pentail MNLI(rt, C) (3) - **Constraint Compliance Rate (CCR)**: Symbolic check over all constraints: CCR = 1 T T X t=1 Y ci∈C I(st, at |= ci) (4",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 196,
+      "text": "- Evidence the authors report:\n  - Rationale Consistency Score (RCS): Sema-Sim long-horizon runs: ReflectiChain reaches RCS 88.45% on Qwen2.5-7B, +33.0% over ReflAct (Table II).\n  - Constraint Compliance Rate (CCR): Sema-Sim: ReflectiChain CCR 84.28% on Qwen2.5-7B versus 80.45% ReflAct; ablation w/o WM drops CCR to 75.10%.\n  - Trajectory Instability (TI): ReflectiChain attains lowest volatility TI = 3.90 on Qwen2.5-7B versus 5.10 for ReflAct (Table II).\n  - Sema-Sim benchmark schema: Table I lists representative hard-constraint categories with drift pressures; 3,000 heuristic trajectories quantify semantic-execution drift.\n  - World-Grounded Latent Dynamics: Ablation w/o WM drops CCR to 75.10% and RCS to 76.30% on Sema-Sim (Table III).\n  - Retrospective reflection with semantic advantage: Ablation w/o Retro collapses RCS to 58.12%; full ReflectiChain reaches 88.45% on Qwen2.5-7B (Table III).\n- Limitations the authors state:\n  - Rationale Consistency Score (RCS): Because NLI models may under-capture multi-step dependencies, RCS serves as a scalable semantic proxy rather than a standalone verifier\n  - World-Grounded Latent Dynamics: It is not a pre-trained or learned-online network nor an LLM-generated simulator\n- Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Rationale Consistency Score (RCS): Sema-Sim long-horizon runs: ReflectiChain reaches RCS 88.45% on Qwen2.5-7B, +33.0% over ReflAct (Table II).",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Constraint Compliance Rate (CCR): Sema-Sim: ReflectiChain CCR 84.28% on Qwen2.5-7B versus 80.45% ReflAct; ablation w/o WM drops CCR to 75.10%.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Trajectory Instability (TI): ReflectiChain attains lowest volatility TI = 3.90 on Qwen2.5-7B versus 5.10 for ReflAct (Table II).",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Sema-Sim benchmark schema: Table I lists representative hard-constraint categories with drift pressures; 3,000 heuristic trajectories quantify semantic-execution drift.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "World-Grounded Latent Dynamics: Ablation w/o WM drops CCR to 75.10% and RCS to 76.30% on Sema-Sim (Table III).",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Retrospective reflection with semantic advantage: Ablation w/o Retro collapses RCS to 58.12%; full ReflectiChain reaches 88.45% on Qwen2.5-7B (Table III).",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Rationale Consistency Score (RCS): Because NLI models may under-capture multi-step dependencies, RCS serves as a scalable semantic proxy rather than a standalone verifier",
+          "claim_type": "finding"
+        },
+        {
+          "text": "World-Grounded Latent Dynamics: It is not a pre-trained or learned-online network nor an LLM-generated simulator",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

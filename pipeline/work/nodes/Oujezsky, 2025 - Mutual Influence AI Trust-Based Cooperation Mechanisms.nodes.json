@@ -1,0 +1,166 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Oujezsky, 2025 - Mutual Influence AI Trust-Based Cooperation Mechanisms.md",
+  "metadata": {
+    "title": "Mutual Influence AI: Trust-Based Cooperation Mechanisms for LLM Multi-Agent Systems",
+    "authors": [
+      "Vaclav OUJEZSKY",
+      "Pavel NOVAK"
+    ],
+    "year": 2025,
+    "venue": "Advances in Electrical and Electronic Engineering",
+    "doi": "10.15598/aeee.v23i4.250910",
+    "abstract_summary": "Proposes trust-modulated cooperation among planner, researcher and critic LLM agents and evaluates it with convergence and agreement metrics such as rounds-to-approval; the approval-rate differences it reports were not statistically significant."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 30,
+      "text": "Proposes trust-modulated cooperation among planner, researcher and critic LLM agents and evaluates it with convergence and agreement metrics such as rounds-to-approval; the approval-rate differences it reports were not statistically significant.",
+      "claims": [
+        {
+          "text": "Proposes trust-modulated cooperation among planner, researcher and critic LLM agents and evaluates it with convergence and agreement metrics such as rounds-to-approval; the approval-rate differences it reports were not statistically significant.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 245,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Prompt and temperature modulation λ(µ), T(µ)** (category B) - Run-time schema mapping trust µ to a prompt-visible mixture hint and a sampling-temperature schedule for each LLM call. (section 3. Mutual Influence: Mathematical Formulation, p. 4)\n  > used as a textual hint in the LLM prompt.\n- **Two-round role orchestration protocol** (category B) - Schema for running planner, researcher, critic agents: one uninfluenced baseline round, feedback wiring, then one influence-modulated round with structured JSON outputs. (section 4. Experimental Plan and Metrics, p. 5)\n  > Each run consists of two rounds: Round 1 (baseline) without influence modulation and Round 2 (influence) with µ–driven prompting and temperature scaling.\n- **Cross-role agreement and intra-role stability** (category A) - Jaccard-based metrics for semantic overlap between roles and for each role's consistency across rounds. (section 3.1. Derived Evaluation Metrics, p. 4)\n  > To quantify the semantic overlap between the two roles, we use the Jaccard index\n- **Revision depth Drev** (category A) - Set-difference metric measuring how much content changes between successive draft rounds of the agent team. (section 3.1. Derived Evaluation Metrics, p. 4)\n  > Larger Drev values correspond to deeper structural edits or significant content additions.\n- **Rounds-to-Approval r*** (category A) - Convergence-speed metric counting dialogue rounds until the critic agent outputs APPROVE. (section 5.2. Discussion, p. 9)\n  > the Rounds-to-Approval metric counts the number of conversational rounds until the critic outputs APPROVE, which we denote as r*",
+      "claims": [
+        {
+          "text": "Prompt and temperature modulation λ(µ), T(µ): Run-time schema mapping trust µ to a prompt-visible mixture hint and a sampling-temperature schedule for each LLM call. (section 3. Mutual Influence: Mathematical Formulation, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Two-round role orchestration protocol: Schema for running planner, researcher, critic agents: one uninfluenced baseline round, feedback wiring, then one influence-modulated round with structured JSON outputs. (section 4. Experimental Plan and Metrics, p. 5)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Cross-role agreement and intra-role stability: Jaccard-based metrics for semantic overlap between roles and for each role's consistency across rounds. (section 3.1. Derived Evaluation Metrics, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Revision depth Drev: Set-difference metric measuring how much content changes between successive draft rounds of the agent team. (section 3.1. Derived Evaluation Metrics, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Rounds-to-Approval r*: Convergence-speed metric counting dialogue rounds until the critic agent outputs APPROVE. (section 5.2. Discussion, p. 9)",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Prompt and temperature modulation λ(µ), T(µ)",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Two-round role orchestration protocol",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Cross-role agreement and intra-role stability",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Revision depth Drev",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Rounds-to-Approval r",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 139,
+      "text": "- **Prompt and temperature modulation λ(µ), T(µ)**: λi(t) = σ(k(µi(t) −τ)) = 1/(1 + e^{−k(µi(t)−τ)}); Ti(t) = T0/(1 + αµi(t)); prompti(t) = [µi(t), λi(t), Ti(t)] ∥user task.\n- **Two-round role orchestration protocol**: Three MutualInfluenceAssistant roles; Round 1 uninfluenced; receive_feedback calls apply EMA trust; Round 2 prefixes (µ, λ, T). Each agent emits one JSON object per prompt with \"features\"; critic emits \"decision\" ∈{APPROVE, REVISE}.\n- **Cross-role agreement and intra-role stability**: Across(t) = J(PF(t), RF(t)) = |PF(t) ∩ RF(t)| / |PF(t) ∪ RF(t)|; Splanner = J(PF(1), PF(2)), Sresearcher = J(RF(1), RF(2)).\n- **Revision depth Drev**: Drev = |(PF(2) ∪ RF(2)) \\ (PF(1) ∪ RF(1))|. Alternative form: RevisionDepth(t) = |N(t)| + δ(t), N(t) new points, δ(t) critic-feedback incorporation.\n- **Rounds-to-Approval r***: r* counts conversational rounds until the critic outputs APPROVE; lower r* means faster convergence. Computed automatically from AutoGen conversation logs.",
+      "claims": [
+        {
+          "text": "Prompt and temperature modulation λ(µ), T(µ): λi(t) = σ(k(µi(t) −τ)) = 1/(1 + e^{−k(µi(t)−τ)}); Ti(t) = T0/(1 + αµi(t)); prompti(t) = [µi(t), λi(t), Ti(t)] ∥user task. - **Two-round role orchestration protocol**: Three MutualInfluenceAssistant roles; Round 1 uninfluenced; receive_feedback calls appl",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 201,
+      "text": "- Evidence the authors report:\n  - Prompt and temperature modulation λ(µ), T(µ): Ablation over (τ,k) on 167 runs: mean agreement peaks ≈0.58 at τ≈0.4, k≈3; stable for τ∈[0.45,0.55], k∈[4,6].\n  - Two-round role orchestration protocol: 167 successful gpt-4o runs over β,k,τ,α sweep; 1,822 requests, 619,960 input tokens, $2.05 total cost.\n  - Cross-role agreement and intra-role stability: Agreement rose 0.19→0.50 overall and 0.18→0.47 adversarial; Wilcoxon W=276 and W=138, both p<0.001, large Cliff's δ.\n  - Revision depth Drev: Median revision depth ≈1.0 across 167 simulation runs, indicating shallow edits after influence-enabled round.\n  - Rounds-to-Approval r*: Critic approval 35.8%→39.5% normal, 33.7%→26.7% adversarial; McNemar χ²=0.08, p=0.78 and χ²=0.54, p=0.46.\n- Limitations the authors state:\n  - Prompt and temperature modulation λ(µ), T(µ): If λ becomes too large, agents may converge prematurely to erroneous consensus; β, k, τ, α need careful per-application tuning.\n  - Two-round role orchestration protocol: Costs scale approximately linearly with the number of agents and rounds; some grid combinations lost to timeouts and post-hoc filtering.\n  - Rounds-to-Approval r*: Approval-rate differences were not statistically significant in either regime.\n- Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Prompt and temperature modulation λ(µ), T(µ): Ablation over (τ,k) on 167 runs: mean agreement peaks ≈0.58 at τ≈0.4, k≈3; stable for τ∈[0.45,0.55], k∈[4,6].",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Two-round role orchestration protocol: 167 successful gpt-4o runs over β,k,τ,α sweep; 1,822 requests, 619,960 input tokens, $2.05 total cost.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Cross-role agreement and intra-role stability: Agreement rose 0.19→0.50 overall and 0.18→0.47 adversarial; Wilcoxon W=276 and W=138, both p<0.001, large Cliff's δ.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Revision depth Drev: Median revision depth ≈1.0 across 167 simulation runs, indicating shallow edits after influence-enabled round.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Rounds-to-Approval r*: Critic approval 35.8%→39.5% normal, 33.7%→26.7% adversarial; McNemar χ²=0.08, p=0.78 and χ²=0.54, p=0.46.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Prompt and temperature modulation λ(µ), T(µ): If λ becomes too large, agents may converge prematurely to erroneous consensus; β, k, τ, α need careful per-application tuning.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Two-round role orchestration protocol: Costs scale approximately linearly with the number of agents and rounds; some grid combinations lost to timeouts and post-hoc filtering.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Rounds-to-Approval r*: Approval-rate differences were not statistically significant in either regime.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

@@ -1,0 +1,23 @@
+version: "1.0"
+world_policy: open
+components:
+  - id: ui
+    selectors:
+      - repo_id: evaluation
+        path_glob: app/ui.py
+  - id: service
+    selectors:
+      - repo_id: evaluation
+        path_glob: app/service.py
+      - repo_id: evaluation
+        path_glob: app/helpers.py
+  - id: storage
+    selectors:
+      - repo_id: evaluation
+        path_glob: app/storage.py
+rules:
+  - id: no_ui_storage
+    type: forbid
+    source: ui
+    target: storage
+    rationale: UI must use the service boundary.

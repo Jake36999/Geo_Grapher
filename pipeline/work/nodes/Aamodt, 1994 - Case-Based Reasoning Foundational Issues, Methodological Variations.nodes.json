@@ -1,0 +1,93 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Aamodt, 1994 - Case-Based Reasoning Foundational Issues, Methodological Variations.md",
+  "metadata": {
+    "title": "Case-Based Reasoning: Foundational Issues, Methodological Variations, and System Approaches",
+    "authors": [
+      "Agnar Aamodt",
+      "Enric Plaza"
+    ],
+    "year": 1994,
+    "venue": "AI Communications",
+    "doi": "10.3233/aic-1994-7104",
+    "abstract_summary": "Case-based reasoning solves a new problem by retrieving a similar past case, adapting its recorded solution, and - if the adapted solution is validated - retaining the new case for future reuse: the four-step Retrieve/Reuse/Revise/Retain cycle that became the field's standard vocabulary."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 42,
+      "text": "Case-based reasoning solves a new problem by retrieving a similar past case, adapting its recorded solution, and - if the adapted solution is validated - retaining the new case for future reuse: the four-step Retrieve/Reuse/Revise/Retain cycle that became the field's standard vocabulary.",
+      "claims": [
+        {
+          "text": "Case-based reasoning solves a new problem by retrieving a similar past case, adapting its recorded solution, and - if the adapted solution is validated - retaining the new case for future reuse: the four-step Retrieve/Reuse/Revise/Retain cycle that became the field's standard vocabulary.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 2,
+      "text": "<claim: unread>",
+      "claims": [
+        {
+          "text": "<claim: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 43,
+      "text": "A conceptual and survey paper: defines the CBR cycle and its terminology precisely, then reviews the methodological variations found across CBR systems implemented at the time - how similarity is computed, how adaptation is performed, how the case base is indexed and organized.",
+      "claims": [
+        {
+          "text": "A conceptual and survey paper: defines the CBR cycle and its terminology precisely, then reviews the methodological variations found across CBR systems implemented at the time - how similarity is computed, how adaptation is performed, how the case base is indexed and organized.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 77,
+      "text": "- Definitional and taxonomic rather than empirical - its authority comes from becoming the field's standard reference vocabulary, cited in nearly every subsequent CBR paper, not from a specific tested result.\n- Says little about how CBR scales to very large case bases or interacts with modern learned similarity metrics, both of which became separate later research threads.\n- The Retrieve/Reuse/Revise/Retain framing is precise enough that three decades of CBR systems still describe themselves against it directly.",
+      "claims": [
+        {
+          "text": "Definitional and taxonomic rather than empirical - its authority comes from becoming the field's standard reference vocabulary, cited in nearly every subsequent CBR paper, not from a specific tested result.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Says little about how CBR scales to very large case bases or interacts with modern learned similarity metrics, both of which became separate later research threads.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The Retrieve/Reuse/Revise/Retain framing is precise enough that three decades of CBR systems still describe themselves against it directly.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

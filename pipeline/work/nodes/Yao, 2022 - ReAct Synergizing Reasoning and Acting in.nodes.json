@@ -1,0 +1,94 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Yao, 2022 - ReAct Synergizing Reasoning and Acting in.md",
+  "metadata": {
+    "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+    "authors": [
+      "Shunyu Yao",
+      "Jeffrey Zhao",
+      "Dian Yu",
+      "Nan Du",
+      "Izhak Shafran",
+      "Karthik Narasimhan",
+      "Yuan Cao"
+    ],
+    "year": 2022,
+    "venue": null,
+    "doi": "arxiv:2210.03629",
+    "abstract_summary": "Interleaving reasoning traces (\"thoughts\") with actions against an external environment - search, lookup, navigation - rather than reasoning to a full plan first and executing it after, lets an LLM update its plan based on real intermediate observations, reducing the hallucinated reasoning a pure chain-of-thought approach has no way to self-correct."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 51,
+      "text": "Interleaving reasoning traces (\"thoughts\") with actions against an external environment - search, lookup, navigation - rather than reasoning to a full plan first and executing it after, lets an LLM update its plan based on real intermediate observations, reducing the hallucinated reasoning a pure chain-of-thought approach has no way to self-correct.",
+      "claims": [
+        {
+          "text": "Interleaving reasoning traces (\"thoughts\") with actions against an external environment - search, lookup, navigation - rather than reasoning to a full plan first and executing it after, lets an LLM update its plan based on real intermediate observations, reducing the hallucinated reasoning a pure chain-of-thought approach has no way to self-correct.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 228,
+      "text": "As the authors state it:\n\n> While large language models (LLMs) have demonstrated impressive capabilities across tasks in language understanding and interactive decision making, their abilities for reasoning (e.g. chain-of-thought prompting) and acting (e.g. action plan generation) have primarily been studied as separate topics. In this paper, we explore the use of LLMs to generate both reasoning traces and task-specific actions in an interleaved manner, allowing for greater synergy between the two: reasoning traces help the model induce, track, and update action plans as well as handle exceptions, while actions allow it to interface with external sources, such as knowledge bases or environments, to gather additional information. We apply our approach, named ReAct, to a diverse set of language and decision making tasks and demonstrate its effectiveness over state-of-the-art baselines, as well as improved human interpretability and trustworthiness over methods without reasoning or acting components. Concretely, on question answering (HotpotQA) and fact verification (Fever), ReAct overcomes issues of hallucination and error propagation prevalent in chain-of-thought reasoning by interacting with a simple Wikipedia API, and generates human-like task-solving trajectories that are more interpretable than baselines without reasoning traces. On two interactive decision making benchmarks (ALFWorld and WebShop), ReAct outperforms imitation and reinforcement learning methods by an absolute success rate of 34% and 10% respectively, while being prompted with only one or two in-context examples. Project site with code: https://react-lm.github.io",
+      "claims": [
+        {
+          "text": "As the authors state it: While large language models (LLMs) have demonstrated impressive capabilities across tasks in language understanding and interactive decision making, their abilities for reasoning (e.g. chain-of-thought prompting) and acting (e.g. action plan generation) have primarily been studied as separate topics. In this paper, we explore the use of LLMs to generate both reasoning trac",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 31,
+      "text": "Evaluated on multi-hop question answering (HotpotQA), fact verification (FEVER), and two interactive decision-making benchmarks (ALFWorld, WebShop), comparing ReAct against pure chain-of-thought prompting, action-only baselines, and, on ALFWorld/WebShop, imitation- and RL-trained baselines.",
+      "claims": [
+        {
+          "text": "Evaluated on multi-hop question answering (HotpotQA), fact verification (FEVER), and two interactive decision-making benchmarks (ALFWorld, WebShop), comparing ReAct against pure chain-of-thought prompting, action-only baselines, and, on ALFWorld/WebShop, imitation- and RL-trained baselines.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 74,
+      "text": "- Broad evaluation across both knowledge-intensive QA and interactive/embodied tasks, against real baselines rather than only ablations - what made this the reference pattern nearly every subsequent tool-using agent paper builds on, including several already catalogued here (Reflexion, Voyager).\n- The paper's own error analysis reports a meaningful fraction of ReAct's failures are still reasoning errors, not just missing information - interleaving thought and action reduces but does not eliminate the underlying reliability problem.",
+      "claims": [
+        {
+          "text": "Broad evaluation across both knowledge-intensive QA and interactive/embodied tasks, against real baselines rather than only ablations - what made this the reference pattern nearly every subsequent tool-using agent paper builds on, including several already catalogued here (Reflexion, Voyager).",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "The paper's own error analysis reports a meaningful fraction of ReAct's failures are still reasoning errors, not just missing information - interleaving thought and action reduces but does not eliminate the underlying reliability problem.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

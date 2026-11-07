@@ -1,0 +1,58 @@
+{
+  "version": "reviewed-concept-aliases-v2",
+  "groups": [
+    {
+      "canonical": "knowledge graph",
+      "aliases": ["knowledge graphs", "knowledge graph kg", "knowledge graphs kgs"],
+      "basis": "Reviewed lexical number/acronym variants; semantic knowledge graphs remain separate."
+    },
+    {
+      "canonical": "generative ai",
+      "aliases": ["genai", "generative artificial intelligence"],
+      "basis": "Reviewed abbreviation of generative artificial intelligence; no broader AI categories merged."
+    },
+    {
+      "canonical": "large language models",
+      "aliases": ["llm", "llms", "large language models llms", "large language model", "large language models llm"],
+      "basis": "Reviewed abbreviation and plural variants; all refer to the same category of transformer-based foundation models."
+    },
+    {
+      "canonical": "retrieval augmented generation",
+      "aliases": ["rag", "retrieval-augmented generation", "retrieval augmented generation rag"],
+      "basis": "Reviewed abbreviation; RAG is the established acronym for this technique."
+    },
+    {
+      "canonical": "graph neural network",
+      "aliases": ["gnn", "graph neural networks", "gnns"],
+      "basis": "Reviewed abbreviation and plural variants."
+    },
+    {
+      "canonical": "natural language processing",
+      "aliases": ["nlp"],
+      "basis": "Reviewed abbreviation; standard field-level synonym."
+    }
+  ],
+  "related_not_identical": [
+    {
+      "source": "truncated svd",
+      "target": "svd",
+      "relation": "variant_of",
+      "basis": "Truncation is a distinct operation/approximation, not an identity alias."
+    },
+    {
+      "source": "graphrag",
+      "target": "retrieval augmented generation",
+      "relation": "specialization_of",
+      "basis": "GraphRAG is a graph-structured variant of RAG, not a synonym."
+    }
+  ],
+  "ranking_exclusions": [
+    "competing financial interests",
+    "declaration of competing interest",
+    "agentic ai models",
+    "security siem",
+    "scientific simulation math",
+    "infrastructure observability",
+    "cognitive science human performance"
+  ]
+}

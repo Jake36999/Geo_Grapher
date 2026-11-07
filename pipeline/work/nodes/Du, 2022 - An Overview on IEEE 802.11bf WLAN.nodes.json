@@ -1,0 +1,92 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Du, 2022 - An Overview on IEEE 802.11bf WLAN.md",
+  "metadata": {
+    "title": "An Overview on IEEE 802.11bf: WLAN Sensing",
+    "authors": [
+      "Rui Du",
+      "Hailiang Xie",
+      "Mengshi Hu",
+      "Narengerile",
+      "Yan Xin",
+      "Stephen McCann",
+      "Michael Montemurro",
+      "Tony Xiao Han",
+      "Jie Xu"
+    ],
+    "year": 2022,
+    "venue": null,
+    "doi": "arxiv:2207.04859",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 231,
+      "text": "As the authors state it:\n\n> With recent advancements, the wireless local area network (WLAN) or wireless fidelity (Wi-Fi) technology has been successfully utilized to realize sensing functionalities such as detection, localization, and recognition. However, the WLANs standards are developed mainly for the purpose of communication, and thus may not be able to meet the stringent sensing requirements in emerging applications. To resolve this issue, a new Task Group (TG), namely IEEE 802.11bf, has been established by the IEEE 802.11 working group, with the objective of creating a new amendment to the WLAN standard to provide advanced sensing requirements while minimizing the effect on communications. This paper provides a comprehensive overview on the up-to-date efforts in the IEEE 802.11bf TG. First, we introduce the definition of the 802.11bf amendment and its standardization timeline. Then, we discuss the WLAN sensing procedure and framework used for measurement acquisition, by considering both conventional sensing at sub-7 GHz and directional multi-gigabit (DMG) sensing at 60 GHz, respectively. Next, we present various candidate technical features for IEEE 802.11bf, including waveform/sequence design, feedback types, quantization, as well as security and privacy. Finally, we describe the methodologies used by the IEEE 802.11bf TG to evaluate the alternative performance. It is desired that this overview paper provide useful insights on IEEE 802.11 WLAN sensing to people with great interests and promote the IEEE 802.11bf standard to be widely deployed.",
+      "claims": [
+        {
+          "text": "As the authors state it: With recent advancements, the wireless local area network (WLAN) or wireless fidelity (Wi-Fi) technology has been successfully utilized to realize sensing functionalities such as detection, localization, and recognition. However, the WLANs standards are developed mainly for the purpose of communication, and thus may not be able to meet the stringent sensing requirements in",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Security & SIEM",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

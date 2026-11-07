@@ -1,0 +1,88 @@
+{
+  "file_path": "E:/Librarian research/Examples for LLM-based Entity Matching.pdf",
+  "page_count": 3,
+  "first_page_text": "Proceedings of the Fifth Workshop on Data Science with Human-in-the-Loop (Language Advances), pages 1–3\nJune 20, 2024 ©2024 Association for Computational Linguistics\nAPE: Active Learning-based Tooling for Finding Informative Few-shot\nExamples for LLM-based Entity Matching\nKun Qian* and Yisi Sang and Farima Fatahi Bayat† and Anton Belyi and Xianqi Chu\nYash Govind and Samira Khorshidi and Rahul Khot and Katherine Luna and Azadeh Nikfarjam\nXiaoguang Qi and Fei Wu‡ and Xianhan Zhang and Yunyao Li§\nkunqian, yisi_sang, f_fatahibayat, a_belyy, xchu23, yash_govind, samiraa\nr_khot, kluna, anikfarjam, xiaoguang_qi, fwu7, xianhan_zhang, yunyaoli@apple.com\nAbstract\nPrompt engineering is an iterative procedure\noften requiring extensive manual effort to for-\nmulate suitable instructions for effectively di-\nrecting large language models (LLMs) in spe-\ncific tasks. Incorporating few-shot examples\nis a vital and effective approach to providing\nLLMs with precise instructions, leading to im-\nproved LLM performance. Nonetheless, iden-\ntifying the most informative demonstrations\nfor LLMs is labor-intensive, frequently entail-\ning sifting through an extensive search space.\nIn this demonstration, we showcase a human-\nin-the-loop tool called APE (Active Prompt\nEngineering) designed for refining prompts\nthrough active learning. Drawing inspiration\nfrom active learning, APE iteratively selects\nthe most ambiguous examples for human feed-\nback, which will be transformed into few-shot\nexamples within the prompt. Demo recording\ncan be found with the submission or be viewed\nat https://youtu.be/OwQ6MQx53-Y.\n1\nIntroduction\nPrompt engineering typically serves as the initial\nstep when developing LLM-based applications be-\ncause it is a relatively fast process and requires\nfewer technical skills than fine-tuning. Prompt en-\ngineering involves crafting and optimization of in-\nstructions provided to LLMs. These prompts need\nto be carefully designed to direct the behavior of\nLLMs towards performing specific tasks or gener-\nating desired outcomes (Liu et al., 2023). While\nLLMs (e.g., ChatGPT and GPT-4) show impressive\ncapabilities for zero-shot tasks without prior train-\ning, their performance can be further enhanced by\nintegrating clear and informative few-shot demon-\nstrations alongside the prompts (White et al., 2023).\nThese demonstrations not only guide the LLMs but\n*Work done while working at Apple\n†Work done while interning at Apple\n‡Work done while interning at Apple\n§Work done while working at Apple\nalso provide examples that contribute to more ac-\ncurate and contextually relevant outputs, especially\nfor ambiguous cases.\nPrompt engineering is a dynamic and iterative\nprocess that typically consists of the following\nstages: (1) Task Description: clearly outline the\nintended task for LLMs, (2) Few-shot Demonstra-\ntion: provide a small number of concrete and help-\nful demonstrations to illustrate the precise seman-\ntics of the task, (3) Task Input and Completion\nRequest: present th",
+  "sections": [
+    {
+      "heading": "Abstract",
+      "section_type": "abstract",
+      "position": 17,
+      "text": "Prompt engineering is an iterative procedure often requiring extensive manual effort to for- mulate suitable instructions for effectively di- recting large language models (LLMs) in spe- cific tasks. Incorporating few-shot examples is a vital and effective approach to providing LLMs with precise instructions, leading to im- proved LLM performance. Nonetheless, iden- tifying the most informative demonstrations for LLMs is labor-intensive, frequently entail- ing sifting through an extensive search space. In this demonstration, we showcase a human- in-the-loop tool called APE (Active Prompt Engineering) designed for refining prompts through active learning. Drawing inspiration from active learning, APE iteratively selects the most ambiguous examples for human feed- back, which will be transformed into few-shot examples within the prompt. Demo recording can be found with the submission or be viewed at https://youtu.be/OwQ6MQx53-Y . 1",
+      "page_start": 5,
+      "word_count": 131
+    },
+    {
+      "heading": "Introduction",
+      "section_type": "intro",
+      "position": 18,
+      "text": "Prompt engineering typically serves as the initial step when developing LLM-based applications be- cause it is a relatively fast process and requires fewer technical skills than fine-tuning. Prompt en- gineering involves crafting and optimization of in- structions provided to LLMs. These prompts need to be carefully designed to direct the behavior of LLMs towards performing specific tasks or gener- ating desired outcomes ( Liu et al. , 2023 ). While LLMs (e.g., ChatGPT and GPT-4) show impressive capabilities for zero-shot tasks without prior train- ing, their performance can be further enhanced by integrating clear and informative few-shot demon- strations alongside the prompts ( White et al. , 2023 ). These demonstrations not only guide the LLMs but * Work done while working at Apple † Work done while interning at Apple ‡ Work done while interning at Apple § Work done while working at Apple also provide examples that contribute to more ac- curate and contextually relevant outputs, especially for ambiguous cases. Prompt engineering is a dynamic and iterative process that typically consists of the following stages: (1) Task Description : clearly outline the intended task for LLMs, (2) Few-shot Demonstra- tion : provide a small number of concrete and help- ful demonstrations to illustrate the precise seman- tics of the task, (3) Task Input and Completion Request : present the actual task input and request an LLM completion. For all three steps, minor prompt rephrasing is typically needed, but this task is relatively light and does not require many iter- ations. However, choosing informative few-shot demonstrations can be a labor-intensive and time- consuming process due to the large search space of the problem. For instance, to identify only 3 demonstration examples out of 100 examples, there are 970,200 (i.e., 100 × 99 × 98) different combina- tions, a daunting manual task. Identifying representative and ambiguous examples to enhance the performance of machine learning models is a well-established subject within the active learning community. We can view the few-shot example identification as an active learn- ing problem, where the goal is to find the most in- formative examples to be included in the prompt to help improve LLMs’ performance. Recently, ( Diao et al. , 2023 ) proposed the idea of using various ac- tive learning sampling strategy to identify few-shot examples prompt engineering. Our work follows the same direction with the main focus being building an interactive tool (with an intuitive user interface) that identifies the most informative few- shot examples through simple human interaction. In this paper, we present",
+      "page_start": 7,
+      "word_count": 421
+    },
+    {
+      "heading": "LLM API",
+      "section_type": "other",
+      "position": 20,
+      "text": "1.Sampling based on current prompt 2.Annotation 3. Prompt Updating 4.Evaluation Evaluation Data 5. Next Iteration Figure 1: System Overview provide them in the prompt as few-shot examples after seeking human annotation. Unlike ( Diao et al. , 2023 ), which focuses on the backend algorithm services, our goal is to hide the technical details by a carefully designed graph user interface so that we can have a usable tool that truly harnesses the power of active learning. 2",
+      "page_start": 3,
+      "word_count": 78
+    },
+    {
+      "heading": "APE",
+      "section_type": "other",
+      "position": 22,
+      "text": "is to identify a handful of informative few-shot examples that can boost an LLM’s performance. As an active learning tool, it follows the iterative procedure outlined in Figure 1 , involving interaction with both a human user and the LLM API for prompt engineering. The best way to understand",
+      "page_start": 15,
+      "word_count": 49
+    },
+    {
+      "heading": "APE",
+      "section_type": "other",
+      "position": 23,
+      "text": "end to end is to watch the video demo of the tool (see the link in the abstract). At a high level, in each iteration, we start with sampling informative examples based on the prompt of the current iteration, which includes applying a user-configured sampling strategy to let the LLM choose the ambiguous examples from the user-provided sampling pool. Next, users anno- tate the selected examples, potentially including explanations for Chain-of-Thought-style prompt- ing. These newly annotated examples are then used to update the prompt. Lastly, the new prompt is evaluated against evaluation data to report its per- formance. The core of the active learning process is the sampling strategy; for simplicity, we will use entity matching, a classic binary classification task, to il- lustrate the sampling methodology behind",
+      "page_start": 15,
+      "word_count": 128
+    },
+    {
+      "heading": "APE",
+      "section_type": "other",
+      "position": 24,
+      "text": ". Given a set P = { p 1 , . . . , p m } of entity pairs, where p i consists of a pair ⟨ e i 1 , e i 2 ⟩ of entities, the task of entity matching is to learn a binary classi- fier f : ⟨ e i 1 , e i 2 ⟩→{ 0 , 1 } . In this case, the binary classifier is the LLM in consideration, and the be- havior of the classifier is dynamically controlled by the prompts created by",
+      "page_start": 15,
+      "word_count": 92
+    },
+    {
+      "heading": "APE",
+      "section_type": "other",
+      "position": 28,
+      "text": "is to find the most informative examples for human annotation to boost the per- formance of the LLMs. LLMs can be considered excellent student models that can learn effectively from examples. Inspired by active learning, we pro- posed identifying examples that LLMs are uncer- tain about to be used as few-shot examples for in- context learning. While both task-specific sampling strategies and task-agnostic sampling strategies can be integrated with",
+      "page_start": 18,
+      "word_count": 69
+    },
+    {
+      "heading": "Random-based",
+      "section_type": "other",
+      "position": 31,
+      "text": ". We randomly select k examples (no replacement) from the sampling pool in each active iteration. Random sampling is simple and fast, and it would work reliably well for many sim- ple tasks. However, for more sophisticated tasks where zero-shot LLMs do not perform well, the chance that random sampling would find informa- tive examples to boost LLMs’ performance is low.",
+      "page_start": 19,
+      "word_count": 61
+    },
+    {
+      "heading": "Self-consistency-based",
+      "section_type": "other",
+      "position": 32,
+      "text": ". To overcome the issue of random sampling, we support self-consistency- based sampling, a strategy inspired by self- consistency ( Wang et al. , 2023 ). The core idea is to either run multiple different prompts or the same prompt multiple times in the style of Chain-of- Thought ( Wei et al. , 2023 ), allowing the model to generate the final answers with multiple reasoning paths. The consistent answers (e.g., the majority an- swer) are then chosen as the final answer. A similar idea, known as query-by-committee (QBC)( Seung et al. , 1992 ), has been heavily used in active learn- ing to identify uncertain examples ( Settles , 2009 ). QBC works by training a committee of k slightly different classifiers, e.g., five deep-learning-based classifiers with different architectures, and then let the committee make inferences over the same ex- amples. The disagreement ratio of the committee is used as a proxy to quantify the uncertainty of the examples. The examples with high disagreement ratios are then sent for human annotation. Our self-consistency-based strategy follows the same idea. Concretely, when selecting exam- ples from the sampling pool, for every entity pair ⟨ e 1 , e 2 ⟩ , we run the same prompt m times, where 2 m is a hyperparameter that is usually a small num- ber (in our case, 3). However, each run of the prompt would use a different temperature t , where t gradually grows from 0 to 1 depending on the number of runs. For instance, if m = 3 , then the three runs of the prompt would have temperatures: 0 , 0 . 5 , 1 . 0 , respectively. Varying the temperature is a way to control the creativity and consistency of LLMs, and we use it to build a committee of slightly different LLMs for uncertain example sam- pling. Specifically for our entity matching demo scenarios, we collect the m binary labels for a given entity pair p , we then compute the label distribu- tions of the m predictions. We denote the ratio of positive labels as R + ( p ) (i.e., # positive labels m ), and obviously the ratio of negative labels would be 1 − R + ( p ) . With that, we can then compute the label distribution entropy H ( p ) as follows: − R + ( p ) log R + ( p ) − (1 − R + ( p )) log (1 − R + ( p )) the entropy can be viewed as a proxy for uncer- tainty, and the higher the entropy value, the higher the uncertainty. We then select the examples with the top- k entropy (breaking tie arbitrarily) for hu- man annotations. The annotated examples will be included as new few-shot examples. Note that vary- ing temperatures is for sampling mode only, we set the temperature to zero during prompt evaluation.",
+      "page_start": 20,
+      "word_count": 488
+    },
+    {
+      "heading": "Incremental or Fixed Sampling",
+      "section_type": "other",
+      "position": 33,
+      "text": ". We offer both incremental sampling and fixed sampling. Incre- mental sampling accumulates examples labeled in each iteration to form the final few-shot demon- strations. In contrast, fixed sampling selects a pre- determined number of examples iteration without accumulating them to create the final prompt.",
+      "page_start": 6,
+      "word_count": 45
+    }
+  ],
+  "references_raw": "Shizhe Diao, Pengcheng Wang, Yong Lin, and Tong Zhang. 2023. Active prompting with chain-of- thought for large language models . Hanna Köpcke, Andreas Thor, and Erhard Rahm. 2010. Evaluation of entity resolution approaches on real- world match problems. Proceedings of the VLDB Endowment , 3(1-2):484–493. Pengfei Liu, Weizhe Yuan, Jinlan Fu, Zhengbao Jiang, Hiroaki Hayashi, and Graham Neubig. 2023. Pre- train, prompt, and predict: A systematic survey of prompting methods in natural language processing . ACM Comput. Surv. , 55(9). Burr Settles. 2009. Active learning literature survey. H. S. Seung, M. Opper, and H. Sompolinsky. 1992. Query by committee . In Proceedings of the Fifth Annual Workshop on Computational Learning The- ory , COLT ’92, page 287–294, New York, NY, USA. Association for Computing Machinery. Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc V Le, Ed H. Chi, Sharan Narang, Aakanksha Chowdhery, and Denny Zhou. 2023. Self-consistency improves chain of thought reasoning in language models . In The Eleventh International Conference on Learning Representations . Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and Denny Zhou. 2023. Chain-of-thought prompting elic- its reasoning in large language models . Jules White, Quchen Fu, Sam Hays, Michael Sandborn, Carlos Olea, Henry Gilbert, Ashraf Elnashar, Jesse Spencer-Smith, and Douglas C. Schmidt. 2023. A prompt pattern catalog to enhance prompt engineer- ing with chatgpt . 3"
+}

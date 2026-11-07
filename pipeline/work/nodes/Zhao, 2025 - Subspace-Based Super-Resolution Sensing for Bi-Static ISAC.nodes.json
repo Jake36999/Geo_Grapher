@@ -1,0 +1,89 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Zhao, 2025 - Subspace-Based Super-Resolution Sensing for Bi-Static ISAC.md",
+  "metadata": {
+    "title": "Subspace-Based Super-Resolution Sensing for Bi-Static ISAC with Clock Asynchronism",
+    "authors": [
+      "Jingbo Zhao",
+      "Zhaoming Lu",
+      "J. Andrew Zhang",
+      "Jiaxi Zhou",
+      "Weicai Li",
+      "Tao Gu"
+    ],
+    "year": 2025,
+    "venue": null,
+    "doi": "arxiv:2505.10174",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 185,
+      "text": "As the authors state it:\n\n> Bi-static sensing is an attractive configuration for integrated sensing and communications (ISAC) systems; however, clock asynchronism between widely separated transmitters and receivers introduces time-varying time offsets (TO) and phase offsets (PO), posing significant challenges. This paper introduces a signal-subspace-based framework that estimates decoupled angles, delays, and complex gain sequences (CGS)-- the target-reflected signals -- for multiple dynamic target paths. The proposed framework begins with a novel TO alignment algorithm, leveraging signal subspace or covariance, to mitigate TO variations across temporal snapshots, enabling coherent delay-domain analysis. Subsequently, subspace-based methods are developed to compensate for TO residuals and to perform joint angle-delay estimation. Finally, leveraging the high resolution in the joint angle-delay domain, the framework compensates for the PO and estimates the CGS for each target. The framework can be applied to both single-antenna and multi-antenna systems. Extensive simulations and experiments using commercial Wi-Fi devices demonstrate that the proposed framework significantly surpasses existing solutions in parameter estimation accuracy and delay resolution. Notably, it uniquely achieves a super-resolution in the delay domain, with a probability-of-resolution curve tightly approaching that in synchronized systems.",
+      "claims": [
+        {
+          "text": "As the authors state it: Bi-static sensing is an attractive configuration for integrated sensing and communications (ISAC) systems; however, clock asynchronism between widely separated transmitters and receivers introduces time-varying time offsets (TO) and phase offsets (PO), posing significant challenges. This paper introduces a signal-subspace-based framework that estimates decoupled angles, de",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Security & SIEM",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

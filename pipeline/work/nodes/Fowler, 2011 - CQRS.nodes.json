@@ -1,0 +1,96 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Fowler, 2011 - CQRS.md",
+  "metadata": {
+    "title": "CQRS",
+    "authors": [
+      "Martin Fowler"
+    ],
+    "year": 2011,
+    "venue": "martinfowler.com bliki",
+    "doi": null,
+    "abstract_summary": "Fowler's widely-cited essay frames CQRS as a narrow, \"minority case\" pattern — worth using inside a single complex Bounded Context where one model genuinely can't serve both reads and writes well, or where read/write load is asymmetric enough to need independent scaling — and warns that most attempts at it go wrong. Read alongside Young's originating documents, Fowler's own scoping reinforces rath"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 62,
+      "text": "Fowler's widely-cited essay frames CQRS as a narrow, \"minority case\" pattern — worth using inside a single complex Bounded Context where one model genuinely can't serve both reads and writes well, or where read/write load is asymmetric enough to need independent scaling — and warns that most attempts at it go wrong. Read alongside Young's originating documents, Fowler's own scoping reinforces rath",
+      "claims": [
+        {
+          "text": "Fowler's widely-cited essay frames CQRS as a narrow, \"minority case\" pattern — worth using inside a single complex Bounded Context where one model genuinely can't serve both reads and writes well, or where read/write load is asymmetric enough to need independent scaling — and warns that most attempts at it go wrong. Read alongside Young's originating documents, Fowler's own scoping reinforces rath",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 93,
+      "text": "Fowler's definition and his central caution, as stated:\n\n> \"CQRS is a pattern that I first heard described by Greg Young. At its heart is the notion that you can use a different model to update information than the model you use to read information... for most systems CQRS adds risky complexity.\"\n\nHe is explicit that this is a minority-case pattern, not a default: most CQRS implementations he has seen have been problematic, and the pattern \"is difficult to use well and you can easily chop off important bits if you mishandle it.\"",
+      "claims": [
+        {
+          "text": "Fowler's definition and his central caution, as stated: \"CQRS is a pattern that I first heard described by Greg Young. At its heart is the notion that you can use a different model to update information than the model you use to read information... for most systems CQRS adds risky complexity.\" He is explicit that this is a minority-case pattern, not a default: most CQRS implementations he has seen",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Architecture & Developer Playbooks",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 63,
+      "text": "Not an empirical study — a short opinion essay (a \"bliki\" entry) drawing on the author's own consulting observation of multiple teams' CQRS attempts, aimed at practitioners deciding whether to adopt the pattern. No data, benchmark, or case citations are given; the piece is argument from experience, explicitly hedged as such throughout (e.g., \"in my experience,\" \"most of the CQRS stories I've heard\").",
+      "claims": [
+        {
+          "text": "Not an empirical study — a short opinion essay (a \"bliki\" entry) drawing on the author's own consulting observation of multiple teams' CQRS attempts, aimed at practitioners deciding whether to adopt the pattern. No data, benchmark, or case citations are given; the piece is argument from experience, ",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 218,
+      "text": "- **No data of any kind.** This is argument-from-practitioner-authority, not a study; Fowler's own credibility as the widely-cited restater of the pattern is the entirety of the evidentiary weight here, and he does not claim otherwise.\n- **This is a secondary treatment of the pattern, not its origin.** Fowler states plainly that he \"first heard [CQRS] described by Greg Young\" — his page shaped how the wider industry uses the term, but [[Young, 2010 - CQRS Documents]] is the earlier, originating primary source; this note should not be read as an independent derivation of the same idea.\n- **The operator-safety scenario this gap analysis is checking is not addressed anywhere in the essay.** Fowler's stated justifications for CQRS are model complexity (\"having the same conceptual model for commands and queries leads to a more complex model that does neither well\") and performance (\"allowing you to scale each independently\") — the same two axes Young gives, not a third axis about who may issue a write.\n- **Exact publication date (2011-07-14) is not visible in the fetched page content itself** — it is drawn from a contemporaneous third-party citation (a dated social-media announcement indexed in search results), not confirmed by a dateline read directly on the page during this pass. The year and general attribution are otherwise well corroborated.",
+      "claims": [
+        {
+          "text": "**No data of any kind.** This is argument-from-practitioner-authority, not a study; Fowler's own credibility as the widely-cited restater of the pattern is the entirety of the evidentiary weight here, and he does not claim otherwise.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "**This is a secondary treatment of the pattern, not its origin.** Fowler states plainly that he \"first heard [CQRS] described by Greg Young\" — his page shaped how the wider industry uses the term, but [[Young, 2010 - CQRS Documents]] is the earlier, originating primary source; this note should not b",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "**The operator-safety scenario this gap analysis is checking is not addressed anywhere in the essay.** Fowler's stated justifications for CQRS are model complexity (\"having the same conceptual model for commands and queries leads to a more complex model that does neither well\") and performance (\"all",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "**Exact publication date (2011-07-14) is not visible in the fetched page content itself** — it is drawn from a contemporaneous third-party citation (a dated social-media announcement indexed in search results), not confirmed by a dateline read directly on the page during this pass. The year and gene",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

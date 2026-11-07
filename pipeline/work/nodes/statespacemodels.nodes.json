@@ -1,0 +1,129 @@
+{
+  "file_path": "E:/Librarian research/statespacemodels.pdf",
+  "metadata": {
+    "title": "State Space Models and Kalman Filter",
+    "authors": [
+      "C. Gu"
+    ],
+    "year": 2024,
+    "venue": null,
+    "doi": null,
+    "abstract_summary": "This paper discusses state space models, including the state equation and observation equation, and their application to time series models. The paper also covers the Kalman filter and its derivation, prediction, and updating."
+  },
+  "sections": [
+    {
+      "heading": "State Space Models",
+      "section_type": "other",
+      "position": 2,
+      "word_count": 156,
+      "text": "A state space model consists of a state equation , Y t = Φ t Y t − 1 + ν t + a t , and an observation equation , z t = H t Y t + µ t + b t , where Y t is a state vector with a transition matrix Φ t , a t are independent shocks with covariance matrices A t , H t is the observation matrix, and b t are another set of shocks with covariance matrices B t , which are independent of a t . The arrays Φ t , ν t , H t , and µ t are deterministic, and often independent of t . Through the construction of the state vector Y t , the AR(1) state equation is capable of representing higher order structures. The state space representation of a time series model is not unique. C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "ARIMA(",
+      "section_type": "other",
+      "position": 4,
+      "word_count": 295,
+      "text": "p , d , q ) in State Space Form Consider an ARIMA( p , d , q ) process in the generalized ARMA form ϕ ( B ) z t = θ ( B ) a t . Let m = max( p + d, q + 1), one has z t = ϕ 1 z t − 1 + · · · + ϕ m z t − m + a t − θ 1 a t − 1 −· · · − θ m − 1 a t − m +1 . Let y ( m ) t = ϕ m z t − 1 − θ m − 1 a t , and y ( j ) t = ϕ j z t − 1 + y ( j +1) t − 1 − θ j − 1 a t , j < m ( θ 0 = − 1). The state vector Y t = ( y (1) t , . . . , y ( m ) t ) T satisfies Y t =         ϕ 1 1 . . . 0 ... ... ... ... ϕ m − 1 0 · · · 1 ϕ m 0 · · · 0         Y t − 1 +         1 − θ 1 ... − θ m − 1         a t . It is easy to check that z t = y (1) t , so the observation equation is simply z t = (1 , 0 , . . . , 0) Y t . C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Another State Space Form for ARIMA",
+      "section_type": "other",
+      "position": 6,
+      "word_count": 237,
+      "text": "Recall the complementary function C t ( l ) = z t + l − � l − 1 j =0 ψ j a t + l − j = C t − 1 ( l + 1) + ψ l a t . Set Y t = ( C t (0) , . . . , C t ( m − 1)) T , one has Y t =         0 1 · · · 0 ... ... ... ... 0 0 · · · 1 ϕ m ϕ m − 1 · · · ϕ 1         Y t − 1 +         1 ψ 1 ... ψ m − 1         a t , where the last equation follows from ϕ ( B ) C t − 1 ( m ) = 0. The observation equation is again z t = (1 , 0 , . . . , 0) Y t , as C t (0) = z t . Remember that the ψ weights are determined from ϕ j , θ j via ψ j = ϕ 1 ψ j − 1 + · · · + ϕ m ψ j − m − θ j , j > 0, C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "STAT 520",
+      "section_type": "other",
+      "position": 7,
+      "word_count": 235,
+      "text": "State Space Models and Kalman Filter 4 ✬ ✫ ✩ ✪ Example: ARIMA(1,1,1) Consider (1 − φB )(1 − B ) z t = (1 − θB ) a t with ϕ 1 = 1 + φ , ϕ 2 = − φ , θ 1 = θ , and ψ 1 = 1 + φ − θ . With the first representation, Y (2) t = − φz t − 1 − θa t , Y t =   1 + φ 1 − φ 0   Y t − 1 +   1 − θ   a t . With the second representation, Y (2) t = (1 + φ ) z t − φz t − 1 − θa t , ˜ Y t =   0 1 − φ 1 + φ   ˜ Y t − 1 +   1 1 + φ − θ   a t . It is seen that ˜ Y t = � 1 0 1+ φ 1 � Y t , as � 1 0 1+ φ 1 �� 1 − θ � = � 1 1+ φ − θ � and � 1 0 1+ φ 1 �� 1+ φ 1 − φ 0 � = � 0 1 − φ 1+ φ �� 1 0 1+ φ 1 � . C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Kalman Filter: Derivation",
+      "section_type": "other",
+      "position": 9,
+      "word_count": 257,
+      "text": "Consider Gaussian process with initial state Y 0 ∼ N ( y 0 , V 0 ). The state at time 1, Y 1 = Φ 1 Y 0 + ν 1 + a 1 , has mean and covariance y 1 | 0 = Φ 1 y 0 + ν 1 , V 1 | 0 = Φ 1 V 0 Φ T 1 + A 1 . The joint distribution of ( Y T 1 , z T 1 ) T has mean and covariance   y 1 | 0 H 1 y 1 | 0 + µ 1   ,   V 1 | 0 V 1 | 0 H T 1 H 1 V 1 | 0 H 1 V 1 | 0 H T 1 + B 1   . The conditional distribution of Y 1 | z 1 thus has the mean y 1 = y 1 | 0 + V 1 | 0 H T 1 ( H 1 V 1 | 0 H T 1 + B 1 ) − 1 ( z 1 − H 1 y 1 | 0 − µ 1 ), and the covariance V 1 = V 1 | 0 − V 1 | 0 H T 1 ( H 1 V 1 | 0 H T 1 + B 1 ) − 1 H 1 V 1 | 0 . Replacing 1 by t and 0 by t − 1, one obtains the Kalman filter. C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Kalman Filter: Prediction and Updating",
+      "section_type": "other",
+      "position": 11,
+      "word_count": 223,
+      "text": "At time t − 1, the prediction equations y t | t − 1 = Φ t y t − 1 + ν t , V t | t − 1 = Φ t V t − 1 Φ T t + A t , give the optimal estimator of Y t and its error covariance. For the prediction ˆ z t | t − 1 = H t y t | t − 1 + µ t of z t , one has the innovation e t = z t − ˆ z t | t − 1 with the covariance Σ t = H t V t | t − 1 H T t + B t . Once z t becomes available, the estimator of Y t is updated through y t = y t | t − 1 + V t | t − 1 H T t Σ − 1 t e t , which has a smaller covariance V t = V t | t − 1 − V t | t − 1 H T t Σ − 1 t H t V t | t − 1 . The matrix K t = V t | t − 1 H T t Σ − 1 t is the Kalman gain matrix. C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Example: ARMA(1,1)",
+      "section_type": "other",
+      "position": 13,
+      "word_count": 266,
+      "text": "A state space representation of an ARMA(1,1) model is given by Y t =   φ 1 0 0   Y t − 1 +   1 − θ   a t , where Y (1) t = z t and Y (2) t = − θa t . Set y 0 = 0 and V 0 = σ 2 a   (1 + θ 2 − 2 φθ ) / (1 − φ 2 ) − θ − θ θ 2   = σ 2 a   1 + v 0 − θ − θ θ 2   , where v 0 = ( φ − θ ) 2 / (1 − φ 2 ). The updating equations give y 1 | 0 = 0 , V 1 | 0 = ΦV 0 Φ T + A = V 0 . The innovation is e 1 = z 1 and the Kalman gain matrix is K 1 = V 1 | 0 (1 /σ 2 a (1 + v 0 ) , 0) T = � 1 − θ/ (1+ v 0 ) � , so y 1 = � z 1 − θz 1 / (1+ v 0 ) � and V 1 = ( I − K 1 (1 , 0)) V 1 | 0 = σ 2 a v 1 ( 0 0 0 1 ), where v 1 = θ 2 v 0 / (1 + v 0 ). Note that a 1 | z 1 is not degenerate. C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Example: ARMA(1,1)",
+      "section_type": "other",
+      "position": 15,
+      "word_count": 297,
+      "text": "At time t − 1 > 0, let V t − 1 = σ 2 a v t − 1 ( 0 0 0 1 ). The updating equations give y (1) t | t − 1 = φz t − 1 − θ ˜ a t − 1 , where ˜ a t − 1 = E [ a t − 1 | z t − 1 , . . . , z 1 ], y (2) t | t − 1 = 0, and V t | t − 1 = ΦV t − 1 Φ T + A = σ 2 a � 1 + v t − 1 − θ − θ θ 2 � The innovation e t = z t − φz t − 1 + θ ˜ a t − 1 = a t − θ ( a t − 1 − ˜ a t − 1 ) has variance σ 2 a (1 + v t − 1 ) and the Kalman gain matrix is given by K t = V t | t − 1 (1 /σ 2 a (1 + v t − 1 ) , 0) T = � 1 − θ/ (1+ v t − 1 ) � . One has y t = � z t − θe t / (1+ v t − 1 ) � and V t =( I − K t (1 , 0)) V t | t − 1 = σ 2 a v t ( 0 0 0 1 ), where v t = θ 2 v t − 1 / (1 + v t − 1 ). Note that for | θ | < 1, v t → 0 at an exponential rate. C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Kalman Filter: Multiple Steps Ahead",
+      "section_type": "other",
+      "position": 17,
+      "word_count": 281,
+      "text": "To predict more than one step ahead based on information at time T , one simply bypass the updating step, y T + l | T = Φ T + l y T + l − 1 | T + ν T + l , l = 1 , 2 , . . . , where y T | T = y T . The covariance of the prediction error is given by V T + l | T = Φ T + l V T + l − 1 | T Φ T T + l + A T + l , l = 1 , 2 , . . . , where V T | T = V T . The predictor of z T + l is ˆ z T + l | T = H T + l y T + l | T + µ T + l , with error covariance E T + l | T = H T + l V T + l | T H T T + l + B T + l . For ARMA(1,1) with T > 0, y T + l | T = Φ l y T = φ l − 1 y T +1 | T , and V T + l | T = σ 2 a v T + l | T ( 1 0 0 0 ) + A , where v T +1 | T = v T , v T + l | T = φ 2 v T + l − 1 | T + ( φ − θ ) 2 → v 0 . C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Kalman Filter: Maximum Likelihood",
+      "section_type": "other",
+      "position": 19,
+      "word_count": 257,
+      "text": "Recall that the joint likelihood of z 1 , . . . , z N can be factored as L ( Z N ) = � N t =1 p ( z t | Z t − 1 ), where Z t − 1 = { z 1 , . . . , z t − 1 } . For Gaussian processes, p ( z t | Z t − 1 ) is normal with mean ˆ z t | t − 1 and covariance Σ t . For z t univariate, drop boldface and write ς t for Σ t , one has the prediction error decomposition form of the likelihood, log L ( Z N ) = − N 2 log 2 π − 1 2 � N t =1 log ς t − 1 2 � N t =1 e 2 t ς t . As a function of model parameters, log L ( Z N ) can be maximized using optimization tools to yield the MLE of parameters. For ARMA(1,1), one has ς t = σ 2 a (1 + v t − 1 ). Dropping the constant, log L ( Z N ) = − 1 2 � N t =1 log(1 + v t − 1 ) − N 2 log σ 2 a − 1 2 σ 2 a � N t =1 e 2 t 1+ v t − 1 . One can “profile” out σ 2 a , then work on the profile likelihood. C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "STAT 520",
+      "section_type": "other",
+      "position": 20,
+      "word_count": 235,
+      "text": "State Space Models and Kalman Filter 11 ✬ ✫ ✩ ✪ Example: ARIMA(1,1,1) A state space representation of an ARIMA(1,1,1) model is Y t =   1 + φ 1 − φ 0   Y t − 1 +   1 − θ   a t , where Y (1) t = z t and Y (2) t = − φz t − 1 − θa t . Write V 1 | 0 = � a b b c � . K 1 = � 1 b/a � , V 1 = � 0 0 0 c − b 2 /a � = σ 2 a v 1 ( 0 0 0 1 ). For t > 1, V t | t − 1 = ΦV t − 1 Φ T + A = σ 2 a � 1+ v t − 1 − θ − θ θ 2 � , K t = � 1 − θ/ (1+ v t − 1 ) � , V t = σ 2 a v t ( 0 0 0 1 ) for v t = θ 2 v t − 1 / (1 + v t − 1 ), following the same calculus as in ARMA(1,1). For multiple steps ahead, however, the filter does not simplify as in ARMA(1,1). Obviousely, the same formulas hold for ARMA(2,1) in general. C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    },
+    {
+      "heading": "Example: AR(2)",
+      "section_type": "other",
+      "position": 22,
+      "word_count": 277,
+      "text": "Consider a stationary AR(2) model in state space form, Y t =   φ 1 1 φ 2 0   Y t − 1 +   1 0   a t , where Y (1) t = z t and Y (2) t = φ 2 z t − 1 . Set V 0 = γ 0 � 1 φ 2 ρ 1 φ 2 ρ 1 φ 2 2 � , the stationary variance-covariance of Y t . Remember that ρ 2 = φ 1 ρ 1 + φ 2 and σ 2 a = γ 0 (1 − φ 1 ρ 1 − φ 2 ρ 2 ). Some algebra yields V 1 | 0 = ΦV 0 Φ T + A = V 0 . K 1 = � 1 φ 2 ρ 1 � , V 1 = ˜ v 1 ( 0 0 0 1 ) for ˜ v 1 = γ 0 φ 2 2 (1 − ρ 2 1 ). V 2 | 1 = ΦV 1 Φ T + A = � ˜ v 1 + σ 2 a 0 0 0 � , where ˜ v 1 + σ 2 a = γ 0 (1 − ρ 2 1 ) as ρ 1 = φ 1 + φ 2 ρ 1 . K 2 = (1 , 0) T , V 2 = O . For t > 2, V t | t − 1 = A = � σ 2 a 0 0 0 � , K t = (1 , 0) T , V t = O . C. Gu Spring 2024",
+      "claims": [],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 405,
+    "output_tokens": 84,
+    "cost_usd": 7.4e-05
+  }
+}

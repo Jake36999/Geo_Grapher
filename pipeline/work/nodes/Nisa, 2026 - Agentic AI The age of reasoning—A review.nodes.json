@@ -1,0 +1,180 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Nisa, 2026 - Agentic AI The age of reasoning—A review.md",
+  "metadata": {
+    "title": "Agentic AI: The age of reasoning—A review",
+    "authors": [
+      "Ume Nisa",
+      "Muhammad Shirazi",
+      "Mohamed Ali Saip",
+      "Muhammad Syafiq Mohd Pozi"
+    ],
+    "year": 2026,
+    "venue": "Journal of Automation and Intelligence",
+    "doi": "10.1016/j.jai.2025.08.003",
+    "abstract_summary": "Reviews agentic AI patterns, a four-stage operational framework, agent-type taxonomies and memory architectures; a survey with no new experiments."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 19,
+      "text": "Reviews agentic AI patterns, a four-stage operational framework, agent-type taxonomies and memory architectures; a survey with no new experiments.",
+      "claims": [
+        {
+          "text": "Reviews agentic AI patterns, a four-stage operational framework, agent-type taxonomies and memory architectures; a survey with no new experiments.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 277,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Four-stage operational agent framework** (category B) - Deployment loop for an agent: Data, Analysis, Execution, Adaptation, linking front-end input, back-end verification, output delivery and feedback-driven memory updates. (section 1.2. Operational framework of agentic AI, p. 2)\n  > During the analysis stage, the back-end infrastructure handles input validation, accesses memory, performs decision verification, and detects possible errors.\n- **Progressive agent-type taxonomy** (category B) - Seven-type classification (reactive, proactive, limited memory, model-based, goal-driven, theory of mind, self-aware) for matching agent capability to task kind. (section 3.2. A taxonomic framework to classify agentic AI, p. 7)\n  > gradual advancement in autonomy, adaptability, and cognitive complexity from reactive agents to self-aware systems.\n- **Pattern-level performance metric schema** (category A) - Table 3 assigns each agentic pattern named performance metrics, cost and scalability properties for comparing orchestration designs. (section 3.1. Patterns of agentic AI, p. 8)\n  > Coordination success rate, execution time.\n- **Multi-agent pattern deployment schema** (category B) - Schema for parallel agent teams: distributed processing, modular specialized agents, explicit communication protocols and task assignment. (section 3.1. Patterns of agentic AI, p. 8)\n  > Distributed\n- **Three-tier hybrid memory architecture** (category C) - Memory schema combining parametric, working and external memory, with proposed dynamic storage, forgetting and retrieval policies per task. (section 3.3.2. Memory and knowledge representation, p. 11)\n  > 1. Parametric memory: Knowledge encoded in model weights\n- **Continual learning for drift adaptation** (category C) - Incremental updating of memory modules, skill libraries and planners to handle distribution shift without retraining from scratch. (section 3.3.4. Learning and ",
+      "claims": [
+        {
+          "text": "Four-stage operational agent framework: Deployment loop for an agent: Data, Analysis, Execution, Adaptation, linking front-end input, back-end verification, output delivery and feedback-driven memory updates. (section 1.2. Operational framework of agentic AI, p. 2)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Progressive agent-type taxonomy: Seven-type classification (reactive, proactive, limited memory, model-based, goal-driven, theory of mind, self-aware) for matching agent capability to task kind. (section 3.2. A taxonomic framework to classify agentic AI, p. 7)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Pattern-level performance metric schema: Table 3 assigns each agentic pattern named performance metrics, cost and scalability properties for comparing orchestration designs. (section 3.1. Patterns of agentic AI, p. 8)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-agent pattern deployment schema: Schema for parallel agent teams: distributed processing, modular specialized agents, explicit communication protocols and task assignment. (section 3.1. Patterns of agentic AI, p. 8)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Three-tier hybrid memory architecture: Memory schema combining parametric, working and external memory, with proposed dynamic storage, forgetting and retrieval policies per task. (section 3.3.2. Memory and knowledge representation, p. 11)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Continual learning for drift adaptation: Incremental updating of memory modules, skill libraries and planners to handle distribution shift without retraining from scratch. (section 3.3.4. Learning and adaptation, p. 12)",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Four-stage operational agent framework",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Progressive agent-type taxonomy",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Pattern-level performance metric schema",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Multi-agent pattern deployment schema",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Three-tier hybrid memory architecture",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 179,
+      "text": "- **Four-stage operational agent framework**: Data stage gathers audio/visual/feed input; Analysis validates input, accesses memory, verifies decisions, detects errors; Execution emits via API, GUI, chatbots; Adaptation incorporates real-time feedback into the Memory module.\n- **Progressive agent-type taxonomy**: Types are ordered by increasing autonomy, memory, planning and social complexity; Tables 4-6 compare behaviors, technologies, applications and challenges per type.\n- **Pattern-level performance metric schema**: Reflection: accuracy of iterations, convergence speed. Tool use: latency, retrieval accuracy. ReAct: task completion time, reasoning accuracy. Planning: efficiency of task breakdown, task success rate. Multi-agent: coordination success rate, execution time.\n- **Multi-agent pattern deployment schema**: Technical implementation uses communication protocols between agents and task assignment, with multi-agent reinforcement learning; coordination success rate and execution time measure performance.\n- **Three-tier hybrid memory architecture**: Parametric memory: knowledge in model weights; working memory: context window; external memory: retrieval from document stores, vector databases, tool outputs. Proposed centralized controllers coordinate tiers by task relevance and salience.\n- **Continual learning for drift adaptation**: Techniques named: experience replay, regularization, generative pseudo-memory; combined with supervised, reinforcement, self-supervised, few-shot and continual learning mechanisms.",
+      "claims": [
+        {
+          "text": "Four-stage operational agent framework: Data stage gathers audio/visual/feed input; Analysis validates input, accesses memory, verifies decisions, detects errors; Execution emits via API, GUI, chatbots; Adaptation incorporates real-time feedback into the Memory module. - **Progressive agent-type tax",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 225,
+      "text": "- Evidence the authors report:\n  - Four-stage operational agent framework: Descriptive framework illustrated in Fig. 1 and Section 1.2; the review reports no empirical evaluation.\n  - Progressive agent-type taxonomy: Derived from the systematic review; Fig. 3 hierarchy plus comparative Tables 4, 5 and 6.\n  - Pattern-level performance metric schema: Table 3 tabulates metrics, cost implications and scalability for five patterns; no benchmark runs are reported.\n  - Multi-agent pattern deployment schema: Table 3 row for the Multi-Agent Pattern; qualitative comparison only, no experiment.\n  - Three-tier hybrid memory architecture: Synthesis of memory architectures in Section 3.3.2; no experiments, gaps are analysed qualitatively.\n  - Continual learning for drift adaptation: Section 3.3.4 analysis of learning mechanisms across agent types; no empirical results reported.\n- Limitations the authors state:\n  - Pattern-level performance metric schema: Agent evaluation lacks standardized benchmarks; planning robustness remains hard to quantify.\n  - Multi-agent pattern deployment schema: High operational cost due to communication overhead; complex coordination.\n  - Three-tier hybrid memory architecture: Memory systems must balance comprehensiveness with retrieval precision; external stores often return irrelevant or poorly ranked information.\n  - Continual learning for drift adaptation: Systems still fail to transfer across dissimilar domains and meta-agent approaches lack long-term memory consolidation.\n- Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Four-stage operational agent framework: Descriptive framework illustrated in Fig. 1 and Section 1.2; the review reports no empirical evaluation.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Progressive agent-type taxonomy: Derived from the systematic review; Fig. 3 hierarchy plus comparative Tables 4, 5 and 6.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Pattern-level performance metric schema: Table 3 tabulates metrics, cost implications and scalability for five patterns; no benchmark runs are reported.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Multi-agent pattern deployment schema: Table 3 row for the Multi-Agent Pattern; qualitative comparison only, no experiment.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Three-tier hybrid memory architecture: Synthesis of memory architectures in Section 3.3.2; no experiments, gaps are analysed qualitatively.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Continual learning for drift adaptation: Section 3.3.4 analysis of learning mechanisms across agent types; no empirical results reported.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Pattern-level performance metric schema: Agent evaluation lacks standardized benchmarks; planning robustness remains hard to quantify.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Multi-agent pattern deployment schema: High operational cost due to communication overhead; complex coordination.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Three-tier hybrid memory architecture: Memory systems must balance comprehensiveness with retrieval precision; external stores often return irrelevant or poorly ranked information.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Continual learning for drift adaptation: Systems still fail to transfer across dissimilar domains and meta-agent approaches lack long-term memory consolidation.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

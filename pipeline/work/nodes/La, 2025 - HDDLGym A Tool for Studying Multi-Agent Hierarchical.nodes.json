@@ -1,0 +1,175 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/La, 2025 - HDDLGym A Tool for Studying Multi-Agent Hierarchical.md",
+  "metadata": {
+    "title": "HDDLGym: A Tool for Studying Multi-Agent Hierarchical Problems Defined in HDDL with OpenAI Gym",
+    "authors": [
+      "Ngoc La",
+      "Ruaridh Mon-Williams",
+      "Julie A. Shah"
+    ],
+    "year": 2025,
+    "venue": "Proceedings of the International Conference on Automated Planning and Scheduling (ICAPS 2025, vol. 35)",
+    "doi": "10.1609/icaps.v35i1.36143",
+    "abstract_summary": "Extends HDDL with agent types so hierarchical multi-agent planning problems can run as Gym environments, with metrics for plan difficulty and for training and deployment."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 25,
+      "text": "Extends HDDL with agent types so hierarchical multi-agent planning problems can run as Gym environments, with metrics for plan difficulty and for training and deployment.",
+      "claims": [
+        {
+          "text": "Extends HDDL with agent types so hierarchical multi-agent planning problems can run as Gym environments, with metrics for plan difficulty and for training and deployment.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 314,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Agent-centric HDDL domain extension** (category B) - Extends HDDL domains with an agent type hierarchy, agent-parameterized actions, a none action, and explicit task effects so Gym environments can represent multi-agent hierarchical planning. (section 4 Formal Framework, p. 3)\n  > An agent-centric planning domain D is a tuple D = ⟨ta, L, TP , TC, M⟩, where:\n- **Agent tuple with belief and hierarchy** (category B) - Defines each agent as name, policy, beliefs about other agents' configurations, an action hierarchy of tasks, methods and actions, and an update function. (section 5.2 Agent, p. 4)\n  > An agent A is defined with a tuple ⟨N, P, B, H, U⟩where:\n- **Hierarchy completion pruning** (category C) - Memory management that removes completed tasks and actions from an agent's hierarchy and its beliefs after each environment step. (section 5.2 Agent, p. 5)\n  > comparing their effects with the current state of the world.\n- **HDDLGym joint-operator planner** (category D) - Centralized planner building each agent's action hierarchy down to a grounded primitive action; decentralized agents run it using beliefs about other agents. (section 5.5 Planning for Multi-agent Scenarios, p. 6)\n  > In case of decentralized planning, the list A include a real agent and that agent’s belief about other agents.\n- **Pre-training plan difficulty metrics** (category A) - Estimates domain scalability before training using representation dimensionality, planning time, average planning steps, and random-exploration success rate. (section 6.3 Evaluation Metrics, p. 8)\n  > Plan Difficulty of Transport, Overcooked, Rover, and Satellite Problems.\n- **Training and deployment evaluation metrics** (category A) - Tracks RL convergence and deployed planner performance with loss, cumulative discounted reward, success rate, planning time, planning steps, plus hierarchy visualization. (section 6.3 Evaluation Metrics, p. 8)\n  > Loss plo",
+      "claims": [
+        {
+          "text": "Agent-centric HDDL domain extension: Extends HDDL domains with an agent type hierarchy, agent-parameterized actions, a none action, and explicit task effects so Gym environments can represent multi-agent hierarchical planning. (section 4 Formal Framework, p. 3)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Agent tuple with belief and hierarchy: Defines each agent as name, policy, beliefs about other agents' configurations, an action hierarchy of tasks, methods and actions, and an update function. (section 5.2 Agent, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Hierarchy completion pruning: Memory management that removes completed tasks and actions from an agent's hierarchy and its beliefs after each environment step. (section 5.2 Agent, p. 5)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "HDDLGym joint-operator planner: Centralized planner building each agent's action hierarchy down to a grounded primitive action; decentralized agents run it using beliefs about other agents. (section 5.5 Planning for Multi-agent Scenarios, p. 6)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Pre-training plan difficulty metrics: Estimates domain scalability before training using representation dimensionality, planning time, average planning steps, and random-exploration success rate. (section 6.3 Evaluation Metrics, p. 8)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Training and deployment evaluation metrics: Tracks RL convergence and deployed planner performance with loss, cumulative discounted reward, success rate, planning time, planning steps, plus hierarchy visualization. (section 6.3 Evaluation Metrics, p. 8)",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Agent-centric HDDL domain extension",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Agent tuple with belief and hierarchy",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Hierarchy completion pruning",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "HDDLGym joint-operator planner",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Pre-training plan difficulty metrics",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 183,
+      "text": "- **Agent-centric HDDL domain extension**: Domain D = ⟨ta, L, TP , TC, M⟩ adds ta; agent actions take agent parameters, environment actions auto-execute when preconditions hold; tasks declare :effect checked against world state.\n- **Agent tuple with belief and hierarchy**: An agent A is defined with a tuple ⟨N, P, B, H, U⟩: N name, P policy, B beliefs about other agents, H action hierarchy, U hierarchy updater.\n- **Hierarchy completion pruning**: U compares task and action effects with current world state; completed items are removed from H and B; U runs after each step function execution.\n- **HDDLGym joint-operator planner**: Enumerates valid operators per agent, forms joint combinations C, prunes conflicts, selects c ←argmaxc∈CPO or samples weighted by PO, then updates hierarchies iteratively.\n- **Pre-training plan difficulty metrics**: Plan complexity from Table 1 dimensionality counts; difficulty from plan time, number of planning steps, and success rate using random exploration.\n- **Training and deployment evaluation metrics**: Loss plots saved at intervals; policy periodically evaluated on cumulative discounted reward, success rate, planning time, planning steps; deployment adds execution time and step-by-step hierarchy visualization.",
+      "claims": [
+        {
+          "text": "Agent-centric HDDL domain extension: Domain D = ⟨ta, L, TP , TC, M⟩ adds ta; agent actions take agent parameters, environment actions auto-execute when preconditions hold; tasks declare :effect checked against world state. - **Agent tuple with belief and hierarchy**: An agent A is defined with a tup",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 237,
+      "text": "- Evidence the authors report:\n  - Agent-centric HDDL domain extension: Applied to IPC-HTN Transport and custom Overcooked domains; Table 2 lists agent-centric domains shipped in the codebase.\n  - Agent tuple with belief and hierarchy: Overcooked Figure 1b shows one chef's hierarchy alongside its belief about the other chef's hierarchy.\n  - Hierarchy completion pruning: Transport Figure 1a shows the hierarchy shrinking across four steps to a terminal primitive action.\n  - HDDLGym joint-operator planner: Algorithm 1; Transport collaboration adds transfer task, method and action, cutting heterogeneous plan length from 25 to 18 steps.\n  - Pre-training plan difficulty metrics: Table 3 covers Transport, Overcooked, Rover, Satellite across agent counts; several domains reach 0% success with three or more agents.\n  - Training and deployment evaluation metrics: Figure 4 shows PPO actor and critic losses for Transport with 1–3 agents and reward, success rate, planning time, steps for 1-agent Transport.\n- Limitations the authors state:\n  - Agent-centric HDDL domain extension: Only changes HDDL domain files; not every IPC-HTN domain supports explicit agent specification.\n  - HDDLGym joint-operator planner: Assumes a deterministic transition function; action effects are predictable and do not account for probabilistic outcomes.\n  - Pre-training plan difficulty metrics: Low success probabilities from exploration increase the risk of low-quality data, which can degrade model performance.\n- Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Agent-centric HDDL domain extension: Applied to IPC-HTN Transport and custom Overcooked domains; Table 2 lists agent-centric domains shipped in the codebase.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Agent tuple with belief and hierarchy: Overcooked Figure 1b shows one chef's hierarchy alongside its belief about the other chef's hierarchy.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Hierarchy completion pruning: Transport Figure 1a shows the hierarchy shrinking across four steps to a terminal primitive action.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "HDDLGym joint-operator planner: Algorithm 1; Transport collaboration adds transfer task, method and action, cutting heterogeneous plan length from 25 to 18 steps.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Pre-training plan difficulty metrics: Table 3 covers Transport, Overcooked, Rover, Satellite across agent counts; several domains reach 0% success with three or more agents.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Training and deployment evaluation metrics: Figure 4 shows PPO actor and critic losses for Transport with 1–3 agents and reward, success rate, planning time, steps for 1-agent Transport.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Agent-centric HDDL domain extension: Only changes HDDL domain files; not every IPC-HTN domain supports explicit agent specification.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "HDDLGym joint-operator planner: Assumes a deterministic transition function; action effects are predictable and do not account for probabilistic outcomes.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Pre-training plan difficulty metrics: Low success probabilities from exploration increase the risk of low-quality data, which can degrade model performance.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

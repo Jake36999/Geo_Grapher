@@ -1,0 +1,1312 @@
+{
+  "file_path": "E:/Librarian research/graph-theory.pdf",
+  "page_count": 57,
+  "first_page_text": "Graph Theory\nAdam Kelly (ak2316@cam.ac.uk)\nNovember 6, 2021\nGraph theory is an area of combinatorics which has lots of fun problems and plenty of\ninteresting theorems.\nThis article constitutes my notes for the ‘Graph Theory’ course, held in Lent 2021 at\nCambridge. These notes are not a transcription of the lectures, and diﬀer signiﬁcantly\nin quite a few areas. Still, all lectured material should be covered.\nContents\n1\nIntroduction\n2\n1.1\nDeﬁnitions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n2\n1.1.1\nCommon Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n3\n1.1.2\nSubgraphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n4\n1.1.3\nGraph Isomorphism\n. . . . . . . . . . . . . . . . . . . . . . . . . .\n5\n1.1.4\nConnectivity\n. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n5\n1.1.5\nEdges and Distance\n. . . . . . . . . . . . . . . . . . . . . . . . . .\n7\n1.2\nTrees . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n8\n1.3\nBipartite Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n11\n2\nHall’s Theorem\n13\n2.1\nMatchings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n13\n2.2\nMatching in Bipartite Graphs . . . . . . . . . . . . . . . . . . . . . . . . .\n14\n2.3\nHall’s Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n15\n2.4\nCorollaries of Hall’s Theorem . . . . . . . . . . . . . . . . . . . . . . . . .\n16\n3\nConnectivity\n19\n3.1\nMeasuring Connectivity . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n19\n3.2\nPreparing for Menger’s Theorem\n. . . . . . . . . . . . . . . . . . . . . . .\n21\n3.3\nActually Menger’s Theorem . . . . . . . . . . . . . . . . . . . . . . . . . .\n22\n3.4\nEdge Connectivity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n23\n4\nPlanar Graphs\n25\n4.1\nDeﬁning Planar Graphs\n. . . . . . . . . . . . . . . . . . . . . . . . . . . .\n26\n4.2\nWhich Graphs are Planar? . . . . . . . . . . . . . . . . . . . . . . . . . . .\n27\n5\nGraph Colouring\n29\n5.1\nBasic Concepts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n29\n5.2\nBrooks’ Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .\n31\n5.3\nColouring Planar Graphs\n. . . . . . . . . . . . . . . . . . . . . . . . . . .\n32\n5.4\nColouring Graphs on (Other) Surfaces . . . . . . . . . . . . . . . . . . . .\n33\n1\n",
+  "sections": [
+    {
+      "heading": "Adam Kelly (",
+      "section_type": "other",
+      "position": 2,
+      "text": "ak2316@cam.ac.uk ) November 6, 2021 Graph theory is an area of combinatorics which has lots of fun problems and plenty of interesting theorems. This article constitutes my notes for the ‘Graph Theory’ course, held in Lent 2021 at Cambridge. These notes are not a transcription of the lectures , and differ significantly in quite a few areas. Still, all lectured material should be covered.",
+      "page_start": 2,
+      "word_count": 64
+    },
+    {
+      "heading": "Introduction",
+      "section_type": "intro",
+      "position": 4,
+      "text": "2 1.1 Definitions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2 1.1.1 Common Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3 1.1.2 Subgraphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4 1.1.3 Graph Isomorphism . . . . . . . . . . . . . . . . . . . . . . . . . . 5 1.1.4 Connectivity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5 1.1.5 Edges and Distance . . . . . . . . . . . . . . . . . . . . . . . . . . 7 1.2 Trees . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8 1.3 Bipartite Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11 2",
+      "page_start": 7,
+      "word_count": 280
+    },
+    {
+      "heading": "Hall’s Theorem",
+      "section_type": "other",
+      "position": 5,
+      "text": "13 2.1 Matchings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13 2.2 Matching in Bipartite Graphs . . . . . . . . . . . . . . . . . . . . . . . . . 14 2.3 Hall’s Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 2.4 Corollaries of Hall’s Theorem . . . . . . . . . . . . . . . . . . . . . . . . . 16 3",
+      "page_start": 8,
+      "word_count": 140
+    },
+    {
+      "heading": "Connectivity",
+      "section_type": "other",
+      "position": 6,
+      "text": "19 3.1 Measuring Connectivity . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19 3.2 Preparing for Menger’s Theorem . . . . . . . . . . . . . . . . . . . . . . . 21 3.3 Actually Menger’s Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . 22 3.4 Edge Connectivity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23 4",
+      "page_start": 9,
+      "word_count": 129
+    },
+    {
+      "heading": "Planar Graphs",
+      "section_type": "other",
+      "position": 7,
+      "text": "25 4.1 Defining Planar Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26 4.2 Which Graphs are Planar? . . . . . . . . . . . . . . . . . . . . . . . . . . . 27 5",
+      "page_start": 10,
+      "word_count": 68
+    },
+    {
+      "heading": "Graph Colouring",
+      "section_type": "other",
+      "position": 8,
+      "text": "29 5.1 Basic Concepts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29 5.2 Brooks’ Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31 5.3 Colouring Planar Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . 32 5.4 Colouring Graphs on (Other) Surfaces . . . . . . . . . . . . . . . . . . . . 33 1 Adam Kelly (November 6, 2021) Graph Theory 5.5 Edge Colouring . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35 6",
+      "page_start": 11,
+      "word_count": 179
+    },
+    {
+      "heading": "Extremal Graph Theory",
+      "section_type": "other",
+      "position": 9,
+      "text": "36 6.1 Eulerian Circuits and Hamiltonian Cycles . . . . . . . . . . . . . . . . . . 36 6.2 Complete Subgraphs and Turan’s Theorem . . . . . . . . . . . . . . . . . 39 6.3 The Zarankiewicz Problem . . . . . . . . . . . . . . . . . . . . . . . . . . 41 6.4 The Erd˝os-Stone Theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . 42 7",
+      "page_start": 3,
+      "word_count": 114
+    },
+    {
+      "heading": "Ramsey Theory",
+      "section_type": "other",
+      "position": 10,
+      "text": "43 7.1 Ramsey Numbers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44 7.2 Infinite Ramsey . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45 7.3 Ramsey Numbers for Hypergraphs . . . . . . . . . . . . . . . . . . . . . . 46 7.4 Lower Bounds for Ramsey Numbers . . . . . . . . . . . . . . . . . . . . . 46 8",
+      "page_start": 4,
+      "word_count": 131
+    },
+    {
+      "heading": "The Probabilistic Method",
+      "section_type": "other",
+      "position": 11,
+      "text": "48 8.1 Random Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 48 8.2 Random Graphs and Chromatic Number . . . . . . . . . . . . . . . . . . . 49 8.3 Structure of Random Graphs . . . . . . . . . . . . . . . . . . . . . . . . . 50 9",
+      "page_start": 5,
+      "word_count": 95
+    },
+    {
+      "heading": "Algebraic Methods in Graph Theory",
+      "section_type": "other",
+      "position": 12,
+      "text": "53 9.1 A Motivating Problem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 53 9.2 The Adjacency Matrix . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 54 9.3 Moore Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 56 § 1",
+      "page_start": 6,
+      "word_count": 109
+    },
+    {
+      "heading": "Definition 1.1",
+      "section_type": "other",
+      "position": 15,
+      "text": "(Graph) A graph is an ordered pair G = ( V, E ) where V is the set of vertices , and E ⊆ {{ x, y } | x, y ∈ V, x ̸ = y } is a set of unordered pairs of vertices called edges . We have a natural way of drawing a graph. For each vertex we have a point in the plane, and for each edge we draw a line between the corresponding pair of vertices.",
+      "page_start": 11,
+      "word_count": 82
+    },
+    {
+      "heading": "Example 1.2",
+      "section_type": "other",
+      "position": 16,
+      "text": "(Example of a Graph) The ordered pair ( V, E ) where V = { 1 , 2 , . . . , 6 } and E = {{ 1 , 2 } , { 2 , 3 } , . . . , { 5 , 6 }} is a graph. 1 2 3 4 5 6 This graph is known as P 6 , a path on 6 vertices. 2 Adam Kelly (November 6, 2021) Graph Theory § 1.1.1",
+      "page_start": 14,
+      "word_count": 81
+    },
+    {
+      "heading": "Definition 1.3",
+      "section_type": "other",
+      "position": 18,
+      "text": "(Path) We define P n to be the graph V = { 1 , . . . , n } , E = {{ 1 , 2 } , { 2 , 3 } , . . . , { n − 1 , n }} as shown. 1 2 3 n − 1 n · · · We call this a path on n vertices, and say it has length n − 1.",
+      "page_start": 4,
+      "word_count": 74
+    },
+    {
+      "heading": "Definition 1.4",
+      "section_type": "other",
+      "position": 19,
+      "text": "(Cycle) We define C n (for n ≥ 3) to be the graph V = { 1 , . . . , n } , E = {{ 1 , 2 } , . . . , { n − 1 , n } , { n, 1 }} as shown. . . . 1 2 3 4 5 6 7 n We call this the cycle on n vertices.",
+      "page_start": 8,
+      "word_count": 70
+    },
+    {
+      "heading": "Definition 1.5",
+      "section_type": "other",
+      "position": 20,
+      "text": "(Complete Graph) The complete graph on n vertices K n is the graph { 1 , . . . , n } and E = {{ i, j } | i ̸ = j ∈ V } . n = 3 n = 4 n = 5 Note that there is an edge between every pair of vertices.",
+      "page_start": 19,
+      "word_count": 58
+    },
+    {
+      "heading": "Remark.",
+      "section_type": "other",
+      "position": 22,
+      "text": "In our definition of a graph, we don’t allow 1 loops, and there cannot be 1 These limitations are inherent in our definition, where we use sets rather than multisets. 3 Adam Kelly (November 6, 2021) Graph Theory multiple edges between the same set of vertices. Loops Multiple edges You can define graphs where such things are allowed, but for now we will outlaw them. We also note that edges are unordered pairs , so for now edges have no direction. To be slightly more succinct, we will use some shorthand notation.",
+      "page_start": 25,
+      "word_count": 92
+    },
+    {
+      "heading": "Notation.",
+      "section_type": "other",
+      "position": 23,
+      "text": "If G = ( V, E ) is a graph, and we have some edge { x, y } ∈ E , we will denote it by xy . We will also define | G | = | V | , and e ( G ) = | E | .",
+      "page_start": 6,
+      "word_count": 51
+    },
+    {
+      "heading": "Example 1.7",
+      "section_type": "other",
+      "position": 24,
+      "text": "(Vertices and Edges of K n ) Consider the graph K n . We have | K n | = n , and e ( K n ) = � k 2 � , as there is an edge between any pair of vertices. § 1.1.2",
+      "page_start": 7,
+      "word_count": 46
+    },
+    {
+      "heading": "Definition 1.8",
+      "section_type": "other",
+      "position": 26,
+      "text": "(Subgraph) We say that H = ( V ′ , E ′ ) is a subgraph of G = ( V, E ) if V ′ ⊆ V and E ′ ⊆ E . Informally, H is a subgraph of G if we can remove vertices and edges from G to get H . Let’s look at some examples.",
+      "page_start": 11,
+      "word_count": 59
+    },
+    {
+      "heading": "Example 1.9",
+      "section_type": "other",
+      "position": 27,
+      "text": "(Example of a Subgraph) The graph on the right is a subgraph of the graph on the left. ≥ We are also going to use some notation for removing an edge or a vertex from a graph. Of course, when removing a vertex you also have to remove the edges connecting to it.",
+      "page_start": 14,
+      "word_count": 53
+    },
+    {
+      "heading": "Notation",
+      "section_type": "other",
+      "position": 28,
+      "text": "(Adding/Removing Vertices & Edges) . For an edge xy or a vertex x , we define G − xy to be the graph G with the edge xy removed, and G − x to be G with vertex x removed, along with all edges incident to x . We will also define G + xy to be G with the edge xy , and G + x to be G with the vertex x . An easy way to get a subgraph is by taking a subset of the vertices and seeing what edges you get from the original graph. 4 Adam Kelly (November 6, 2021) Graph Theory",
+      "page_start": 18,
+      "word_count": 108
+    },
+    {
+      "heading": "Definition 1.10",
+      "section_type": "other",
+      "position": 29,
+      "text": "(Inducted Subgraph) If G = ( V, E ) is a graph and X ⊆ V , the subgraph inducted by X is defined to be G [ X ] = ( X, { xy ∈ E | x, y ∈ X } ). § 1.1.3",
+      "page_start": 2,
+      "word_count": 46
+    },
+    {
+      "heading": "Definition 1.11",
+      "section_type": "other",
+      "position": 31,
+      "text": "(Graph Isomorphism) Let G = ( V, E ) and H = ( V ′ , E ′ ) be graphs. We say that f : V → V ′ is a graph isomorphism if f ( u ) f ( v ) ∈ E ′ ⇐⇒ uv ∈ E . If there is a graph isomorphism between G and H then we say they are isomorphic . Now for the following discussion, fix some graph G = ( V, E ), and let x ∈ V .",
+      "page_start": 6,
+      "word_count": 88
+    },
+    {
+      "heading": "Definition 1.12",
+      "section_type": "other",
+      "position": 32,
+      "text": "(Neighbourhood) If xy ∈ E , then we say that x and y are adjacent . We define the neighborhood of x to be the set N ( x ) = { y ∈ V | xy ∈ E } of all vertices adjacent to x . Note that as in the diagram below, x is not in its own neighborhood. x N ( x )",
+      "page_start": 10,
+      "word_count": 66
+    },
+    {
+      "heading": "Connectivity",
+      "section_type": "other",
+      "position": 36,
+      "text": "We now want to define some notion of connectivity , where a vertex u is connected to vertex v if you can follow some path in the graph to get from u to v . 5 Adam Kelly (November 6, 2021) Graph Theory u v v ′ x 2 x 1 For example, in the graph above we want to say somehow that u and v are connected, but u and v ′ are not. To do this, we will introduce some more definitions.",
+      "page_start": 21,
+      "word_count": 84
+    },
+    {
+      "heading": "Definition 1.16",
+      "section_type": "other",
+      "position": 37,
+      "text": "( uv Path) A uv path is a sequence x 1 , x 2 , . . . , x l where x 1 , . . . , x l are distinct, x 1 = u , x l = v and x i x i +1 ∈ E . In the example above, ux 1 x 2 v is a uv path. The slight subtlety in this condition is the distinctness condition. For example, if x 1 . . . x l is a uv path and y 1 . . . y l ′ is a vw path, then x 1 . . . x l y 1 . . . y l ′ may not be a uw path since we may have reused an edge. Of course, we can just not reuse edges by avoiding cycles.",
+      "page_start": 8,
+      "word_count": 141
+    },
+    {
+      "heading": "Proposition 1.17",
+      "section_type": "other",
+      "position": 38,
+      "text": "(Joining Paths) If x 1 . . . x l is a uv path and y 1 . . . y l ′ is a vw path, then x 1 . . . x l y 1 . . . y l ′ contains a uw path. Proof. Choose a minimal subsequence w 1 . . . w r of x 1 . . . x l y 1 . . . y l ′ such that 1. w i w i +1 ∈ E . 2. w 1 = u , w r = w . We now claim that w 1 . . . w r is a uw path. If this was not the case, then it must fail on distinctness, so there would exist some z such that the sequence is w 1 . . . w a zw a +2 . . . w b zw b +2 w r , but now note that w 1 . . . w a zw b +2 . . . w r also satisfies the conditions for the subsequence, but is strictly shorter length. This contradicts the minimality condition. Now given G = ( V, E ), let’s define an equivalence relation ∼ on V , where x ∼ y ⇐⇒ there exists an xy path in G.",
+      "page_start": 12,
+      "word_count": 221
+    },
+    {
+      "heading": "Definition 1.22",
+      "section_type": "other",
+      "position": 44,
+      "text": "(Minimum/Maximum Degree) Let G be a graph. The maximum degree of G , △ ( G ) is defined to be △ ( G ) = max x ∈ V d ( x ). Similarly, we define the minimum degree of G , δ ( G ) to be δ ( G ) = min x ∈ V d ( x ). In a k -regular graph as mentioned above, we have △ ( G ) = δ ( G ) = k .",
+      "page_start": 11,
+      "word_count": 84
+    },
+    {
+      "heading": "Definition 1.23",
+      "section_type": "other",
+      "position": 45,
+      "text": "(Graph Distance) Let G = ( V, E ) be a graph. The associated graph distance d : V × V → R ≥ 0 ∪{∞} is defined so that d ( x, y ) is the minimum path length from x to y if it exists, and ∞ otherwise.",
+      "page_start": 14,
+      "word_count": 50
+    },
+    {
+      "heading": "Proposition 1.24",
+      "section_type": "other",
+      "position": 46,
+      "text": "(Graph Distance is a Metric) Let G = ( V, E ) be a connected graph and let d be the associated graph distance. Then ( V, d ) defines a metric space. Proof Sketch. We have d ( x, y ) = 0, and d ( x, y ) = d ( y, x ) (taking the shortest path 7 Adam Kelly (November 6, 2021) Graph Theory in the opposite direction), and d ( x, z ) ≤ d ( x, y ) + d ( y, z ) as we can find path from x to z by taking paths from x to y and y to z and adjoining them, and this puts an upper bound on d ( x, z ). § 1.2",
+      "page_start": 16,
+      "word_count": 127
+    },
+    {
+      "heading": "Trees",
+      "section_type": "other",
+      "position": 47,
+      "text": "We will now discuss a special class of graph called trees . This class is quite restrictive (yet is quite useful), and they have some nice properties. To define what a tree is, we first need a notion of when a graph is acyclic.",
+      "page_start": 3,
+      "word_count": 44
+    },
+    {
+      "heading": "Proposition 1.29",
+      "section_type": "other",
+      "position": 52,
+      "text": "(Characterising Trees) The following are equivalent. (a) G is a tree. (b) G is a maximal acyclic graph (adding any edge creates a cycle). (c) G is a minimal connected graph (removing any edge disconnects the graph). Proof. (a) = ⇒ (b) . By definition G is acyclic. Let x, y ∈ V such that xy ̸∈ E . As G is connected, there is an xy path P . So xPy then defines a cycle. (b) = ⇒ (a) . By definition G is acyclic. So for a contradiction assume G is not connected and let x, y be vertices from different components. Now note G + xy is acyclic, but this contradicts the claim that G is maximally acyclic. (a) = ⇒ (c) . By definition G is connected. Suppose, for a contradiction, that there exists some vertices x, y ∈ E with x ̸ = y and G − xy is connected. But then there is some xy path P that does not use the edge xy , so xPy is then a cycle, contradicting that G is acyclic. (c) = ⇒ (a) . By definition G is connected. Again for a contradiction, assume that G contains a cycle C . Then let xy be an edge on C . We claim G − xy is still connected. If u, v ∈ V ( G − xy ) then let P be a path in G from u to v . If xy does not appear as consecutive vertices on this path, then u is connected to v . Otherwise, we can consider a new path where we replace x, y with the other vertices in C − xy in order. Thus u and v are still connected. This contradicts the minimal connectedness of G .",
+      "page_start": 2,
+      "word_count": 299
+    },
+    {
+      "heading": "Definition 1.30",
+      "section_type": "other",
+      "position": 53,
+      "text": "(Leaf) Let G be a graph. A vertex v ∈ V ( G ) is a leaf if d ( v ) = 1. For example, the tree below has three leaves. In general, trees has a leaf. 9 Adam Kelly (November 6, 2021) Graph Theory",
+      "page_start": 11,
+      "word_count": 46
+    },
+    {
+      "heading": "Proposition 1.31",
+      "section_type": "other",
+      "position": 54,
+      "text": "(Trees Have Leaves) Every tree T with | T | ≥ 2 has a leaf. Proof. Let T be a tree with | T | ≥ 2, and let P be a path of maximum length in T , with P = x 1 . . . x k . We claim that d ( x k ) = 1. Observe that deg( x k ) ≥ 1, since x k x k − 1 ∈ E . If x k is adjacent to another vertex y ̸ = x k − 1 , then either y ∈ { x 1 , . . . , x k − 2 } , which would imply thar T contains a cycle, or y ̸∈{ x 1 , . . . , x k − 2 } , then x 1 . . . x k y is a path longer than P , which violates its maximality.",
+      "page_start": 2,
+      "word_count": 156
+    },
+    {
+      "heading": "Proposition 1.32",
+      "section_type": "other",
+      "position": 56,
+      "text": "(Edges of a Tree) Let T be a tree. Then e ( T ) = | T | − 1. Proof. We will do induction on n = | T | . If n = 1, this is trivial as there is only one edge. Now given T with at least 2 vertices, let x be a leaf in T , and define T ′ = T − x . T ′ must be acyclic, since we have only removed vertices. T ′ must also be connected since for all u, v ∈ V ( T ′ ) there exists a path from u to v in T that does not use x , so it is also a path from u to v in T ′ . Thus T ′ is a tree. Thus by induction, T ′ has n − 2 edges, and e ( T ) = e ( T ′ ) + 1 = | T | − 1. Now lets think about trees as subgraphs of other graphs.",
+      "page_start": 6,
+      "word_count": 173
+    },
+    {
+      "heading": "Definition 1.33",
+      "section_type": "other",
+      "position": 57,
+      "text": "(Spanning Tree) Let G be a graph. We say T is a spanning tree of G if T is a tree on V ( G ) and is a subgraph of G . Tree Spans all vertices Spanning trees are useful in a number of contexts, one of which is giving a sensible ordering to the vertices of a graph. They are particularly useful because of the following result.",
+      "page_start": 11,
+      "word_count": 69
+    },
+    {
+      "heading": "Proposition 1.34",
+      "section_type": "other",
+      "position": 58,
+      "text": "(Connected Graphs have Spanning Trees) Every connected graph contains a spanning tree. 10 Adam Kelly (November 6, 2021) Graph Theory Proof. A tree is a minimal connected graph. So take the connected graph and remove edges until it becomes a minimal connected graph. Then this will be a subgraph of the original graph, and will thus be a spanning tree. § 1.3",
+      "page_start": 16,
+      "word_count": 62
+    },
+    {
+      "heading": "Definition 1.35",
+      "section_type": "other",
+      "position": 60,
+      "text": "(Bipartite Graphs) A graph G = ( V, E ) is bipartite if V = A ∪ B where A ∩ B = ∅ and all edges xy ∈ E have either x ∈ A, y ∈ B or x ∈ B, y ∈ A .",
+      "page_start": 5,
+      "word_count": 46
+    },
+    {
+      "heading": "Example 1.36",
+      "section_type": "other",
+      "position": 61,
+      "text": "(Example of Bipartite Graphs) The graph below is bipartite, with vertices in the set A being coloured red and vertices in the set B being coloured blue. Bipartite V = A ∪ B An example of a non-bipartite graph is C 5 . To see this, we can start by choosing a vertex to be in A (without loss of generality), then the adjacent vertices must be in B , but then their adjacent vertices must be in A , but then there is an edge between two vertices in A . This is shown below. C 5 can’t be bipartite The argument given for C 5 works in general.",
+      "page_start": 7,
+      "word_count": 110
+    },
+    {
+      "heading": "Proposition 1.37",
+      "section_type": "other",
+      "position": 62,
+      "text": "(Bipartite Cyclic Graphs) The cycle C 2 k +1 is not bipartite, and the cycle C 2 k is bipartite. Proof. Assume that C 2 k +1 is bipartite. Then there must be disjoint sets A and B , and as 2 k + 1 is odd, we must have (without loss of generality), | A | > | B | . Now let’s count the edges between A and B . This must be 2 | A | and also 2 | B | , as every vertex has degree 2. But then | A | = | B | , which is a contradiction. 11 Adam Kelly (November 6, 2021) Graph Theory For C 2 n , we can let v i ∈ A if i is even and v i ∈ B if i is odd. Then a vertex i only has edges to vertices i − 1 and i + 1 (mod 2), which have opposite parity. Thus all edges are between A and B , as required. There is then a natural question: given some arbitrary graph G , how do we determine if a given graph is bipartite? It turns out that there is a nice check for ‘bipartness’. We will state the result and then do some setup before we prove it.",
+      "page_start": 13,
+      "word_count": 219
+    },
+    {
+      "heading": "Definition 1.39",
+      "section_type": "other",
+      "position": 64,
+      "text": "(Circuit) A circuit is a sequence x 1 . . . x l where x 1 = x l and x i x i +1 ∈ E . The length of the circuit is l − 1, the number of edges traversed in the circuit.",
+      "page_start": 7,
+      "word_count": 45
+    },
+    {
+      "heading": "Proposition 1.41",
+      "section_type": "other",
+      "position": 66,
+      "text": "An odd circuit contains an odd cycle. Proof. We will prove this by induction on the length of the circuit. For a circuit of length 3, the circuit must be a cycle. In general, let C = x 1 . . . x l be our circuit. If x 1 , . . . , x l − 1 are distinct, then C is a cycle and we are done. Otherwise, there exists some z ∈ C that is repeated. We write C = x 1 . . . x a zx a +2 . . . x b zx b +2 . . . x l . We define C ′ = x 1 . . . x a zx b +2 . . . x l and C ′′ = zx a +2 . . . x b z . The length of C ′ and C ′′ is strictly less than the length of C . One of these circuits must have odd length, and by induction that odd circuit contains an odd cycle. We can now prove our original bipartness criterion, that a graph is bipartite if and only if it contains no odd cycles. Proof (Bipartite Criterion). If G was bipartite and contained an odd cycle, then there exists an odd cycle that is bipartite. But this is a contradiction. Now if G is not bipartite, we can induct on the number of vertices. For | G | = 1, this holds. Now if G is not connected, let C 1 , . . . , C k be the components of G . We may now apply our induction to each component of G to obtain a bipartition V ( C i ) = A i ∪ B i for each i ∈ 1 , . . . , k . Then A = A 1 ∪ . . . A k and B = B 1 ∪ B k is a bipartition for the whole graph. 12 Adam Kelly (November 6, 2021) Graph Theory We may now assume without loss of generality that G is connected. Fix some vertex v ∈ V , and define A = { u ∈ V | d ( u, v ) is odd } B = { u ∈ V | d ( u, v ) is even } We claim that A ∪ B is a bipartition. Assume (for a contradiction) that u 1 is adjacent to u 2 and d ( u 1 , v ) ∼ = d ( u 2 , v ) (mod 2). Then there exists paths P 1 from v to u 1 and P 2 from u 2 to v with | P 1 | ≡| P 2 | . But this implies that vP 1 u 1 u 2 P 2 defines a odd circuit in G . Therefore, by our previous proposition, G contains an odd cycle, which is a contradiction. § 2",
+      "page_start": 11,
+      "word_count": 496
+    },
+    {
+      "heading": "Definition 2.1",
+      "section_type": "other",
+      "position": 69,
+      "text": "(Matching) A matching of G is a collection of edges M ⊆ E so that ∀ e 1 , e 2 ∈ M with e 1 ̸ = e 2 has e 1 ∩ e 2 = ∅ . Allowed Not allowed",
+      "page_start": 11,
+      "word_count": 42
+    },
+    {
+      "heading": "Definition 2.2",
+      "section_type": "other",
+      "position": 70,
+      "text": "(Saturated) Given a graph G = ( V, E ) and a matching M in G , we say that a vertex v ∈ V is saturated by M if there exists an edge in M containing v . The matching B saturates every vertex M ⊆ E A matching where every vertex is saturated (such as the above) is known as a per- 13 Adam Kelly (November 6, 2021) Graph Theory fect matching . However, there is no restriction in general on how many vertices are saturated by a matching. § 2.2",
+      "page_start": 14,
+      "word_count": 93
+    },
+    {
+      "heading": "Matching in Bipartite Graphs",
+      "section_type": "other",
+      "position": 71,
+      "text": "Matchings are particularly interesting in bipartite graphs. We will be interested in the following question: given a bipartite graph G = ( A ∪ B, E ), when can I find a matching saturating A ? A is saturated by M ⊆ E A B This question is the same as asking when is there a function f : A → B where xf ( x ) ∈ E that is an injection. In trying to answer this question, we might try and think about why it may not be possible. The simplest reason is when B isn’t large enough to have an injection, when | B | ≤| A | . In a similar way, we might have a graph is big enough, but that isn’t true for a small part of the graph, like below. A ′ B ′ What Hall’s theorem says is that this issue is the only obstruction to creating such a matching.",
+      "page_start": 3,
+      "word_count": 158
+    },
+    {
+      "heading": "Definition 2.3",
+      "section_type": "other",
+      "position": 72,
+      "text": "(Neighbourhood of a Vertex Set) If X ⊆ V , then we define N ( X ), the neighbourhood of X to be N ( X ) = � x ∈ X N ( x ). With the notion of the neighborhood of a set of vertices, we can rephrase the issue mentioned about as | N ( A ′ ) | < | A ′ | for some subset A ′ ⊆ A . We will use this notation in our statement for Hall’s theorem. Before we prove the theorem, we will need to prepare a little bit.",
+      "page_start": 12,
+      "word_count": 99
+    },
+    {
+      "heading": "Definition 2.4",
+      "section_type": "other",
+      "position": 73,
+      "text": "( M -Alternating Path) 14 Adam Kelly (November 6, 2021) Graph Theory Let G = ( V, E ) be a graph with a matching M in G . We say that a path P = x 1 . . . x l is",
+      "page_start": 17,
+      "word_count": 44
+    },
+    {
+      "heading": "M-alternating",
+      "section_type": "other",
+      "position": 74,
+      "text": "if x i x i +1 is alternately in M and not in M . In M Some path P in G Another example of an M -alternating path is the one below. If we saw the path above in the graph, and we knew that the end vertices was not saturated, then we could change the edges that are in M , so we would still have a matching. This move will be key in our proof of Hall’s theorem. We are going to call this configuration an augmented path .",
+      "page_start": 2,
+      "word_count": 92
+    },
+    {
+      "heading": "Definition 2.5",
+      "section_type": "other",
+      "position": 75,
+      "text": "( M -Augmenting Path) Given a graph G = ( V, E ) and a matching M in G , an M -alternating path P = x 1 . . . x l is said to be M -augmenting if x 1 and x l are not saturated.",
+      "page_start": 8,
+      "word_count": 48
+    },
+    {
+      "heading": "Proposition 2.6",
+      "section_type": "other",
+      "position": 76,
+      "text": "If M is a matching in G of maximum size, then there are no M -augmenting paths. Proof. If there is an M -augmenting path in G , then we can flip the edges of M along P to find a strictly larger matching. An important observation is that an M -alternating path in a bipartite graph G = ( A ∪ B, E ) with P = x 1 . . . x l , with x 1 ∈ A and x 1 x 2 ∈ M , then x 2 k +1 x 2 k +2 ∈ M , and vice versa. § 2.3",
+      "page_start": 10,
+      "word_count": 106
+    },
+    {
+      "heading": "Theorem 2.7",
+      "section_type": "other",
+      "position": 78,
+      "text": "(Hall’s Theorem) Let G = ( A ∪ B, E ) be a bipartite graph. Then there exists a matching saturating A if and only if every subset A ′ ⊆ A satisfies | N ( A ′ ) | ≥| A ′ | . 15 Adam Kelly (November 6, 2021) Graph Theory Proof. First we prove the forward (and easy) direction. Let A ′ = { x 1 , . . . , x t } ⊆ A . We have matching edges x 1 y 1 , . . . , x t y t ∈ M ⊆ E , and thus { y 1 , . . . , y t } ⊆ N ( A ′ ), and thus | N ( A ′ ) | ≥| A ′ | . Now for the other (harder) direction, which is that this condition implies the exis- tence of such a matching. Choose a matching M in G with | M | maximized. For a contradiction, assume there is some vertex a 0 ∈ A that is not saturated by M . We inductively define sets A i ⊆ A , B t ⊆ B by setting A 0 = { a 0 } , B 0 = ∅ . We will maintain, for all t , that 1. | A t | = t + 1, | B t | = t . 2. Every vertex in A t ∪ B t is the endpoint of an alternating path that started at a 0 . 3. A t \\{ a 0 } is matched to B t . So given A t , B t , we need to define A t +1 , B t +1 . First consider N ( A t ). We have | N ( A t ) | ≥| A t | = t + 1 > | B t | . So N ( A t ) \\ B t is non-empty. So let b t +1 ∈ N ( A t ) \\ B t . Observe that b t +1 can be reached along an alternating path which started at a 0 . Call y ∈ A t such that yb t +1 ∈ E . Then y can be reached along an alternating path starting at a 0 . Let P = a 0 x 1 . . . x l y be such an alternating path. Since a 0 x 1 ̸∈ M , x l y ∈ M . Hence Pb t +1 is a alternating path. Now, b t +1 is saturated by M , as otherwise Pb t +1 would be an M -augmenting path, which is a contradiction. So let a t +1 b t +1 ∈ M . We claim a t +1 ̸∈ A t , since A t is matched to B t , and b t +1 ̸∈ B t . So we may define A t +1 = A t ∪{ a t +1 } and B t +1 = B t ∪{ b t +1 } . We can check that what we claimed before holds. Since a t +1 ̸∈ A t , and b t +1 ̸∈ B t , we have | A t +1 | = | A t | + 1 and | B t +1 | = | B t | + 1. Also every vertex is the endpoint of an alternating path starting at a 0 by construc- tion. Also A t +1 \\{ a 0 } is matched to B t +1 since A t \\{ a 0 } is matched to B t , and by construction. This completes the construction of A t , B t for all t . Then if t > | A | , then | A t | > | A | , but A t ⊆ A , which is a contradiction. § 2.4",
+      "page_start": 16,
+      "word_count": 664
+    },
+    {
+      "heading": "Corollary 2.8",
+      "section_type": "other",
+      "position": 80,
+      "text": "A k -regular bipartite graph contains a perfect matching. Proof. Let G = ( A ∪ B, E ), and let A ′ ⊆ A . We want to show that | N ( A ′ ) | ≥| A ′ | so that we may apply Hall’s theorem. We will count the number of edges between A ′ and N ( A ′ ) in two different ways. We know that each vertex in A ′ has degree k , so there is k | A | edges. But on the 16 Adam Kelly (November 6, 2021) Graph Theory other hand, the number of edges in N ( A ′ ) is | N ( A ′ ) k | . Thus | N ( A ′ ) k | ≥| A ′ | k , so | N ( A ′ ) | ≥| A ′ | , and by Hall’s theorem there exists a matching saturating A . We claim that | B | = | A | . Indeed, the number of edges between A and B is k | A | and is also k | B | , and thus | A | = | B | . So a matching saturating A also saturates B . So there exists a perfect matching. We can also consider an extension of Hall’s theorem. Hall’s theorem tells us when, in a bipartite graph G = ( A ∪ B, E ), there is a matching saturating A , but what if we only wanted a matching of size k ? Let’s say that a matching in G has deficiency d if it saturates | A | − d vertices.",
+      "page_start": 15,
+      "word_count": 283
+    },
+    {
+      "heading": "Corollary 2.9",
+      "section_type": "other",
+      "position": 81,
+      "text": "Let G be a bipartite graph. Then G contains a matching saturating | A | − d vertices in A if and only if for all A ′ ⊆ A , we have | N ( A ′ ) | ≥| A ′ | − d . Proof. If we have a matching with deficiency d , then this clearly holds. Now if this condition holds for some graph G = ( A ∪ B, E ), we define a new graph ˜ G by by setting ˜ B = B ∪{ z 1 , . . . , z d } where z 1 , . . . , z d are distinct from x ∈ A ∪ B , and we define ˜ E = E ∪{ e i a | i ∈{ 1 , . . . , d } , a ∈ A } . So ˜ G = ( A ∪ ˜ B, ˜ E ). This is a bipartite graph, and we observe that is satisfies Hall’s condition. Thus ˜ G has a matching M saturating A . So if we define M ′ by removing all of the edges with an endpoint in { z 1 , . . . , z d } , then M ′ saturates all but at most d vertices in G . Another way of stating Hall’s theorem is with set systems.",
+      "page_start": 6,
+      "word_count": 235
+    },
+    {
+      "heading": "Definition 2.10",
+      "section_type": "other",
+      "position": 82,
+      "text": "(System of Distinct Representatives) Gives sets S 1 , . . . , S n ⊂ X where S i is finite for all i . Then we say that x 1 , . . . , x n ∈ X is a system of distinct representatives (or SDR) if they are distinct and x i ∈ S i . The question is, for what set systems does there exist a system of distinct representatives? The answer is if they satisfy some Hall-like condition.",
+      "page_start": 12,
+      "word_count": 84
+    },
+    {
+      "heading": "Corollary 2.11",
+      "section_type": "other",
+      "position": 83,
+      "text": "(Existence of SDRs) Given S 1 , . . . , S n ⊆ X , with S i finite, then S 1 , · · · S n has a system of distinct repre- sentatives if and only if ����� � i ∈ I S i ����� ≥| I | , for all I ∈{ 1 , . . . , n } . Proof. If such an SDR exists, then this condition clearly holds. In the other direction, given that this condition holds, we define a graph G by setting A = { S 1 , . . . , S n } and B = � n i =1 S i , with E = {{ S i , x } | x ∈ A, i ∈{ 1 , . . . , n } , x ∈ S i } . Then G = ( A ∪ B, E ) . Now observe that a SDR is exactly a matching in G 17 Adam Kelly (November 6, 2021) Graph Theory that saturates A . We check Hall’s condition. Given A ′ ⊆ A , then N ( A ′ ) = � S i ∈ A ′ S i . Thus �� N ( A ′ ) �� = ������ � S i ∈ A ′ S i ������ ≥| A ′ | , by our condition. So such a matching exists.",
+      "page_start": 15,
+      "word_count": 236
+    },
+    {
+      "heading": "Example 2.12",
+      "section_type": "other",
+      "position": 85,
+      "text": "(Left and Right Coset Representatives) Let G be a group and let H < G , with G finite. We have the left cosets g 1 H, . . . , g k H and right cosets Hg ′ 1 , . . . , Hg ′ k . We want to know does there exists h 1 , . . . , h k such that h 1 H, . . . , h k H are all of the left cosets and Hh 1 , . . . , Hh k are all of the right cosets. It turns out that this question is entirely combinatorial, and we can use Hall’s theorem. Let’s form the bipartite graph ( A ∪ B, E ) with A = { g 1 H, . . . , g k H } and B = { Hg ′ 1 , . . . , Hg ′ k } so that there is an edge between g i H and Hg ′ j if the cosets have non empty intersection. A g 1 H g 2 H g k H B Hg ′ 1 Hg ′ 2 Hg ′ k Edges when the cosets have non-empty intersection If we had a perfect matching in this graph, then we could pick an element h i in the (non-empty) intersection of the matched left and right cosets, and then h 1 , . . . , h k would be a set of coset representatives for all of the k left and right cosets. So we want to show that Hall’s theorem is satisfied. Given I ⊆{ 1 , . . . , k } , we want to show that the number of right cosets intersecting � i ∈ I g i H is at least | I | . Observe that ��� i ∈ I g i H �� = | H || I | . Since the right cosets partition G , and each coset has size | H | , so the number of right cosets intersecting � g i H is at least | I | . Thus | N ( { g i H | i ∈ I } ) | ≥| I | , and thus Hall’s theorem is satisfied, and we have a perfect matching in the graph. 18 Adam Kelly (November 6, 2021) Graph Theory § 3",
+      "page_start": 12,
+      "word_count": 401
+    },
+    {
+      "heading": "Connectivity",
+      "section_type": "other",
+      "position": 86,
+      "text": "We have already defined what it means for a graph to be connected, but consider the following connected graphs: Clearly these are connected, but they are all ‘connected to different extents’. For exam- ple, in the first graph, removing any vertex disconnects the graph. In the second graph, any vertex could be removed and the graph would stay connected. We can also see that in the first graph, there’s only one path from one vertex to another, whereas in the third graph there is many. This also seems to correlate with ‘how connected’ a graph is. § 3.1",
+      "page_start": 2,
+      "word_count": 98
+    },
+    {
+      "heading": "Measuring Connectivity",
+      "section_type": "other",
+      "position": 87,
+      "text": "So looking at the graphs above, we two natural notions for ‘how connected a graph is’ can be informally described as 1. A ‘deletion notion’ of connectivity, where we consider how connected the graph is after some vertices are removed. 2. A ‘paths notion’ of connectivity, where we consider how many independent paths there is between vertices. One of the main goals of this section will be turning this vague notion into a concrete concept, and proving an interesting result about how the two notions relate to each other.",
+      "page_start": 5,
+      "word_count": 89
+    },
+    {
+      "heading": "Notation",
+      "section_type": "other",
+      "position": 88,
+      "text": "(Removing Vertex Sets) . In this section (and for the rest of this article), if G = ( V, E ) is a graph and S ⊆ V , we define G − S = G − x 1 − x 2 −· · · − x l where S = { x 1 , . . . , x l } . We will begin with a definition.",
+      "page_start": 10,
+      "word_count": 69
+    },
+    {
+      "heading": "Definition 3.2",
+      "section_type": "other",
+      "position": 90,
+      "text": "(Seperator) If G = ( G, V ) is a connected graph, we say that a subset S ⊆ V is a separator (or separating set) if G − S is disconnected. With these concepts defined, we can define our ‘deletion’ notion of connectivity.",
+      "page_start": 3,
+      "word_count": 44
+    },
+    {
+      "heading": "Definition 3.3",
+      "section_type": "other",
+      "position": 91,
+      "text": "(Connectivity) Let G = ( V, E ) be a graph. The connectivity of G , denoted κ ( G ), is the size of the smallest set S ⊆ V such that G − S is disconnected, or just a single vertex a . a This is needed for the case of a complete graph.",
+      "page_start": 6,
+      "word_count": 56
+    },
+    {
+      "heading": "Example 3.4",
+      "section_type": "other",
+      "position": 92,
+      "text": "(Connectivity of C n ) Consider the graph C n for n ≥ 3. . . . 1 2 3 4 5 6 7 n Removing one vertex will never disconnect C n . However, removing two vertices can disconnect it. = ⇒ κ ( C n ) = 2 S",
+      "page_start": 9,
+      "word_count": 51
+    },
+    {
+      "heading": "Petersen graph",
+      "section_type": "other",
+      "position": 94,
+      "text": "with 10 vertices and 15 edges as shown below. We can see that the connectivity is at most 3, since that is the degree of each vertex, and also removing two vertices won’t disconnect the graph. Thus the connectivity of the Petersen graph is exactly 3. 20 Adam Kelly (November 6, 2021) Graph Theory",
+      "page_start": 23,
+      "word_count": 54
+    },
+    {
+      "heading": "Definition 3.6",
+      "section_type": "other",
+      "position": 95,
+      "text": "( k -Connected) We say that a graph G is k -connected if κ ( G ) ≥ k . In particular, any set S ≤ V ( G ) with | S | < k will have G − S connected. We note this immediately implies that G is 1-connected if and only if it’s connected, and it is 2-connected if and only if it has no cut vertex. We can note some basic properties of connnectivity.",
+      "page_start": 2,
+      "word_count": 78
+    },
+    {
+      "heading": "Lemma 3.7",
+      "section_type": "other",
+      "position": 96,
+      "text": "(Increasing/Reducing Connectivity) If G = ( V, E ) is a k -connected graph and v ∈ V then G − v is ( k − 1)-connected a . Also, if we have some e ∈ E , then G − E is ( k − 1)-connected. a Note that it is also possible that G − v is ( k + 1)-connected, so connectivity can also increase by deleting a vertex. Proof Sketch. Check definitions. § 3.2",
+      "page_start": 6,
+      "word_count": 78
+    },
+    {
+      "heading": "Definition 3.8",
+      "section_type": "other",
+      "position": 98,
+      "text": "( ab -Seperator) If G = ( V, E ) is a graph and a, b ∈ V are distinct vertices, we say that S is an ab seperator if a and b lie in different components of G − S (so a, b ̸∈ S ). a b S a b Removing S",
+      "page_start": 12,
+      "word_count": 54
+    },
+    {
+      "heading": "Definition 3.9",
+      "section_type": "other",
+      "position": 99,
+      "text": "(Seperator) If G = ( V, E ) is a graph and F ⊆ E , we say that F is a separator of G if G − F is disconnected. We then have a number of useful lemmas, that we will employ later on.",
+      "page_start": 20,
+      "word_count": 45
+    },
+    {
+      "heading": "Lemma 3.10",
+      "section_type": "other",
+      "position": 101,
+      "text": "Let G = ( V, E ) be a graph. Then κ a,b ( G ) ≥ κ a,b ( G − v ), where v ∈ V and v ̸ = a, b . 21 Adam Kelly (November 6, 2021) Graph Theory Proof. If G − v has an ab separator S then S ∪{ v } is an ab separator in G .",
+      "page_start": 24,
+      "word_count": 65
+    },
+    {
+      "heading": "Lemma 3.11",
+      "section_type": "other",
+      "position": 102,
+      "text": "For a graph G = ( V, E ), κ a,b ( G − e ) ≥ κ a,b ( G ) = 1, for e ∈ E and a ∼ b . Proof. If G − e has an ab separator S then S ∪{ x } and S ∪{ y } are ab separators in G , where e = xy .",
+      "page_start": 3,
+      "word_count": 64
+    },
+    {
+      "heading": "Lemma 3.12",
+      "section_type": "other",
+      "position": 103,
+      "text": "Let G = ( V, E ) be a graph with distinct non-adjacent vertices a, b ∈ V . Also let κ a,b ( G ) ≥ k . Let S be an ab separator in G , and say G − S = A ∪ C , where A is the connected component containing a . Then define ˜ G as the induced graph G [ A ∪ S ] with a vertex x joined to all of S . Then κ a,x ( ˜ G ) ≥ k . Proof Sketch. Check definitions. We can now formalize our ‘independent paths’ notion of connectivity.",
+      "page_start": 6,
+      "word_count": 105
+    },
+    {
+      "heading": "Definition 3.13",
+      "section_type": "other",
+      "position": 104,
+      "text": "(Independent Paths) We say that P 1 , . . . , P k are independent ab paths if each of P 1 , . . . , P k are ab -paths and all of the vertices in these paths are distinct, apart from a and b . § 3.3",
+      "page_start": 10,
+      "word_count": 51
+    },
+    {
+      "heading": "Theorem 3.14",
+      "section_type": "other",
+      "position": 106,
+      "text": "(Menger’s Theorem, First Form) Let G = ( V, E ) be a graph, with distinct and non-adjacent a, b ∈ V . If every ab separator in G has size at least k then we can find k independent ab paths. Proof. Suppose for a contradiction, assume this is false and let G be the counterex- ample that (1) Minimizes κ a,b ( G ) (2) Subject to (1), minimizes the number of edges in the graph. Then we observe that κ a,b ( G − e ) = κ a,b ( G ) − 1 for any edge e ∈ E . We will let k = κ a,b ( G ).",
+      "page_start": 14,
+      "word_count": 114
+    },
+    {
+      "heading": "Claim",
+      "section_type": "other",
+      "position": 107,
+      "text": ". There exists an ab separator S with | S | = k so that S ̸⊆ N ( a ) and S ̸⊆ N ( b ). We first observe that N ( a ) ∩ N ( b ) is empty. To see this, let x ∈ N ( a ) ∩ N ( b ) and G ′ = G − x . Then κ a,b ( G ′ ) ≥ κ a,b ( G ) − 1, thus there are k − 1 independent paths P 1 , . . . , P k − 1 in G ′ , then P 1 , . . . , P k − 1 , axb are k independent paths in G , and our graph would then not be a counterexample. 22 Adam Kelly (November 6, 2021) Graph Theory Now choose a shortest path P = ax 1 . . . x l b . Let G ′ = G − x 1 x 2 . We know that κ a,b ( G ′ ) = k − 1. Therefore there exists an ab separator S ′ of size k − 1. Let A be the component of a in G ′ − S ′ , and B be the component of b in G ′ − S ′ . Note that x 1 x 2 must have x 1 ∈ A and x 2 ∈ B . Note x 1 ∼ a , and x 2 ̸∼ a since P is the shortest path. Also note that x 2 ̸ = b , since N ( a ) ∩ N ( b ) = ∅ . If S ′ ⊆ N ( a ), then S ′ ∪{ x 2 } is an ab separator of size k , and S ̸⊆ N ( a ) , N ( b ). If S ′ ⊆ N ( b ), then S = S ′ ∪{ x 1 } is an ab separator of size k , and S ̸⊆ N ( b ) , N ( a ). Lastly, if S ′ ̸⊆ N ( a ) and S ′ ̸⊆ N ( b ), then S = S ′ ∪{ x 1 } is an ab separator of size k that is not in N ( a ) or N ( b ). So our claim holds. So let S be an ab separator with | S | = k and S ̸⊆ N ( a ) , N ( b ). Define A , B to be the components containing a and b in G − S . We also define ˜ G a as G [ A ∪ S ] with a vertex x that joins to all of S . define ˜ G b likewise. We now have e ( ˜ G a ) < e ( G ) , e ( ˜ G b ) < e ( G ) . We also have κ a,x ( ˜ G a ) = k = κ b,x ( ˜ G b ). Thus ˜ G a and ˜ G b satisfy the theorem, by minimality. So we can find independent ax paths P 1 , . . . , P k ∈ ˜ G a and yb paths Q 1 , . . . , Q k ∈ ˜ G b . Thus we can find k independent ab paths by concatenation and reordering in G , as desired.",
+      "page_start": 20,
+      "word_count": 587
+    },
+    {
+      "heading": "Remark.",
+      "section_type": "other",
+      "position": 108,
+      "text": "It should be noted that we need the non-adjacent condition, otherwise there is no ab separator. Before we write down the proof, we will isolate some notable facts about connectivity. Also, this result implies Hall’s theorem. Another form of Menger’s theorem is more common.",
+      "page_start": 9,
+      "word_count": 44
+    },
+    {
+      "heading": "Theorem 3.15",
+      "section_type": "other",
+      "position": 109,
+      "text": "(Menger’s Theorem, Second Form) Let G = ( V, E ) be a graph. Then G is k -connected if and only for all u, v ∈ V with u ̸ = v , there exists k independent uv -paths. Proof. If u is not adjacent fo v , then apply Menger’s theorem (first form) to find k -independent uv paths. If they are adjacent, then G ′ = G − uv is k − 1 connected, thus Menger’s theorem (first form) tells us that there are uv independent paths P 1 , . . . , P k − 1 in G − uv . Thus P 1 , . . . , P k − 1 , uv are k independent paths. The other direction is straightforward. § 3.4",
+      "page_start": 11,
+      "word_count": 131
+    },
+    {
+      "heading": "Definition 3.16",
+      "section_type": "other",
+      "position": 112,
+      "text": "(Edge Cut) 23 Adam Kelly (November 6, 2021) Graph Theory An edge cut in a graph G = ( V, E ) is a set F ⊆ E so that G − F is disconnected. F is an edge cut",
+      "page_start": 17,
+      "word_count": 40
+    },
+    {
+      "heading": "Definition 3.17",
+      "section_type": "other",
+      "position": 113,
+      "text": "(Cut Edge) A cut edge e ∈ E is an edge so that G − e is disconnected. Cut Edge Now similarly to how we had independent paths before (that didn’t share vertices), we can define a notion of edge independent paths.",
+      "page_start": 4,
+      "word_count": 42
+    },
+    {
+      "heading": "Definition 3.18",
+      "section_type": "other",
+      "position": 114,
+      "text": "(Edge Disjoint Paths) We say that the uv paths P 1 , . . . , P k are edge disjoint if E ( P i ) ∩ E ( P j ) = ∅ for all i ̸ = j . The blue and red paths are edge disjoint We can then define edge connectivity (our deletion notion).",
+      "page_start": 8,
+      "word_count": 59
+    },
+    {
+      "heading": "Definition 3.20",
+      "section_type": "other",
+      "position": 116,
+      "text": "( k -Edge-Connected) We say a graph G is k -edge-connected if λ ( G ) ≥ k . In other words, G − F is connected for all | F | ≤ k − 1, with F ⊆ E . We note that G is 1-edge-connected if and only if it is connected, and it is 2-edge- connected if and only if there is no cut edge. We have a Menger’s theorem for this notion of connectivity also.",
+      "page_start": 14,
+      "word_count": 79
+    },
+    {
+      "heading": "Theorem 3.21",
+      "section_type": "other",
+      "position": 117,
+      "text": "(Menger’s Theorem, Edge Version) 24 Adam Kelly (November 6, 2021) Graph Theory Let G = ( V, E ) be a graph, and u, v be distinct vertices of G . If every set of edges F ⊆ E that separates u from v has size greater than or equal to k , then there exists k edge disjoint paths from u to v . We also have a similar second version.",
+      "page_start": 18,
+      "word_count": 72
+    },
+    {
+      "heading": "Theorem 3.22",
+      "section_type": "other",
+      "position": 118,
+      "text": "(Menger’s Theorem, Edge Version Two) Let G = ( V, E ) be a graph. Then G is k -edge-connected if and only if for every u, v ∈ V with u ̸ = v there exists k edge disjoint uv -paths P 1 , . . . , P k . We are going to prove this by constructing a graph that we can then get the required result from my applying vertex Menger. The construction will be based on the idea of a line graph .",
+      "page_start": 4,
+      "word_count": 88
+    },
+    {
+      "heading": "Definition 3.23",
+      "section_type": "other",
+      "position": 119,
+      "text": "(Line Graph) Given a graph G = ( V, E ), we define L ( G ) to be the line graph as follows. V ( L ( G )) = E , and for e, f ∈ E , we have ef ∈ E ( L ( G )) if e ∩ f ̸ = ∅ . An example of a graph and its corresponding line graph is shown below. e 1 e 2 e 3 e 4 e 7 e 5 e 6 e 1 e 2 e 3 e 6 e 5 e 4 e 7 G L ( G ) We can now prove the edge version of Menger’s theorem. Proof (Menger’s Theorem, Edge Version). We are given a graph G = ( V, E ) and distinct vertices u, v ∈ V such that every u, v separator has size ≥ k . Construct the graph ˜ G which is L ( G ) along with vertices u and v with u joined to all e ∈ V ( L ( G )) such that u ∈ e , and likewise for v . Then applying Menger’s theorem (the vertex version, form one) to ˜ G with u, v as the distinguished vertices. § 4",
+      "page_start": 7,
+      "word_count": 210
+    },
+    {
+      "heading": "Planar Graphs",
+      "section_type": "other",
+      "position": 120,
+      "text": "Informally, a graph is planar if it can be drawn in the plane without any pair of edges crossing. For example the cube graph we mentioned earlier is planar, as we can draw it as below. 25 Adam Kelly (November 6, 2021) Graph Theory No edges cross in the drawing Of course, a graph is planar only if there is some drawing where the edges don’t intersect. For example, we could draw the cube graph as below (where edges intersect), and the graph would still be planar. Edges in the drawing cross § 4.1",
+      "page_start": 23,
+      "word_count": 94
+    },
+    {
+      "heading": "Definition 4.1",
+      "section_type": "other",
+      "position": 122,
+      "text": "(Plane Graph) A plane graph is a finite set of points V ⊆ R 2 and a collection of disjoint polygonal curves (representing the edges) with start and endpoints in V . Then we can define what it means for a graph to be planar .",
+      "page_start": 7,
+      "word_count": 46
+    },
+    {
+      "heading": "Definition 4.2",
+      "section_type": "other",
+      "position": 123,
+      "text": "(Planar Graph) A graph G is planar if there exists a graph isomorphism from G to some plane graph. And again, informally this says that a graph is planar if there is some way to draw it in the plane so that edges don’t intersect. We can also define the notion of ‘faces’ of a plane graph, by looking at the components.",
+      "page_start": 10,
+      "word_count": 62
+    },
+    {
+      "heading": "Theorem 4.4",
+      "section_type": "other",
+      "position": 125,
+      "text": "(Euler’s Formula) 26 Adam Kelly (November 6, 2021) Graph Theory Let G be a connected plane graph with V vertices, E edges and F faces. Then V − E + F = 2 . Proof. We apply induction on the number of edges of G . The base case is E = 0, and then since G is connected, V = 1, and F = 1, and the formula holds. Now if G contains a cycle C , then let e be on C . Then G ′ = G − e is still connected, and the number of faces increases by 1. The face enclosed is lost. So considering G ′ and applying Euler’s formula, V − ( E − 1)+( F − 1) = 2, and V − E + F = 2, as required. If G does not contain a cycle, then G is acyclic and connected and is then a tree. Then E = V − 1, F = 1, and V − E + F = 2, as required.",
+      "page_start": 17,
+      "word_count": 174
+    },
+    {
+      "heading": "Corollary 4.5",
+      "section_type": "other",
+      "position": 126,
+      "text": "(Planar Graphs are Sparse) Let G = ( V, E ) be a planar graph, with | V | ≥ 3. Then | E | ≤ 3 | V | − 6. This bound is also sharp a . a By considering plane graphs where every face is a triangle. Proof. We may assume without loss of generality that G is connected (if not, then we can add edges until it is connected). Also draw G in the plane so that there is no edge crossings. Then by Euler’s formula we have V − E + F = 2. Now since ever face has at least three edges on its boundary and every edge on the boundary is incident to at most two faces, we obtain 3 F ≤ �� { ( e ′ , f ′ ) | e ′ ∈ E, f ′ is a face, and e ′ is on the boundary of f ′ } �� ≤ 2 E. Thus 3 F ≤ 2 E , so 3(2 − V + E ) ≤ 2 E , and E ≤ 3 V − 6, as required. § 4.2",
+      "page_start": 6,
+      "word_count": 192
+    },
+    {
+      "heading": "Which Graphs are Planar?",
+      "section_type": "other",
+      "position": 127,
+      "text": "In this section we really care about the following question: Which graphs are planar? The theorems proved at the end of the last section already give us a small amount of control over planar graphs. For example, we can show that K 5 is not planar.",
+      "page_start": 13,
+      "word_count": 46
+    },
+    {
+      "heading": "Example 4.6",
+      "section_type": "other",
+      "position": 128,
+      "text": "( K 5 is Non-Planar) We will show that K 5 is not planar. Since the number of edges is 10, and the number of vertices is 5, by the previous result we would need 10 ≤ 3 − 5 + 6, which is not the case. Let’s consider another type of graph.",
+      "page_start": 17,
+      "word_count": 53
+    },
+    {
+      "heading": "Definition 4.7",
+      "section_type": "other",
+      "position": 129,
+      "text": "(Bipartite Complete Graph) Define the bipartite complete graph K n,m to be the graph with vertex set V = A ∪ B where A ∩ B = ∅ so that | A | = n , | B | = m , and E ( K n,m ) = { ab | a ∈ A, b ∈ B } . 27 Adam Kelly (November 6, 2021) Graph Theory K 2 , 3 If you play around a bit, you can see that K 3 , 2 is planar, but we get a problem if we try use K 3 , 3 .",
+      "page_start": 20,
+      "word_count": 102
+    },
+    {
+      "heading": "Example 4.8",
+      "section_type": "other",
+      "position": 130,
+      "text": "( K 3 , 3 is Non-Planar) We will show that K 3 , 3 is not planar. Note that there is 9 edges, and 6 vertices. Then by the result in the previous section, we would need 9 ≤ 3 · 6 − 6, which holds. However, recall in the proof that of our result that we had each face having at least three edges on its boundary. But that for bipartite graphs, we can get something stronger, as each face has at least four edges on its boundary (since there is no cycles of length 3). So if we repeat the proof of the previous theorem with the stronger bound, we obtain E ≤ 2 V − 4, which does not hold for this graph. Thus K 3 , 3 is not planar. Now these two examples were interesting, but of course we care about whether any graph is planar. It turns out though that these are (in some sense) the only fundamentally non-planar graphs, in that any non planar graph will have one of these graphs ‘behind it’. To look at this formally, we need to look at the idea of a subdivision.",
+      "page_start": 4,
+      "word_count": 196
+    },
+    {
+      "heading": "Lemma 4.10",
+      "section_type": "other",
+      "position": 132,
+      "text": "If G is non-planar, then a subdivision of G is non-planar also. Proof. Given a plane drawing of the subdivided graph, then by disregarding the vertices on the subdivided paths, we obtain a plane drawing of G (which is a con- tradiction).",
+      "page_start": 12,
+      "word_count": 42
+    },
+    {
+      "heading": "Corollary 4.11",
+      "section_type": "other",
+      "position": 133,
+      "text": "Subdivisions of K 3 , 3 and K 5 are non-planar. Proof. Follows directly from the previous lemma. What ties all of this together is Kuratowski’s theorem, which gives us a nice necessary and sufficient condition for a graph to be planar. 28 Adam Kelly (November 6, 2021) Graph Theory",
+      "page_start": 15,
+      "word_count": 50
+    },
+    {
+      "heading": "Theorem 4.12",
+      "section_type": "other",
+      "position": 134,
+      "text": "(Kuratowski’s Theorem) A graph G is planar if and only if G contains no subdivisions of K 3 , 3 or K 5 . Proof. Omitted. We will leave the topic of planar graphs here (for now), but we note that there are some other interesting notions that are related to planarity. For example, for what graphs is it possible to draw on a torus with no edge crossings? § 5",
+      "page_start": 2,
+      "word_count": 71
+    },
+    {
+      "heading": "Definition 5.1",
+      "section_type": "other",
+      "position": 138,
+      "text": "( r -Colouring) Let G = ( V, E ) be a graph. An r -colouring of G is a function c : V → [ r ] that satisfies xy ∈ E = ⇒ c ( x ) ̸ = c ( y ). An r -colouring divides up a graph into r different colour classes , where there is only edges between the different colour classes.",
+      "page_start": 11,
+      "word_count": 68
+    },
+    {
+      "heading": "Example 5.3",
+      "section_type": "other",
+      "position": 140,
+      "text": "(Examples of Chromatic Numbers) In the graph P n , we have χ ( P n ) = 2 for n ≥ 2, and χ ( P 1 ) = 1. The graph C n has χ ( C n ) = 2 if n is even, and χ ( C n ) = 3 if n is odd. 29 Adam Kelly (November 6, 2021) Graph Theory The complete graph K n has χ ( K n ) = n . The case for C 2 n follows from a more general fact about bipartite graphs.",
+      "page_start": 16,
+      "word_count": 96
+    },
+    {
+      "heading": "Proposition 5.4",
+      "section_type": "other",
+      "position": 141,
+      "text": "(Chromatic Number of Bipartite Graphs) If G is a bipartite graph, then χ ( G ) ≤ 2, and indeed χ ( G ) = 2 unless E = ∅ . Proof Sketch. Colour the vertices in each part separately. Indeed, one way to think about chromatic number is as a generalization of bipartite graphs to multiple parts. A straightforward observation to make is that the maximum degree of a graph (∆) puts a bound on the chromatic number.",
+      "page_start": 4,
+      "word_count": 79
+    },
+    {
+      "heading": "Proposition 5.5",
+      "section_type": "other",
+      "position": 142,
+      "text": "(Degree Bound for Chromatic Number) For a graph G , we have χ ( G ) ≤ ∆( G ) + 1. This bound is also sharp a . a Take the complete graph or odd cycles. These are the only such examples though To prove this, we are going to use a type of greedy algorithm.",
+      "page_start": 9,
+      "word_count": 57
+    },
+    {
+      "heading": "Definition 5.6",
+      "section_type": "other",
+      "position": 143,
+      "text": "(Greedy Colouring) Given a graph G = ( V, E ) with vertices V = { v 1 , v 2 , . . . , v n } , the greedy colouring of G is a function c g : V → N defined inductively by • c g ( v 1 ) = 1, • Given coloured v 1 , . . . , v t , we have c g ( v t +1 ) = min( N \\{ c ( v i ) | v i ∼ v t +1 , i ≤ t } ). Proof of Proposition 5.5 . Apply the greedy colouring to G with an arbitrary vertex ordering v 1 , . . . , v n . Then we note that |{ c ( v i ) | v i ∼ v t +1 , i ≤ t }| ≤ ∆( G ) , and thus c g ( v t +1 ) ∈ [∆+ 1]. The ‘greedy’ approach need not give you any colouring that’s in any way optimal. For example, if we have the graph P 4 with vertices labelled as below, we get the following colouring from our greedy approach. 30 Adam Kelly (November 6, 2021) Graph Theory v 1 v 3 v 2 v 4 v 1 v 3 v 2 v 4 This is clearly not optimal. § 5.2",
+      "page_start": 13,
+      "word_count": 233
+    },
+    {
+      "heading": "Proposition 5.7",
+      "section_type": "other",
+      "position": 145,
+      "text": "Let G be a connected graph for which δ ( G ) < ∆( G ). Then χ ( G ) ≤ ∆( G ). Proof. We find a better ordering to apply the greedy colouring to. First define v n = v , where d ( v ) ≤ ∆( G ) − 1. Now choose an ordering of v 1 , . . . , v n − 1 so that d ( v 1 , v ) ≥ d ( v 2 , v ) ≥· · · ≥ d ( v n − 1 , v ) . We claim that each vertex v i with i ∈ [ n − 1] has at most ∆( G ) − 1 neighbors in v 1 , . . . , v i − 1 . This is true for v n by definition. For v i with i ̸ = n , we observe that a shortest path P from v i to v n contains a neighbor v j of v i with d ( v j , v ) < d ( v i , v ). Thus v j comes later in the ordering (that is, j > i ). So the greedy colouring gives each vertex one of ∆( G ) colours. We can now extend this idea to prove Brook’s theorem.",
+      "page_start": 10,
+      "word_count": 229
+    },
+    {
+      "heading": "Theorem 5.8",
+      "section_type": "other",
+      "position": 146,
+      "text": "(Brooks’ Theorem) Let G be a connected graph that is not complete or an odd cycle. Then χ ( G ) ≤ ∆( G ). Proof. Let G be a counterexample with a minimal number of edges. We may assume G is a regular graph (∆-regular), and also that ∆ ≥ 3. Since G is not complete, there exists a vertex v so that G [ N ( v )] is not complete, so let x, y ∈ N ( v ) where x ̸∼ y . Colour these two vertices x, y the same colour. If G is 3-connected then G ′ = G − x − y is connected. In this case, we order the vertices of G ′ , labelled v 3 , . . . , v n = v so that d G ′ ( v 3 , v ) ≥ d G ′ ( v 4 , v ) ≥· · · ≥ d G ′ ( v n − 1 , v ) . The greedy colouring with the ordering v 3 , . . . , v n will give us a ∆-colouring of G . Additionally, it’s possible to ensure that each w ∈ G ′ adjacent to either v 1 or v 2 is coloured differently from their common colour (check!). The key idea is that keeping G ′ connected allows the sequence of decreasing distances to be constructed. 31 Adam Kelly (November 6, 2021) Graph Theory If G has a cut vertex w ∈ V , then let G − w = C 1 ∪· · · ∪ C k be the components, and G i = G [ C i ∪{ w } ]. The maximum degree in G i is bounded by ∆, and therefore G i has a ∆-colouring for each i , by the minimality of the counter example. Note that G i cannot be a complete graph on ∆+ 1 vertices since d G i ( w ) ≤ ∆ − 1. By permuting the colours, we can assume each colouring gives the vertex w colour 1. Thus we have a colouring of G with ∆colours, which is a contradiction. If G −{ w 1 , w 2 } is disconnected for w 1 ̸ = w 2 with w 1 , w 2 ∈ V , then let C 1 , . . . , C k be the components of G −{ w 1 , w 2 } . We may assume that G has no cut vertex by the previous case. Now let G i = G [ C i ∪{ w 1 , w 2 } ]+ w 1 w 2 . Note that e ( G i ) < e ( G ) since w 1 , w 2 both send at least one edge to each component C 1 , . . . , C k . Also d G i ( w 1 ) ≤ ∆ and likewise d G i ( w 2 ) ≤ ∆, thus the maximum degree G i ≤ ∆and thus we can find a ∆-colouring of G i for each i . That gives w 1 , w 2 different colours. After permuting these colours, I can assume w 1 is coloured 1 in each, and w 2 is coloured 2 in each. Thus we can put all of the colourings together to obtain a colouring of G . § 5.3",
+      "page_start": 18,
+      "word_count": 580
+    },
+    {
+      "heading": "Theorem 5.9",
+      "section_type": "other",
+      "position": 148,
+      "text": "(Four-Colour Theorem) Let G be a planar graph. Then χ ( G ) ≤ 4. Or informally: any map can be coloured with only four colours, where neighboring regions have different colours. Note that this is the duel form of the theorem above. This theorem was proved in 1976 by Appel & Haken and centers around reducing the theorem to a large number of cases, that were checked by computer. We are going to prove two slightly weaker versions, that are still quite interesting.",
+      "page_start": 6,
+      "word_count": 84
+    },
+    {
+      "heading": "Theorem 5.10",
+      "section_type": "other",
+      "position": 149,
+      "text": "(Six Colour Theorem – Warmup) Let G be a planar graph. Then χ ( G ) ≤ G . Proof. We will use induction on n = | G | . For n = 1, this is trivial. Now inductively, we claim that there is a vertex v with deg( v ) ≤ 5. We note 1 n �� x ∈ V d ( x ) � = 2 E n ≤ 6 − 12 n < 6 . Thus there is a vertex v with deg( v ) ≤ 5. By induction, G − v is 6-colourable, and since v has at most 5 neighbors, there is a colour in [6] that does not appear in N ( v ). Colouring v with this colour, we get that the graph is 6-colourable. Now we are going to kick it up a notch shortly, by introducing one more ingredient.",
+      "page_start": 10,
+      "word_count": 149
+    },
+    {
+      "heading": "Definition 5.11",
+      "section_type": "other",
+      "position": 150,
+      "text": "Given a graph G and an r -colouring of G , let v ∈ V ( G ), and define the { i, j } - 32 Adam Kelly (November 6, 2021) Graph Theory component of v to be all of the vertices that can be reached starting at v along a path using only colours i and j . We make the following observation, which gives us an extra ‘move’ to use in the stronger proof",
+      "page_start": 22,
+      "word_count": 77
+    },
+    {
+      "heading": "Proposition 5.12",
+      "section_type": "other",
+      "position": 151,
+      "text": "Given a graph G with an r -colouring c , and for i, j ∈ [ v ] with i, j , we can swap the colour on an { i, j } -component to obtain a new colouring. Proof Sketch. This works because of the ‘being reached’ condition in the { i, j } - component definition. Now we can prove the five colour theorem, using a lot of the ideas from the proof of the six colour theorem.",
+      "page_start": 4,
+      "word_count": 80
+    },
+    {
+      "heading": "Theorem 5.13",
+      "section_type": "other",
+      "position": 152,
+      "text": "(Five Colour Theorem) Let G be a planar graph. Then χ ( G ) ≤ G . Proof. By induction on n = | G | , we note n = 1 is trivial. Now we proceed with the induction step. Let v be a vertex with d ( v ) ≤ 5. Then apply induction to get a 5-colouring of G − v . Let N ( V ) = { x 1 , . . . , x 5 } , where x 1 , . . . , x 5 are arranged in a clockwise manner. We may assume that c ( x i ) = i (otherwise we can colour v with the missing colour). Now consider the { 1 , 3 } -component containing x 1 . If x 3 is not in this component, we can swap colours on this { 1 , 3 } component so that x 1 is colored with 3, and then colour v with 1. So we may assume there exists a path x 1 → x 3 using colours 1 and 3 only. By the same argument there exists a path x 2 → x 4 using colours 2 and 4 only. But then these paths must share a vertex, which is a contradiction. § 5.4",
+      "page_start": 8,
+      "word_count": 218
+    },
+    {
+      "heading": "Colouring Graphs on (Other) Surfaces",
+      "section_type": "other",
+      "position": 153,
+      "text": "Following on from the last section, we will consider a related guiding question: If G is a graph, drawn on the torus, what can we say about χ ( G )? More generally, if G is a graph drawn on a surface of genus g , what can we say about χ ( G )? For example, the graph K 7 can be drawn on a torus without edge crossings. 33 Adam Kelly (November 6, 2021) Graph Theory We may wonder if there is an Euler’s formula for surfaces, and indeed there is, but instead of equality, we get a bound.",
+      "page_start": 13,
+      "word_count": 101
+    },
+    {
+      "heading": "Theorem 5.14",
+      "section_type": "other",
+      "position": 154,
+      "text": "(Euler’s Formula for Surfaces) If G is drawn in a surface of genus g , then V − E + F ≥ 2 − 2 g , where F is the number of connected components of (Surface − G ). Proof Sketch. A similar inductive proof to the planar case.",
+      "page_start": 3,
+      "word_count": 50
+    },
+    {
+      "heading": "Remark.",
+      "section_type": "other",
+      "position": 155,
+      "text": "By a surface of genus g , we mean a compact orientable surface of genus g . Informally this is the surface formed from taking a sphere and adding g ‘handles’ to it. Also note that 2 − 2 g is the",
+      "page_start": 6,
+      "word_count": 42
+    },
+    {
+      "heading": "Proposition 5.15",
+      "section_type": "other",
+      "position": 157,
+      "text": "If G = ( V, E ) is a graph drawn on a surface of genus g , then | E | ≤ 3( | G | − (2 − 2 g )). Proof Sketch. We have 3 F ≤ 2 E , then apply Euler’s formula for surfaces. We can now get a bound (similarly to the planar case) on the chromatic number of a graph drawn on a surface.",
+      "page_start": 8,
+      "word_count": 71
+    },
+    {
+      "heading": "Theorem 5.16",
+      "section_type": "other",
+      "position": 158,
+      "text": "(Heawood’s Theorem) If G is a graph drawn on a surface of Euler characteristic E , with E ≤ 0 a , then χ ( G ) ≤ � 7 + √ 49 − 24 E 2 � . a This condition really is needed, as otherwise for the planar case we get χ ( G ) ≤ 4, which is correct but this is not a proof for it! 34 Adam Kelly (November 6, 2021) Graph Theory Proof. Let G = ( V, E ) be a given graph with χ ( G ) = k . We may assume that G has the minimum number of edges, subject to χ ( G ) = k . Observe that δ ( G ) ≥ k − 1, as otherwise there would be a vertex v with d ( v ) = k − 1, and thus χ ( G − v ) = k − 1, and thus χ ( G ) = k − 1. Also k ≤ n , where n = | V | . Now the average degree of each vertex is 1 n �� v ∈ V d ( v ) � = 2 e n ≤ 6 � 1 − E n � , where e is the number of edges and E is the Euler characteristic. Thus k − 1 ≤ δ ( G ) ≤ avg degree ≤ 6 � 1 − E n � ≤ 6 � 1 − E k � , and so k 2 − k ≤ 6( k − E ), then solving gives the required result.",
+      "page_start": 12,
+      "word_count": 271
+    },
+    {
+      "heading": "Remark.",
+      "section_type": "other",
+      "position": 159,
+      "text": "It turns out that this estimate is sharp. Calling H ( E ) = � 7+ √ 49 − 24 E 2 � , we find that K H ( E ) can be drawn on a surface of Euler characteristic E . § 5.5",
+      "page_start": 18,
+      "word_count": 45
+    },
+    {
+      "heading": "Definition 5.17",
+      "section_type": "other",
+      "position": 161,
+      "text": "(Edge Colouring) Let G = ( V, E ) be a graph. A k -edge colouring is a function c : E → [ k ] so that c ( e ) ̸ = c ( f ) for all e, f ∈ E such that e ∩ f ̸ = ∅ . We have a similar notion to chromatic number for edge colourings.",
+      "page_start": 22,
+      "word_count": 64
+    },
+    {
+      "heading": "Example 5.19",
+      "section_type": "other",
+      "position": 163,
+      "text": "(Examples of Edge Chromatic Number) The graph C n has χ ′ ( C n ) = 2 if n is even, and χ ′ ( C n ) = 3 for n odd. The Petersen graph G has χ ′ ( G ) = 4. 35 Adam Kelly (November 6, 2021) Graph Theory In contrast to the chromatic number, it is much easier to get a handle on the edge chromatic number, as we will see in the following theorem.",
+      "page_start": 27,
+      "word_count": 81
+    },
+    {
+      "heading": "Theorem 5.20",
+      "section_type": "other",
+      "position": 164,
+      "text": "(Vizing’s Theorem) Let G be a graph. Then ∆( G ) ≤ χ ′ ( G ) ≤ ∆( G ) + 1. Proof. We proceed by induction on e ( G ). The basis step is trivial, then for the inductive step we are given a graph G , and let’s assume for a contradiction that χ ′ ( G ) > ∆+ 1. By induction, G − e has a ∆+ 1 colouring, so let’s write e = xy with x ̸ = y ∈ G . We define vertices y 1 , . . . , y k inductively by setting y 1 = y . Now assume y 1 , . . . , y t are defined, and the colours missing from y 1 , . . . , y t are c 1 , . . . , c t respectively. Then if c t ̸∈{ c 1 , . . . , c t − 1 } , then let y t +1 be so that xy y +1 receives colour c t . Note that such a vertex exists as otherwise we could recolour xy 1 with c 1 , xy 2 with c 2 , and so on until xy t is with c t , to obtain a ∆+ 1 colouring, which is a contradiction. Now if c t ∈{ c 1 , . . . , c t − 1 } , then stop. Say we stop after k steps, so I have defined y 1 , . . . , y k with missing colours c 1 , . . . , c k and c k = c i for some i < k . We may assume that i = 1 (otherwise uncolour the edge xy i and recolour xy 1 with c 1 , and so on until xy i − 1 with c i − 1 ). Let’s call the colour missing at x , c 0 . Consider the { c 0 , c 1 } component C , containing y 1 . If x ̸∈ C , then we can flip colours on C so that c 0 is missing at y 1 , then colour xy 1 with c 0 . Likewise, the { c 0 , c 1 } -component containing y k must contain x , as otherwise we flip colours on this component so that the colour c 0 is missing at y k . Then recolour xy k to c 0 and xy i to c i for i < k . Thus x, y 1 , y k ∈ C , the { c 0 , c 1 } -component. But this is impossible since x, y 1 , y k all have one of the colours { c 0 , c 1 } missing, thus d C ( x ) , d C ( y 1 ) , d C ( y k ) ≤ 1. But this is is impossible for a path or cycle.",
+      "page_start": 3,
+      "word_count": 511
+    },
+    {
+      "heading": "Eulerian Circuits and Hamiltonian Cycles",
+      "section_type": "other",
+      "position": 167,
+      "text": "We are going to begin our chapter on extremal graph theory with something that’s not really extremal graph theory. Still, it will lead us nicely into the more extreme parts of this chapter and the course. Let’s state a definition.",
+      "page_start": 13,
+      "word_count": 40
+    },
+    {
+      "heading": "Theorem 6.2",
+      "section_type": "other",
+      "position": 171,
+      "text": "(Euler’s Theorem) A connected graph has an Eulerian circuit if and only if every vertex has even degree. Proof. If a graph G has an Eulerian circuit, then the degree of each vertex must be even. This is because a fixed vertex x is entered and exited a fixed number of times. Now if each vertex of a graph G has even degree, we will apply induction on e ( G ). If e ( G ) = 0, then we are done. Now if d ( x ) ≥ 1 for all vertices x , then d ( x ) ≥ 2, and G contains a cycle C . Define G ′ = G − E ( C ). Let G 1 , . . . , G k be the components of G ′ . The degree of each G i has all degrees even. Thus by induction, there is an Eulerian circuit W 1 , . . . , W k for each G 1 , . . . , G k respectively. Thus we can combine C with W 1 , . . . , W k to obtain an Eulerian circuit for all of G . Now we are going to define a similar looking notion, but it will not end up being so well behaved as Eulerian circuits.",
+      "page_start": 4,
+      "word_count": 224
+    },
+    {
+      "heading": "Hamiltonian",
+      "section_type": "other",
+      "position": 174,
+      "text": "if it contains a Hamiltonian cycle. Follow red edges Our first question might be ‘is there an iff type condition for Hamiltonian cycles’, and so far there is no such property known. However there are some results that give us information about whether a graph is Hamiltonian.",
+      "page_start": 10,
+      "word_count": 47
+    },
+    {
+      "heading": "Theorem 6.4",
+      "section_type": "other",
+      "position": 175,
+      "text": "(Dirac’s Theorem) Let G be a graph with n ≥ 3 such that δ ( G ) ≥ n/ 2. Then G contains a Hamiltonian cycle. Proof. For a contradiction, assume that G is a counterexample to the theorem. Note that G is connected, since x ̸∼ y then N ( x ) , N ( y ) ⊂ V \\{ x, y } and | N ( x ) | , | N ( y ) | ≥ n 2 , and thus N ( x ) ∩ N ( y ) ̸ = ∅ , and thus d ( x, y ) ≤ 2. 37 Adam Kelly (November 6, 2021) Graph Theory Let x 1 , . . . , x ℓ be the longest path in G . Note that x 1 , . . . , x ℓ does not form a cycle, as otherwise if ℓ = n , then we have a contradiction, and if ℓ< n then there exists y ̸∈{ x 1 , . . . , x ℓ } that is y ∼ x i . Thus we can find a longer path (which is also a contradiction). Now if there exists i ∈{ 1 , . . . , ℓ − 1 } so that x i ∼ x ℓ and x i +1 ∼ x 1 , then the vertices x 1 , . . . , x ℓ form a cycle. This contradicts the above. Define N + ( x ℓ ) = { x i | x i − 1 ∈ N ( X l ) , 2 ≤ i ≤ ℓ } . We have N + ( x ℓ ) ∩ N ( x 1 ) =, but this is impossible since | N + ( x ℓ ) | ≥ n/ 2, | N ( x 1 ) | ≥ n/ 2, and N + ( x ℓ ) , N ( x 1 ) ⊆{ x 2 , . . . , x ℓ } . Thus we have a contradiction.",
+      "page_start": 13,
+      "word_count": 348
+    },
+    {
+      "heading": "Remark.",
+      "section_type": "other",
+      "position": 176,
+      "text": "We never really used this δ ( G ) ≥ n/ 2 condition fully. It suffices to have d ( x ) + d ( y ) ≥ n for x ̸∼ y . We can use this same argument to prove a more general result about paths.",
+      "page_start": 6,
+      "word_count": 48
+    },
+    {
+      "heading": "Proposition 6.5",
+      "section_type": "other",
+      "position": 177,
+      "text": "Let G be a connected graph. Let k < n and assume δ ( G ) ≥ k/ 2. Then G ≥ P k +1 . Proof Sketch. Similar to Dirac’s theorem. Choose a longest path x 1 , . . . , x ℓ in G . They don’t form a cycle, and then we can force a configuration like x 1 � x i +1 , x ℓ � x i by using the minimum degree condition. We may wonder in the above if it’s possible to replace ‘path’ with ‘cycle’ in the above. The answer is, sadly, no. A natural question is to wonder how many edges are needed to ‘force’ a (for example) triangle. For a Hamilton cycle, this sort of question would have been a bit strange, and a more natural question would be what is the minimum value of δ ( G ) to ensure that G contains a Hamilton cycle. In the next theorem, we will give a result that answers a simpler sort of question.",
+      "page_start": 8,
+      "word_count": 173
+    },
+    {
+      "heading": "Theorem 6.6",
+      "section_type": "other",
+      "position": 178,
+      "text": "Let G be a graph. If e ( G ) > n 2 ( k − 1), then G contains a path of length k . Proof. We will prove the contrapositive: If G is P k +1 free, then e ( G ) ≤ n 2 ( k − 1). We will apply induction on n . This is true for n = 2. Then given a graph G on | G | = n ≥ 3 vertices, if G is disconnected let G 1 , . . . , G k be the components of G . Then each of these has G i ̸⊇ P k +1 . Then by induction we have e ( G i ) ≤ n ( G i )( k − 1) 2 . Thus e ( G ) = k � i =1 e ( G i ) ≤ � n ( G i )( k − 1) 2 = � k − 1 2 � n, and we are done. Now if there is a vertex v with d ( v ) ≤ k − 1 2 , then consider G − v . Then e ( G − v ) = 38 Adam Kelly (November 6, 2021) Graph Theory e ( G ) − d ( v ), and also G − v does not contain P k +1 . Thus e ( G − v ) ≤ n − 1 2 ( k − 1). So e ( G ) = e ( G − v ) + d ( v ) ≤ n − 1 2 ( k − 1) + k − 1 2 ≤ n 2 ( k − 1) . Thus we can assume G is connected and d ( v ) ≥ k 2 . We we can apply Proposition 6.5 to find a path of length k , that is, P k +1 ⊆ G , which is a contradiction. [We may also assume k < n for if k = n then e ( G ) ≤ k 2 ( n − 1), which reduces to showing e ( G ) ≤ � n 2 � , which is trivial]. § 6.2",
+      "page_start": 13,
+      "word_count": 371
+    },
+    {
+      "heading": "Complete Subgraphs and Turan’s Theorem",
+      "section_type": "other",
+      "position": 179,
+      "text": "Let’s return to the question of how many edges are needed in a graph to guarantee the existence of a triangle. Later on, we will look more generally at the question of the number of edges needed to guarantee a K n subgraph.",
+      "page_start": 12,
+      "word_count": 43
+    },
+    {
+      "heading": "Theorem 6.7",
+      "section_type": "other",
+      "position": 180,
+      "text": "(Mantel’s Theorem) If e ( G ) > n 2 4 , then G ⊃ K 3 , and this is sharp. Proof. Given a K 3 -free graph G and x, y ∈ V such that x ∼ y and d ( x ) + d ( y ) ≤ n , and let m = e ( G ). Then summing we get � xy ∈ E d ( x ) + d ( y ) ≤ mn. We have that this is � x � y d ( x ) 1 ( xy ∈ E ) = � x ∈ V ( d ( x )) 2 . Now � x ∈ V d ( x ) = 2 m , and by Cauchy-Schwarz we have ( � d ( x )) 2 ≤ n � d ( x ) 2 , and thus mn 2 ≥ (2 m ) 2 = ⇒ n 2 4 = e ( G ) . To see that this is sharp, consider the complete bipartite graph with n vertices. Then this has n 2 / 4 edges, but no triangle. Thus this is sharp. The next question we are going to answer is how many edges are needed to guarantee the existence of a K n subgraph. In the previous theorem, to see that our result was sharp, we considered the complete bipartite graph on n vertices. To discuss this more general question, a natural thing to look at is a generalisation of bipartite graphs.",
+      "page_start": 14,
+      "word_count": 255
+    },
+    {
+      "heading": "Definition 6.8",
+      "section_type": "other",
+      "position": 181,
+      "text": "( r -Partite Graph) An r -partite graph is a graph of the form G = ( V, E ) where the vertices are partitioned into r subsets V = V 1 ∪· · · ∪ V r with V i ∩ V j = ∅ if i ̸ = j , and xy ̸∈ E for all x, y ∈ V i . For example, the graph below is 3-partite. 39 Adam Kelly (November 6, 2021) Graph Theory It’s worth noting that saying a graph is r -partite is the same as saying the graph has chromatic number of at most r . We care particularly about the case of an r -partite graph where all possible edges are included.",
+      "page_start": 24,
+      "word_count": 121
+    },
+    {
+      "heading": "Definition 6.9",
+      "section_type": "other",
+      "position": 182,
+      "text": "(Complete r -Partite Graph) We say an r -partite graph is complete if no edge can be added with the graph remaining r -partite. Now if we consider a complete r -partite graph G on n vertices, with all parts of size n/r , then we would have e ( G ) = � n r � 2 � r 2 � = � 1 − 1 r � n 2 2 . The graph G can also have no K r +1 subgraph, since that would imply there’s an edge between two vertices in the same part. This gives us a lower bound on the number of edges needed to have a K r +1 subgraph, and it turns out that bound is sharp.",
+      "page_start": 3,
+      "word_count": 125
+    },
+    {
+      "heading": "Theorem 6.10",
+      "section_type": "other",
+      "position": 183,
+      "text": "(Turan’s Theorem) If e ( G ) > � 1 − 1 r � n 2 2 , then G ⊃ K r +1 , and this is sharp. Proof. Suppose we have some graph G on n vertices that had no K r +1 subgraph, and also that the result holds up to n, r . If r ≥ n then we are clearly done, so we may suppose that n > r . Let A be a K r subgraph in G , which must exist by our assumption. Let B = V − A . Then we have e ( G ) = e ( A ) + e ( B ) + e ( A, B ), where e ( A, B ) denotes the number of edges between vertices in A and B . We have an upper bound of e ( G ) ≤ � r 2 � + � 1 − 1 r � ( n − r ) 2 2 + ( n − r )( r − 1) , where e ( A, B ) ≤ ( n − r )( r − 1) since each vertex in B has at most r − 1 neighbours in A . We can rewrite this as e ( G ) ≤ 1 2 � 1 − 1 r � ( r 2 + ( n − r ) 2 + ( n − r ) r ) = 1 2 � 1 − 1 r � n 2 , as required. There’s another non-examinable proof called Zykov Symmetrisation 40 Adam Kelly (November 6, 2021) Graph Theory § 6.3",
+      "page_start": 14,
+      "word_count": 275
+    },
+    {
+      "heading": "The Zarankiewicz Problem",
+      "section_type": "other",
+      "position": 184,
+      "text": "Turan’s theorem answers the question ‘how many edges can a graph have without having a K t subgraph’. A natural follow on question is ‘how many edges can a bipartite graph have without having a K t,t subgraph’. This is the Zarankiewicz problem, and unfortu- nately does not yet have a definite answer like the previous question. We can however obtain some bounds.",
+      "page_start": 2,
+      "word_count": 63
+    },
+    {
+      "heading": "Definition 6.11",
+      "section_type": "other",
+      "position": 185,
+      "text": "We define Z ( n, t ) to be the maximum number of edges in a bipartite graph with n vertices in each part and no K t,t subgraph. We really care about Z ( n, t ) where t is fixed and n is large. We will prove the following theorem.",
+      "page_start": 4,
+      "word_count": 52
+    },
+    {
+      "heading": "Theorem 6.12",
+      "section_type": "other",
+      "position": 186,
+      "text": "We have Z ( n, t ) ≤ t 1 /t n 2 − 1 /t + tn for all n . Proof. Given a graph G = ( A ∪ B, E ) where | A | = | B | = n , and G ̸⊇ K t,t , we want to show that m = e ( G ) ≤ t 1 /t n 2 − 1 /t + tn . For some set S ⊆ A , and | S | = t , we have ����� � x ∈ S N ( x ) ����� ≤ t − 1 , as otherwise we would have a K t,t subgraph. Then averaging over such subsets S , we have � n t � − 1 � S ⊆ A, | S | = t ����� � x ∈ S N ( x ) ����� ≤ t − 1 . This sum can be written as � S ⊆ A, | S | = t ����� � x ∈ S N ( x ) ����� = � S = { x 1 ,...,x t } , S ⊆ A � y 1 ( y ∼ x 1 , y ∼ x 2 , . . . , y ∼ x t ) = � y � S = { x 1 ,...,x t } , S ⊆ A 1 ( y ∼ x 1 , y ∼ x 2 , . . . , y ∼ x t ) = � y � d ( y ) t � . We may assume that d ( y ) ≥ t − 1 for all y , as otherwise we can add an edge incident with y and not create a K t,t subgraph. Then by convexity and since d ( y ) ≥ t − 1, we have � y � d ( y ) t � ≥ � y ∈ B � d t � = n � d t � , 41 Adam Kelly (November 6, 2021) Graph Theory where d = 1 n � y ∈ B d ( y ) = m/n . Combining this inequality with what we obtained previously, we get the bound t − 1 ≥ n � d t � � n t � = n d ( d − 1) · · · ( d − t + 1) ( n − 1) · · · ( n − t + 1) ≥ ( d − t + 1) t n t − 1 , thus ( t − 1) 1 /t n t − 1 ≥ d − t + 1, and t 1 /t n 2 − 1 /t + tn ≥ m , as required. While we do have this upper bound, we don’t know Z ( n, t ) for most values of n . We do know, for example, that cn 3 / 2 ≤ Z ( n, 2) ≤ 2 n 3 / 2 , c ′ n 5 / 2 ≤ Z ( n, 3) ≤ 2 n 5 / 3 , for all large n , and some constants c, c ′ . Still we don’t even know t = 4. The constructions are based on finite geometry. As an example, we will sketch the construction that shows the bound cn 3 / 2 ≤ Z ( n, 2).",
+      "page_start": 7,
+      "word_count": 569
+    },
+    {
+      "heading": "Theorem 6.13",
+      "section_type": "other",
+      "position": 187,
+      "text": "For infinitely many n we have Z ( n, 2) ≥ cn 3 / 2 for c > 0. Proof Sketch. Let p be a prime, and consider a ( Z /p Z ) 2 . Define a line L = { ( x, ax + b ) | x ∈ Z /p Z } , for some a, b ∈ Z /p Z with a ̸ = 0. We need the following straightforward facts: 1. Two distinct lines intersect in at most one point. 2. Each line contains p points. 3. There are p 2 points, p ( p − 1) ≈ p 2 lines b . We are going to construct a graph bipartite graph G = ( A ∪ B, E ) where every vertex in A corresponds to a line and every vertex in B corresponds to a point. There’s approximately p 2 vertices in each of these parts, so we will take n to be about p 2 . Then for ℓ ∈ A and x ∈ B , we define ℓ ∼ x if x ∈ ℓ . Then e ( G ) ≈ p 2 · p = p 3 = n 3 / 2 . To see this graph works, if G contained a K 2 , 2 then there would exist two lines ℓ 1 , ℓ 2 with | ℓ 1 ∩ ℓ 2 | ≥ 2, which is a contradiction. a You can consider this to be like a torus. b To make this a propper proof, we would have to fix all of the approximations § 6.4",
+      "page_start": 12,
+      "word_count": 269
+    },
+    {
+      "heading": "The Erd˝os-Stone Theorem",
+      "section_type": "other",
+      "position": 188,
+      "text": "So far we have been interested in questions of the form ‘how many edges do I need in a graph before I force a subgraph H ’. We’ve been able to prove a variety of interesting but relatively scattered results of this form, but it turns out that if we consider the question asymptotically, we can obtain a more general unifying result. We begin by defining the following function. 42 Adam Kelly (November 6, 2021) Graph Theory",
+      "page_start": 21,
+      "word_count": 77
+    },
+    {
+      "heading": "Definition 6.14",
+      "section_type": "other",
+      "position": 189,
+      "text": "(Extremal Function) Let H be a fixed graph. We define the extremal function ex( n, H ) to be ex( n, H ) = max { e ( G ) | | G | = n, G ̸⊇ H } . Using this function we can restate some of the results we previously obtained, such as Ma- tel’s theorem giving us ex( n, K 3 ) ≤ n 2 / 4, and Turan’s theorem giving us ex( n, K r +1 ) ≤ (1 − 1 /r ) n 2 / 2. Looking a bit more at Turan’s theorem, if we consider things asymptotically on the scale of n 2 , we get a weaker version of Turan that looks like lim n →∞ ex( n, K r +1 ) � n 2 � = � 1 − 1 r � . The Erd˝os-Stone Theorem allows us to get these types of results generally, using just the chromatic number of the graph.",
+      "page_start": 2,
+      "word_count": 162
+    },
+    {
+      "heading": "Theorem 6.15",
+      "section_type": "other",
+      "position": 190,
+      "text": "(Erd˝os-Stone Theorem) Let H be a graph with χ ( G ) = r , and r ≥ 2. Then lim n →∞ ex( n, H ) � n 2 � = � 1 − 1 r − 1 � . Proof. Omitted § 7",
+      "page_start": 11,
+      "word_count": 45
+    },
+    {
+      "heading": "Ramsey Theory",
+      "section_type": "other",
+      "position": 191,
+      "text": "We are going to jump into Ramsey theory, an area of graph theory that has a similar flavour to previous section. Ramsey theory is often described as the collection of results showing ‘complete disorder is impossible’, but its easiest to see what we study with an example.",
+      "page_start": 16,
+      "word_count": 47
+    },
+    {
+      "heading": "Proposition 7.1",
+      "section_type": "other",
+      "position": 192,
+      "text": "(Monochromatic Triangles) Colour each of the edges of K 6 red or blue a . Then there must be a monochromatic triangle. a Note that we don’t have any restrictions on the colouring. 43 Adam Kelly (November 6, 2021) Graph Theory Proof. Consider some vertex v in the graph. We know that at least three incident edges must be the same colour, so suppose (without loss of generality) that they are red, with endpoints v 1 , v 2 , v 3 . Then either v 1 v 2 v 3 is a monochromatic blue triangle, or some v i v j is red, in which case vv i v j is a monochromatic red triangle. Straight away we might wonder about K 4 . Does there exist some large enough n such that every 2 − colouring of K n contains a monochromatic K 4 ? This is the type of problem we will consider in Ramsey theory. § 7.1",
+      "page_start": 18,
+      "word_count": 161
+    },
+    {
+      "heading": "Definition 7.2",
+      "section_type": "other",
+      "position": 194,
+      "text": "(Ramsey Numbers) For t ∈ N , we define R ( t ) the t th Ramsey number to be the smallest n for which every 2-colouring of K n contains a monochromatic K t . We already know that R (3) = 6 (since we showed there’s always a monochromatic triangle in K 6 , and it’s not hard to find a colouring of K 5 that doesn’t have one). We haven’t yet proved though that such an R ( t ) exists though, so we will clear this up first.",
+      "page_start": 6,
+      "word_count": 92
+    },
+    {
+      "heading": "Theorem 7.3",
+      "section_type": "other",
+      "position": 195,
+      "text": "(Ramsey’s Theorem) For all t ∈ N , R ( t ) is finite and R ( t ) ≤ 4 t . Proof. We will begin by proving a small lemma. For s, t ≥ 2, we define the Ramsey number R ( s, t ) to be the smallest n such that every red/blue colouring of K n either contains a red K s or a blue K t . We will prove that for all s, t ≥ 2, R ( s, t ) ≤ � s + t − 2 s − 1 � . ( † ) Claim . Assume that R ( s − 1 , t ) and R ( s, t − 1) exist. Then R ( s, t ) exists and R ( s, t ) ≤ R ( s − 1 , t ) + R ( s, t − 1). Let a = R ( s − 1 , t ) and b = R ( s, t − 1) and let c be a red/blue colouring of K a + b . Let x be a vertex in this graph, and we note d ( x ) = a + b − 1. Then x has either (i) a red neighbors (ii) b blue neighbors. In case (i), let N r be the red neighbors of x , and note | N r | ≥ a . Then the colouring induced on N r contains either a K s − 1 in red or a K t in blue. In the latter case we are done, and in the former case we can add x to K s − 1 to finish. Case (ii) is symmetric, and thus our claim is true. Now we can return to showing ( † ). We are going to induct on s + t . Note that R ( s, 2) = s and R (2 , t ) = t . Inductively assume that R ( s − 1 , t ) , R ( s, t − 1) exist 44 Adam Kelly (November 6, 2021) Graph Theory and satisfy this relation, then R ( s, t ) ≤ R ( s − 1 , t ) + R ( t, s − 1) ≤ � s + t − 2 s − 2 � + � s + t − 3 s − 1 � ≤ � s + t − 2 s − 1 � , as desired. Taking R ( t ) = R ( t, t ) gives R ( t ) ≤ � 2 t − 2 t − 1 � ≤ 4 t . Ramsey numbers are generally quite mysterious. We know for example that R (3 , 3) = 6, R (4 , 4) = 18, and R (3 , 7) = 23, but even something like R (5 , 5) is unknown, and our best bounds are 43 ≤ R (5 , 5) ≤ 48. The numbers R (3 , t ) are quite well understood, and for ϵ > 0 we have (for sufficiently large t ) � 1 4 + ε � t 2 log t ⩽ R (3 , t ) ⩽ (1 + ε ) t 2 log t . A big question though is getting a lower bound on R ( t ), which is currently nowhere as close as our upper bound. § 7.2",
+      "page_start": 9,
+      "word_count": 577
+    },
+    {
+      "heading": "Notation.",
+      "section_type": "other",
+      "position": 198,
+      "text": "For a set X , we let X ( r ) = { A ⊆ X | | A | = r } , the set of r element subsets of X . Our motivating question will be the following: given a 2-colouring of the complete count- able graph, what can we say about the monochromatic structures that appear in the colouring? Obviously by Ramsey’s theorem we can find arbitrarily large monochro- matic complete graphs, but is it possible to find a monochromatic complete countable subgraph?",
+      "page_start": 17,
+      "word_count": 86
+    },
+    {
+      "heading": "Example 7.5",
+      "section_type": "other",
+      "position": 199,
+      "text": "(Complete Countable Graph with Complete Countable Subgraph) Consider the colouring of a complete countable graph where xy is red if x + y is even, and blue if x + y is odd. Then the subgraph induced on the vertices { 2 , 4 , 8 , . . . } is a monochromatic complete countable subgraph. Now consider instead the colouring where x + y is red if it has an even number of prime factors, and x + y is blue if it has an odd number of prime factors. Can you find a monochromatic complete countable subgraph? It turns out that by another theorem of Ramsey, it is always possible to find such a subgraph.",
+      "page_start": 19,
+      "word_count": 118
+    },
+    {
+      "heading": "Theorem 7.6",
+      "section_type": "other",
+      "position": 200,
+      "text": "(Infinite Ramsey’s Theorem) Let G = ( N , N (2) ), the complete countable graph. Then for every 2-colouring of G there exists an infinite set X ⊆ N so that X (2) is monochromatic. 45 Adam Kelly (November 6, 2021) Graph Theory Proof. We begin by inductively defining vertices x 1 , x 2 , . . . , x t and colours c 1 , c 2 , . . . , c t such that N c i ( x i ) ⊃{ x i +1 , . . . , x t } , and � t i =1 N c i ( x i ) is infinite, where N c i ( x i ) is the neighborhood of x i in the colour c i . We can do this by taking x 1 , . . . , x t and then choosing any x t +1 ∈ � t i =1 N c i ( x i ). Then we can define c i accordingly, since at least one of N red ( x t +1 ) ∩ �� t i =1 N c i ( x i ) � is infinite, or N blue ( x t +1 ) ∩ �� t i =1 N c i ( x i ) � is infinite. This then gives us an infinite collection x 1 , x 2 , . . . so that x i x j with i < j are given colour c i . Then since both { x i | c i = red } and { x i | c i = blue } are monochromatic cliques, at least one of them is infinite, giving a monochromatic complete countable subgraph.",
+      "page_start": 23,
+      "word_count": 294
+    },
+    {
+      "heading": "Definition 7.7",
+      "section_type": "other",
+      "position": 203,
+      "text": "(Hypergraph Ramsey Numbers) We define R ( r ) ( s, t ) to be the smallest n such that every red/blue colouring of [ n ] ( r ) either contains a set X ⊆ [ n ] with | X | = s and X ( r ) red, or there exists Y ⊆ [ n ] with | Y | = t and Y ( r ) blue. And of course, it’s not guaranteed that these exist, but it is possible to show that they do.",
+      "page_start": 11,
+      "word_count": 89
+    },
+    {
+      "heading": "Lower Bounds for Ramsey Numbers",
+      "section_type": "other",
+      "position": 205,
+      "text": "We said and the end of subsection 7.1 that we were left to get a good lower bound on the Ramsey numbers R ( t ). One way to do that might be by considering the following extremal-seeming construction: 46 Adam Kelly (November 6, 2021) Graph Theory t − 1 vertices t − 1 blobs This clearly doesn’t have a monochromatic K t subgraph, and we can compute the num- ber of vertices is ( t − 1) 2 , giving R ( t ) ≥ ( t − 1) 2 . However, it turns out that this quadratic bound is, quite frankly, awful. To show some- thing better, we are going to need a new idea – considering random graphs and using probability.",
+      "page_start": 18,
+      "word_count": 124
+    },
+    {
+      "heading": "Theorem 7.9",
+      "section_type": "other",
+      "position": 206,
+      "text": "(Erd˝os) R ( t ) ≥ 2 t 2 . Proof. We will show that for a random colouring of the edges of K n , P (there exists a monochromatic K t ⊂ K n ) ≤ 2 � n t � 2 − ( t 2 ) . Once we have shown this, we will then note for n = 2 t/ 2 that the RHS of this inequality is strictly less than 1, which implies that is some colouring of K n with no monochromatic K t . To prove this inequality, we first fix some A ⊆ K n with | A | = t , and note that P ( A (2) is monochromatic) = 2 · 2 − ( t 2 ) . Applying the union bound then gives us our desired result P (there exists a monochromatic K t ⊂ K n ) ≤ � A ∈ K ( t ) n 2 · 2 − ( t 2 ) = 2 � n t � 2 − ( t 2 ) . Then to show that this is less than 1 for n = 2 t/ 2 , we can take 2 � n t � 2 − ( t 2 ) ≤ 2 n t t ! 2 t ( t − 1) 2 = � 2 1 /t t ! 1 /t · n 2 − t − 1 2 � t , and thus it is indeed less than 1 for n = 2 t/ 2 . The proof idea we employed is known as the probabilistic method , and is an immensely powerful technique that can be used to show all kinds of interesting results. Getting much better bounds on R ( t ) is still a major open problem, and surprisingly the bounds we have proved so far aren’t far from state of the art – the base of the 47 Adam Kelly (November 6, 2021) Graph Theory exponential term is still the same in best known results. Also, there’s currently no known construction that gives an exponential lower bound directly. § 8",
+      "page_start": 7,
+      "word_count": 356
+    },
+    {
+      "heading": "The Probabilistic Method",
+      "section_type": "other",
+      "position": 207,
+      "text": "At the end of our discussion on Ramsey numbers, we used an argument that combines probability and random graphs to prove a result. In this section we are going to look a bit more closely at the type of argument that we used. § 8.1",
+      "page_start": 3,
+      "word_count": 45
+    },
+    {
+      "heading": "Definition 8.1",
+      "section_type": "other",
+      "position": 209,
+      "text": "(Binomial Random Graph) Let n ∈ N and p ∈ [0 , 1], let G ( n, p ) be the probability space on all graphs with vertex set { 1 , 2 , . . . , n } , with P ( ij ∈ E ( G )) = p , and every edge included/excluded independently.",
+      "page_start": 7,
+      "word_count": 58
+    },
+    {
+      "heading": "Remark.",
+      "section_type": "other",
+      "position": 210,
+      "text": "For our ‘ R ( t ) ≥ 2 t/ 2 ’ result, we were working with G ( n, 1 / 2), which is the same as sampling uniformly on a graph on { 1 , . . . , n } . Another use of random graphs is in the Zarankiewicz problem. Recall our definition of Z ( n, t ). We proved already that Z ( n, t ) ≤ 2 n 2 − 1 /t , and we hadn’t yet proved a lower bound. We are able to come up with one using the probabilistic method.",
+      "page_start": 9,
+      "word_count": 100
+    },
+    {
+      "heading": "Theorem 8.2",
+      "section_type": "other",
+      "position": 211,
+      "text": "We have Z ( n, t ) ≥ 1 4 n 2 − 2 t +1 . Proof. Let G be a random bipartite graph with parts A, B and | A | = | B | = n . Then, define � G to be G with an edge removed from each K t,t in G . Then e ( � G ) ≥ e ( G ) − # ( K t,t ’s in G ) , and by linearity of expectation E � e ( � G ) � ≥ E [ e ( G )] − E [# ( K t,t ’s in G )] . We have E [ e ( G )] = pn 2 , and also E [#( K t,t ’s in G )] can be written using indicator functions as E   � A ′ ,B ′ 1 � A ′ , B ′ induce a K t,t �   = � n t � 2 p t 2 , where we sum over A ′ ≤ A , B ′ ≤ B with | A ′ | = | B ′ | = t . Thus E [ e ( � G )] ≥ pn 2 − � n t � 2 p t 2 . (*) 48 Adam Kelly (November 6, 2021) Graph Theory We want the RHS of this to be positive, so it’s enough to have pn 2 ≥ n 2 t p ⇐⇒ n − 2 t +1 ≥ p, so if p = n − 2 / ( t +1) then ( ∗ ) ≥ pn 2 / 2 ≥ n 2 / 2 − 2 / ( t + 1), as desired. This proof is an example of the ‘modification method’. § 8.2",
+      "page_start": 11,
+      "word_count": 301
+    },
+    {
+      "heading": "Random Graphs and Chromatic Number",
+      "section_type": "other",
+      "position": 212,
+      "text": "One big picture question in graph theory is ‘what makes χ ( G ) large?’ A possible answer is that G contains a large clique, but that’s not the whole story. For example, there’s a triangle free graph with arbitrarily large χ . Another possible answer is that G has lots of short cycles, but it turns out that this is false too.",
+      "page_start": 6,
+      "word_count": 63
+    },
+    {
+      "heading": "Definition 8.4",
+      "section_type": "other",
+      "position": 214,
+      "text": "(Independent Set) An independent set in a graph is a subset of vertices no two of which are adjacent. We will denote the size of the largest independent set α ( G ). We can prove that graphs with large girth can also have arbitrarily large chromatic number. We will first need to note that if G is a graph, then χ ( G ) ≥ n α ( G ) .",
+      "page_start": 10,
+      "word_count": 72
+    },
+    {
+      "heading": "Theorem 8.5",
+      "section_type": "other",
+      "position": 215,
+      "text": "For every k, G ∈ N , there exists a graph G with girth( G ) ≥ g and χ ( G ) ≥ k . Proof. Let G be a random graph sampled from G ( n, p ) where p = n 1 g − 1 . We form the new graph � G be the graph where we remove a vertex from each cycle of length g − 1. We are going to do a few steps. 1. We want to show that P ( | � G | ≥ n/ 2) → 1 as n →∞ . 2. We want to use χ ( � G ) ≥| � G | /α ( � G ), noting that α ( � G ) ≤ α ( G ). To do this, we will prove P ( α ( G ) ≤ n/ 2 k ) → 1 as n →∞ . Step 1 . Let X i be the number of cycles of length i in G , and let X = � g − 1 i =1 X i . We can write X i = � x 1 ,...,x i ∈ [ n ] 1 ( x 1 . . . x i are a cycle in G ) . 49 Adam Kelly (November 6, 2021) Graph Theory Taking expectations, E [ X i ] = � x 1 ,...,x i ∈ [ n ] P ( x 1 . . . x i are a cycle in G ) ≤ n i p i . Using this we have E [# of cycles of length ≤ g − 1] = E [ X ] = g − 1 � i =1 ( np ) i ≤ gn g − 1 g . Using Markov’s inequality, P ( X > n/ 2) ≤ E [ X ] n/ 2 → 0 as n →∞ , thus P ( | � G | ≥ n/ 2) → 1, as we needed. Step 2 . Let Y t be the number of independent sets of size t = n/ 2 k . Then Y t = � I ∈ [ n ] ( t ) 1 ( I is independent) , and taking expectations E [ Y t ] = � I ∈ [ n ] ( t ) P ( I is independent) = � n t � (1 − p ) ( t 2 ) ≤ n t e − p ( t 2 ) = � ne − p t − 1 2 � t , and with p = n 1 /g − 1 and t = n/ 2 k , so the RHS tends to 0 as n tends to infinity. Then P ( Y t ≥ 1) ≤ E [ Y t ] → 0 , and P ( Y t ≥ 1) = P ( α ( G ) ≥ t ) = P ( α ( G ) ≥ n/ 2 k ). Putting that together, χ ( � G ) ≥ | � G | α ( � G ) ≥ | � G | α ( G ) ≥ n/ 2 n/ 2 k ≥ k holds with probability tending to 1 as n tends to infinity, finishing our proof. § 8.3",
+      "page_start": 14,
+      "word_count": 556
+    },
+    {
+      "heading": "Structure of Random Graphs",
+      "section_type": "other",
+      "position": 216,
+      "text": "So what does a typical graph sampled from G ( n, p ) look like? What does its structure look like as p varies from 0 to 1? As a first example, we will consider the following more precise question: For what p does G sampled from G ( n, p ) contain a K t ?",
+      "page_start": 25,
+      "word_count": 57
+    },
+    {
+      "heading": "Theorem 8.6",
+      "section_type": "other",
+      "position": 217,
+      "text": "Let G be sampled from G ( n, p ( n )), and let t ∈ N . Then lim n →∞ P ( G contains a K t ) → 1 if p ( n ) n 2 t − 1 →∞ . Moreover, lim n →∞ P ( G contains K t ) → 0 if p ( n ) n 2 t − 1 → 0. 50 Adam Kelly (November 6, 2021) Graph Theory Proof. Define X t to be the number of K t s in G . Then X t = � A ∈ [ n ] ( t ) 1 ( G [ A ] is complete) , and E [ X t ] = � A ∈ [ n ] ( t ) P ( G [ A ] is complete) = � n t � p ( t 2 ) . We note that � n t � p ( t 2 ) ≤ n t p ( t 2 ) = � n 2 t − 1 p � ( t 2 ) , and this tends to 0 or ∞ if n 2 t − 1 p tends to 0 or ∞ respectively. So P ( G contains a K t ) = P ( X t ≥ 1) ≤ E [ X t ] → 0 if n 2 t − 1 p → 0 . We now need to show that P ( G ⊇ K t ) → 1 if pn 2 t − 1 →∞ . We will use P ( G ̸⊇ K t ) = P ( X t = 0) ≤ P ( | X t − E [ X t ] | ≥ E [ X t ]). By Chebyshev, we have P ( | X t − E [ X t ] | ≥ E [ X t ]) ≤ Var( X t ) E [ X t ] 2 , so it suffices to show that this tends to 0. We calculate the variance as Var( X t ) = E [ X 2 ] − ( E [ X ]) 2 = � A,B ∈ [ n ] ( t ) [ P ( G [ A ], G [ B ] complete) − P ( G [ A ] complete) P ( G [ B ] complete)] , which we calculate by hand as Var( X t ) = t � s =1 � n t �� t s �� n − t t − s �� p 2 ( t 2 ) − ( s 2 ) − p 2 ( t 2 ) � , and noting that � n − t t − s � / � n t � ≤ t ! /n s for n large, we have Var( X t ) ( E [ X ]) 2 = t � s =1 � n t �� t s �� n − t t − s � � p 2 ( t 2 ) − ( s 2 ) − p 2 ( t 2 ) � � n t � p 2 ( t 2 ) , ≤ 2 t +1 t ! t � s =1 1 n s · 1 p ( s 2 ) ≤ ( t !) 2 t � s =1 � 1 n 2 s − 1 p � ( s 2 ) . Since n 2 t − 1 p →∞ , then n 2 s − 1 p →∞ for each s ≤ t , this goes to zero as required. This is an example of a threshold result, where almost suddenly when p goes to a certain value, we start to see some consistent structure in the random graphs. Another somewhat similar question is: 51 Adam Kelly (November 6, 2021) Graph Theory What is the threshold for the graph to be connected? We will find that this ‘transition’ will be much faster than with the previous example.",
+      "page_start": 28,
+      "word_count": 674
+    },
+    {
+      "heading": "Theorem 8.7",
+      "section_type": "other",
+      "position": 218,
+      "text": "Let G be sampled from G ( n, p ( n )), then lim n →∞ P ( G is connected) = 1 if p > (1 + ϵ ) log n n and lim n →∞ P ( G is disconnected) = 0 if p < (1 − ϵ ) log n n . Proof. For the ‘first direction’ we will show that there is an isolated vertex with probability going to 1 if p < (1 − ϵ ) log n n . Let I be the number of isolated vertices. We are going to use a similar strategy to before, where we calculate the variance and apply Chebyshev. We have E [ I ] = n (1 − p ) n − 1 and E [ I 2 ] = � u,v ∈ [ n ] P ( u , v are isolated) , which gives us the variance Var( I ) = � u,v ∈ [ n ] [ P ( u , v isolated) − P ( u isolated) P ( v isolated)] =   � u ∈ [ n ] P ( u iso) − P ( u iso) 2   +   � u ̸ = v ∈ [ n ] P ( u , v iso) − P ( u iso) P ( v iso)   = � n (1 − p ) n − 1 � +   � u ̸ = v ∈ [ n ] (1 − p ) 2( n − 1) − 1 − (1 − p ) 2( n − 1)   = n (1 − p ) n − 1 + n ( n − 1)(1 − p ) 2( n − 1) − 1 p. Then we can apply Chebyshev to get P ( I = 0) ≤ P ( | I − E [ I ] | ≥ E [ I ]) ≤ Var( I ) E [ I ] 2 = n (1 − p ) n − 1 + n ( n − 1)(1 − p ) 2( n − 1) − 1 n 2 (1 − p ) 2( n − 1) = 1 (1 − p ) n − 1 n + p −→ 0 , as required. Now for the ‘other direction’, we want to show that the P ( G is disconnected) → 0. We can write P ( G is disconnected) = P   � A ⊆ [ n ] , 0 < | A |≤ n/ 2 { no edges between A and A ′   ≤ � A ⊆ [ n ] , 0 < | A |≤ n/ 2 P (no edges between A and A ′ ) 52 Adam Kelly (November 6, 2021) Graph Theory = n/ 2 � s =1 � n s � (1 − p ) s ( n − s ) , so we want to show that this tends to zero. We can break up this sum as n/ 2 � s =1 � n s � (1 − p ) s ( n − s ) ≤ ϵn/ 2 � s =1 � ne − p ( n − s ) � s + � ϵn/ 2 ≤ s ≤ n/ 2 � n s � e − ps ( n − s ) ≤ ϵn/ 2 � s =1 � 1 n ϵ/ 4 � s +   � ϵn/ 2 ≤ s ≤ n/ 2 � n s �   e − ϵn log n/ 8 ≤ ϵn/ 2 � s =1 � 1 n ϵ/ 4 � s + � 2 e − ϵ log n/ 8 � n −→ 0 , thus P ( G is disconnected) → 0, as required. § 9",
+      "page_start": 4,
+      "word_count": 641
+    },
+    {
+      "heading": "A Motivating Problem",
+      "section_type": "other",
+      "position": 220,
+      "text": "The diameter of a graph is the maximum distance between two vertices in a graph. We are going to try and attack the problem below: How many vertices can a graph with fixed ∆have, given its diameter is at most 2? By just thinking a little bit, it’s not hard to come up with the bound n ≤ 1 + ∆+ (∆ − 1)∆= 1 + ∆ 2 , but is it possible to have a graph that attains this bound? We are going to call such graphs Moore graphs .",
+      "page_start": 39,
+      "word_count": 91
+    },
+    {
+      "heading": "Example 9.2",
+      "section_type": "other",
+      "position": 223,
+      "text": "(Examples of Moore Graphs) Below are Moore graphs for k = 2 and k = 3. 53 Adam Kelly (November 6, 2021) Graph Theory k = 2 k = 3 Note that the graph for k = 3 is the Petersen graph. Playing around a bit, you might find that such a graph for k = 4 does not exist , so it seems that Moore graphs are somewhat special.",
+      "page_start": 47,
+      "word_count": 70
+    },
+    {
+      "heading": "Remark.",
+      "section_type": "other",
+      "position": 224,
+      "text": "A Moore graph is a k -regular graph for which any x ̸ = y with x, y ∈ V ( G ) has exactly one path of length ≤ 2 between x and y . So Moore graphs don’t always exist, leading to a natural question – does there exist infinitely many of them? § 9.2",
+      "page_start": 4,
+      "word_count": 57
+    },
+    {
+      "heading": "Definition 9.3",
+      "section_type": "other",
+      "position": 226,
+      "text": "(Adjacency Matrix) Given a graph G = ( V, E ) on n vertices, we define the adjacency matrix of G to be the n × n matrix A ij = � 1 if ij ∈ E, 0 otherwise .",
+      "page_start": 8,
+      "word_count": 40
+    },
+    {
+      "heading": "Example 9.4",
+      "section_type": "other",
+      "position": 227,
+      "text": "(Example of an Adjacency Matrix) An graph and its associated adjacency matrix are given below. 1 2 3 4 5 Adjacency Matrix A =       0 1 0 0 1 1 0 1 1 1 0 1 0 1 0 0 1 1 0 1 1 1 0 1 0       Now while this is just a straightforward representation of a graph, the fact that it’s a matrix means that we can start asking questions about it, even if it’s not immediately obvious that they have any meaning. For example, what do the eigenvalues of this matrix look like? What about the eigenvectors? We can observe that the adjacency matrix is symmetric, which we know implies that it has real eigenvalues λ 1 ≥· · · ≥ λ n , and an associated eigenbasis v 1 , . . . , v n which is orthonormal. We can also observe that for a graph G with adjacency matrix A , since there’s no edge 54 Adam Kelly (November 6, 2021) Graph Theory between a vertex and itself, that there is only zeros along the diagonal of A , so it has zero trace and n � i =1 λ i = tr( A ) = 0 . Also, if we call λ 1 = λ max and λ n = λ min , then λ max = max x : | x | 2 =1 x T Ax, and λ min = min x : | x | 2 =1 x T Ax Somewhat surprisingly, we are going to be able to connect all of these algebraic facts back to our original graph.",
+      "page_start": 12,
+      "word_count": 283
+    },
+    {
+      "heading": "Proposition 9.5",
+      "section_type": "other",
+      "position": 228,
+      "text": "Let G = ( V, E ) be a graph with adjacency matrix A . Then (i) 1 n � x ∈ V d ( x ) ≤ λ max ( G ) ≤ ∆( G ). (ii) λ max ( G ) = ∆( G ) if and only if G is ∆-regular. (iii) λ min ( G ) = ∆( G ) if and only if G is ∆-regular and bipartite. Proof. Part (i) . For the lower bound, let w = 1 √ n (1 , . . . , 1). Then we observe by interpreting the adjacency matrix in a graph theoretic sense that λ max = max x : | x | 2 =1 x T Ax ≥ w T Aw = 1 n � x ∈ V d ( x ) . For the upper bound, let x = ( x 1 , . . . , x n ) be an eigenvector corresponding to λ max . Assume WLOG that | x 1 | ≥| x i , for all i . Then λx 1 = ( λ max x ) 1 = ( Ax ) 1 = � i : v i ∼ v 1 x i , which gives us | λ max x 1 | ≤ � i : v i ∼ v 1 | x i | ≤| x 1 | ∆ , so | λ max | ≤ ∆, and λ max ≤ ∆. Part (ii) . If G is ∆-regular, then consider 1 = (1 , . . . , 1). Then A 1 = ∆ 1 , thus λ max ≥ ∆, so λ max = ∆by our previous result. If λ max = ∆, then let x = ( x 1 , . . . , x n ) be an associated eigenvector, and as before assume | x 1 | ≥| x i | for all i . Then ∆ x 1 = (∆ x ) 1 = ( Ax ) 1 = � i : v i ∼ v 1 x i , therefore x i = x for all i where v i ∼ v 1 . So now we repeat the argument for all v i ∈ N ( v 1 ) to learn that all x j with d ( v j , v 1 ) ≤ 2 has x j = x 1 and so on, until we 55 Adam Kelly (November 6, 2021) Graph Theory get x 1 = x i for all v j in the component of v i . We then repeat for each component, to see that x is constant on each component, and thus G must be a regular graph. Part (iii) . Omitted. Another fact that will bring us closer to Moore graphs concerns the interpretation of the square of an adjacency matrix.",
+      "page_start": 7,
+      "word_count": 481
+    },
+    {
+      "heading": "Proposition 9.6",
+      "section_type": "other",
+      "position": 229,
+      "text": "Let G be a graph and let A be its adjacency matrix. Then ( A 2 ) ij is the number of walks of length 2 between i, j . Proof Sketch. Consider how A 2 is calculated. § 9.3",
+      "page_start": 5,
+      "word_count": 40
+    },
+    {
+      "heading": "Lemma 9.7",
+      "section_type": "other",
+      "position": 231,
+      "text": "(Necissary Condition for the Existence of Moore Graphs) Let G be a Moore graph of degree k , then 1 2 � k 2 ± k 2 − 2 k √ 4 k − 3 � are integers. Proof. Let G be a Moore graph of degree k on n vertices, and let A be the adjacency matrix of G . Then we have ( A 2 ) ij =      k if i = j, 1 if i ̸ = j and ij ̸∈ E, 0 if ij ∈ E. Thus A 2 = ( J − A ) + ( k − 1) I , where J is the matrix of all 1s. So we have A 2 + A − ( k − 1) I = J. Now let λ max be a maximum eigenvalue of A , and let x be a corresponding eigen- vector. Since G is k -regular, 1 is an eigenvector of A , and thus we know that x ⊥ 1 , since λ max ̸ = ∆. Then ( A 2 + A − ( k − 1) I ) x = Jx = ⇒ ( λ 2 max + λ max − ( k − 1)) x = 0 , so λ 2 max + λ max − ( k − 1) = 0. Thus λ max = � − 1 ± � 1 + 4( k − 1) 2 � = � − 1 ± √ 4 k − 3 2 � . 56 Adam Kelly (November 6, 2021) Graph Theory So A has eigenvalues k with multiplicity 1, λ max with multiplicity say r , and µ with multiplicity s , with r + s = n − 1. We also know that n � i =1 λ i = 0 = k + rλ + sµ, and solving this for integers r and s and using n = k 2 +1 gives the desired result. With this lemma, we can heavily restrict the possible Moore graphs.",
+      "page_start": 10,
+      "word_count": 343
+    },
+    {
+      "heading": "Theorem 9.8",
+      "section_type": "other",
+      "position": 232,
+      "text": "(Hoffman-Singleton Theorem) Let G be a Moore graph of degree k . Then k ∈{ 2 , 3 , 7 , 57 } . Proof. We need to find out when 1 2 � k 2 ± k 2 − 2 k √ 4 k − 3 � are integers. One case is when k 2 − 2 k = 0, implying that k = 2. Another case is when 4 k − 3 = t 2 , where t | k 2 − 2 k . Then we have t | � t 2 + 3 4 � 2 − 2 � t 3 + 3 4 � , and multiplying by 16, t | t 4 − 2 t 2 − 15 , so t | 15, and thus t ∈{ 3 , 5 , 15 } , and since 4 k − 3 = t 2 , this shows that k ∈ { 3 , 7 , 57 } .",
+      "page_start": 7,
+      "word_count": 163
+    }
+  ],
+  "references_raw": ""
+}

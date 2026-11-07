@@ -1,0 +1,409 @@
+{
+  "file_path": "E:/Librarian research/Systematic knowledge modeling and extraction method planning based on knowledge graph.pdf",
+  "metadata": {
+    "title": "Systematic knowledge modeling and extraction methods for manufacturing process planning based on knowledge graph",
+    "authors": [
+      "Peihan Wen",
+      "Yan Ma",
+      "Ruiquan Wang"
+    ],
+    "year": 2023,
+    "venue": "Advanced Engineering Informatics",
+    "doi": null,
+    "abstract_summary": "This paper presents a systematic method of knowledge graph construction for process knowledge to overcome the problems of labor-intensive and inefficient methods of organizing process knowledge. The method includes domain ontology proposal, pattern-based bootstrapping framework for process knowledge extraction, and meta path-based question answering over knowledge graph approach to support process planning."
+  },
+  "sections": [
+    {
+      "heading": "A B S T R A C T",
+      "section_type": "other",
+      "position": 4,
+      "word_count": 564,
+      "text": "Process knowledge is an important part of intelligent manufacturing, which has become the trend of global manufacturing industry. However, process planning in manufacturing heavily relies on experience and historical knowledge that cannot be effectively reused. Also, process knowledge is complicatedly structured, widely distributed, and weakly associated, which makes it more difficult to be shared and reused. Moreover, existing methods of organizing process knowledge are labor-intensive, inefficient and inevitable to extensive manual annotation. To overcome the above problems, a systematic method of knowledge graph construction for process knowledge is presented. First, through key concepts and relationships analysis, a domain ontology for process knowledge is proposed. Second, a pattern-based bootstrapping framework with a 2-level masking technique is established to perform process knowledge extraction, which does not require manual annotation and avoids overfitting issues. Third, a meta path-based question answering over knowledge graph approach is presented to support process planning, which can effectively capture keywords of the input question, present the intention and match the designed path. Finally, taking the production process of radiator as a research object, a corre­ sponding manufacturing process knowledge graph is constructed and applied to process planning scenario, and experiments validate the feasibility of the proposed methods. 1. Introduction Knowledge graph has been widely used in healthcare, education, science and engineering fields, and played a vital role in the develop­ ment of intelligent manufacturing [1] . Furthermore, sharing and reusing of process knowledge act as key links in the process of intelligent manufacturing [2] . Process planning of products generates a large amount of process data, which is widely distributed and weakly asso­ ciated. It will greatly reduce the cost for process planning and improve the efficiency if process data can be organized as structural knowledge and reutilized as the basis of new product process planning. The urgent needs of sharing and reusing of process knowledge in process planning can be embodied in two aspects. (1) Process knowledge is not only important for current planning, but also of great values for planning of similar products in the future. Process planning is not arbitrary and needs to be determined in combination with specific production conditions such as equipment conditions, characteristics of new products, and existing process routes of similar products. (2) Process planning needs experience. Experience is often invisible and mainly exists in the brains of process engineers [3] . Moreover, process engineers turnover among companies is usually high. If process knowledge can be effectively extracted, organized and reused, it can greatly reduce the training cost for novices and the difficulty of process planning. In accordance with the above two characteristics in process plan­ ning, it is necessary to organize knowledge in a structured manner and enable it to be associated with reasoning to provide scenario-based ap­ plications. Existing process planning systems such as computer-aided design (CAD), computer-aided process planning (CAPP) can assist in production. However, such expert systems have three drawbacks that hinder the sharing and reusing of process knowledge. Firstly, the system design requires a lot of time and effort [4] . Secondly, knowledge updating and expanding in systems are difficult due to non-systematic organization of process knowledge. Thirdly, the ability of related search and recommendation is weak because of bottlenecks in hetero­ geneous process knowledge representation and reasoning. As a large-scale semantic network and a state-of-the-art method, * Corresponding author. E-mail address: wen@cqu.edu.cn (P. Wen). Contents lists available at ScienceDirect",
+      "claims": [
+        {
+          "text": "Process knowledge is an important part of intelligent manufacturing, which has become the trend of global manufacturing industry. However, process planning in manufacturing heavily relies on experience and historical knowledge that cannot be effectively reused.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Existing methods of organizing process knowledge are labor-intensive, inefficient and inevitable to extensive manual annotation.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "A systematic method of knowledge graph construction for process knowledge is presented to overcome the above problems.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The method includes a domain ontology for process knowledge, a pattern-based bootstrapping framework, and a meta path-based question answering approach.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "process knowledge",
+          "definition": "knowledge related to manufacturing processes",
+          "concept_type": "term"
+        },
+        {
+          "name": "knowledge graph",
+          "definition": "a graph that represents knowledge as entities and relationships",
+          "concept_type": "method"
+        },
+        {
+          "name": "domain ontology",
+          "definition": "a formal representation of knowledge in a specific domain",
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Advanced Engineering Informatics",
+      "section_type": "other",
+      "position": 5,
+      "word_count": 3479,
+      "text": "journal homepage: www.elsevier.com/locate/aei https://doi.org/10.1016/j.aei.2023.102172 Received 10 April 2023; Received in revised form 9 August 2023; Accepted 3 September 2023 Advanced Engineering Informatics 58 (2023) 102172 2 knowledge graphs can systematically capture semantic relationships of different concepts, and organize large-scale and disordered process data in a logically hierarchical and semantic relationship-rich manner. Hence, we introduce knowledge graph to address the following two is­ sues in manufacturing process planning. (1) Establish knowledge assets for process planning . Domain knowledge from historical records and domain experts is a crucial asset for enter­ prises [5] . Knowledge graph structurally organizes internal process knowledge of the enterprise to form its own process knowledge assets, so that historical knowledge and experience can be inherited and shared, and reduce the memory burden of process engineers, the training cost for novices. (2) Support process planning . Compared to CAPP, knowledge graph makes historical process knowledge inferential. The knowledge graph aided question answering system assists process engineers by better understanding and retrieving historical experience knowledge. Nevertheless, due to the following six special characteristics of manufacturing process texts, existing methods cannot be directly applied to construct a manufacturing process knowledge graph (MPKG). (1) The territorial nature of manufacturing process words . Process words, such as “ 冲压 (punching) ” , “ 穿热管 (heat pipe) ” , etc., scarcely ever appear in normal texts, and lack enough labeled samples for training, leading to a high probability of wrong extraction. (2) Regular semantic combination rules of manufacturing process words . Restricted adjectives are added to represent a specific component, which make process words more difficult to extract than words in normal texts. For example, in a word “ 酸性脱脂剂 (acid degreasing agent) ” , the central word “ 脱脂剂 (degreasing agent) ” is restricted with “ 酸性 (acidic) ” in property. Traditional knowledge extraction methods will divide the word into two parts as the property, and the central word, respectively, i.e., “ 酸性 (acidic) ” , and “ 脱脂剂 (degreasing agent) ” , which fails to clearly express the original meaning. (3) Various structural paradigms of manufacturing process documents . For example, expert experience is usually expressed in unstructured knowledge, and process knowledge stored in CAD software is usually expressed in semi-structured and unstructured texts. Besides, it is always inefficient to look up a piece of information from a long report, making knowledge retrieval more difficult [3] . (4) Strict operating sequence requirements in processes . Process sequencing is a very important part of process planning [6] . Process knowledge involving sequence such as production processes and oper­ ating procedures has strict sequential requirements, so the sequence should be taken into account carefully in the knowledge organization. (5) Multi-knowledge organization . The organization of process knowledge is oriented to multiple objects and presents a multidimen­ sional structure, not just around a certain object. (6) Incomplete expression of relationships between properties and corre­ sponding values in form of tables . For example, two columns with “ 工序 (production processes) ” and “ 攻牙 (tapping) ” , respectively, of a table may mean “ 工序是攻牙 (The production processes is tapping.) ” , omitting a predicate “ 是 (is) ” . Due to the missing of predicates, the feature dis­ tribution is quite special compared with normal texts. The benefit of knowledge graph and characteristics of manufacturing process texts motivate us to put forward a systematic solution to effec­ tively construct MPKG so as to support manufacturing process planning. Our main contributions are fourfold. (1) A domain ontology for process knowledge (DOPK) is proposed, so are key concepts and ",
+      "claims": [
+        {
+          "text": "Knowledge graphs can systematically capture semantic relationships of different concepts and organize large-scale and disordered process data.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The knowledge graph aided question answering system assists process engineers by better understanding the process knowledge.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The knowledge graph structurally organizes internal process knowledge of the enterprise to form its own process knowledge assets.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The knowledge graph makes historical process knowledge inferential.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "knowledge graph",
+          "definition": "a graph that represents knowledge as entities and relationships",
+          "concept_type": "method"
+        },
+        {
+          "name": "process planning",
+          "definition": "the process of planning and organizing manufacturing processes",
+          "concept_type": "term"
+        },
+        {
+          "name": "domain knowledge",
+          "definition": "knowledge specific to a particular domain or industry",
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "MPKG",
+      "section_type": "other",
+      "position": 6,
+      "word_count": 1617,
+      "text": "Process planning is characterized by diverse structure, fast-changing and experience dependence. In addition to the territorial nature and regular semantic combination rules of manufacturing process words, it is hard to extract exact right process words using traditional knowledge extraction methods. Moreover, existing extraction methods are labor- intensive to make lexical annotation and existing knowledge in pro­ cess documents is not fully exploited. Therefore, the PBB-2MT is pro­ posed, which is improved based on the pattern-based bootstrapping framework [20] . The improvements are reflected in the following aspects. (1) In [20] , automatic text mining tools and experts are used to annotate and extract entities in medical texts. Relationship between entities is represented as a pattern by a parser, and then relationship in unlabeled texts is extracted. However, recognition effect of general text mining tools on domain vocabulary is not significant, and expert tagging is laborious. Therefore, referring to the idea of template-based bootstrapping, we use entities and their concepts as patterns for further entity mining instead of taking relationships between entities as patterns. (2) Relationships between biomedical entities that occur in the same sentence in [20] are considered in relationship extraction, and the same sentence must contain two categories of entities, ignoring the associa­ tion between single categoriy of entities in paragraphs. Therefore, we set content under specific topic as entities and establish their relationships with other content in the document in paragraph topic recognition. For example, in Section 4.3 , we extract the content of the operating pro­ cedure paragraph at a fine-grained level and establish their relationship with the workpiece. (3) A word-level masking proposed in [20] masks relationships be­ tween two categories of entities in the pattern to match and obtain new relationships in unlabeled texts, ignoring semantic similarity between entities. Hence, we fully consider characteristics of process texts in word-level masking, including its syntax combination form and se­ mantic features, to mine new entities in unlabeled texts. We have also designed process word segmentation rules and process word semantic calculation method to mine words in the manufacturing process domain at the word level. With improvements mentioned above, the PBB-2MT is developed, requiring no manual annotation and fully concerning characteristics in process texts. By traversing process documents, entities are extracted with the methods in Sections 4.2 to Section 4.4 , namely, extracting entities from template-based texts, fine-grained extraction of operating procedures through topic recognition in preprocessing, and extracting entities from unstructured texts through a two-level masking technique. Then relationships between extracted entities are automatically extracted to generate triplets based on the predefined relationships be­ tween concepts in the DOPK. Finally, the MPKG is constructed and stored in Neo4j database. To avoid semantic drift caused by bootstrap and improve quality of new knowledge, we propose a feature-based similarity calculation algorithm integrating the edit distance similarity and the cosine similarity. The workflow of the PBB-2MT is shown in Fig. 6 . 4.1. Classification of process knowledge Sources of process knowledge include process planning documents, operations manuals, and expert experience that exists in process engi­ neers ’ minds and team practices. Combined with content and Fig. 4. Structural relationships between the first level concepts of the DOPK. P. Wen et al. Advanced Engineering Informatics 58 (2023) 102172 7 characteristics of process knowledge, according to the structuralization degree of knowledge expression, process knowledge can be classified into rule-based process knowledge, same-property process template knowledge and personalized process instance knowledge [39] , amo",
+      "claims": [
+        {
+          "text": "Process planning is characterized by diverse structure, fast-changing and experience dependence.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Traditional knowledge extraction methods are labor-intensive and do not fully exploit existing knowledge in process documents.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "The PBB-2MT method is proposed to improve the pattern-based bootstrapping framework.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The PBB-2MT method uses entities and their concepts as patterns for further entity mining.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "PBB-2MT",
+          "definition": "a method for improving the pattern-based bootstrapping framework",
+          "concept_type": "method"
+        },
+        {
+          "name": "pattern-based bootstrapping",
+          "definition": "a framework for extracting knowledge from text",
+          "concept_type": "method"
+        },
+        {
+          "name": "entity mining",
+          "definition": "the process of extracting entities from text",
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Step 1",
+      "section_type": "other",
+      "position": 7,
+      "word_count": 102,
+      "text": ". Rule-based process text segmentation. Due to regular semantic combination rules of manufacturing process word, we use LTP devel­ oped by the research team of Harbin University of Technology as the initial segmentation and part-of-speech tagging tool. On this basis, we design the segmentation rules for process texts. Because complex process words are mostly expressed in the form of “ property + central word ” , we analyze the parts of speech of adjacent words from the results of LTP segmentation. If the parts of speech of adjacent words are nouns, we consider these words as process domain words and merge them.",
+      "claims": [
+        {
+          "text": "Rule-based process text segmentation is used to segment process texts into individual words or phrases.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The LTP tool is used for initial segmentation and part-of-speech tagging.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Segmentation rules are designed to merge adjacent words with the same part of speech.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The rules are based on the analysis of the parts of speech of adjacent words.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "LTP",
+          "definition": "a tool for natural language processing",
+          "concept_type": "method"
+        },
+        {
+          "name": "rule-based process text segmentation",
+          "definition": "a method for segmenting process texts",
+          "concept_type": "method"
+        },
+        {
+          "name": "part-of-speech tagging",
+          "definition": "the process of identifying the part of speech of each word in a text",
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Step 2",
+      "section_type": "other",
+      "position": 8,
+      "word_count": 1729,
+      "text": ". Feature-based similarity calculation. The edit distance simi­ larity measures the number of editing operations required to make two strings equal, such as inserting, deleting, and replacing. It is suitable for situations where the word is short and the form between words are regular. At the same time, the cosine similarity calculates the vector angle between two word-embeddings in the semantic space. Its advan­ tage is that it calculates the semantic similarity of words, and handles texts of different lengths and situations where the distribution of key­ words between words is not obvious. Due to the inconsistent length of process words, and some words have construction rules, while some words do not, we choose to inte­ grate the above two similarity calculation methods. The corresponding Fig. 7. Example of fine-grained extraction of operating procedures. P. Wen et al. Advanced Engineering Informatics 58 (2023) 102172 10 calculation formulas for the cosine similarity and the edit distance similarity are shown in Equation (1) and Equation (2) , respectively. sim ( s , t ) = cos ( s , t ) = s • t ‖ s ‖ • ‖ t ‖ (1) ED ( s , t ) = 1 − dis ( s , t ) max ( Len ( s ) , Len ( t )) (2) Where s and t are the vectorized representations of the strings s and t , respectively; ‖ s ‖ and ‖ t ‖ represent the vector length of the string s and t . dis ( s , t ) is the edit distance between strings s and t , and Len ( s ) and Len ( t ) are the lengths of the strings s and t . Generally, the more similar the words are, the greater the edit dis­ tance score and the cosine score. The edit distance score threshold is set as w 1 and the cosine score threshold is set as w 2 . If the edit distance score and the cosine score are higher than w 1 , w 2 respectively, then the word is considered as a new entity and its concept is the same as that of the entity with which it is compared. After rule-based process text segmentation, similarity calculation is performed for each word with extracted entities in the pattern. To avoid the problem of generalization and semantic drift generated by bootstrap method, we divide the similarity calculation into two cases, one is for the word containing only central word and the other is for the word con­ taining properties and central word. (1) For the word containing only central word, we directly calculate the edit distance score and the cosine sore between it and the entity, then compare the results with the thresholds. But if the word is only a part of the entity, such as the word “ rubber frame ” but it is only a subset of the word “ yellow rubber frame ” , we eliminate it as not an accurate repre­ sentation of manufacturing processes. (2) For the word containing properties, we divide its similarity calculation into two parts: property similarity and central word simi­ larity. The property similarity is the average of similarity scores of all properties. The edit distance score and the cosine sore of each property are calculated and weighted average separately. Central word similarity is to calculate the edit distance score and the cosine sore of words other than properties. In the manufacturing process domain, we use the last meaningful word of a phrase as the central word. After obtaining the edit distance similarity and the cosine similarity of the property and the central word, we assign the weight of 0.5 to the property and the central word to obtain the edit distance similarity and the cosine similarity of the entire word. After the similarity calculation between the word and extracted en­ tities in the pattern, similarity results and thresholds are compared. If similarity results of the process word reach thresholds, the process word is considered similar to the entity in the pattern, and the concept of the word is consistent with the concept of the entity compared to it. Ac­ cording to multiple sets of experimental data, we take w 1 and w 2 as 0.5. For example, “ Place semi-finished products neatly in the b",
+      "claims": [
+        {
+          "text": "Feature-based similarity calculation is used to calculate the similarity between words.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The edit distance similarity and cosine similarity are used to calculate the similarity between words.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The edit distance similarity measures the number of editing operations required to make two strings equal.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The cosine similarity calculates the vector angle between two word-embeddings in the semantic space.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "feature-based similarity calculation",
+          "definition": "a method for calculating the similarity between words",
+          "concept_type": "method"
+        },
+        {
+          "name": "edit distance similarity",
+          "definition": "a measure of the similarity between two strings based on the number of editing operations required to make them equal",
+          "concept_type": "metric"
+        },
+        {
+          "name": "cosine similarity",
+          "definition": "a measure of the similarity between two vectors based on the angle between them",
+          "concept_type": "metric"
+        }
+      ]
+    },
+    {
+      "heading": "Related terms",
+      "section_type": "related_work",
+      "position": 9,
+      "word_count": 68,
+      "text": ". Related terms help capture user queries that may use different terms but are still related to the same problem. Related terms can be obtained from the domain specific Glossary. In this study, the standard file [44] is referenced to expand terms. For example, in the target word set of workpiece, the term named “ part ” is related to the term named “ workpiece ” . (2)",
+      "claims": [
+        {
+          "text": "Related terms are used to capture user queries that may use different terms but are still related to the same problem.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Related terms can be obtained from the domain specific Glossary.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The standard file is referenced to expand terms.",
+          "claim_type": "method"
+        },
+        {
+          "text": "For example, the term named “part” is related to the term named “workpiece”.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "related terms",
+          "definition": "terms that are related to the same problem or concept",
+          "concept_type": "term"
+        },
+        {
+          "name": "domain specific Glossary",
+          "definition": "a collection of terms and their definitions specific to a particular domain",
+          "concept_type": "term"
+        },
+        {
+          "name": "standard file",
+          "definition": "a reference file used to expand terms",
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Synonyms",
+      "section_type": "other",
+      "position": 11,
+      "word_count": 251,
+      "text": ". Synonyms refer to words or phrases with similar meanings to the target word. On the basis of expanding related terms and abbreviations in the expanded target word set, extended synonyms Fig. 8. The flowchart of the MPQAKG. Fig. 9. Examples of one-hop path and multi-hop path design. P. Wen et al. Advanced Engineering Informatics 58 (2023) 102172 12 capture different variations of user queries. For example, processes can also be queried using its synonyms such as production processes. Table 4 shows synonyms and words contained in different categories of target words. After features and target words are detected, we represent the intention of the question in the form of < features-targets > , which is used for the designed path matching. If concepts that features and tar­ gets in the form belong to match concepts that nodes in designed path belong to, then the intention of the input question and the search path are matched and proceed to the next step, otherwise the question is considered non-standard or has no answer. 5.3. Concept-first fact filling in the query statement This subsection will introduce the concept-first approach to fill the matched designed search (MDS) path with fact features obtained in the above subsection. The nodes in the MDS path need to be instantiated with fact features to generate the complete query statement. It is prac­ tical and useful to fill all nodes in the MDS path with the detected fea­ tures by means of concept-first generation with the following steps. (1)",
+      "claims": [
+        {
+          "text": "Synonyms refer to words or phrases with similar meanings to the target word.",
+          "claim_type": "definition"
+        },
+        {
+          "text": "The intention of the question is represented in the form of < features-targets >, which is used for the designed path matching.",
+          "claim_type": "method"
+        },
+        {
+          "text": "If concepts that features and targets in the form belong to match concepts that nodes in designed path belong to, then the intention of the input question and the search path are matched and proceed to the next step.",
+          "claim_type": "method"
+        },
+        {
+          "text": "Table 4 shows synonyms and words contained in different categories of target words.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Synonyms",
+          "definition": "words or phrases with similar meanings to the target word",
+          "concept_type": "term"
+        },
+        {
+          "name": "MPQAKG",
+          "definition": null,
+          "concept_type": "model"
+        },
+        {
+          "name": "Target word",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Query statement generation.",
+      "section_type": "other",
+      "position": 13,
+      "word_count": 1628,
+      "text": "Convert the instantiated nodes and relationships into query statement to search the target of the input question based on the MDS path. With the generated query statement, the output will be returned based on the MPKG to answer the input question in the form of corre­ sponding direct targets and related recommending targets, involving process planning-related knowledge such as related operating condi­ tions, the difference between workpieces, associated workpiece query, etc. The output can assist process engineers with question-oriented knowledge reutilization to promote process planning efficiency, profi­ ciency and quality. 6. Cases and validation To validate the proposed methods, we collect process data from a radiator manufacturing enterprise in China, including 238 products and corresponding eight categories of process information about process set, workpiece, equipment, time, production capacity, operating conditions, points for attention, and operating procedures, and construct the MPKG with process information of all 238 products. 6.1. MPKG construction and application 6.1.1. DOPK modelling Before the MPKG construction, it is important to clarify the organi­ zation form of process knowledge with characteristics of disorderly distribution and complex relationship. According to the proposed ontology modelling method, the DOPK is established, as shown in Fig. 5 , with eight categories of concepts. After the modeling of main concepts, multiple fine-grained resources contained in each concept are proposed. 6.1.2. Process knowledge extraction Based on the DOPK, process knowledge is extracted from the above- collected data with the PBB-2MT method. Eight categories of knowledge are extracted, including workpiece, process set, equipment, operating procedures, points for attention, operating conditions, time, and pro­ duction capacity. The relationships between them are defined by the relationships in the DOPK. The MPKG is constructed and visualized by Neo4j with a total of 1368 nodes and 4865 relationships, and the number of each category of knowledge is counted as shown in Table 5 . Its partial schematic diagram is shown in Fig. 10 . 6.1.3. MPQAKG application Taking the radiator as an example, it is necessary to fully excavate the relevant information of the previous knowledge to reduce the pressure of process engineers, which makes multi-hop reasoning indis­ pensable. For the radiator process planning scenario, three categories of application are designed and realized by the proposed MPQAKG, as shown in Fig. 11 . (1) Search for workpieces with the same process to optimize process planning. In process planning, it is often necessary to arrange products with the same or similar process for processing together. By designing the meta path, workpieces with the same processing conditions are retrieved. Fig. 12 shows the workflow of the example of answer searching for the question “ 和 GP/GP 散热片 S-G153 一样用到冲压工序的 工件有哪些 ? (What are the workpieces that have the same stamping process as GP/GP Heat SinkS-G153?) ” . (2) Compare differences between processes of a workpiece. A workpiece involves different processes, and time required for each process varies, making it difficult for process engineers to remember specific values. A meta path based on workpiece, process, and operating time is designed. Process engineers ask two processes to be compared of the workpiece. The system calculates the specific difference in time required for two processes and provide the time required for two pro­ cesses separately to indicate interpretability. (3) Search for required operating conditions for the process. In process planning, process engineers often hope that by searching a process, they can gain other knowledge related to the process. But not every process has the same associated conditions, so we design alter­ native meta paths to match based on actual query results. For example, to retrieve machine tools, appliances, and chemicals used in the stam",
+      "claims": [
+        {
+          "text": "The instantiated nodes and relationships are converted into query statement to search the target of the input question based on the MDS path.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The output will be returned based on the MPKG to answer the input question in the form of corresponding direct targets and related recommending targets.",
+          "claim_type": "method"
+        },
+        {
+          "text": "The output can assist process engineers with question-oriented knowledge reutilization to promote process planning efficiency, proficiency and quality.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "The proposed method involves process planning-related knowledge such as related operating conditions, the difference between workpieces, associated workpiece query, etc.",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "MDS path",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "MPKG",
+          "definition": null,
+          "concept_type": "model"
+        },
+        {
+          "name": "Process planning",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Declaration of competing interest",
+      "section_type": "other",
+      "position": 14,
+      "word_count": 46,
+      "text": ". The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper. Fig. 10. Partial schematic diagram of the MPKG. P. Wen et al. Advanced Engineering Informatics 58 (2023) 102172 14",
+      "claims": [
+        {
+          "text": "The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Competing interest",
+          "definition": "financial interests or personal relationships that could influence the work",
+          "concept_type": "term"
+        },
+        {
+          "name": "MPKG",
+          "definition": null,
+          "concept_type": "model"
+        }
+      ]
+    },
+    {
+      "heading": "Declaration of Competing Interest",
+      "section_type": "other",
+      "position": 20,
+      "word_count": 46,
+      "text": "The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper. Fig. 11. Examples of applications based on the MPKG. P. Wen et al. Advanced Engineering Informatics 58 (2023) 102172 15",
+      "claims": [
+        {
+          "text": "The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Competing interest",
+          "definition": "financial interests or personal relationships that could influence the work",
+          "concept_type": "term"
+        },
+        {
+          "name": "MPKG",
+          "definition": null,
+          "concept_type": "model"
+        }
+      ]
+    }
+  ],
+  "references_raw": "[1] B. Abu-Salih, Domain-specific knowledge graphs: A survey, J. Netw. Comput. Appl. 185 (2021), 103076, https://doi.org/10.1016/j.jnca.2021.103076 . [2] X. Jing, Y. Zhu, J. Liu, H. Zhou, P. Zhao, X. Liu, G. Tian, H. Ye, Q. Li, Intelligent generation method of 3D machining process based on process knowledge, Int. J. Comput. Integr. Manuf. 33 (2020) 38 – 61, https://doi.org/10.1080/ 0951192X.2019.1690687 . [3] H. Qin, H. Wang, A.L. Johnson, A RFBSE model for capturing engineers ’ useful knowledge and experience during the design process, Robot. Comput.-Integr. Manuf. 44 (2017) 30 – 43, https://doi.org/10.1016/j.rcim.2016.08.004 . [4] R.S. Sankar, P. Asokan, G. Prabhaharan, A.V. Phani, A CAPP framework with optimized process parameters for rotational components, Int. J. Prod. Res. 46 (2008) 5561 – 5587, https://doi.org/10.1080/00207540701288108 . [5] R. Arista, X. Zheng, J. Lu, F. Mas, An Ontology-based Engineering system to support aircraft manufacturing system design, J. Manuf. Syst. 68 (2023) 270 – 288, https://doi.org/10.1016/j.jmsy.2023.02.012 . [6] D.N. Sormaz, B. Khoshnevis, Process sequencing and process clustering in process planning using state space search, J. Intell. Manuf. 7 (1996) 189 – 200, https://doi. org/10.1007/BF00118079 . [7] P. Wen, R. Wang, Does knowledge structure matter? Key factors influencing formal and informal knowledge sharing in manufacturing, J. Knowl. Manag. 26 (2022) 2275 – 2305, https://doi.org/10.1108/JKM-06-2021-0478 . [8] Z. Huang, X. Guo, Y. Liu, W. Zhao, K. Zhang, A smart conflict resolution model using multi-layer knowledge graph for conceptual design, Adv. Eng. Inf. 55 (2023), 101887, https://doi.org/10.1016/j.aei.2023.101887 . [9] J. Hao, L. Zhao, J. Milisavljevic-Syed, Z. Ming, Integrating and navigating engineering design decision-related knowledge using decision knowledge graph, Adv. Eng. Inf. 50 (2021), 101366, https://doi.org/10.1016/j.aei.2021.101366 . [10] N. Kertkeidkachorn, R. Ichise, An Automatic Knowledge Graph Creation Framework from Natural Language Text, IEICE Trans. Inf. Syst. E101.D (2018) 90 – 98, https://doi.org/10.1587/transinf.2017SWP0006 . [11] J. Devlin, M.-W. Chang, K. Lee, K. Toutanova, BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, in,, Conf. North Am. Chapter Assoc. Comput. Linguist. Hum. Lang. Technol. Naacl Hlt 2019 Vol 1, accessed July 1, 2023, Assoc. Comput. Linguistics-Acl, Stroudsburg 2019 (2019) 4171 – 4186, https://www.webofscience.com/wos/woscc/full-record/WOS:000 900116904035 . [12] X. Shen, X. Li, B. Zhou, Y. Jiang, J. Bao, Dynamic knowledge modeling and fusion method for custom apparel production process based on knowledge graph, Adv. Eng. Inf. 55 (2023), 101880, https://doi.org/10.1016/j.aei.2023.101880 . [13] B. Li, Named Entity Recognition in the Style of Object Detection, (2021). http:// doi.org/10.48550/arXiv.2101.11122. [14] L. Guo, F. Yan, T. Li, T. Yang, Y. Lu, An automatic method for constructing machining process knowledge b",
+  "usage": {
+    "input_tokens": 2717,
+    "output_tokens": 2244,
+    "cost_usd": 0.000999
+  }
+}

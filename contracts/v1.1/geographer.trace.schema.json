@@ -1,0 +1,35 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$defs":{
+    "Manifest":{
+      "type":"object","additionalProperties":false,
+      "required":["format_version","environment","window","sources","repo_roots","recorder","coverage","source_match","trace_sha256"],
+      "properties":{
+        "format_version":{"const":"python-call-trace-v1"},
+        "environment":{"type":"string","minLength":1,"maxLength":128},
+        "window":{"type":"object","additionalProperties":false,"required":["start","end"],"properties":{"start":{"type":"string","maxLength":40},"end":{"type":"string","maxLength":40}}},
+        "sources":{"type":"object","minProperties":1,"maxProperties":100,"additionalProperties":{"type":"object","additionalProperties":false,"required":["revision","digest"],"properties":{"revision":{"type":"string","minLength":1,"maxLength":512},"digest":{"type":"string","pattern":"^[0-9a-f]{64}$"}}}},
+        "repo_roots":{"type":"object","maxProperties":100,"additionalProperties":{"type":"string","minLength":1,"maxLength":4096}},
+        "recorder":{"type":"object","additionalProperties":false,"required":["name","version","backend"],"properties":{"name":{"type":"string","maxLength":128},"version":{"type":"string","maxLength":128},"backend":{"type":"string","maxLength":128},"python":{"type":"string","maxLength":256},"implementation_digest":{"type":"string","pattern":"^[0-9a-f]{64}$"}}},
+        "coverage":{"type":"object","additionalProperties":false,"required":["complete","truncated","process_scope","thread_scope","async_scope","limitations"],"properties":{"complete":{"type":"boolean"},"truncated":{"type":"boolean"},"process_scope":{"type":"string","maxLength":512},"thread_scope":{"type":"string","maxLength":512},"async_scope":{"type":"string","maxLength":512},"limitations":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":2000}}}},
+        "source_match":{"type":"boolean"},"trace_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+        "exit_code":{"type":"integer"},"command_digest":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+        "statistics":{"type":"object","maxProperties":32,"additionalProperties":{"type":["integer","null"],"minimum":0}}
+      }
+    },
+    "CallRecord":{
+      "type":"object","additionalProperties":false,
+      "required":["caller_path","caller_qualname","caller_line","callee_path","callee_qualname","call_count"],
+      "properties":{
+        "caller_path":{"type":"string","minLength":1,"maxLength":4096},"callee_path":{"type":"string","minLength":1,"maxLength":4096},
+        "caller_qualname":{"type":"string","minLength":1,"maxLength":2048},"callee_qualname":{"type":"string","minLength":1,"maxLength":2048},
+        "caller_line":{"type":"integer","minimum":1,"maximum":9007199254740991},
+        "caller_repo_id":{"type":"string","minLength":1,"maxLength":512},"callee_repo_id":{"type":"string","minLength":1,"maxLength":512},
+        "callee_definition_line":{"type":"integer","minimum":1,"maximum":9007199254740991},
+        "call_count":{"type":"integer","minimum":1,"maximum":9007199254740991},
+        "p95_ms":{"type":"number","minimum":0,"maximum":1000000000000},
+        "activation_kind":{"enum":["ordinary_call","generator_first_activation","coroutine_first_activation","async_generator_first_activation","imported_unspecified"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+version: "1.0"
+world_policy: open
+components:
+  - id: presentation
+    selectors:
+      - repo_id: example
+        path_glob: "src/ui/**"
+  - id: service
+    selectors:
+      - repo_id: example
+        path_glob: "src/service/**"
+        qualified_name_regex: "example[.]service[.].*"
+  - id: storage
+    selectors:
+      - repo_id: example
+        path_glob: "src/storage/**"
+rules:
+  - id: ui_uses_service
+    type: require
+    source: presentation
+    target: service
+    rationale: "The presentation layer must use the service boundary."
+  - id: service_uses_storage
+    type: allow
+    source: service
+    target: storage
+    rationale: "Storage access is permitted through the service layer."
+  - id: no_ui_storage_bypass
+    type: forbid
+    source: presentation
+    target: storage
+    rationale: "Presentation code must not bypass the service boundary."

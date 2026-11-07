@@ -1,0 +1,432 @@
+{
+  "file_path": "E:/Librarian research/The Cayley Completion of a Graph.pdf",
+  "page_count": 17,
+  "first_page_text": "The Cayley Completion of a Graph\nRigobert Fokam Souop∗\nLaurent Bitjoka†\nAugust 2026\nAbstract\nA finite connected graph is rarely a Cayley graph. We measure how far it is from being\none: given G with n vertices and m edges, how few edges must be added, or added and deleted,\nbefore the result is a Cayley graph of an abelian group of order n on the same vertex set?\nThis defines two invariants, the completion number γ+, which permits additions only, and the\nCayley edit distance γ△, which permits both, each normalized by m.\nWe show that deciding the edit version is NP-complete already for a fixed cyclic host, by\na reduction from Hamiltonian Cycle in which the edit cost of a labeling is n + m −2k when\nthe labeling realizes a longest path with k edges; there the optimal cost is m −n + 2pp(G),\nwhich the matching number bounds in polynomial time. We prove that irregularity alone forces\nγ+(G) ≥n∆∗/(2m) −1, where ∆∗is the least d ≥∆with nd even, a bound computable in\nlinear time from the degree sequence; we characterize its equality case exactly. It is attained on\nthe star, where γ+(K1,q) = (q −1)/2, and the star maximizes γ+, while γ△is bounded by an\nabsolute constant. We determine paths and grids exactly, obtaining γ+(Pn) = γ+(Pn □Pn) =\n1/(n −1), and we show that γ△(K1,q) tends to 2, and not to the value 3/2 suggested by the\nadditive case.\nWe then report an exhaustive certified census of all 995 connected graphs on at most seven\nvertices. The degree bound is attained on 89.4% of them and the two invariants separate strictly\non 84.7%, though both rates vary sharply with order: attainment runs 100%, 100%, 84.8%, 89.7%\nand separation 0%, 61.9%, 73.2%, 87.7% for n = 4, 5, 6, 7, so the pooled figures are dominated\nby the 853 graphs on seven vertices. The star is the unique maximizer of both. We also show\nthat edit count and the bi-Lipschitz distortion of the completed host are independent invari-\nants, moving in opposite directions on stars and on paths. Data and certificates are deposited\nat doi:10.5281/zenodo.21852006.\nKeywords: Cayley graph, abelian group, graph editing, completion number, graph census.\nMSC 2020: 05C25, 05C12, 05C85, 68Q17, 20K01.\n1\nIntroduction\nA finite connected graph is rarely a Cayley graph. One response, taken by [16, 20], is to enlarge the\nambient object: seek an abelian group Γ and an isometric embedding of G into Cay(Γ, S), paying\nfor exactness with a host that may be much larger than G. This paper takes the opposite route. We\nkeep the vertex set fixed and perturb the graph, asking how few edges must be added, or added and\ndeleted, before G becomes an abelian Cayley graph on its own n vertices. The smallest instance\nis familiar: a single added edge turns the path Pn into the cycle Cn, and Cn is Cay(Zn, {±1}).\nWe call the general answer the Cayley completion of G and study two invariants: the completion\nnumber γ+, which permits additions only, and the Cayley edit distance γ△, which permits both,\neach normalized by |E(G)|.\n∗Laboratory ",
+  "sections": [
+    {
+      "heading": "The Cayley Completion of a Graph",
+      "section_type": "other",
+      "position": 1,
+      "text": "Rigobert Fokam Souop ∗ Laurent Bitjoka † August 2026 Abstract A finite connected graph is rarely a Cayley graph. We measure how far it is from being one: given G with n vertices and m edges, how few edges must be added, or added and deleted, before the result is a Cayley graph of an abelian group of order n on the same vertex set? This defines two invariants, the completion number γ + , which permits additions only, and the Cayley edit distance γ △ , which permits both, each normalized by m . We show that deciding the edit version is NP-complete already for a fixed cyclic host, by a reduction from Hamiltonian Cycle in which the edit cost of a labeling is n + m − 2 k when the labeling realizes a longest path with k edges; there the optimal cost is m − n + 2pp( G ) , which the matching number bounds in polynomial time. We prove that irregularity alone forces γ + ( G ) ≥ n ∆ ∗ / (2 m ) − 1 , where ∆ ∗ is the least d ≥ ∆ with nd even, a bound computable in linear time from the degree sequence; we characterize its equality case exactly. It is attained on the star, where γ + ( K 1 ,q ) = ( q − 1) / 2 , and the star maximizes γ + , while γ △ is bounded by an absolute constant. We determine paths and grids exactly, obtaining γ + ( P n ) = γ + ( P n □ P n ) = 1 / ( n − 1) , and we show that γ △ ( K 1 ,q ) tends to 2 , and not to the value 3 / 2 suggested by the additive case. We then report an exhaustive certified census of all 995 connected graphs on at most seven vertices. The degree bound is attained on 89 . 4% of them and the two invariants separate strictly on 84 . 7% , though both rates vary sharply with order: attainment runs 100% , 100% , 84 . 8% , 89 . 7% and separation 0% , 61 . 9% , 73 . 2% , 87 . 7% for n = 4 , 5 , 6 , 7 , so the pooled figures are dominated by the 853 graphs on seven vertices. The star is the unique maximizer of both. We also show that edit count and the bi-Lipschitz distortion of the completed host are independent invari- ants, moving in opposite directions on stars and on paths. Data and certificates are deposited at doi:10.5281/zenodo.21852006 .",
+      "page_start": 1,
+      "word_count": 450
+    },
+    {
+      "heading": "Introduction",
+      "section_type": "intro",
+      "position": 5,
+      "text": "A finite connected graph is rarely a Cayley graph. One response, taken by [ 16 , 20 ], is to enlarge the ambient object: seek an abelian group Γ and an isometric embedding of G into Cay(Γ , S ) , paying for exactness with a host that may be much larger than G . This paper takes the opposite route. We keep the vertex set fixed and perturb the graph, asking how few edges must be added, or added and deleted, before G becomes an abelian Cayley graph on its own n vertices. The smallest instance is familiar: a single added edge turns the path P n into the cycle C n , and C n is Cay( Z n , {± 1 } ) . We call the general answer the Cayley completion of G and study two invariants: the completion number γ + , which permits additions only, and the Cayley edit distance γ △ , which permits both, each normalized by | E ( G ) | . ∗ Laboratory of Energy, Signal, Imaging and Automation (LESIA), University of Ngaoundéré, P.O. Box 454, Ngaoundéré, Cameroon. fokamrigobert@gmail.com † LESIA, University of Ngaoundéré; and Laboratory of Scientific Artificial Intelligence and Applied Mathematics, University of Garoua, P.O. Box 346, Garoua, Cameroon. laurent.bitjoka@univ-garoua.cm 1 arXiv:2608.30894v1 [cs.DM] 31 Aug 2026 Two features make the question non-trivial. Being an abelian Cayley graph on a fixed vertex set is not a property of the abstract graph alone but of the graph together with a labeling of its vertices by group elements, so the problem carries a search over Γ and over labelings. And regularity is necessary but far from sufficient: vertex-transitivity is already strictly weaker than being a Cayley graph [ 11 ], so the invariants do not collapse on regular graphs.",
+      "page_start": 7,
+      "word_count": 299
+    },
+    {
+      "heading": "Theorem A",
+      "section_type": "other",
+      "position": 7,
+      "text": "(Hardness) . Deciding, for a fixed cyclic host C n and a given budget B , whether G can be edited into C n with at most B edits is NP-complete. The reduction is from Hamiltonian Cycle: a labeling π : V ( G ) → Z n carrying k edges of G onto consecutive pairs has edit cost n + m − 2 k , so minimizing the cost is maximizing the longest path realized in the cyclic order. The completion problem is therefore hard even when the host group and its connection set are given in advance, and all of the difficulty lies in the labeling.",
+      "page_start": 3,
+      "word_count": 108
+    },
+    {
+      "heading": "Theorem B",
+      "section_type": "other",
+      "position": 8,
+      "text": "(Degree bound, and the star) . For every connected G , γ + ( G ) ≥ n ∆ ∗ 2 m − 1 , computable in linear time from the degree sequence. Equality holds for the star: γ + ( K 1 ,q ) = ( q − 1) / 2 , and K 1 ,q is the unique maximizer of both invariants among connected graphs on n ≤ 7 vertices. The bound isolates the obstruction that irregularity alone imposes, and says nothing else; in par- ticular it is blind to whether the added edges can be arranged into legitimate generator classes, which is precisely the difficulty Theorem A shows to be hard. It is attained on 89 . 4% of our census, which makes it usable as a triage filter. Alongside these, Section 4 records the structural fact on which the computations rest — a labeling of V ( G ) by Γ sorts the edges into inverse-pair classes, each class of a host contributing either a perfect matching or a disjoint union of equal-length cycles, so the cost of a labeling depends only on the class-count vector. Section 6 determines further families exactly, including γ △ ( K 1 ,q ) = (2 q − 3) /q , whose limit is 2 rather than the 3 / 2 one might guess from the additive case, and the path and grid values γ + ( P n ) = γ + ( P n □ P n ) = 1 / ( n − 1) . Section 9 reports an exhaustive certified census of all 995 connected graphs on at most seven vertices, on which the two invariants separate strictly 84 . 7% of the time. Appendix A describes a solver for graphs beyond exhaustive range, and Appendix B shows that edit count and bi-Lipschitz distortion of the completed host are independent invariants, moving in opposite directions on stars and on paths. 2",
+      "page_start": 5,
+      "word_count": 325
+    },
+    {
+      "heading": "Isometric embedding into structured hosts.",
+      "section_type": "other",
+      "position": 10,
+      "text": "Which graphs embed isometrically into a hy- percube goes back to Firsov [ 5 ], with the characterization of partial cubes by a single edge relation due to Djoković [ 4 ] and Winkler [ 19 ]; Ovchinnikov [ 12 ] surveys the area. The extension to Ham- ming graphs and products of complete graphs is due to Wilkeit [ 18 ], with the structure theory of products developed by Graham and Winkler [ 7 ] and surveyed in [ 10 , 9 ]. Scale and ℓ 1 embeddings are treated by Shpectorov [ 15 ] and in the monograph of Deza and Laurent [ 2 ]. All of this literature enlarges the host to achieve exactness; the present paper instead perturbs the graph.",
+      "page_start": 11,
+      "word_count": 124
+    },
+    {
+      "heading": "The zero set and the classification programme.",
+      "section_type": "other",
+      "position": 11,
+      "text": "Both invariants vanish exactly when G is already an abelian Cayley graph on its own vertex set, so the zero set of γ + is the class of abelian Cayley graphs itself. That class is the subject of an established programme: Miklavič and Potočnik [ 22 ] classified distance-regular circulants and later posed the problem of characterizing distance- regular Cayley graphs for arbitrary classes of groups [ 23 ], with the abelian case under minimality 2 conditions treated by Miklavič and Šparl [ 24 ] and the classification over Z n ⊕ Z p completed by Zhan, Huang and Lu [ 26 ]. Where that programme asks whether a graph belongs to the zero set, the present paper assigns a numerical distance from it, and Theorem 5 makes that distance computable in linear time from below. The two questions meet on distance-regular graphs, where membership is now decided for the groups covered by the classification, and γ + measures the remainder.",
+      "page_start": 12,
+      "word_count": 161
+    },
+    {
+      "heading": "Cayley graphs and algebraic structure.",
+      "section_type": "other",
+      "position": 12,
+      "text": "Background on Cayley graphs and vertex-transitive graphs is standard [ 6 ]; that vertex-transitivity is strictly weaker than being a Cayley graph is classical [ 11 ], and is one reason the completion problem is not vacuous for regular graphs. The sum-free set theory of Diananda and Yap [ 3 ], Rhemtulla and Street [ 14 ] and Green and Ruzsa [ 8 ] is the extremal input to the isometric star obstruction of the companion papers; no result of this paper uses it, and we record the connection rather than claim it. The Smith normal form, which underlies the quotient labeling of the companion papers, is surveyed in [ 17 ].",
+      "page_start": 2,
+      "word_count": 112
+    },
+    {
+      "heading": "Definitions",
+      "section_type": "other",
+      "position": 14,
+      "text": "Throughout, G is a finite connected simple graph with n = | V ( G ) | ≥ 2 vertices, m = | E ( G ) | edges and maximum degree ∆ . All groups are finite and abelian, written additively. For Γ of order n and S = − S ⊆ Γ \\ { 0 } generating Γ , the Cayley graph Cay(Γ , S ) has vertex set Γ and edges { x, x + s } .",
+      "page_start": 4,
+      "word_count": 81
+    },
+    {
+      "heading": "Definition 1.",
+      "section_type": "other",
+      "position": 15,
+      "text": "Let π : V ( G ) → Γ be a bijection and write E π ( G ) = {{ π ( u ) , π ( v ) } : uv ∈ E ( G ) } . Set γ + ( G ) = 1 m min � | E (Cay(Γ , S )) | − m � , γ △ ( G ) = 1 m min �� E π ( G ) △ E (Cay(Γ , S )) �� , the minima being over all abelian Γ of order n , all bijections π and all symmetric generating sets S , with the additional constraint E π ( G ) ⊆ E (Cay(Γ , S )) in the first case. In both cases the completed graph is the Cayley graph Cay(Γ , S ) itself, not a graph merely containing one: no edges outside the host are permitted, which is what makes γ + finite and forces the completed graph to be regular. Both quantities are normalized by m so that they compare across graphs of different sizes, and both vanish exactly when G is itself an abelian Cayley graph. Since a completion that only adds edges is in particular an edit, γ △ ≤ γ + always; Section 9 shows the inequality is strict for a large majority of graphs.",
+      "page_start": 6,
+      "word_count": 226
+    },
+    {
+      "heading": "Remark 2.",
+      "section_type": "other",
+      "position": 16,
+      "text": "Both invariants are unchanged by translating π , since the multiset of differences π ( v ) − π ( u ) over E ( G ) is unchanged. We may therefore always normalize π ( v 0 ) = 0 at one chosen vertex, which reduces the search space from n ! to ( n − 1)! and is what makes the census of Section 9 exhaustive rather than heuristic. 4",
+      "page_start": 12,
+      "word_count": 72
+    },
+    {
+      "heading": "The class decomposition",
+      "section_type": "other",
+      "position": 17,
+      "text": "For c ∈ Γ \\ { 0 } let [ c ] = { c, − c } be its inverse-pair class , and let C (Γ) be the set of classes. A symmetric set S is a union of classes, so choosing S is choosing a subset of C (Γ) .",
+      "page_start": 13,
+      "word_count": 52
+    },
+    {
+      "heading": "Lemma 3",
+      "section_type": "other",
+      "position": 18,
+      "text": "(Class contribution) . Let c ∈ Γ \\{ 0 } and let H c be the spanning subgraph of Cay(Γ , { c, − c } ) . If 2 c = 0 then H c is a perfect matching, with n/ 2 edges. Otherwise H c is a disjoint union of n/ ord( c ) cycles, each of length ord( c ) , with n edges in total. In both cases we write orb( c ) for the number of edges. 3 Proof. The connected components of H c are the cosets of ⟨ c ⟩ , and on each coset H c is the circulant Cay( ⟨ c ⟩ , { c, − c } ) , a cycle of length ord( c ) when ord( c ) ≥ 3 and a single edge when ord( c ) = 2 . Counting edges gives n in the first case and n/ 2 in the second. Consequently every generator class of an optimal host is either a perfect matching, when the generator is an involution, or a 2 -factor all of whose cycles have the same length. This is the structural reason the search space collapses.",
+      "page_start": 15,
+      "word_count": 197
+    },
+    {
+      "heading": "Proposition 4",
+      "section_type": "other",
+      "position": 19,
+      "text": "(Cost of a labeling) . Fix Γ and a bijection π , and for c ∈C (Γ) let χ ( c ) be the number of edges uv ∈ E ( G ) with [ π ( v ) − π ( u )] = c . Then for any S ⊆C (Γ) , �� E π ( G ) △ E (Cay(Γ , S )) �� = � c ∈ S � orb( c ) − χ ( c ) � + � c/ ∈ S χ ( c ) . The additive cost is obtained by restricting to those S containing every class with χ ( c ) > 0 , in which case the second sum vanishes. Proof. Edges of Cay(Γ , S ) in class c ∈ S number orb( c ) by Lemma 3 , of which χ ( c ) already lie in E π ( G ) ; these contribute orb( c ) − χ ( c ) additions. Edges of E π ( G ) in a class outside S must be deleted, contributing χ ( c ) . Distinct classes are disjoint, so the counts add. The cost therefore depends on π only through the vector ( χ ( c )) c ∈C (Γ) , and on S only through a subset choice constrained by the requirement that S generate Γ . Since |C (Γ) | is small for small n — three classes for n ∈{ 6 , 7 } — all admissible S can be enumerated, and the only remaining search is over labelings. 5",
+      "page_start": 3,
+      "word_count": 266
+    },
+    {
+      "heading": "Theorem 5",
+      "section_type": "other",
+      "position": 21,
+      "text": "(Degree bound) . For every connected G , γ + ( G ) ≥ n ∆ ∗ 2 m − 1 , (1) where ∆ ∗ is the least integer d ≥ ∆ for which nd is even. Proof. An abelian Cayley graph is regular, of degree | S | . A completion by additions only cannot decrease any vertex degree, so the completed graph is regular of some degree d ≥ ∆ . A d -regular graph on n vertices exists only if nd is even, so in fact d ≥ ∆ ∗ and the completed graph has at least n ∆ ∗ / 2 edges. The number of added edges is at least n ∆ ∗ / 2 − m , and dividing by m gives the claim. The bound is computable in linear time from the degree sequence alone, which makes it usable as a triage filter: it certifies that certain graphs are far from any abelian Cayley graph without running any search. Its practical quality is examined in Section 9 , where it is attained on 89 . 4% of the census and correlates with γ + , the invariant it bounds, at r = 0 . 851 . The bound is sharp in a strong sense: it is exactly the obstruction that irregularity imposes, and it says nothing else. In particular it is blind to whether the added edges can be arranged into legitimate generator classes, which is precisely the difficulty that makes the problem hard (Section 8 ). 5.1",
+      "page_start": 12,
+      "word_count": 255
+    },
+    {
+      "heading": "Theorem 6",
+      "section_type": "other",
+      "position": 23,
+      "text": "(Equality in the degree bound) . For a connected graph G , γ + ( G ) = n ∆ ∗ 2 m − 1 if and only if G is a spanning subgraph of some ∆ ∗ -regular abelian Cayley graph on V ( G ) . Proof. Suppose first that equality holds, and let H = Cay(Γ , S ) be an optimal additive completion, with d = | S | . Since G ⊆ H and H is d -regular, every vertex of G has degree at most d , so d ≥ ∆ ; and nd is even because H is a d -regular graph on n vertices, so d ≥ ∆ ∗ . The number of added edges is nd/ 2 − m ≥ n ∆ ∗ / 2 − m , so γ + ( G ) ≥ nd/ (2 m ) − 1 ≥ n ∆ ∗ / (2 m ) − 1 . Equality in the outer terms forces d = ∆ ∗ , so H is a ∆ ∗ -regular abelian Cayley graph containing G as a spanning subgraph. Conversely, if G is a spanning subgraph of a ∆ ∗ -regular abelian Cayley graph H on V ( G ) , then adding the n ∆ ∗ / 2 − m edges of E ( H ) \\ E ( G ) is a valid completion, so γ + ( G ) ≤ n ∆ ∗ / (2 m ) − 1 ; Theorem 5 supplies the reverse inequality.",
+      "page_start": 1,
+      "word_count": 258
+    },
+    {
+      "heading": "Remark 7.",
+      "section_type": "other",
+      "position": 24,
+      "text": "When n ∆ is even we have ∆ ∗ = ∆ and ( 1 ) is the plain degree bound. When n ∆ is odd — that is, when n and ∆ are both odd — no ∆ -regular graph on n vertices exists, so the host is regular of degree at least ∆+ 1 = ∆ ∗ and Theorem 6 is vacuous for ∆ itself. The gain over the rounded form ⌈ n ∆ / 2 ⌉ /m − 1 is genuine rather than cosmetic: n (∆+1) / 2 −⌈ n ∆ / 2 ⌉ = ( n − 1) / 2 > 0 for every n ≥ 3 , so ( 1 ) is strictly stronger in exactly that case. The parity correction is not cosmetic on the census either. Under the plain form n ∆ / 2 m − 1 the bound is attained on 476 of the 995 graphs ( 47 . 8% ); under ( 1 ) it is attained on 890 ( 89 . 4% ). The entire gain falls, as it must, on the graphs with n and ∆ both odd: attainment at n = 5 rises from 61 . 9% to 100% and at n = 7 from 42 . 1% to 89 . 7% , while the even orders n = 4 and n = 6 are unchanged at 100% and 84 . 8% . Theorem 6 explains the census figure of Section 9 : the graphs attaining the bound are exactly those that sit inside an abelian Cayley graph whose degree already matches their own maximum degree. It also shows that the condition is not one that can be read off the degree sequence, so the linear-time bound and the exact value part company precisely here. Deciding membership in this class is Problem 2 . 6",
+      "page_start": 6,
+      "word_count": 306
+    },
+    {
+      "heading": "Theorem 8",
+      "section_type": "other",
+      "position": 27,
+      "text": "(Star obstruction) . For q ≥ 2 , γ + ( K 1 ,q ) = q − 1 2 , γ △ ( K 1 ,q ) ≤ 2 q − 3 q , with equality in the second for every q ≥ 2 ; at q = 2 the value is γ △ ( K 1 , 2 ) = γ △ ( P 3 ) = 1 / 2 . In particular γ △ ( K 1 ,q ) → 2 , and not 3 / 2 . Proof. Here n = q + 1 , m = q and ∆= q . Theorem 5 gives γ + ≥ ( q + 1) q/ (2 q ) − 1 = ( q − 1) / 2 . For the matching upper bound take Γ = Z q +1 and S = Γ \\ { 0 } , that is, the complete graph K q +1 = Cay( Z q +1 , Z q +1 \\ { 0 } ) , which contains every graph on q + 1 vertices. The completion adds � q + 1 2 � − q = q ( q + 1) 2 − q = q ( q − 1) 2 edges, and dividing by m = q gives exactly ( q − 1) / 2 . Since this meets the lower bound, the complete graph is an optimal additive completion, not a wasteful one. For the edit bound, delete 5 one pendant edge and complete the remaining K 1 ,q − 1 together with the isolated vertex inside K q +1 ; we argue exactly, in both directions. Let Cay(Γ , S ) be any host of order n = q + 1 and put s = | S | . Every edge of K 1 ,q meets the centre, and the centre has degree s in the host, so at most k ≤ min( q, s ) star edges survive. The host has ns/ 2 edges, so �� E π ( G ) △ E (Cay(Γ , S )) �� = ( q − k ) ���� deletions + � ns 2 − k � � �� � additions = q + ( q + 1) s 2 − 2 k. Since S ⊆ Γ \\ { 0 } we have s ≤ n − 1 = q , so k ≤ min( q, s ) = s and therefore − 2 k ≥− 2 s , giving �� E π ( G ) △ E (Cay(Γ , S )) �� ≥ q + ( q + 1) s 2 − 2 s = q + s ( q − 3) 2 . Connectedness of the host forces s ≥ 2 , and for q ≥ 2 the coefficient ( q − 3) / 2 is non-negative, so the right-hand side is minimised at s = 2 , where it equals q + ( q − 3) = 2 q − 3 . Equality is attained by Γ = Z q +1 , S = {± 1 } , that is by the cycle C q +1 : place the centre anywhere, keep the two star edges joining it to its two cycle neighbours, delete the other q − 2 star edges and add the remaining q − 1 cycle edges, for ( q − 2) + ( q − 1) = 2 q − 3 edits. Dividing by m = q gives γ △ ( K 1 ,q ) = (2 q − 3) /q . The optimal hosts found by the exact procedure of Section 9 are indeed cycles for every 3 ≤ q ≤ 8 , which is a useful consistency check on the implementation. The contrast with the additive case is the substantive point: γ + grows without bound on stars, whereas γ △ stays below 2 . Allowing deletions therefore does not merely improve the constant, it changes an unbounded quantity into a bounded one. The star is the unique global maximizer of γ △ in our census. 6.2",
+      "page_start": 11,
+      "word_count": 684
+    },
+    {
+      "heading": "Proposition 9.",
+      "section_type": "other",
+      "position": 29,
+      "text": "γ + ( P n ) = 1 n − 1 and γ + ( P n □ P n ) = 1 n − 1 . Proof. For the path, m = n − 1 and adding the single edge joining the two endpoints produces C n = Cay( Z n , {± 1 } ) , so γ + ≤ 1 / ( n − 1) ; and γ + > 0 because P n is not regular. For the grid, adding the n wrap-around edges in each of the two directions produces the torus C n □ C n = Cay( Z n × Z n , {± e 1 , ± e 2 } ) . The grid has m = 2 n ( n − 1) edges and 2 n edges are added, giving 1 / ( n − 1) again. Optimality follows from Theorem 5 , which for the grid gives exactly 1 / ( n − 1) . That the two families share a value is a coincidence of normalization rather than a structural identity, but it is a useful sanity check on any implementation: both are reproduced exactly by the solver of Section A , as are the values 0 . 2000 for the 6 × 6 grid and 0 . 1111 for the 10 × 10 grid. 6.3",
+      "page_start": 15,
+      "word_count": 227
+    },
+    {
+      "heading": "Graphs with vanishing invariant",
+      "section_type": "other",
+      "position": 30,
+      "text": "γ △ ( G ) = 0 if and only if G is an abelian Cayley graph, and in particular G must be regular. Among the 995 connected graphs on at most seven vertices, exactly 14 satisfy this, all of them regular, and every one of them is a circulant. 7",
+      "page_start": 18,
+      "word_count": 51
+    },
+    {
+      "heading": "Lemma 10.",
+      "section_type": "other",
+      "position": 32,
+      "text": "For every connected graph G , γ + ( G ) ≤ n ( n − 1) 2 m − 1 and γ △ ( G ) ≤ 1 + n m . Proof. The complete graph is K n = Cay( Z n , Z n \\ { 0 } ) , so completing G to K n by adding the � n 2 � − m missing edges is always a valid additive completion; dividing by m gives the first bound. For the second, the cycle C n = Cay( Z n , {± 1 } ) is an abelian Cayley graph on n vertices, and editing G into any fixed labelling of C n costs at most m + n edits, namely deleting every edge of G and adding every edge of C n . The two bounds behave very differently, and this is the sharpest structural difference between the invariants.",
+      "page_start": 1,
+      "word_count": 154
+    },
+    {
+      "heading": "Corollary 11.",
+      "section_type": "other",
+      "position": 33,
+      "text": "γ △ ( G ) ≤ 1 + n/ ( n − 1) ≤ 3 for every connected G , and γ △ ( G ) ≤ 2 whenever G is not a tree. By contrast γ + is unbounded: γ + ( K 1 ,q ) = ( q − 1) / 2 →∞ . Proof. Connectivity gives m ≥ n − 1 , and 1 + n/m is decreasing in m ; a graph that is not a tree has m ≥ n . The values for stars are Theorem 8 . So allowing deletions does not merely lower the cost, it changes the order of growth: the edit distance is bounded by an absolute constant while the completion number is not. Any graph, however irregular, is within a bounded number of edits per edge of an abelian Cayley graph; the cost of insisting on additions alone is unbounded. 7.1",
+      "page_start": 7,
+      "word_count": 152
+    },
+    {
+      "heading": "Theorem 12",
+      "section_type": "other",
+      "position": 35,
+      "text": "(The star maximizes γ + ) . For every connected graph G on n ≥ 3 vertices, γ + ( G ) ≤ n − 2 2 = γ + ( K 1 ,n − 1 ) , so the star attains the maximum of γ + over all connected graphs on n vertices. Proof. By Lemma 10 , γ + ( G ) ≤ n ( n − 1) / (2 m ) − 1 . This expression is decreasing in m , and connectivity gives m ≥ n − 1 , so γ + ( G ) ≤ n ( n − 1) 2( n − 1) − 1 = n 2 − 1 = n − 2 2 . Theorem 8 with q = n − 1 gives γ + ( K 1 ,n − 1 ) = ( n − 2) / 2 , so the value is attained. Uniqueness is a separate matter, and we prove only a reduction. Equality in the proof above forces both m = n − 1 , so that G is a tree, and equality in Lemma 10 , so that no abelian Cayley graph of degree less than n − 1 contains G as a spanning subgraph. The star satisfies both: its maximum degree is n − 1 , so K n is its only possible host. For a tree T that is not a star we have ∆( T ) ≤ n − 2 , and it suffices to exhibit one proper abelian Cayley host. Two are available. For n even, Cay( Z n , Z n \\ { 0 , n/ 2 } ) is K n minus a perfect matching, and T is a spanning subgraph of it under some labelling precisely when the complement of T has a perfect matching. For n odd, Cay( Z n , Z n \\ { 0 , ± 1 } ) is K n minus a Hamiltonian cycle, and T embeds precisely when the complement of T is Hamiltonian. Uniqueness therefore reduces to a classical question about complements of trees, which we record as Problem 1 .",
+      "page_start": 11,
+      "word_count": 358
+    },
+    {
+      "heading": "Conjecture 13.",
+      "section_type": "other",
+      "position": 36,
+      "text": "K 1 ,n − 1 is the unique maximizer of γ + among connected graphs on n ≥ 4 vertices, and also the unique maximizer of γ △ . The two halves are not equally supported. The first is Theorem 12 together with the reduction above. The second is much stronger than anything proved here: since γ △ ( K 1 ,q ) = (2 q − 3) /q → 2 while Corollary 11 only gives γ △ ≤ 2 for non-trees, a proof would have to separate two quantities that agree in the limit. The census of Section 9 confirms both halves for n ≤ 7 and is our only evidence for the second. 7 7.2",
+      "page_start": 22,
+      "word_count": 117
+    },
+    {
+      "heading": "Random graphs",
+      "section_type": "other",
+      "position": 37,
+      "text": "Before reading these figures, note their composition: 853 of the 995 graphs have exactly seven vertices, so the median, the two rates and the correlation are, in effect, statistics of n = 7 rather than properties of the invariants across orders. They should be stratified by n before any of them is quoted as a general tendency. The degree bound is attained on most of the census (Table 3 ), but small graphs are atypical. On random graphs the bound is worthless and the trivial upper bound of Lemma 10 is essentially the truth.",
+      "page_start": 1,
+      "word_count": 94
+    },
+    {
+      "heading": "Theorem 14.",
+      "section_type": "other",
+      "position": 38,
+      "text": "Let G ∼ G ( n, 1 / 2) . Then with high probability γ + ( G ) = 1 − o (1) ; that is, completing G to K n is asymptotically optimal. Proof. Write N = � n 2 � . An abelian Cayley graph on the vertex set V is determined by an abelian group Γ of order n , a bijection V → Γ , and a symmetric set S ⊆ Γ \\ { 0 } . The number of abelian groups of order n is n o (1) , so the number of candidate hosts is at most n o (1) · n ! · 2 n = 2 (1+ o (1)) n log n . Fix a host H with M edges. Since the N potential edges of G are independent, Pr[ G ⊆ H ] = 2 − ( N − M ) . Hence the expected number of hosts H with N − M ≥ n 3 / 2 that contain G is at most 2 (1+ o (1)) n log n − n 3 / 2 = o (1) . By Markov’s inequality, with high probability every abelian Cayley graph containing G has at least N − n 3 / 2 edges. Also with high probability m = N/ 2 + O ( n ) . Therefore γ + ( G ) ≥ N − n 3 / 2 − m m = N/ 2 − n 3 / 2 + O ( n ) N/ 2 + O ( n ) = 1 − O ( n − 1 / 2 ) , while Lemma 10 gives γ + ( G ) ≤ N/m − 1 = 1 + O ( n − 1 ) .",
+      "page_start": 3,
+      "word_count": 297
+    },
+    {
+      "heading": "Remark 15.",
+      "section_type": "other",
+      "position": 39,
+      "text": "Theorem 14 should be contrasted with the degree bound, which on G ( n, 1 / 2) eval- uates to n ∆ / (2 m ) − 1 = Θ �� log n/n � , since ∆= n/ 2 + Θ( √ n log n ) and m = N/ 2 + O ( n ) with high probability. The bound therefore tends to 0 while the truth tends to 1 : on almost all graphs the degree bound captures none of the difficulty. Its usefulness on the census is a feature of small, structured graphs, and the equality class of Theorem 6 has density o (1) . 8",
+      "page_start": 9,
+      "word_count": 109
+    },
+    {
+      "heading": "Theorem 16.",
+      "section_type": "other",
+      "position": 41,
+      "text": "Deciding, for a fixed cyclic host C n and a given budget B , whether G can be edited into C n with at most B edits is NP-complete. Proof. Reduce from Hamiltonian Cycle. Given G on n vertices with m edges, a labeling π : V ( G ) → Z n places the edges of G into the classes of Z n ; restrict the host to S = {± 1 } , so the host is the cycle C n with n edges. If the labeling maps a subgraph of G with k edges onto consecutive pairs { i, i + 1 } , the edit cost is ( n − k ) + ( m − k ) = n + m − 2 k , since n − k host edges must be added and the other m − k edges of G deleted. Minimizing the cost is therefore maximizing k . The edges counted by k are those mapped onto consecutive pairs of the cyclic order, so they form a subgraph of the cycle C n on V ( G ) , that is, a spanning linear forest of G : a disjoint union of paths covering every vertex, together with the full cycle in the extremal case. A spanning linear forest with p components has n − p edges, so max π k = n − p min ( G ) , where p min ( G ) is the least number of parts in a partition of V ( G ) into vertex-disjoint paths — the path partition number pp( G ) — except that p min ( G ) = 0 when G is Hamiltonian, the whole cycle then being available in place of a spanning linear forest. The distinction matters below: pp( G ) ≥ 1 for every graph, so p min and pp agree exactly on the non-Hamiltonian graphs. Hence the minimum edit cost is m − n + 2 p min ( G ) , and it equals m − n precisely when p min ( G ) = 0 , that is, exactly when G has a Hamiltonian cycle. Hamiltonicity is NP-complete, so the completion problem with fixed host is NP-hard. Membership in NP is immediate: a labeling π is a certificate, and its edit cost against the fixed host is computed in time O ( n 2 ) . The problem is therefore NP-complete. 8 The reduction uses only the cyclic host, so hardness is not an artefact of searching over groups: it is present even when the target is completely specified. This is what separates the completion problem from the lower bound of Section 5 , which is linear-time. Identifying the objective with p min also transfers hardness to every class on which Hamiltonicity is hard, so Theorem 16 holds for planar cubic graphs and for bipartite graphs. 8.1",
+      "page_start": 12,
+      "word_count": 484
+    },
+    {
+      "heading": "An exact cyclic value and a computable relaxation",
+      "section_type": "other",
+      "position": 42,
+      "text": "The identification of the objective with p min cuts the other way as well. It places the fixed-host problem inside a well-studied family of partition parameters, and every upper bound known for that family becomes an upper bound for γ △ . Write γ cyc △ ( G ) for the variant of γ △ ( G ) in which the host is required to be the cycle, that is, Γ = Z n and S = {± 1 } .",
+      "page_start": 2,
+      "word_count": 81
+    },
+    {
+      "heading": "Corollary 17",
+      "section_type": "other",
+      "position": 43,
+      "text": "(Exact value on a cyclic host) . Let G be connected with n ≥ 3 . Then γ cyc △ ( G ) =        m − n m if G is Hamiltonian, m − n + 2pp( G ) m otherwise, and in particular γ △ ( G ) ≤ γ cyc △ ( G ) . Proof. The displayed value is the minimum edit cost computed in the proof of Theorem 16 , divided by m , with p min resolved into its two cases. The inequality holds because Cay( Z n , {± 1 } ) is one of the hosts admissible in Definition 1 . Computing pp is itself NP-hard, so Corollary 17 trades one hard problem for another. It becomes useful when combined with an upper bound on pp that is cheap to evaluate. Penev, Sandeep, Supraja and Taruni [ 21 ] supply one, in terms of the matching number ν ( G ) : they prove indpp( G ) ≤ ipp( G ) ≤ n − ν ( G ) , where indpp and ipp are the induced and isometric path partition numbers. Since every induced path is a path, pp ≤ indpp , and the chain extends to pp on the left.",
+      "page_start": 4,
+      "word_count": 215
+    },
+    {
+      "heading": "Proposition 18",
+      "section_type": "other",
+      "position": 44,
+      "text": "(Matching relaxation) . Let G be connected with n ≥ 3 . Then γ △ ( G ) ≤ 1 + n − 2 ν ( G ) − 2 m , and the right-hand side is computable in polynomial time. Proof. We first show pp( G ) ≤ n − ν ( G ) − 1 . Let M be a maximum matching of G and U the set of M -unsaturated vertices, so that M ∪ U is a path partition of G with | M | + | U | = n − ν ( G ) parts. Since G is connected with n ≥ 3 , the matching M is nonempty; fix uv ∈ M . Again by connectivity and n ≥ 3 , one of u, v has a neighbour outside { u, v } , say vw ∈ E ( G ) with w / ∈{ u, v } . If w ∈ U , replace the parts uv and w by the single path uvw . Otherwise ww ′ ∈ M for some w ′ / ∈{ u, v, w } , and we replace the parts uv and ww ′ by the single path uvww ′ . Either way we obtain a path partition with n − ν ( G ) − 1 parts. Now let G be non-Hamiltonian. By Corollary 17 , γ △ ( G ) ≤ m − n + 2pp( G ) m ≤ m − n + 2 � n − ν ( G ) − 1 � m = 1 + n − 2 ν ( G ) − 2 m . If instead G is Hamiltonian then ν ( G ) = ⌊ n/ 2 ⌋ , so n − 2 ν ( G ) − 2 ≥− 2 , while γ △ ( G ) ≤ ( m − n ) /m = 1 − n/m ≤ 1 − 2 /m ; the bound holds in this case too. Finally, ν ( G ) is computable in polynomial time by Edmonds’ algorithm, and n and m are read off G . The step pp( G ) ≤ n − ν ( G ) − 1 is the connected case of an observation recorded as Proposition 1.6 of the arXiv version of [ 21 ], where it is credited to an anonymous referee and stated in the sharper form that the graphs attaining pp( G ) = n − ν ( G ) are exactly the disjoint unions of K 1 ’s and K 2 ’s. It does not appear in the published version, so we have given the two-line argument above rather than cite it. 9",
+      "page_start": 15,
+      "word_count": 452
+    },
+    {
+      "heading": "Remark 19",
+      "section_type": "other",
+      "position": 45,
+      "text": "(Where the relaxation is tight) . Proposition 18 is attained on the star. For G = K 1 ,q we have n = q + 1 , m = q and ν = 1 , so the bound reads (2 q − 3) /q ; and pp( K 1 ,q ) = q − 1 , since a path in a star has at most three vertices, so Corollary 17 gives the same value. At q = 6 both equal 3 / 2 , which Table 2 records as the maximum of γ △ over the census, attained only by K 1 , 6 . The relaxation is loose in the opposite regime. On a path P n with n even the bound gives 1 − 2 / ( n − 1) , whereas pp( P n ) = 1 and Corollary 17 gives 1 / ( n − 1) . The reason is visible in the proof: a perfect matching wastes the whole of ν on a graph that a single path already covers. Note also that the unsharpened chain, which would give γ △ ≤ 1+( n − 2 ν ) /m , is never attained by a connected graph on at least three vertices, since by the result quoted above the only pp - extremal graphs are disjoint unions of K 1 ’s and K 2 ’s. The subtraction of 2 /m is therefore not a refinement of an otherwise sharp bound but a correction of a systematic one.",
+      "page_start": 1,
+      "word_count": 252
+    },
+    {
+      "heading": "Remark 20",
+      "section_type": "other",
+      "position": 46,
+      "text": "(Why the induced and isometric variants are the wrong invariants here) . Theorems 1.6 and 1.7 of [ 21 ] characterize the graphs attaining ipp( G ) = n − ν ( G ) , respectively indpp( G ) = n − ν ( G ) , as those all of whose blocks are odd complete graphs, with one even exceptional block permitted. On such graphs the upper end of the chain is tight while pp drops strictly below it: K 3 has ipp = indpp = 2 = n − ν but pp = 1 . Since it is pp , not ipp or indpp , that measures the cost in Theorem 16 — the edges counted there form a spanning linear forest, with no induced or isometric restriction — their extremal characterization bounds the completion cost without ever computing it. This is what forces the separate treatment of pp above. 8.2",
+      "page_start": 2,
+      "word_count": 153
+    },
+    {
+      "heading": "Proposition 21.",
+      "section_type": "other",
+      "position": 48,
+      "text": "Suppose that deciding whether a given graph on n vertices is an abelian Cayley graph can be done in time T ( n ) . Then deciding whether γ + ( G ) ≤ B/m can be done in time O ( n 2 B ) · T ( n ) . Proof. Enumerate the at most � i ≤ B � N − m i � = O ( n 2 B ) sets of at most B non-edges, add each in turn, and test the resulting graph. The recognition step is unconditional when the host is required to be cyclic. Evdokimov and Ponomarenko [ 25 ] give a polynomial-time algorithm deciding whether a given graph is a circulant, by way of the theory of Schur rings over a cyclic group and coherent configurations. Combining this with Proposition 21 gives the following.",
+      "page_start": 5,
+      "word_count": 143
+    },
+    {
+      "heading": "Corollary 22.",
+      "section_type": "other",
+      "position": 49,
+      "text": "For a fixed budget B , deciding whether G can be completed to a circulant by adding at most B edges is solvable in polynomial time. This places the cyclic-host problem in XP with respect to B unconditionally, and the general problem XP conditionally on the recognition step, but neither in FPT : the exponent grows with B . Whether it is fixed-parameter tractable is open, and the obstruction is visible at the bottom of the parameter range. Any FPT algorithm would in particular decide the case B = 0 in polynomial time, and that is the question of recognising abelian Cayley graphs, equivalently of deciding whether Aut( G ) contains a regular abelian subgroup. We are not aware of a polynomial algorithm for that problem in general, so Problem 3 should be read as asking about the recognition problem first. 9",
+      "page_start": 8,
+      "word_count": 142
+    },
+    {
+      "heading": "The census",
+      "section_type": "other",
+      "position": 50,
+      "text": "We computed γ + and γ △ exactly for all 995 connected graphs on 2 ≤ n ≤ 7 vertices, one represen- tative per isomorphism class, enumerated in the ordering of the Atlas of Graphs [ 13 ]. All statistics below are over these 995 isomorphism classes, each counted once. Exactness rests on the three reductions of Section 4 : translation normalization leaves ( n − 1)! labelings, Proposition 4 reduces 10 Table 1: The exhaustive search space per order. |C (Γ) | is listed for each abelian group of that order. n abelian groups |C (Γ) | labelings ( n − 1)! 2 1 1 1 3 1 1 2 4 2 2 , 3 6 5 1 2 24 6 1 3 120 7 1 3 720 Table 2: The census of all 995 connected graphs on at most seven vertices. All values exact. quantity value graphs in census 995 median γ △ 0 . 3846 mean γ △ 0 . 4006 graphs with γ △ < γ + 843 ( 84 . 7% ) graphs with γ △ = 0 14 maximum γ △ 1 . 5000 , attained only by K 1 , 6 degree bound ( 1 ) attained 890 ( 89 . 4% ) under the plain form n ∆ / 2 m − 1 476 ( 47 . 8% ) degree bound violated 0 Pearson r (bound, γ + ) 0 . 8506 Pearson r (bound, γ △ ) 0 . 7411 the cost of a labeling to its class-count vector, and the admissible generating sets are enumerated exhaustively. No heuristic enters, so every value below is a certificate.",
+      "page_start": 10,
+      "word_count": 276
+    },
+    {
+      "heading": "Convention 23.",
+      "section_type": "other",
+      "position": 51,
+      "text": "Throughout, a completion target Cay(Γ , S ) is required to be connected, that is, S generates Γ . For γ + this is automatic, since the host contains the connected graph G as a spanning subgraph. For γ △ it is a genuine restriction, because deletions can disconnect, and it is the convention under which every figure in this section was computed. Dropping it changes the census: the number of graphs with γ △ < γ + rises from 843 to 845 , the two additional graphs being ones whose cheapest edit target is disconnected. No other statistic reported here is affected. Table 1 records the resulting search space: for every order n ≤ 7 except n = 4 there is a unique abelian group, and the number of inverse-pair classes never exceeds three, so the enumeration over generating sets is negligible and the cost is dominated by the ( n − 1)! labelings. Three features of Table 2 deserve comment. Deletions usually help. For 84 . 7% of the census the edit distance is strictly smaller than the completion number. Restricting to additions is thus not a harmless simplification, and the two invariants should be reported separately. Figure 1 B shows the gap widening with n . The star is extremal. K 1 , 6 is the unique maximizer of γ △ , at exactly 3 / 2 , matching Theorem 8 at q = 6 . The star is simultaneously the family on which the isometric theory of [ 20 ] is hardest and the family on which completion is most expensive, which is not a priori obvious: the two frameworks fail on the same object for the same underlying reason, its irregularity. The linear-time bound is informative but not sufficient. Bound ( 1 ) is attained on 89 . 4% of the census and correlates with γ + at r = 0 . 851 , so it is a genuinely useful triage filter. It is nonetheless not a substitute for the search: it is missed on 105 graphs, and Theorem 14 shows that on almost all graphs it captures none of the difficulty at all, so its performance here is a fact about small structured graphs and not a general one. 11 Table 3: The same census stratified by order. The pooled figures of Table 2 are dominated by the 853 graphs on seven vertices, and every rate varies sharply with n . Attainment is of ( 1 ); the plain form n ∆ / 2 m − 1 is given in brackets where it differs, and differs only at odd n . n graphs med. γ + med. γ △ γ △ < γ + bound attained r (bound, γ + ) 4 6 0 . 267 0 . 267 0 . 0% 100 . 0% 1 . 000 5 21 0 . 667 0 . 400 61 . 9% 100 . 0% ( 61 . 9 ) 1 . 000 6 112 0 . 500 0 . 333 73 . 2% 84 . 8% 0 . 925 7 853 0 . 750 0 . 385 87 . 7% 89 . 7% ( 42 . 1 ) 0 . 827 all 995 0 . 615 0 . 385 84 . 7% 89 . 4% ( 47 . 8 ) 0 . 851 0.00 0.25 0.50 0.75 1.00 1.25 1.50 0 20 40 60 80 100 120 140 graphs A distribution of median 0.3846 0 1 2 + 0.0 0.5 1.0 1.5 2.0 2.5 y = x B deletions help below the diagonal n = 4 n = 5 n = 6 n = 7 0 1 2 degree bound n * /2 m 1 0.0 0.5 1.0 1.5 2.0 2.5 + y = x C bound vs the invariant it bounds ( r = 0.851) Figure 1: The exact census of all 995 connected graphs on at most seven vertices. A Distribution of γ △ , with median 0 . 3846 . B γ △ against γ + , coloured by n ; the 84 . 7% of graphs for which deletions strictly help are those strictly below the drawn diagonal y = x . C The linear-time bound ( 1 ) against γ + , the invariant it actually bounds, with Pearson r = 0 . 851 . Every point lies on or above y = x , as Theorem 5 requires; the 890 points on the diagonal are the equality class of Theorem 6 . Panels B and C share equal axes and aspect. The pooled rates are dominated by one order. Since 853 of the 995 graphs have n = 7 , every pooled figure in Table 2 is close to its n = 7 value. Table 3 stratifies, and the variation is large: separation runs from 0% at n = 4 to 87 . 7% at n = 7 , and r ( bound , γ + ) falls monotonically from 1 . 000 to 0 . 827 as n grows. Both trends point the same way, towards the asymptotic regime of Theorem 14 , and neither should be read as a constant of the problem.",
+      "page_start": 8,
+      "word_count": 865
+    },
+    {
+      "heading": "Remark 24",
+      "section_type": "other",
+      "position": 52,
+      "text": "(The degree bound does not bound γ △ ) . Theorem 5 is a lower bound on γ + , and since γ △ ≤ γ + it transports no lower bound to γ △ . The distinction is not academic, and the witness is already in this paper. Let G = C 3 ∪ C 4 , the complement of the disjoint union of a triangle and a quadrilateral. Then G is 4 -regular on n = 7 vertices with m = 14 edges, so ∆ ∗ = ∆= 4 and the bound of Theorem 5 evaluates to 7 · 4 / (2 · 14) − 1 = 0 . But γ △ ( G ) > 0 : the only abelian group of order 7 is Z 7 , and the only 4 -regular circulant on Z 7 up to isomorphism is C 7 , which is connected, whereas C 3 ∪ C 4 is not; so G is not an abelian Cayley graph and some edit is required. Any plot of the degree bound against γ △ therefore has points above the diagonal, and a caption asserting otherwise would be false. This is why Figure 1 C plots the bound against γ + and not against γ △ ; for the record the two correlations differ appreciably, r = 0 . 851 against γ + and r = 0 . 741 against γ △ . 12 10",
+      "page_start": 39,
+      "word_count": 240
+    },
+    {
+      "heading": "Conclusion and open problems",
+      "section_type": "conclusion",
+      "position": 53,
+      "text": "We have introduced two invariants measuring how far a graph is from being an abelian Cayley graph on its own vertex set, shown the fixed-host problem NP-hard by reduction from Hamiltonian Cycle, proved a linear-time degree lower bound and characterized its equality case (Theorem 6 ), determined stars, paths and grids exactly, and computed certified exact values for all 995 connected graphs on at most seven vertices. Two further results delimit the invariants from above: the star maximizes γ + (Theorem 12 ) while γ △ is bounded by an absolute constant (Corollary 11 ), and on G ( n, 1 / 2) the trivial completion to K n is asymptotically optimal (Theorem 14 ), so the degree bound, attained on 89 . 4% of the census, captures none of the difficulty on almost all graphs. Several questions remain.",
+      "page_start": 1,
+      "word_count": 139
+    },
+    {
+      "heading": "Problem 1",
+      "section_type": "other",
+      "position": 54,
+      "text": "(Uniqueness of the extremal graph) . Theorem 12 shows the star attains the maximum of γ + . Prove Conjecture 13 . By the reduction following Theorem 12 it suffices, for n even, to show that the complement of every non-star tree on n vertices has a perfect matching, and for n odd that it is Hamiltonian. The corresponding statement for γ △ is harder and needs a different argument, since Corollary 11 and the star value agree in the limit.",
+      "page_start": 3,
+      "word_count": 81
+    },
+    {
+      "heading": "Problem 2",
+      "section_type": "other",
+      "position": 55,
+      "text": "(Recognising the equality class) . Theorem 6 characterizes equality in the degree bound as containment in a ∆ -regular abelian Cayley host, which is not a condition one can read off the degree sequence. Find a combinatorial characterization, or show that deciding it is NP-hard.",
+      "page_start": 4,
+      "word_count": 45
+    },
+    {
+      "heading": "Problem 3",
+      "section_type": "other",
+      "position": 56,
+      "text": "(Parameterized complexity) . Is the Cayley completion problem fixed-parameter tractable in the edit budget B ? Proposition 21 gives only XP , and the case B = 0 is the recognition problem for abelian Cayley graphs. Settle the complexity of that recognition problem first.",
+      "page_start": 5,
+      "word_count": 44
+    },
+    {
+      "heading": "Problem 4",
+      "section_type": "other",
+      "position": 57,
+      "text": "(Sparse random graphs) . Theorem 14 settles G ( n, 1 / 2) , where the answer is that the trivial completion to K n is asymptotically optimal. Determine γ + ( G ( n, p )) for p = p ( n ) → 0 , where the counting argument used there no longer dominates and the degree bound may become the truth.",
+      "page_start": 6,
+      "word_count": 64
+    },
+    {
+      "heading": "Data availability and reproducibility",
+      "section_type": "other",
+      "position": 61,
+      "text": "All values reported here are computed by the exact procedure of Section 9 for n ≤ 7 and by the solver of Appendix A beyond it. Every value for n ≤ 7 is certified in both directions: an explicit labeling and connection set witnesses the upper bound, and exhaustion over all abelian groups of order n and all symmetric connection sets witnesses the lower bound. Code, certificates and the full census are archived at doi:10.5281/zenodo.21852006 ; graph labels follow the Atlas of Graphs [ 13 ].",
+      "page_start": 10,
+      "word_count": 86
+    },
+    {
+      "heading": "Declaration on the use of artificial intelligence",
+      "section_type": "other",
+      "position": 62,
+      "text": "The authors declare that the artificial-intelligence assistant Claude (Anthropic) was used during the preparation of this manuscript, in two roles: support with the implementation, debugging and reproducibility of the search, census and certification software; and language and editing support in drafting. All definitions, theorems, proofs and their verification, together with the conception, scientific direction and conclusions of this work, are the authors’ own. The authors have reviewed the entire manuscript and take full responsibility for its content. 13 Table 4: Acceptance-rule ablation: edits found, minimum and mean over eight independent seeds at a fixed budget of three restarts and 600 iterations. Both rules reach the same optimum given enough restarts; plateau descent reaches it more reliably per run. plateau descent strict descent graph min mean min mean Chvátal 4 4 . 50 4 6 . 25 Frucht 6 7 . 00 6 7 . 25 Heawood 7 7 . 25 7 9 . 75 A",
+      "page_start": 12,
+      "word_count": 155
+    },
+    {
+      "heading": "Solving beyond the exhaustive range",
+      "section_type": "other",
+      "position": 63,
+      "text": "For n beyond the census the factorial search is infeasible and we use local search over labelings, retaining the exact treatment of the generating set: given a labeling, the optimal S is still computed by enumeration via Proposition 4 , so the only heuristic component is the choice of labeling.",
+      "page_start": 5,
+      "word_count": 50
+    },
+    {
+      "heading": "Calibration against certified optima.",
+      "section_type": "other",
+      "position": 64,
+      "text": "Because the census of Section 9 supplies exact values, the solver can be calibrated rather than merely trusted. On a uniformly random sample of 200 of the 995 census graphs, run with four restarts and no instance-specific tuning, the solver returned the certified optimum on 200 of 200 instances. This does not constitute an approximation guarantee, and none is claimed; it does mean that on the entire range where ground truth is available the heuristic is not observed to lose anything, which is the relevant evidence for the upper bounds reported beyond that range. The values for paths, cycles, tori and grids quoted in Section 6 are likewise reproduced exactly.",
+      "page_start": 7,
+      "word_count": 110
+    },
+    {
+      "heading": "Moves and seeds.",
+      "section_type": "other",
+      "position": 65,
+      "text": "Two moves are used: transposition of the labels of two vertices, and reversal of a contiguous segment of the label order. The second matters because a circular seed that is correct except for a reversed arc is repaired by one segment reversal but requires many transpositions. Seeds are the spectral circle (and its rank- d torus generalization), a Cartesian-product labeling for lattice-like graphs, and random restarts.",
+      "page_start": 8,
+      "word_count": 66
+    },
+    {
+      "heading": "Acceptance.",
+      "section_type": "other",
+      "position": 66,
+      "text": "The single design choice that affects quality is whether equal-cost moves are ac- cepted. Proposition 4 implies that cost is a function of the class-count vector alone, so the landscape is organized into large isocost plateaus; a search that accepts only strict improvements halts on the first plateau it meets. Table 4 compares plateau descent with strict descent under identical seeds, budget and move set. The effect is real but should not be overstated: with a sufficient number of restarts both rules locate the same best value on all three instances, and the advantage of plateau descent is a lower mean cost per run rather than a better optimum. We report it as a variance reduction, not as a change in what is reachable. Taken together with the calibration above, the practical reading is that the search is reliable on the range where it can be checked, and that the acceptance rule governs how many restarts are needed rather than which values are attainable.",
+      "page_start": 9,
+      "word_count": 164
+    },
+    {
+      "heading": "Standard graphs.",
+      "section_type": "other",
+      "position": 67,
+      "text": "Table 5 collects values for standard graphs. The value 1 / 3 recurs across five of them, and the pattern is sharper than it first appears: for the four cubic instances the edit count is exactly n/ 2 , and since a cubic graph has m = 3 n/ 2 this forces γ △ = 1 / 3 automatically. The recurrence is nevertheless partial rather than structural, because the Petersen and Desargues graphs are cubic as well and do not follow it, at 7 edits against n/ 2 = 5 and 12 against n/ 2 = 10 ; and the icosahedral graph attains 1 / 3 while being 5 -regular, with 10 edits rather than n/ 2 = 6 . We record the pattern as an observation with known exceptions, not as a conjecture. 14 Table 5: Upper bounds on γ △ for standard graphs, with the optimal host group found. Hosts are given in primary decomposition, so that for instance Z 2 × Z 5 denotes Z 10 . graph n m edits γ △ ≤ Chvátal 12 24 4 0 . 1667 Frucht 12 18 6 0 . 3333 Icosahedral 12 30 10 0 . 3333 Heawood 14 21 7 0 . 3333 Möbius–Kantor 16 24 8 0 . 3333 Pappus 18 27 9 0 . 3333 Petersen 10 15 7 0 . 4667 Desargues 20 30 12 0 . 4000 B",
+      "page_start": 10,
+      "word_count": 234
+    },
+    {
+      "heading": "Distortion is a second, independent invariant",
+      "section_type": "other",
+      "position": 68,
+      "text": "The invariants of Definition 1 count edited edges. A different and equally natural question is how faithfully the host reproduces the metric of G , and the two answers are not interchangeable. This section makes the distinction precise, because the numbers below show that they can move in opposite directions.",
+      "page_start": 4,
+      "word_count": 50
+    },
+    {
+      "heading": "Definition 25.",
+      "section_type": "other",
+      "position": 69,
+      "text": "Let f : V ( G ) → Γ be injective, | Γ | = N ≥ n , and let d H be the graph metric of H = Cay(Γ , S ) . The bi-Lipschitz distortion of f is c ( f ) = max u ̸ = v d H ( f ( u ) , f ( v )) d G ( u, v ) · max u ̸ = v d G ( u, v ) d H ( f ( u ) , f ( v )) , and c N ( G ) denotes its minimum over all abelian Γ of order N , all symmetric generating sets and all injective f . Then c N ( G ) ≥ 1 always, with c N ( G ) = 1 exactly when G embeds isometrically into a host of order N ; the least such N is the invariant ν ( G ) of [ 20 ]. Note that c N is defined for every N ≥ n , whereas γ + and γ △ are defined only at N = n , where the vertex set is fixed and editing is meaningful. The two families of invariants therefore agree on no common normalization and must not be compared numerically; γ is a fraction of edges, c N a ratio of distances.",
+      "page_start": 6,
+      "word_count": 229
+    },
+    {
+      "heading": "Proposition 26",
+      "section_type": "other",
+      "position": 70,
+      "text": "(The two invariants are not monotonically related) . On stars, γ + ( K 1 ,q ) = ( q − 1) / 2 is unbounded in q while c n ( K 1 ,q ) = 2 for every q . On paths, γ + ( P n ) = 1 / ( n − 1) tends to 0 while c n ( P n ) grows linearly in n . Hence neither invariant bounds the other. Computation. The γ + values are Theorem 8 and Proposition 9 . For the star, the leaf images of any injective f into a host of order n = q + 1 cannot all be pairwise nonadjacent while each is adjacent to the centre unless the host is complete, so the leaf-leaf distances collapse to 1 against d G = 2 , or expand; direct minimisation gives c n = 2 , confirmed exhaustively for q ≤ 6 and by search for q ≤ 10 . For the path, exhaustive minimisation over all abelian groups, generating sets and placements gives c 6 ( P 6 ) = 4 and c 8 ( P 8 ) = 5 , and search gives ⌈ n/ 2 ⌉ + 1 for n ≤ 12 . The reading of Table 6 is that a graph can be expensive to complete yet metrically well behaved once completed, and cheap to complete yet metrically ruined. The star is the first case: many edges must be added, but the resulting host never stretches a distance by more than a factor of two. The path is the second: a single added edge suffices, yet identifying the two endpoints of a path is exactly what destroys its metric, since the two extremities become adjacent. This is the familiar wraparound artefact of circular convolution, appearing here as an invariant. 15 Table 6: The two invariants at the completion endpoint N = n move in opposite directions. Values of c n are exhaustively certified for n ≤ 8 and are search upper bounds beyond. stars K 1 ,q paths P n γ + c n γ + c n q = 3 1 . 0 2 n = 4 0 . 333 3 q = 5 2 . 0 2 n = 6 0 . 200 4 q = 7 3 . 0 2 n = 8 0 . 143 5 q = 9 4 . 0 2 n = 10 0 . 111 6",
+      "page_start": 11,
+      "word_count": 412
+    },
+    {
+      "heading": "The frontier between the two frameworks.",
+      "section_type": "other",
+      "position": 71,
+      "text": "The completion problem and the isometric prob- lem of [ 16 , 20 ] are the two extreme points of one trade-off. Score a scheme by the pair (host order N , distortion). Completion sits at N = n with whatever distortion the completed host happens to have; isometric embedding sits at N = ν ( G ) with distortion 1 . Classical signal processing has occupied the interior for decades without naming it: zero-padding embeds P n into C 2 n − 2 with dis- tortion 1 , and symmetric extension underlies the discrete cosine transform. For the path the whole frontier is available in closed form: consecutive placement into the cycle Cay( Z N , {± 1 } ) gives c N ( P n ) = n − 1 N − n + 1 ( n < N ≤ 2 n − 2) , verified exhaustively to be optimal for every N > n in the range checked, and reaching 1 exactly at the zero-padding order N = 2 n − 2 . For the star the frontier is instead a step: c N ( K 1 ,q ) = 2 for all N < 2 q and c N = 1 at N = 2 q = ν ( K 1 ,q ) , the exact isometric order of [ 20 ]. So the decay of distortion with host size is smooth for one family and a sharp threshold for the other, and we do not know which behaviour is typical. A systematic study of this frontier is left to future work; we record here only that the endpoints are the objects of this paper and of [ 20 ], and that they are genuinely different measurements.",
+      "page_start": 5,
+      "word_count": 291
+    }
+  ],
+  "references_raw": "[1] N. Alon, J. Balogh, R. Morris, W. Samotij, Counting sum-free sets in abelian groups, Israel J. Math. 199 (2014) 309–344. [2] M. Deza, M. Laurent, Geometry of Cuts and Metrics, Springer, Berlin, 1997. [3] P. H. Diananda, H. P. Yap, Maximal sum-free sets of elements of finite groups, Proc. Japan Acad. 45 (1969) 1–5. [4] D. Ž. Djoković, Distance-preserving subgraphs of hypercubes, J. Combin. Theory Ser. B 14 (1973) 263–267. [5] V. V. Firsov, Isometric embedding of a graph in a Boolean cube, Cybernetics 1 (1965) 112–113. [6] C. Godsil, G. Royle, Algebraic Graph Theory, Graduate Texts in Mathematics 207, Springer, New York, 2001. [7] R. L. Graham, P. M. Winkler, On isometric embeddings of graphs, Trans. Amer. Math. Soc. 288 (1985) 527–536. [8] B. Green, I. Z. Ruzsa, Sum-free sets in abelian groups, Israel J. Math. 147 (2005) 157–188. [9] R. Hammack, W. Imrich, S. Klavžar, Handbook of Product Graphs, 2nd ed., CRC Press, Boca Raton, 2011. 16 [10] W. Imrich, S. Klavžar, Product Graphs: Structure and Recognition, Wiley, New York, 2000. [11] B. D. McKay, C. E. Praeger, Vertex-transitive graphs which are not Cayley graphs, I, J. Aus- tral. Math. Soc. Ser. A 56 (1994) 53–63. [12] S. Ovchinnikov, Partial cubes: structures, characterizations, and constructions, Discrete Math. 308 (2008) 5597–5621. [13] R. C. Read, R. J. Wilson, An Atlas of Graphs, Clarendon Press, Oxford, 1998. [14] A. H. Rhemtulla, A. P. Street, Maximal sum-free sets in finite abelian groups, Bull. Austral. Math. Soc. 2 (1970) 289–297. [15] S. V. Shpectorov, On scale embeddings of graphs into hypercubes, European J. Combin. 14 (1993) 117–130. [16] R. Fokam Souop, L. Bitjoka, Minimal isometric embeddings of graphs into Cayley graphs of finite abelian groups, companion manuscript, arXiv:2607.07920 [math.CO], 2026. [17] R. P. Stanley, Smith normal form in combinatorics, arXiv:1602.00166, 2016. [18] E. Wilkeit, Isometric embeddings in Hamming graphs, J. Combin. Theory Ser. B 50 (1990) 179–197. [19] P. M. Winkler, Isometric embedding in products of complete graphs, Discrete Appl. Math. 7 (1984) 221–225. [20] R. Fokam Souop, L. Bitjoka, Dimension and order bounds for isometric embeddings of graphs into abelian Cayley graphs, and the abelian dividend, companion manuscript, arXiv:2607.07939 [math.CO], 2026. [21] I. Penev, R. B. Sandeep, D. K. Supraja, S. Taruni, Isometric and induced path partitions: a new upper bound and a characterization of some extremal graphs, Discrete Appl. Math. 392 (2026) 260–273. [22] Š. Miklavič, P. Potočnik, Distance-regular circulants, European J. Combin. 24 (7) (2003) 777– 784. [23] Š. Miklavič, P. Potočnik, Distance-regular Cayley graphs on dihedral groups, J. Combin. The- ory Ser. B 97 (1) (2007) 14–33. [24] Š. Miklavič, P. Šparl, On distance-regular Cayley graphs on abelian groups, J. Combin. Theory Ser. B 108 (2014) 102–122. [25] S. Evdokimov, I. Ponomarenko, Recognizing and isomorphism testing circulant graphs in poly- nomial time, Algebra i Analiz 15 (6) (2003)"
+}

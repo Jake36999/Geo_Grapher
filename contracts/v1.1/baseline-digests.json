@@ -1,0 +1,8 @@
+{
+  "FINAL_DESIGN_SPECIFICATION.md": "290a8a01891604d6aaa2fa3ba51616381dfbb87c8edd41d5e0e496bd6a0bb178",
+  "TECHNICAL_IMPLEMENTATION_BLUEPRINT.md": "4161695f72530b8784e798c537c412027d524ceb9b3060d4db8fac58eb649512",
+  "contracts/geographer.schema.sql": "b86f5633e907366980fe0d655e3565f29922850f8f9cb9ff73cb34fe0b555729",
+  "contracts/geographer.wire.d.ts": "9665b7bc5a27132294a1bb4bef85906b2b7fad7f1f3b9e39ffa1b4170e23f475",
+  "contracts/geographer.rules.schema.json": "6dc4e418193450d4f4bec0518bcafde87b10c58986d603bfe6e94563bbb92bc2",
+  "contracts/geographer.rules.example.yaml": "113761fe7cc07e27322b1b2a0ff367333d962dcbf7006aee992c68fc4cf68305"
+}

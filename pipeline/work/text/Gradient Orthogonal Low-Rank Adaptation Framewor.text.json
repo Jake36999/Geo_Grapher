@@ -1,0 +1,392 @@
+{
+  "file_path": "E:/Librarian research/Gradient Orthogonal Low-Rank Adaptation Framewor.pdf",
+  "page_count": 12,
+  "first_page_text": "G2LoRA: Gradient Orthogonal Low-Rank Adaptation Framework\nfor Graph Continual Learning on Text-Attributed Graphs\nYuhan Wang\nSchool of Computer Science and\nEngineering, Beihang University\nBeijing, China\nwyh7667@gmail.com\nYibo Ding\nSchool of Computer Science and\nEngineering, Beihang University\nBeijing, China\ndingyibo@buaa.edu.cn\nYutong Ye\nSchool of Computer Science and\nEngineering, Beihang University\nBeijing, China\nyutongye@buaa.edu.cn\nMufan Zhao\nDepartment of Statistics, Columbia\nUniversity\nNew York, NY, USA\nmz3069@columbia.edu\nWenbo Zhang\nCollege of Computer Science, Beijing\nUniversity of Technology\nBeijing, China\nzhangwenbo@bjut.edu.cn\nRuijie Wang∗\nSchool of Computer Science and\nEngineering, Beihang University\nBeijing, China\nruijiew@buaa.edu.cn\nJianxin Li\nSchool of Computer Science and\nEngineering, Beihang University\nBeijing, China\nlijx@buaa.edu.cn\nAbstract\nLLM-as-Aligner has emerged as a prevalent pre-training paradigm\nfor Text-Attributed Graphs (TAGs), aligning graph and text modali-\nties into a shared embedding space via CLIP-style contrastive learn-\ning. While effective on individual downstream tasks, we observe\nsevere catastrophic forgetting when such models are sequentially\nfine-tuned on streaming tasks. Although parameter-efficient fine-\ntuning alleviates forgetting to some extent, it remains insufficient\nto resolve task interference and ineffective knowledge transfer. In\nthis work, we study graph continual learning for LLM-as-Aligner\nmodels on TAGs, with the goal of mitigating interference while pro-\nmoting positive transfer across tasks. This setting introduces two\nfundamental challenges: (1) heterogeneous downstream tasks in-\nduce shifting optimization objectives, hindering unified fine-tuning;\nand (2) graph and text encoders exhibit different sensitivities to\nadaptation, making uncoordinated updates prone to misalignment.\nTo address these challenges, we propose Gradient Orthogonal Low-\nRank Adaptation (G2LoRA), a continual learning framework for\nTAGs. G2LoRA unifies node-, link-, and graph-level tasks under\na single graph–text alignment objective, and enables consistent\noptimization across domain/class/task incremental modes. To re-\nduce task interference while encouraging positive transfer, G2LoRA\nperforms category-aware gradient projection in structured sub-\nspaces, resolving conflicting updates and enabling conditional back-\nward transfer to balance forward and backward knowledge flow.\nTo further prevent cross-modal drift, G2LoRA introduces gradient\n∗Corresponding author.\nThis work is licensed under a Creative Commons Attribution 4.0 International License.\nKDD ’26, Jeju Island, Republic of Korea\n© 2026 Copyright held by the owner/author(s).\nACM ISBN 979-8-4007-2259-2/2026/08\nhttps://doi.org/10.1145/3770855.3817966\nmagnitude modulation to coordinate update rates between graph\nand text encoders. Extensive experiments on benchmark datasets\ndemonstrate that G2LoRA consistently outperforms strong base-\nlines across different backbone ar",
+  "sections": [
+    {
+      "heading": "Abstract",
+      "section_type": "abstract",
+      "position": 9,
+      "text": "LLM-as-Aligner has emerged as a prevalent pre-training paradigm for Text-Attributed Graphs (TAGs), aligning graph and text modali- ties into a shared embedding space via CLIP-style contrastive learn- ing. While effective on individual downstream tasks, we observe severe catastrophic forgetting when such models are sequentially fine-tuned on streaming tasks. Although parameter-efficient fine- tuning alleviates forgetting to some extent, it remains insufficient to resolve task interference and ineffective knowledge transfer. In this work, we study graph continual learning for LLM-as-Aligner models on TAGs, with the goal of mitigating interference while pro- moting positive transfer across tasks. This setting introduces two fundamental challenges: (1) heterogeneous downstream tasks in- duce shifting optimization objectives, hindering unified fine-tuning; and (2) graph and text encoders exhibit different sensitivities to adaptation, making uncoordinated updates prone to misalignment. To address these challenges, we propose Gradient Orthogonal Low- Rank Adaptation (G 2 LoRA), a continual learning framework for TAGs. G 2 LoRA unifies node-, link-, and graph-level tasks under a single graph–text alignment objective, and enables consistent optimization across domain/class/task incremental modes. To re- duce task interference while encouraging positive transfer, G 2 LoRA performs category-aware gradient projection in structured sub- spaces, resolving conflicting updates and enabling conditional back- ward transfer to balance forward and backward knowledge flow. To further prevent cross-modal drift, G 2 LoRA introduces gradient ∗ Corresponding author. This work is licensed under a Creative Commons Attribution 4.0 International License. KDD ’26, Jeju Island, Republic of Korea © 2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2259-2/2026/08 https://doi.org/10.1145/3770855.3817966 magnitude modulation to coordinate update rates between graph and text encoders. Extensive experiments on benchmark datasets demonstrate that G 2 LoRA consistently outperforms strong base- lines across different backbone architectures, achieving superior continual performance and transferability.",
+      "page_start": 10,
+      "word_count": 287
+    },
+    {
+      "heading": "Keywords",
+      "section_type": "other",
+      "position": 13,
+      "text": "Text-attributed graphs, Graph continual learning, LLM-as-Aligner, Low-rank adaptation, Graph-text alignment ACM Reference Format: Yuhan Wang, Yibo Ding, Yutong Ye, Mufan Zhao, Wenbo Zhang, Ruijie Wang, and Jianxin Li. 2026. G 2 LoRA: Gradient Orthogonal Low-Rank Adap- tation Framework for Graph Continual Learning on Text-Attributed Graphs. In Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2 (KDD ’26), August 09–13, 2026, Jeju Island, Republic of Korea. ACM, New York, NY, USA, 12 pages. https://doi.org/10.1145/3770855. 3817966 Resource Availability: The source code of this paper has been made publicly available at https://doi.org/10.5281/zenodo.20442900. 1",
+      "page_start": 17,
+      "word_count": 95
+    },
+    {
+      "heading": "Introduction",
+      "section_type": "intro",
+      "position": 14,
+      "text": "Text-Attributed Graphs (TAGs) are prevalent in real-world appli- cations such as academic citation networks, social platforms, and e-commerce systems [ 1 , 2 ]. In these graphs, nodes (e.g., papers, users, and products) are associated with rich textual descriptions, while edges encode their relational structure. To jointly leverage structural and semantic information, LLM-as-Aligner has emerged as a mainstream pre-training paradigm for TAGs [ 35 , 46 ]. These methods typically follow a pre-training–fine-tuning framework, 5184 KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea Yuhan Wang et al. 0.4 0.5 0.6 0.7 0.8 0.9 2 3 4 5 Accuracy(%) Number of Tasks isolate Joint CL （ graphclip+lora ） CL （ graphclip ） (a) Graphclip Performance in CL (b) Class-Space Similarity in CIL (c) Class-Space Similarity in DIL 0.0185 0.0201 0.0234 0.0256 0.0243 0.999 1.222 1.342 1.543 1.567 0 0.4 0.8 1.2 1.6 2 1 2 3 4 5 value Number of Tasks Graph Text (d) Variance of parameters",
+      "page_start": 21,
+      "word_count": 159
+    },
+    {
+      "heading": "Text Models as Tasks Increase.",
+      "section_type": "other",
+      "position": 19,
+      "text": "aligning graph and text representations into a shared latent seman- tic space via contrastive learning, which substantially improves transferability and generalization across downstream tasks. In practical deployments, graph data often evolves over time, motivating studies on dynamic and continual graph learning [ 32 – 34 , 44 ]. For TAGs, such evolution is coupled with textual attributes, making it infeasible to access historical data or perform joint train- ing in a single stage. Although LLM-as-Aligner models achieve strong performance on individual downstream tasks, we observe se- vere catastrophic forgetting when they are sequentially fine-tuned under continual learning settings. To examine this issue, we adopt a representative LLM-as-Aligner framework, GraphCLIP [ 46 ], as a testbed. As illustrated in Figure 1a, we compare full-parameter fine- tuning, LoRA-based fine-tuning, multi-task joint training (Joint), and task-isolated training (Isolate). Full-parameter fine-tuning leads to drastic performance degradation on previous tasks, while LoRA alleviates forgetting. Nevertheless, even with parameter-efficient fine-tuning, substantial task interference and ineffective knowledge transfer persist. A key reason behind this phenomenon lies in conflicts within the gradient space, where task-specific updates overlap and interfere with previously acquired knowledge. Gradient orthogonal projec- tion methods [ 17 , 27 ] have been shown to be effective in mitigating such conflicts by explicitly modeling gradient relationships. Mo- tivated by this observation, we investigate continual learning for LLM-as-Aligner models under a PEFT framework, with the goal of reducing interference while promoting positive knowledge transfer between new and historical tasks. However, this setting introduces two fundamental challenges that limit the effectiveness of existing graph continual learning approaches.",
+      "page_start": 28,
+      "word_count": 259
+    },
+    {
+      "heading": "Challenge 1: Heterogeneous downstream tasks induce shift-",
+      "section_type": "other",
+      "position": 20,
+      "text": "ing optimization objectives. TAG downstream tasks exhibit sub- stantial structural diversity, spanning node-level, edge-level, and graph-level predictions. This heterogeneity leads to continuously evolving learning objectives, which complicates the design of a sin- gle, parameter-efficient fine-tuning (PEFT) strategy. The challenge is greater than in traditional graph continual learning, as it requires the simultaneous optimization of both graph and text encoders. Without a shared and stable representation space, downstream tasks cannot be consistently aligned with the pre-trained graph–text embedding space, which limits the performance of pre-training models and might even cause negative transfer [ 29 ]. Moreover, task relationships in continual learning are highly non-uniform across different incremental scenarios. As shown in Figures 1b and 1c, task interactions may exhibit global similarity, local similarity, or block-wise similarity structures, leading to complex patterns of conflict and transfer. These observations suggest that the true units of knowledge conflict and transfer are not entire tasks, but rather the geometric relationships among category-specific discrimina- tive subspaces. How to characterize and exploit such fine-grained subspace interactions within a unified framework, while accommo- dating diverse incremental settings, mitigating interference, and enabling knowledge transfer, remains an open challenge.",
+      "page_start": 30,
+      "word_count": 189
+    },
+    {
+      "heading": "Challenge 2: Imbalanced cross-modal sensitivities cause",
+      "section_type": "other",
+      "position": 21,
+      "text": "alignment drift. Graph and text encoders respond differently to fine-tuning signals due to their inherent architectural and repre- sentational differences [ 25 ]. During continual adaptation, this dis- crepancy leads to imbalanced update magnitudes across modalities, with the text encoder often undergoing larger parameter changes, as illustrated in Figure 1d. Such asynchronous updates disrupt the synchronized evolution of the dual encoders and gradually distort the shared embedding space, resulting in alignment drift. Therefore, maintaining stable graph–text alignment requires a coordinated, modality-aware optimization mechanism. To address these challenges, we propose G 2 LoRA, a graph con- tinual learning framework for LLM-as-Aligner models for three incremental settings (domain/class/task). To tackle Challenge 1, G 2 LoRA reformulates node-level, link-level, and graph-level tasks into a unified graph–text alignment objective, enabling a consistent fine-tuning strategy across task granularities. Building upon this formulation, G 2 LoRA introduces Category-Aware Bidirectional Gra- dient Projection (CBGP), which decomposes historical knowledge into category-level gradient subspaces. Guided by class prototypes, CBGP adaptively scales projection strengths to resolve gradient conflicts while selectively enabling conditional backward transfer, thereby balancing forward adaptation and backward knowledge consolidation across class-, domain-, and task-incremental scenar- ios. To address Challenge 2, G 2 LoRA further incorporates a gradient modulation mechanism that dynamically coordinates update rates between graph and text encoders based on their relative sensitivities during continual learning. This mechanism prevents asynchronous optimization dynamics from inducing representation drift, effec- tively preserving long-term cross-modal alignment. In summary, our contributions are as follows: • We propose G 2 LoRA, a unified graph continual learning frame- work for LLM-as-Aligner models that reformulates node-, link-, 5185 Gradient Orthogonal Low-Rank Adaptation Framework for Graph Continual Learning KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea and graph-level tasks under a shared graph–text alignment objec- tive, enabling consistent parameter-efficient fine-tuning across heterogeneous downstream tasks and incremental settings. • We introduce category-aware bidirectional gradient projection, which models task conflicts and transfer through category-level discriminative subspaces and conditionally activates backward transfer, achieving unified fine-grained interference mitigation and effective knowledge transfer in class-, domain-, and task- incremental learning. • We further develop a gradient magnitude modulation mechanism to coordinate update rates between graph and text encoders, stabilizing cross-modal representations and preventing alignment drift during continual adaptation. • Experimental results show that G 2 LoRA achieves state-of-the-art performance and demonstrates strong transferability. It outper- forms 18 baselines across multiple continual learning datasets for all three incremental learning settings, achieving an average relative improvement of 7.59% over the best baseline. Addition- ally, it is compatible with three representative LLM-as-Aligner models on TAGs. 2",
+      "page_start": 30,
+      "word_count": 425
+    },
+    {
+      "heading": "Text-attributed Graphs (TAGs).",
+      "section_type": "other",
+      "position": 23,
+      "text": "A text-attributed graph (TAG) is denoted as G = (V , E , R) , where V is the set of 𝑁 nodes, E the edges, and R the textual descriptions. Each node 𝑣 𝑖 ∈V is associ- ated with a text attribute 𝑟 𝑖 ∈R providing semantic information. Traditional graph learning encodes text into fixed-dimensional features, forming a node feature matrix X = [ 𝑥 1 , . . . ,𝑥 𝑁 ] ∈ R 𝑁 × 𝑑 , where 𝑑 is the embedding dimension. In contrast, recent LLM-as- Aligner approaches [ 35 , 46 ] directly model text with large language models and align graph and text representations in a shared seman- tic space, enabling richer cross-modal interactions.",
+      "page_start": 4,
+      "word_count": 120
+    },
+    {
+      "heading": "Graph Continual Learning (GCL).",
+      "section_type": "other",
+      "position": 24,
+      "text": "GCL addresses incrementally learning a sequence of graph-related tasks, where new tasks arrive over time, and historical data is unavailable. Newly introduced tasks often have limited labeled samples, making it challenging to match the data scale of earlier tasks. Thus, we adopt a strict 𝑘 -shot learning paradigm for incremental tasks. Formally, we consider an ordered sequence of training tasks {T 0 , T 1 , . . . , T 𝑛 − 1 } , where T 0 denotes the base task and each subsequent task T 𝑖 ( 𝑖 ∈{ 1 , 2 , . . . ,𝑛 − 1 } ) corresponds to an incremental task. Each task is defined as T 𝑖 = (G 𝑖 , C 𝑖 , V 𝑙 𝑖 ) , where G 𝑖 represents the graph (or subgraph), C 𝑖 denotes the set of categories involved in the task, and V 𝑙 𝑖 is the set of labeled instances. Unless otherwise specified, tasks are assumed to be disjoint, i.e., G 𝑖 ∩G 𝑗 = ∅ and C 𝑖 ∩C 𝑗 = ∅ for all 𝑖 ≠ 𝑗 . Under this formulation, we consider three representative incremental learning settings in GCL: (i) Class-Incremental Learning (CIL). New node categories are introduced sequentially within the same graph domain. The model is required to learn representations for newly added classes while preserving performance on previously learned ones. The category set expands over time, i.e., C 0 →C 0 ∪C 𝑖 . (ii) Domain-Incremental Learning (DIL). New nodes or subgraphs from different graph domains arrive sequentially, the model must adapt to domain shifts while retaining prior knowledge. G 0 and G 𝑖 represent graph data from different domains. (iii) Task-Incremental Learning (TIL). Tasks with heterogeneous prediction granularities are presented sequentially. Each task is defined as T 𝑖 = (G 𝑖 , C 𝑖 , V 𝑖 ) , where V 𝑖 denotes the prediction space. Specifically, V 𝑖 ∈{V 𝑁 , V 𝐸 , V 𝐺 } corresponds to node-level classifi- cation over nodes, edge-level prediction over edges, and graph-level classification over entire graphs, respectively.",
+      "page_start": 4,
+      "word_count": 348
+    },
+    {
+      "heading": "LLM-as-Aligner on TAGs.",
+      "section_type": "other",
+      "position": 25,
+      "text": "LLM-as-Aligner methods for TAGs adopt a shared dual-encoder architecture that maps graph and text modalities into a shared embedding space. A Transformer-based text encoder and a graph neural network encoder (e.g., GCN [ 14 ]) are jointly trained [ 35 ]. Given a node-associated document, the text encoder produces a representation t 𝑖 ∈ R 𝑑 , while the graph encoder generates a node embedding z 𝑖 ∈ R 𝑑 . Let T = [ t 1 , . . . , t 𝑛 ] ⊤ and Z = [ z 1 , . . . , z 𝑛 ] ⊤ denote the text and graph embedding matrices. To establish bidirectional alignment, embeddings are normalized row-wise to obtain ˜ T and ˜ Z . The node– text similarity matrix 𝚲 ∈ R 𝑛 × 𝑛 is computed using cosine similarity: 𝚲 = ˜ Z ˜ T ⊤ · exp ( 𝜏 ) , (1) where 𝜏 ∈ R is a learnable temperature controlling the sharpness of the similarity distribution [ 26 ]. Following CLIP-style contrastive learning, the alignment objective applies cross-entropy loss in both row-wise and column-wise directions: L align ( 𝚲 ) = 1 2 � CE ( 𝚲 , y ) + CE ( 𝚲 ⊤ , y ) � , (2) where y = ( 1 , 2 , . . . ,𝑛 ) ⊤ denotes the identity label vector and CE (· , ·) is the cross-entropy loss. 3",
+      "page_start": 5,
+      "word_count": 243
+    },
+    {
+      "heading": "Methodology",
+      "section_type": "methods",
+      "position": 26,
+      "text": "We introduce G 2 LoRA, a parameter-efficient graph continual learn- ing framework based on the LLM-as-Aligner paradigm. As shown in Figure 2, G 2 LoRA uses a frozen dual-encoder architecture, fine- tuning only lightweight LoRA adapters for efficient adaptation. We first propose a unified task formulation paradigm, so as to establish a unified continual learning objective. Building upon it, G 2 LoRA includes two key components: CBGP, which resolves task inter- ference, and a gradient modulation mechanism, which balances optimization dynamics across graph and text modalities. The fol- lowing subsections detail the unified task reformulation, CBGP module, and gradient modulation mechanism. 3.1",
+      "page_start": 8,
+      "word_count": 102
+    },
+    {
+      "heading": "Unified Task Formulation",
+      "section_type": "other",
+      "position": 27,
+      "text": "Continual learning in the “pre-training and fine-tuning” framework involves various downstream tasks, such as node-, edge-, and graph- level tasks. Treating them as the same type is inappropriate due to differences in supervision signals and discriminative structures [ 29 ], which limits model performance and may cause negative knowl- edge transfer. Therefore, we need to reformulate these tasks into a more general form to bridge the gap. We unify task formulation by aligning graph structures with textual semantics. As shown in Figure 3, for node-level tasks, we compute the similarity between node embeddings and corresponding textual class embeddings to obtain the similarity matrix Λ node . For graph-level tasks, we com- pute the similarity between the entire graph embedding and its corresponding textual class embedding, yielding Λ graph . For edge- level tasks, we compute the similarity between the source node’s structural representation and the target node’s textual embedding, 5186 KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea Yuhan Wang et al. Category 1 Space … … CBGP Z 1 Z 2 Z 3 Z n … Z 1 … Z 2 Z 3 Z n Text-Graph Text Encoder It belongs to Theory research area Orthogonal space Graph Text Gradient Modulation Trainable LoRA adapters Freezing backbones e h Pre-trained Weights W ∈ℝ do × di B 1 B 2 B n A 1 A 2 A n Z 1 … Bidirectional Transfer Sequential Tasks Category 2 Space Category n Space Base 1 * w 1 Base 2 * w 2 Base n * w n SVD SVD SVD … … Task 1 Task n M 1:t S t-1 B t B 1,t-1 w n : class-prototype-similarity-based weighting Initialization Graph Encoder Text Encoder Discrepancy Ratio 𝜌 𝑡 𝜂 𝑔 𝜂 𝑡 𝜽 𝒕,𝒕+𝟏 = 𝜽 𝒕,𝒕 −𝜼 𝒕 𝛁 𝜽 𝒕 𝓛𝜽 𝒕 𝜽 𝒈,𝒕+𝟏 = 𝜽 𝒈,𝒕 −𝜼 𝒈 𝜵 𝜽 𝒈 𝓛𝜽 𝒈 ∥𝑷𝒓𝒐𝒋 𝒔 𝒍 𝒋 𝒈 𝒍 𝒕−𝟏 ∥ ≥𝝐 𝟏 ∥𝒈 𝒍 𝒕−𝟏 ∥ a) Overall Framework b) CBGP c) Gradient Modulation 𝒈 𝒕 = 𝛁 𝜽 𝒕 𝓛𝜽 𝒕 𝒈 𝒈 = 𝛁 𝜽 𝒈 𝓛𝜽 𝒈 𝓛 𝐜𝐥𝐢𝐩 Graph Encoder Figure 2: (a) Represents the overall framework. Graph and text encoders are frozen, and only LoRA adapters are tuned. CBGP is applied to the graph modality to constrain gradient updates and alleviate forgetting, while gradient modulation balances updates across modalities. (b) CBGP: Class-wise gradients are decomposed via SVD and weighted by class-prototype similarity to form forward/backward transfer subspaces, modeling conflicts and transfer. (c) Gradient modulation: Adjusts modality learning speeds based on gradient discrepancy for balanced updates. V g V t Node Class Text V t V t Node-level V g V t Graph Class Text V t V t Graph-level Source Target V g V t Target Node Text V t V t Source Edge-level ℒ clip ℒ clip ℒ clip 𝑺 𝒕,𝟏 𝒄𝒍𝒂𝒔𝒔 𝑺 𝒕,𝟐 𝒄𝒍𝒂𝒔𝒔 𝑺 𝒕,𝒋 𝒄𝒍𝒂𝒔𝒔 𝑺 𝒕,𝟏 𝒄𝒍𝒂𝒔𝒔 𝑺 𝒕,𝟐 𝒄𝒍𝒂𝒔𝒔 𝑺 𝒕,𝒋 𝒄𝒍𝒂𝒔𝒔 𝑺 𝒕,𝟏 𝒄𝒍𝒂𝒔𝒔 𝑺 𝒕,𝟐 𝒄𝒍𝒂𝒔𝒔 … … 𝑺 𝒕,𝟏 𝑪𝑰𝑳 𝑺 𝒕,𝟐 𝑫𝑰𝑳 𝑺 𝒕,𝒋 𝑻𝑰𝑳 Unified Conflict Modeling Unified Transfer Modeling Unified Downstream Task Unified Incremental Learning",
+      "page_start": 10,
+      "word_count": 526
+    },
+    {
+      "heading": "Figure 3: Left: unified downstream task. Right: unified gradi-",
+      "section_type": "other",
+      "position": 28,
+      "text": "ent modeling for three incremental learning settings. resulting in Λ edge . The loss functions for these tasks are unified as: L( 𝚲 ) = 1 2 � CE ( 𝚲 , y ) + CE ( 𝚲 ⊤ , y ) � , (3) where Λ is the task-specific similarity matrix (e.g., Λ node , Λ edge , Λ graph ), y ∈( 0 , 1 ) is the label vector for contrastive training and CE (· , ·) is the cross-entropy loss function. 3.2",
+      "page_start": 117,
+      "word_count": 86
+    },
+    {
+      "heading": "Gradient Orthogonal Projection.",
+      "section_type": "other",
+      "position": 31,
+      "text": "GPM[ 27 ] prevents interference between tasks by updating new tasks in the orthogonal space of the gradients of old tasks. M 𝑡 represents the subspace of the model’s gradients that contains the gradients of the first 𝑡 − 1 tasks when learning task 𝑡 (where 1 ≤ 𝑡 ≤ 𝑇 ). M ⊥ 𝑡 denotes the orthogonal complement of M 𝑡 . By maintaining an orthogonal basis for M 𝑡 and projecting the new task gradient g 𝑡 onto M 𝑡 , this is expressed as M 𝑡 ( M ⊤ 𝑡 g 𝑡 ) . Specifically, M 𝑡 = [ u 1 , . . . , u 𝑚 ] represents the orthog- onal basis of M 𝑡 , where 𝑚 = dim (M 𝑡 ) . Then, GPM removes the projected gradient from g 𝑡 by the following formula: ˆ g 𝑡 = g 𝑡 − M 𝑡 ( M 𝑡 ) ⊤ g 𝑡 . (4) where ˆ g 𝑡 is the residual, lying in M ⊥ 𝑡 . By modeling task conflicts, this method effectively prevents catastrophic forgetting. A repre- sentative work combining LoRA and gradient orthogonal strategy is InfLoRA [ 17 ]. In this method, before learning the 𝑡 -th task, an expandable LoRA branch is introduced for each linear layer, consist- ing of a down-projection matrix B 𝑡 ∈ R 𝑟 × 𝑑 𝐼 and an up-projection matrix A 𝑡 ∈ R 𝑑 𝑂 × 𝑟 . Therefore, the forward propagation of a linear layer can be expressed as: 𝑒 = Wh + ⊤ ∑︁ 𝑗 = 1 A 𝑗 B 𝑗 h = W 𝑡 − 1 h + A 𝑡 B 𝑡 h = W 𝑡 h , (5) where W 𝑡 = W 𝑡 − 1 + A 𝑡 B 𝑡 = W + � 𝑡 𝑖 = 1 A 𝑖 B 𝑖 . By pre-constructing the down-projection matrix B 𝑡 in M ⊥ 𝑡 , the update subspace of the new task is constrained, explicitly controlling the gradient interference between tasks in the parameter space.",
+      "page_start": 123,
+      "word_count": 346
+    },
+    {
+      "heading": "Category-Aware Gradient Subspace.",
+      "section_type": "other",
+      "position": 32,
+      "text": "Conflict and transfer dif- ferences across the three incremental settings in graph continual learning stem from structural variations in the category space. We therefore model gradient relationships uniformly in the cat- egory space. Specifically, for the 𝑙 -th layer of the network, we construct a representation matrix from 𝑟 samples’ intermediate representations. Given the intermediate representation matrix H 𝑡 = 5187 Gradient Orthogonal Low-Rank Adaptation Framework for Graph Continual Learning KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea [ 𝑥 1 , 1 ,𝑥 1 , 2 , . . . ,𝑥 1 ,𝑟 ] for task 𝑡 , we partition it according to category labels as: H 𝑡 = [ C 𝑡, 1 , C 𝑡, 2 , . . . , C 𝑡,𝑐 𝑡 ] , (6) where 𝑐 𝑡 denotes the number of categories in task 𝑡 . For each category-specific submatrix C 𝑡,𝑐 , we process it using SVD to obtain the discriminative subspace of category 𝑐 , denoted as S 𝑡,𝑐 . Repeating this for all categories in task 𝑡 , we obtain the task-level category- aware subspace: M 𝑡 = [ S 𝑡, 1 , S 𝑡, 2 , . . . , S 𝑡,𝐶 𝑡 ] , (7) where 𝐶 𝑡 is the number of categories in task 𝑡 . Additionally, along the temporal dimension of the continual learning process, we accumulate the task-level subspaces of all tasks to obtain the historical union subspace across tasks: M 1: 𝑡 = [ M 1 , M 2 , . . . , M 𝑡 ] . (8) For the three types of incremental tasks, we uniformly model the gradient space of the tasks as category space, thereby achieving unified modeling of the conflict and transfer relationships between tasks. In CIL, we construct S CIL 𝑡,𝑐 for each category of each task. In DIL, we use S DIL 𝑡,𝑐 for each category space of each domain task. In TIL, S TIL 𝑡,𝑐 corresponds to the category space of the node and the graph; for edge-level tasks, we construct a category space S TIL 𝑡,𝑐, 1 for nodes with links, and a different category space S TIL 𝑡,𝑐, 2 for nodes without links. As illustrated on the right side of Figure 3, although the structural relationships of CIL, DIL, and TIL tasks in the gradient space differ, by using the unified modeling approach, we effectively integrate their gradient spaces into a unified category space, thus efficiently handling the conflicts and transfer relationships between the tasks.",
+      "page_start": 127,
+      "word_count": 421
+    },
+    {
+      "heading": "Dynamic Bidirectional Transfer Modeling.",
+      "section_type": "other",
+      "position": 33,
+      "text": "After obtaining the class-aware historical gradient subspace M 1: 𝑡 − 1 , the orthonormal basis H 𝑡 of the current task subspace is constructed, based on which we perform bidirectional decoupling to derive the forward and backward transfer subspaces. To adaptively control projection strength, we introduce a class- level modulation mechanism. Specifically, we compute the simi- larity sim 𝑐 between the current class subspace and previous class subspaces, and define: 𝛼 𝑐 = 𝜁𝑒 − sim 𝑐 . (9) According to the rank 𝑟 𝑗 of each historical class-specific subspace, the scaling coefficients are expanded into a diagonal matrix Λ 𝑡 − 1 = diag ( 𝛼 1 1 𝑟 1 , . . . , 𝛼 𝐶 𝑡 − 1 1 𝑟 𝐶𝑡 − 1 ) , (10) which applies adaptive weights to the basis directions of histori- cal gradients. With this projection, we orthogonally decouple the current gradient to obtain a non-interfering update component: I 𝑡 = H 𝑡 − M 1: 𝑡 − 1 Λ 𝑡 − 1 M ⊤ 1: 𝑡 − 1 H 𝑡 , (11) whose column space lies in H 𝑡 ∩M ⊥ 1: 𝑡 − 1 . We use this component to initialize the LoRA down-projection matrix B 𝑡 , thereby restricting parameter updates to a non-interfering subspace and mitigating catastrophic forgetting. Meanwhile, we define a shared feature subspace to capture the common knowledge between the current and historical tasks, and strictly constrain the backward transfer within the common histor- ical subspace: N 𝑡 = 𝑡 − 1 ∑︁ 𝑖 = 2 ( M 1: 𝑖 − 1 ∩ M 𝑖 ) . (12) Projecting the current task representation onto this shared basis yields the backward transfer component: R 𝑡 = N 𝑡 N ⊤ 𝑡 H 𝑡 , (13) which captures gradient directions consistent with previously learned knowledge. This component is used to initialize LoRA branches associated with historical tasks, thereby consolidating learned rep- resentations while preserving task-specific characteristics and en- abling effective backward knowledge transfer. To avoid negative transfer from bidirectional updates, we intro- duce a condition to dynamically activate backward transfer. When the gradient of task 𝑡 aligns with the input subspace of historical task 𝑗 , backward transfer is enabled. This condition is defined as: ∥ Proj 𝑆 𝑗 (∇L 𝑡 ( 𝑊 𝑡 − 1 ))∥ 2 ≥ 𝜖 1 ∥∇L 𝑡 ( 𝑊 𝑡 − 1 )∥ 2 . (14) When this condition is satisfied, bidirectional updates can effec- tively share knowledge from historical tasks,promoting their per- formance. Therefore, we consider two alternative gradient update rules. For the",
+      "page_start": 2,
+      "word_count": 433
+    },
+    {
+      "heading": "Rule 1",
+      "section_type": "other",
+      "position": 34,
+      "text": ", we define the unidirectional update as: W 𝑐 = W − 𝛼 ˜ g 2 ( W ) , (15) and the bidirectional update (Rule 2) as: W 𝑘 = W − 𝛼 ˜ g 2 ( W ) − 𝛼 ˜ ˜ g 2 ( W ) . (16) When the above condition holds, bidirectional updates are more effective than unidirectional updates at facilitating knowledge trans- fer. The following theorem provides theoretical guarantees. Theorem 1. Suppose the loss function L is 𝐵 -Lipschitz and 𝐻 2 - smooth. Let W 𝑐 and W 𝑘 denote the model parameters obtained by applying Rule 1 and Rule 2, respectively. If 𝛼 < 𝐻 4 , 𝜖 1 ≥ √︂ 2 𝛼𝐻 4 + 𝛼𝐻 , (17) then F ( W 𝑘 ) ≤F ( W 𝑐 ) , (18) indicating that the bidirectional update (Rule 2) achieves a lower loss than the unidirectional update (Rule 1). Proof. The proof of Theorem 1 can be found in Appendix A.1. □ The proposed Unified Gradient Modeling for Different Incremen- tal Learning Scenarios, together with Category-aware Subspace Construction and Dynamic Bidirectional Transfer Modeling, jointly constitutes the core components of our proposed G 2 LoRA. 3.3",
+      "page_start": 6,
+      "word_count": 202
+    },
+    {
+      "heading": "Gradient Modulation",
+      "section_type": "other",
+      "position": 35,
+      "text": "In the dual-encoder architecture, the model must maintain align- ment between the graph and text modalities during continual fine- tuning. However, as the model adapts to different downstream tasks, the two modalities often update at different rates, which can disrupt the alignment structure and lead to modality dominance or alignment drift. The work [ 36 ] introduces the concept of condi- tional learning speed , which characterizes the relative rate at which different modalities absorb information from data by measuring the magnitude of their gradient updates, and suppresses the overly fast- learning modality via asymmetric feature scaling in the fusion layer. Inspired by this, we combine the gradient magnitude modulation mechanism with cross-modal continual learning, dynamically mon- itoring and balancing the update strengths of the two modalities to stabilize cross-modal alignment. 5188 KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea Yuhan Wang et al. In the dual-encoder architecture, let the parameters of the graph encoder and the text encoder be denoted by 𝜃 𝑔 and 𝜃 𝑡 , respectively. At the 𝑡 -th iteration, given the current mini-batch loss L( 𝜃 𝑔 ) and L( 𝜃 𝑡 ) , we compute the gradient norms of the two modalities as follows: �� 𝑔 𝑔 �� 2 = ��� ∇ 𝜃 𝑔 L( 𝜃 𝑔 ) ��� 2 , ∥ 𝑔 𝑡 ∥ 2 = �� ∇ 𝜃 𝑡 L( 𝜃 𝑡 ) �� 2 . (19) To eliminate parameter scale differences, we normalize the gra- dients of the graph and text encoders by dividing the gradient magnitudes by the corresponding parameter magnitudes, obtaining ∥ � 𝑔 𝑔 ∥ 2 and ∥ � 𝑔 𝑡 ∥ 2 . Based on these normalized gradients, we define the modality- wise learning speed ratio 𝜌 𝑡 , which characterizes the relative update rate between the graph modality and the text modality at the current iteration: 𝜌 𝑡 = ��� 𝑔 𝑔 �� 2 ∥ � 𝑔 𝑡 ∥ 2 . (20) When 𝜌 𝑡 < 1, the text modality is updated faster; when 𝜌 𝑡 > 1, the graph modality is updated faster. Accordingly, we adaptively modulate the learning rates by applying a decay factor to the faster- learning modality. For example, when 𝜌 𝑡 < 1, the learning rate of the text encoder is adjusted as: 𝜂 𝑡 = 𝜂 0 · 𝜆 · 𝜌 𝑡 , (21) and the other modality is treated symmetrically when 𝜌 𝑡 > 1. 3.4",
+      "page_start": 16,
+      "word_count": 409
+    },
+    {
+      "heading": "Category Filtering Module in CIL",
+      "section_type": "other",
+      "position": 36,
+      "text": "In CIL, as the number of categories increases, model performance degrades. Graph data’s domain knowledge and topology make task ID prediction easier. For example, TPP [ 24 ] uses Laplacian smooth- ing for task ID prediction and trains independent parameters for each task. In our approach, we rely on category prototypes for classification and filter out less relevant prototypes to reduce inter- ference from irrelevant categories. Task categories are predicted by calculating cosine similarity between prototypes. During inference, when tasks exhibit similar predictions, a top-k strategy is used to select the most relevant categories, reducing interference. 4",
+      "page_start": 6,
+      "word_count": 97
+    },
+    {
+      "heading": "Experiments",
+      "section_type": "results",
+      "position": 37,
+      "text": "In this section, we empirically evaluate the proposed G 2 LoRA. We begin by assessing its overall performance under three representa- tive incremental learning settings (Section 4.2). Next, we conduct ablation studies to examine the contribution of each component (Section 4.3), followed by an efficiency evaluation (Section 4.4) and an analysis of the effectiveness of the proposed gradient modulation mechanism (Section 4.5). We also analyze the model’s generaliza- tion ability across different LLM-as-Aligner backbones (Section 4.6) and investigate its few-shot learning performance under varying 𝑘 -shot regimes (Section 4.7). Finally, we provide sensitivity analyses of model hyperparameters (Section 4.8). 4.1",
+      "page_start": 7,
+      "word_count": 100
+    },
+    {
+      "heading": "Datasets.",
+      "section_type": "other",
+      "position": 39,
+      "text": "We evaluate G 2 LoRA on a total of 11 publicly available text-attributed graph (TAG) datasets spanning four diverse domains. Following the pre-training protocol of GraphCLIP [ 46 ], five large- scale TAG datasets are used as source data for the pre-training stage. For downstream evaluation, we select six smaller-scale TAG datasets as target datasets and organize them into different incre- mental learning settings. These target datasets are used to assess the continual learning performance of LLM-as-Aligner models un- der few-shot and streaming scenarios. The detailed statistics of all datasets are provided in Appendix A.2.",
+      "page_start": 9,
+      "word_count": 95
+    },
+    {
+      "heading": "Baselines.",
+      "section_type": "other",
+      "position": 40,
+      "text": "We compare G 2 LoRA with a comprehensive set of base- lines, which are grouped according to their backbone architec- tures and parameter adaptation strategies into three categories: (1) GNN-based methods. This group includes classical graph continual learning approaches built upon standard GNN backbones, such as Vanilla GCN [ 14 ], EWC [ 15 ], LwF [ 16 ], Cosine, TPP [ 24 ], and",
+      "page_start": 10,
+      "word_count": 65
+    },
+    {
+      "heading": "TEEN [",
+      "section_type": "other",
+      "position": 41,
+      "text": "31 ]. (2) LLM-based methods. This category consists of pure language-model baselines without explicit graph modeling. We con- sider encoder-only models, including BERT [ 6 ] and RoBERTa [ 19 ], the decoder-only model LLaMA [ 7 ], as well as RoBERTa combined with SimpleCIL [ 45 ] for continual learning. (3) GLM-based meth- ods. These methods integrate large language models with graph representations and can be further divided into three paradigms: (i) LLM-as-Enhancer , including GCNEmb [ 37 ] and ENGINE [ 47 ]; (ii) LLM-as-Predictor , including GraphPrompter [ 21 ], GraphGPT [ 30 ], LLaGA [ 3 ], and SimGCL [ 5 ]; and (iii) LLM-as-Aligner , including GraphCLIP [ 46 ] and G2P2 [ 35 ]. In addition, we include representa- tive parameter-efficient fine-tuning (PEFT) baselines based on low- rank adaptation and its variants, including LoRA [ 12 ], InfLoRA [ 17 ], SD-LoRA [ 38 ], which are strong PEFT baselines to evaluate the ef- fectiveness of G 2 LoRA under the same backbone architectures and continual learning protocols.",
+      "page_start": 10,
+      "word_count": 174
+    },
+    {
+      "heading": "Evaluation Metrics.",
+      "section_type": "results",
+      "position": 42,
+      "text": "We thoroughly evaluate the continual learn- ing performance using two widely adopted and commonly used metrics in graph continual learning: Average Accuracy (AA) and Average Forgetting (AF). AA measures the average predictive per- formance across all tasks observed so far, reflecting the overall learning effectiveness across all tasks. AF quantifies the degree of performance degradation on previously learned tasks, where higher values indicate better knowledge retention and less catastrophic forgetting over time.",
+      "page_start": 10,
+      "word_count": 72
+    },
+    {
+      "heading": "Implementation Details.",
+      "section_type": "other",
+      "position": 43,
+      "text": "We follow the pre-training architecture of GraphCLIP[ 46 ], using a LLM as the aligner, with all data dimen- sions set to 384. The key difference is that we define the pretraining loss solely as a contrastive learning loss, resulting in a basic pre- training model. More implementation details can be found in the Appendix A.3. 4.2",
+      "page_start": 10,
+      "word_count": 57
+    },
+    {
+      "heading": "Overall performances",
+      "section_type": "other",
+      "position": 44,
+      "text": "Under the few-shot setting, we compare the proposed G 2 LoRA with representative training paradigms across three different incremen- tal learning scenarios: class-incremental (CIL), domain-incremental (DIL), and task-incremental learning (TIL). All experiments are re- peated five times, and the averaged results are reported in Table 1. Overall, G 2 LoRA consistently outperforms existing approaches across different backbones and incremental settings. In particu- lar, compared with the second-best baseline, our method achieves substantial improvements under the CIL scenario, with especially pronounced gains on the History dataset, where the relative perfor- mance improvement ranges from 27.2% to 55.32%. Moreover, under the same backbone architecture, G 2 LoRA consistently surpasses GraphCLIP and various LoRA-based continual learning variants, demonstrating its effectiveness beyond just backbone or parameter- efficiency advantages. Notably, on several datasets, G 2 LoRA achieves 5189 Gradient Orthogonal Low-Rank Adaptation Framework for Graph Continual Learning KDD ’26, August 09–13, 2026, Jeju Island, Republic of Korea Table 1: 10-shot performance comparison across three incremental learning scenarios (AA/AF) (mean accuracy ± std. dev.). Method CIL DIL TIL Photo Computer History Cora+Citeseer+WikiCS Cora+WikiCS+Photo AA ↑ AF ↑ AA ↑ AF ↑ AA ↑ AF ↑ AA ↑ AF ↑ AA ↑ AF ↑ GCN 43.92±1.84 -26.44±6.27 43.43±0.86 -48.52±2.94 46.04±1.06 -35.23±1.33 43.45±2.01 -31.45±3.87 59.55±0.27 -15.92±0.47 EWC 43.48±2.14 -44.87±4.03 40.52±0.21 -54.23±0.47 35.01±1.34 -38.33±2.37 49.83±0.68 -44.95±1.80 60.55±0.93 -5.27±1.29 LwF 43.24±1.91 -31.24±3.62 39.33±1.58 -49.93±2.89 40.63±0.99 -39.35±1.91 38.56±3.09 -29.70±1.71 53.03±0.81 -3.12±4.18 Cosine 52.56±1.07 -34.12±0.73 45.78±0.52 -22.01±0.91 51.61±0.71 -18.36±1.14 54.33±0.89 -20.31±1.63 62.22±1.06 0.00±0.00 TEEN 43.05±0.29 -51.52±0.43 35.68±0.44 -58.52±0.33 35.53±0.51 -55.71±3.12 42.93±0.21 -49.36±0.48 52.77±2.50 -12.78±3.40 TPP 59.78±1.87 0.00±0.00 45.68±1.63 0.00±0.00 47.95±1.18 0.00±0.00 63.75±7.90 0.00±0.00 56.71±0.49 0.00±0.00 BERT 38.03±0.85 -17.42±1.31 35.43±0.36 -26.51±1.11 30.23±0.94 -18.53±1.53 29.23±1.43 -9.38±2.73 35.75±3.84 -0.22±0.66 RoBERTa 48.18±9.37 -1.66±5.34 42.63±5.53 -5.39±1.58 42.89±2.64 -7.11±3.29 44.83±2.24 -12.02±2.38 45.54±5.35 -4.63±1.52 LLaMA 52.89±2.45 -48.18±7.96 44.61±0.91 -61.30±5.20 43.83±2.21 -54.18±6.82 44.65±3.05 -55.02±2.94 60.23±1.81 -5.37±1.93 SimpleCIL 48.83±0.92 -31.61±1.98 43.68±0.58 -27.13±1.61 39.55±2.71 -16.03±3.89 24.45±4.48 -21.72±1.38 42.95±3.46 -20.37±12.99 GCN LLMEmb 41.03±0.53 -53.52±0.96 32.26±0.37 -62.54±0.34 29.14±0.75 -50.91±2.56 36.15±1.85 -58.53±23.63 42.83±2.53 -8.02±5.15 GraphPrompter 55.54±5.95 -39.23±9.82 40.48±1.28 -54.03±1.43 43.51±2.03 -51.22±6.13 48.24±1.67 -46.52±2.47 51.44±2.65 -2.66±1.83 GraphGPT 39.49±3.17 -33.09±6.18 31.53±1.57 -36.85±2.38 23.49±1.17 -34.67±2.78 37.26±0.94 -42.08±1.69 57.29±1.84 -14.86±8.39 LLaGA 39.52±4.12 -55.03±5.83 35.35±1.97 -59.43±3.48 30.31±1.67 -57.61±3.12 38.52±1.34 -56.18±3.12 57.23±0.54 -0.07±1.31 SimGCL 81.60±0.78 -8.03±0.46 78.64±1.06 -6.64±0.25 44.55±1.05 -7.99±0.38 66.00±1.51 -3.12±0.84 60.90±1.91 0.09±0.30 LoRA 50.64±3.11 -49.79±4.76 57.01±0.58 -23.67±1.49 44.76±1.44 -24.11±2.11 65.99±0.43 -5.98±0.56 73.05±1.98 -6.05±3.18 InfLoRA 53.08±0.66 -46.48±1.31 60.92±0.71 -29.74±1.60 53.73±0.60 -26.80±1.08 65.20±0.11 -5.88±0.63 74.11±4.62 -8.23±5.61 SD-LoRA 50.42±0.67 -39.72±2.45 56.59±0.28 -25.58±0.39 45.08±0.79 -25.47±2.33 66.46±0.51 -5.14±0.97 72.35±0.73 -9.57±1.22 G 2 LoRA 84.68±0.81 -2.03±1.23 85.65±0.11 0.27±0.4 78.81±0.85 4.19±0.12 67.74±0.07 -3.94±0.20 76.18±0.33 -2.09±0.62",
+      "page_start": 11,
+      "word_count": 409
+    },
+    {
+      "heading": "Table 2: Ablation results on the Photo dataset under the few-",
+      "section_type": "other",
+      "position": 45,
+      "text": "shot continual learning setting (mean accuracy %). Model CIL (Photo) DIL AA AF AA AF G 2 LoRA (Full model) 84.68 -2.03 67.74 -3.94 w/o Parameter Activation 83.41 -3.10 67.06 -3.84 w/o Cross-modal Gradient 82.71 -3.19 66.48 -5.47 w/o Bi-directional Projection 83.98 -3.25 67.01 -4.10 w/o Category-aware 83.60 -3.92 66.92 -4.51 positive forgetting rates , indicating not only effective retention of previously learned knowledge but also beneficial backward trans- fer. These results collectively demonstrate the effectiveness and robustness of the proposed method in challenging few-shot graph continual learning scenarios. 4.3",
+      "page_start": 11,
+      "word_count": 90
+    },
+    {
+      "heading": "Ablation on Model Components.",
+      "section_type": "other",
+      "position": 47,
+      "text": "Table 2 presents the ablation re- sults under the few-shot continual learning setting. The full G 2 LoRA achieves the best performance in both Average Accuracy (AA) and Average Forgetting (AF), indicating that all components contribute to performance improvement and forgetting mitigation.Removing the conditional backward transfer mechanism leads to accuracy degradation and increased forgetting, highlighting the importance of dynamically activating backward updates for knowledge con- solidation. Disabling the gradient modulation mechanism degrades performance stability, suggesting that coordinating gradient mag- nitudes across graph and text modalities is critical for preventing cross-modal alignment drift in dual-encoder architectures. Elim- inating the bidirectional gradient projection component results in performance drops, demonstrating the necessity of modeling both forward adaptation and backward knowledge transfer between old and new tasks. Finally, removing the category-aware subspace mod- eling mechanism reduces accuracy and weakens backward transfer, confirming that class-level gradient subspaces are essential for cap- turing semantic distinctions and mitigating inter-class interference.",
+      "page_start": 18,
+      "word_count": 153
+    },
+    {
+      "heading": "Ablation on Task Reformulation.",
+      "section_type": "other",
+      "position": 48,
+      "text": "Beyond component-wise abla- 70.75 73.5 72 72.62 74.25 73.5 69 70 71 72 73 74 75 FA LA(After Node) LA(After Graph) Accuracy (%) CE Loss Clip loss (a) CE vs. Clip 0E+0 5E+2 1E+3 2E+3 2E+3 3E+3 3E+3 50 60 70 80 90 Photo Computer History Training Time (s) Accuracy (%) LoRA accuracy ours accuracy LoRA time ours time (b) Performance vs. Time 0 0.4 0.8 1.2 1.6 2 1 2 3 4 5 value Number of Tasks Text Text(+GM) (c) Parameter Variance -0.8 -0.6 -0.4 -0.2 0 1 2 3 4 5 AF Number of Tasks AF AF(+GM) (d) Forgetting Rate on CL",
+      "page_start": 19,
+      "word_count": 104
+    },
+    {
+      "heading": "Table 3: Comparison with unified graph task learning meth-",
+      "section_type": "other",
+      "position": 51,
+      "text": "ods under the TIL setting. Method TIL AA AF GraphPrompt 59.13 -17.23 ALL in One 58.31 -14.34 Ours 76.18 -2.09 tions, we further investigate the effect of task reformulation, with a particular focus on edge-level prediction. Specifically, we compare the conventional inner-product-based link prediction optimized with cross-entropy loss against our unified graph–text alignment objective based on CLIP-style contrastive learning. Both variants are evaluated under identical encoder architectures, data splits, and training protocols to ensure fair comparison. As shown in Figure 4a, reformulating the edge-level task using the alignment-based objec- tive consistently improves both First ACC , which measures the ini- tial performance on the edge-level task, and Last ACC , which reflects the retained performance after subsequent node-level and graph- level tasks are learned. These results indicate that alignment-based task reformulation yields more stable and transferable representa- tions, enabling the model to better preserve edge-level knowledge under task-incremental learning. Overall, this analysis highlights the importance of unifying downstream task optimization objec- tives when addressing heterogeneous prediction granularities in continual learning. In addition, we also compare our method with GraphPrompt [ 22 ] and All in One [ 29 ], which also focus on downstream task unifi- cation. These methods mainly unify pure graph tasks under the pre-training and fine-tuning paradigm, whereas our method tar- gets continual graph–text learning and further addresses objective drift and task interference. Table 3 shows that our method achieves better AA and AF under the TIL setting. 4.4",
+      "page_start": 2,
+      "word_count": 242
+    },
+    {
+      "heading": "Efficiency Analysis",
+      "section_type": "other",
+      "position": 52,
+      "text": "Beyond predictive performance, we further evaluate the compu- tational efficiency of G 2 LoRA in comparison with the standard LoRA baseline under the same backbone architectures and training protocols. Figure 4b illustrates the trade-off between performance and efficiency, where the bar chart reports the final accuracy and the overlaid line plot indicates the corresponding training time. In this visualization, higher accuracy and lower training time jointly reflect better efficiency. As shown in the results, G 2 LoRA achieves a favorable balance between accuracy and computational cost across multiple datasets. In particular, our method consistently attains state-of-the-art predictive performance while requiring less train- ing time than LoRA-based adaptation. These results demonstrate that the performance gains of G 2 LoRA do not come at the expense of increased computational overhead, but instead offer improved efficiency alongside enhanced continual learning performance. 4.5",
+      "page_start": 6,
+      "word_count": 139
+    },
+    {
+      "heading": "Effectiveness of Gradient Modulation",
+      "section_type": "other",
+      "position": 53,
+      "text": "To verify the effectiveness of the gradient modulation (GM) mecha- nism, we analyze parameter updates and forgetting behavior over five sequential tasks. We compare G 2 LoRA with and without GM under identical training conditions, examining modality-specific parameter changes and forgetting rates. As illustrated in Figure 4c and 4d , without GM, the text encoder exhibits progressively in- creasing parameter updates across tasks, indicating an imbalanced learning dynamic between modalities. In contrast, GM stabilizes the text modality’s update magnitude, resulting in more synchronized learning between graph and text encoders and reduced forgetting rates. These results demonstrate that GM is crucial for coordinating cross-modal optimization, preventing excessive adaptation in the text encoder, and improving G 2 LoRA’s stability and generalization in multi-task continual learning. 4.6",
+      "page_start": 8,
+      "word_count": 124
+    },
+    {
+      "heading": "Generalization on Alignment Framework",
+      "section_type": "other",
+      "position": 54,
+      "text": "In this section, we evaluate the generalization of G 2 LoRA across different graph–text alignment frameworks. We integrate G 2 LoRA with representative LLM-as-Aligner approaches, including G2P2 [ 35 ] and GraphCLIP [ 46 ], and assess its effectiveness under class-, domain- , and task-incremental learning scenarios. As reported in Table 4, incorporating G 2 LoRA improves both AA and AF across align- ment frameworks and incremental settings. These gains indicate enhanced performance stability and reduced catastrophic forget- ting compared to the corresponding baseline models. Overall, the results demonstrate that G 2 LoRA is not tied to a specific alignment architecture and can be seamlessly integrated into different graph– text alignment frameworks, highlighting its generalization ability and broad applicability. 4.7",
+      "page_start": 11,
+      "word_count": 120
+    },
+    {
+      "heading": "Few-Shot Learning with Varying k",
+      "section_type": "other",
+      "position": 55,
+      "text": "To assess performance under data-scarce conditions, we evaluate G 2 LoRA across few-shot settings, including 1-shot, 3-shot, 5-shot, and 10-shot regimes. Figure 5 reports the results under varying 𝑘 values. Across all shot configurations, G 2 LoRA outperforms the baseline SimGCL [ 5 ]. The performance advantage is pronounced in the more challenging task-incremental learning (TIL) scenario, where heterogeneous task objectives and limited supervision exac- erbate catastrophic forgetting. These results indicate that G 2 LoRA exhibits superior few-shot generalization ability and robustness, benefiting from its unified alignment objective and structured gra- dient control under scarce supervision. 40 50 60 70 80 1 3 5 10 AA K-shot SimGCL G2LoRA (a) TIL 30 40 50 60 70 1 3 5 10 AA K-shot SimGCL G2LoRA (b) DIL 20 30 40 50 60 70 80 1 3 5 10 AA K-shot SimGCL G2LoRA (c) CIL",
+      "page_start": 13,
+      "word_count": 143
+    },
+    {
+      "heading": "Learning Scenarios(mean accuracy %±std. dev.)",
+      "section_type": "other",
+      "position": 62,
+      "text": "Model CIL DIL TIL Photo Computer History Cora+Citeseer+WikiCS Cora+WikiCS+Photo AA AF AA AF AA AF AA AF AA AF GraphCLIP(+LoRA) 52.22±0.60 -42.73±1.11 43.64±2.10 -27.16±0.67 50.18±1.13 -30.85±1.35 66.48±0.28 -3.05±0.35 73.67±1.90 -6.94±1.49 GraphCLIP(+G 2 LoRA) 82.24±0.30 -1.48±0.65 84.90±0.13 -0.64±0.21 76.74±0.27 -1.14±0.31 68.63±0.10 -1.30±0.20 74.65±1.64 -2.17±1.90 G2P2 44.65±0.12 -65.16±1.55 53.19 ± 0.00 -54.09 ± 0.52 49.02±0.00 -36.03±0.76 31.47±1.74 -50.83±0.54 35.68±0.98 -36.98±0.85 G2P2(+G 2 LoRA) 74.37±1.41 -22.80±2.57 85.30 ± 0.47 -10.73 ± 0.49 72.25±0.87 -3.61±0.34 59.37±0.73 -16.00±0.48 72.31±1.25 -3.85±0.43 0.2 0.4 0.6 0.8 ε 1 74 75 76 77 78 AA (a) TIL 0.2 0.4 0.6 0.8 ε 1 64 66 68 70 AA (b) DIL 0.2 0.4 0.6 0.8 ε 1 82 84 86 88 AA (c) CIL (Computer)",
+      "page_start": 2,
+      "word_count": 116
+    },
+    {
+      "heading": "Table 5: Sensitivity analysis of",
+      "section_type": "other",
+      "position": 64,
+      "text": "𝜆 . Dataset 𝜆 = 0 . 1 𝜆 = 0 . 5 𝜆 = 0 . 8 𝜆 = 1 . 0 Best baseline History 78.81 78.83 78.76 78.11 53.73 Computer 85.65 85.21 84.88 85.35 78.64 values of 𝜖 1 in TIL, DIL, and CIL, indicating that the activation mechanism is robust. In CIL, a relatively larger 𝜖 1 is preferred since tasks from the same graph domain tend to produce higher projec- tion magnitudes, enabling more effective activation of relevant old tasks. For TIL and DIL, smaller thresholds are more suitable to avoid excessive activation and preserve the balance between stability and plasticity. The results for 𝜆 further show that G 2 LoRA is largely insen- sitive to the regularization strength. It maintains stable perfor- mance across different values and consistently outperforms the best-performing baselines, indicating that the gains are not depen- dent on a carefully tuned 𝜆 . Therefore, we use 𝜆 = 0 . 1 as the default setting across tasks and datasets. 5",
+      "page_start": 30,
+      "word_count": 168
+    },
+    {
+      "heading": "LLM as Aligner",
+      "section_type": "other",
+      "position": 72,
+      "text": "aligns graph and text into a shared embedding space, with methods like G2P2 [ 35 ], GraphClip [ 46 ], and ADAligner [ 20 ]. However, these methods are generally designed for static TAG scenarios and are not specifically tailored for continual graph learning.",
+      "page_start": 35,
+      "word_count": 44
+    },
+    {
+      "heading": "Graph Continual Learning.",
+      "section_type": "other",
+      "position": 73,
+      "text": "GCL addresses the challenges of graph data in multi-task scenarios and knowledge transfer. In addi- tion to preventing semantic information loss, it must also tackle the forgetting of topological patterns due to evolving graph structures. Similar to traditional continual learning, GCL approaches the prob- lem by limiting model parameter changes [ 11 ], isolating critical parameters for previously learned tasks [ 41 , 42 ], and replaying rep- resentative data from previous tasks [ 23 , 43 ]. However, data replay methods face challenges in privacy and storage. This study focuses on replay-free approaches to bypass these issues and propose more practical solutions.",
+      "page_start": 36,
+      "word_count": 103
+    },
+    {
+      "heading": "Gradient Projection Methods.",
+      "section_type": "other",
+      "position": 74,
+      "text": "Methods such as OWM [ 40 ] and GPM [ 27 ], achieve task separation by projecting gradients onto orthogonal subspaces, effectively preventing interference between tasks. These methods maintain independent parameter spaces for each task, ensuring that the learning of new tasks does not over- write the knowledge of previously learned tasks. InfLoRA [ 17 ] extends this concept to PEFT by applying gradient projections to low-rank updates, enabling efficient adaptation and alleviating cat- astrophic forgetting. However, InfLoRA does not further consider fine-grained control of the gradient space, as well as the magnitude and direction of parameter updates, which could limit its adaptabil- ity and performance when dealing with more complex incremental tasks. 6",
+      "page_start": 36,
+      "word_count": 114
+    },
+    {
+      "heading": "Conclusion",
+      "section_type": "conclusion",
+      "position": 75,
+      "text": "In this paper, we presented G 2 LoRA, a unified framework for con- tinual graph–text alignment that effectively mitigates task interfer- ence under parameter-efficient adaptation. By integrating category- aware subspace modeling with bidirectional gradient projection, G 2 LoRA enables both stable knowledge retention and beneficial backward transfer across class-, domain-, and task-incremental learning settings. To further preserve cross-modal consistency and alignment stability, we introduced a dynamic gradient magnitude modulation mechanism that coordinates the optimization dynam- ics of graph and text encoders, preventing alignment drift during continual training. Extensive experiments on multiple benchmarks demonstrate that G 2 LoRA achieves state-of-the-art performance and strong transferability across different continual learning sce- narios and LLM-as-Aligner backbones.",
+      "page_start": 37,
+      "word_count": 112
+    },
+    {
+      "heading": "ACM SIGKDD",
+      "section_type": "other",
+      "position": 78,
+      "text": "Explorations Newsletter 25, 2 (2024), 42–61. [5] Ziyang Cheng, Zhixun Li, Yuhan Li, Yixin Song, Kangyi Zhao, Dawei Cheng, Jia Li, Hong Cheng, and Jeffrey Xu Yu. 2025. Can LLMs Alleviate Catastrophic Forgetting in Graph Continual Learning? A Systematic Study. arXiv preprint arXiv:2505.18697 (2025). [6] Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. Bert: Pre-training of deep bidirectional transformers for language understanding. In Proceedings of the 2019 conference of the North American chapter of the association for computational linguistics: human language technologies, volume 1 (long and short papers) . 4171–4186. [7] Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al . 2024. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 (2024). [8] Will Hamilton, Zhitao Ying, and Jure Leskovec. 2017. Inductive representation learning on large graphs. Advances in neural information processing systems 30 (2017). [9] Xiaoxin He, Xavier Bresson, Thomas Laurent, Bryan Hooi, et al . 2023. Explana- tions as features: Llm-based features for text-attributed graphs. arXiv preprint arXiv:2305.19523 2, 4 (2023), 8. [10] Xiaoxin He, Xavier Bresson, Thomas Laurent, Adam Perold, Yann LeCun, and Bryan Hooi. 2023. Harnessing explanations: Llm-to-lm interpreter for enhanced text-attributed graph representation learning. arXiv preprint arXiv:2305.19523 (2023). [11] Thanh Duc Hoang, Do Viet Tung, Duy-Hung Nguyen, Bao-Sinh Nguyen, Huy Hoang Nguyen, and Hung Le. 2023. Universal graph continual learning. arXiv preprint arXiv:2308.13982 (2023). [12] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al . 2022. Lora: Low-rank adaptation of large language models. ICLR 1, 2 (2022), 3. [13] Weihua Hu, Matthias Fey, Marinka Zitnik, Yuxiao Dong, Hongyu Ren, Bowen Liu, Michele Catasta, and Jure Leskovec. 2020. Open graph benchmark: Datasets for machine learning on graphs. Advances in neural information processing systems 33 (2020), 22118–22133. [14] TN Kipf. 2016. Semi-supervised classification with graph convolutional networks. arXiv preprint arXiv:1609.02907 (2016). [15] James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz, Joel Veness, Guillaume Desjardins, Andrei A Rusu, Kieran Milan, John Quan, Tiago Ramalho, Agnieszka Grabska-Barwinska, et al . 2017. Overcoming catastrophic forgetting in neural networks. Proceedings of the national academy of sciences 114, 13 (2017), 3521– 3526. [16] Zhizhong Li and Derek Hoiem. 2017. Learning without forgetting. IEEE transac- tions on pattern analysis and machine intelligence 40, 12 (2017), 2935–2947. [17] Yan-Shuo Liang and Wu-Jun Li. 2024. InfLoRA: Interference-Free Low-Rank Adaptation for Continual Learning. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2024, Seattle, WA, USA, June 16-22, 2024",
+      "page_start": 3,
+      "word_count": 417
+    },
+    {
+      "heading": ". IEEE,",
+      "section_type": "other",
+      "position": 79,
+      "text": "23638–23647. [18] Hao Liu, Jiarui Feng, Lecheng Kong, Ningyue Liang, Dacheng Tao, Yixin Chen, and Muhan Zhang. 2023. One for all: Towards training one graph model for all classification tasks. arXiv preprint arXiv:2310.00149 (2023). [19] Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. 2019. Roberta: A robustly optimized bert pretraining approach. arXiv preprint arXiv:1907.11692 (2019). [20] Yuhang Liu, Minglai Shao, Zengyi Wo, Yunlong Chu, Bing Hao, Shengzhong Liu, Ruijie Wang, and Jianxin Li. 2025. Learning Noise-Resilient and Transferable Graph-Text Alignment via Dynamic Quality Assessment. arXiv:2510.19384 [21] Zheyuan Liu, Xiaoxin He, Yijun Tian, and Nitesh V. Chawla. 2024. Can we Soft Prompt LLMs for Graph Learning Tasks?. In Companion Proceedings of the ACM on Web Conference 2024, WWW 2024, Singapore, Singapore, May 13-17, 2024 , Tat- Seng Chua, Chong-Wah Ngo, Roy Ka-Wei Lee, Ravi Kumar, and Hady W. Lauw (Eds.). ACM, 481–484. [22] Zemin Liu, Xingtong Yu, Yuan Fang, and Xinming Zhang. 2023. Graphprompt: Unifying pre-training and downstream tasks for graph neural networks. In Pro- ceedings of the ACM web conference 2023 . 417–428. [23] Chaoxi Niu, Guansong Pang, and Ling Chen. 2024. Graph continual learning with debiased lossless memory replay. arXiv preprint arXiv:2404.10984 (2024). [24] Chaoxi Niu, Guansong Pang, Ling Chen, and Bing Liu. 2024. Replay-and-forget- free graph class-incremental learning: A task profiling and prompting approach. Advances in Neural Information Processing Systems 37 (2024), 87978–88002. [25] Xiaokang Peng, Yake Wei, Andong Deng, Dong Wang, and Di Hu. 2022. Balanced multimodal learning via on-the-fly gradient modulation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition . 8238–8247. [26] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al . 2021. Learning transferable visual models from natural language supervision. In International conference on machine learning . 8748–8763. [27] Gobinda Saha, Isha Garg, and Kaushik Roy. 2021. Gradient Projection Memory for Continual Learning. In 9th International Conference on Learning Representations, ICLR 2021, Virtual Event, Austria, May 3-7, 2021 . OpenReview.net. [28] Prithviraj Sen, Galileo Namata, Mustafa Bilgic, Lise Getoor, Brian Galligher, and Tina Eliassi-Rad. 2008. Collective classification in network data. AI magazine 29, 3 (2008), 93–93. [29] Xiangguo Sun, Hong Cheng, Jia Li, Bo Liu, and Jihong Guan. 2023. All in one: Multi-task prompting for graph neural networks. In Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and Data Mining . 2120–2131. [30] Jiabin Tang, Yuhao Yang, Wei Wei, Lei Shi, Lixin Su, Suqi Cheng, Dawei Yin, and Chao Huang. 2024. Graphgpt: Graph instruction tuning for large language models. In Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval . 491–500. [31] Qi-Wei Wang, Da-Wei Zhou, Yi-Kai Zhang, De-Chuan Zhan, and Han-Jia Ye. 2023. Few-shot class-incremental learning via training-free prototype calibration. Advances in Neural Information Processing Systems 36 (2023), 15060–15076. [32] Ruijie Wang, Zheng Li, Dachun Sun, Shengzhong Liu, Jinning Li, Bing Yin, and Tarek Abdelzaher. 2022. Learning to sample and aggregate: few-shot reason- ing over temporal knowledge graphs. In Proceedings of the 36th International Conference on Neural Information Processing Systems (NeurIPS ’22) . [33] Ruijie Wang, Zheng Li, Jingfeng Yang, Tianyu Cao, Chao Zhang, Bing Yin, and Tarek Abdelzaher. 2023. Mutually-paced Knowledge Distillation for Cross-lingual Temporal Knowledge Graph Reasoning. In Proceedings of the ACM Web Conference 2023 (WWW ’23) . [34] Ruijie Wang, Yutong Zhang, Jinyang Li, Shengzhong Liu, Dachun Sun, Tianchen Wang, Tianshi Wang, Yi",
+      "page_start": 3,
+      "word_count": 1098
+    },
+    {
+      "heading": "Proof of Theorem 1",
+      "section_type": "other",
+      "position": 82,
+      "text": "(1) For Rule 1, we have 𝑊 𝑐 = 𝑊 − 𝛼 � 𝑔 2 ( 𝑊 ) − Proj 𝑆 1 ( 𝑔 2 ( 𝑊 )) � = 𝑊 − 𝛼 ˜ 𝑔 2 ( 𝑊 ) . (22) For Rule 2, we have 𝑊 𝑘 = 𝑊 − 𝛼 � 𝑔 2 ( 𝑊 ) − Proj 𝑆 1 ( 𝑔 2 ( 𝑊 )) � − 𝛼 � Proj 𝑆 2 ( 𝑔 2 ( 𝑊 )) � = 𝑊 − 𝛼 ˜ 𝑔 2 ( 𝑊 ) − 𝛼 ˜ ˜ 𝑔 2 ( 𝑊 ) . (23) Based on the smoothness of the objective function, we can have an upper bound on 𝐹 ( 𝑊 𝑘 ) : F( 𝑾 𝑘 ) ≤F( 𝑾 ) + ∇F( 𝑾 ) ⊤ ( 𝑾 𝑘 − 𝑾 ) + 𝐻 2 ∥ 𝑾 𝑘 − 𝑾 ∥ 2 = F( 𝑾 ) + ( 𝒈 1 ( 𝑾 ) + 𝒈 2 ( 𝑾 )) ⊤ (− 𝛼 ˜ 𝒈 2 ( 𝑾 ) − 𝛼 ˜ ˜ 𝒈 2 ( 𝑾 )) + 𝛼 2 𝐻 2 ∥ ˜ 𝒈 2 ( 𝑾 ) + ˜ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 = F( 𝑾 ) − 𝛼 ⟨ 𝒈 1 ( 𝑾 ) , ˜ 𝒈 2 ( 𝑾 )⟩− 𝛼 ⟨ 𝒈 1 ( 𝑾 ) , ˜ ˜ 𝒈 2 ( 𝑾 )⟩ − 𝛼 ⟨ 𝒈 2 ( 𝑾 ) , ˜ 𝒈 2 ( 𝑾 )⟩− 𝛼 ⟨ 𝒈 2 ( 𝑾 ) , ˜ ˜ 𝒈 2 ( 𝑾 )⟩ + 𝛼 2 𝐻 2 ∥ ˜ 𝒈 2 ( 𝑾 ) + ˜ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 ≤F( 𝑾 ) − 𝛼 ∥ ˜ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 − 𝛼 ∥ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 − 𝛼 ∥ ˜ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 + 𝛼 2 𝐻 2 ∥ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 + 𝛼 2 𝐻 2 ∥ ˜ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 = F( 𝑾 ) − � 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 − � 2 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ ˜ 𝒈 2 ( 𝑾 ) ∥ 2 (24) and a lower bound on 𝐹 ( 𝑊 𝑐 ) 𝐹 ( 𝑊 𝑐 ) ≥ 𝐹 ( 𝑊 ) + ⟨∇ 𝐹 ( 𝑊 ) ,𝑊 𝑐 − 𝑊 ⟩− 𝐻 2 ∥ 𝑊 𝑐 − 𝑊 ∥ 2 . (25) Combining Eq.(24) and Eq.(25), it can be shown that: F( 𝑾 𝑘 ) ≤F( 𝑾 ) − � 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 − � 2 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 ≤F( 𝑾 𝑐 ) −⟨∇F( 𝑾 ) , 𝑾 𝑐 − 𝑾 ⟩+ 𝐻 2 ∥ 𝑾 𝑐 − 𝑾 ∥ 2 − � 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 − � 2 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 = F( 𝑾 𝑐 ) + 𝛼 ⟨ 𝑔 1 ( 𝑊 ) , ˜ 𝑔 2 ( 𝑊 )⟩+ 𝛼 ⟨ 𝑔 2 ( 𝑊 ) , ˜ 𝑔 2 ( 𝑊 )⟩+ 𝛼 2 𝐻 2 ∥ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 − � 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 − � 2 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 = F( 𝑾 𝑐 ) + 𝛼 2 𝐻 ∥ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 − � 2 𝛼 − 𝛼 2 𝐻 2 � ∥ ˜ ˜ 𝑔 2 ( 𝑊 ) ∥ 2 ( 𝑎 ) ≤F( 𝑾 𝑐 ) + ( 1 − 𝜖 2 1 ) 𝛼 2 𝐻 ∥ 𝑔 2 ( 𝑊 ) ∥ 2 − 𝜖 2 1 � 2 𝛼 − 𝛼 2 𝐻 2 � ∥ 𝑔 2 ( 𝑊 ) ∥ 2 ( 𝑏 ) ≤F( 𝑾 𝑐 ) . (26) where (a) holds because ∥ 𝑔 2 ( 𝑊 )∥ 2 = ∥ Proj 𝑆 1 ( 𝑔 2 ( 𝑊 )) + ˜ 𝑔 2 ( 𝑊 )∥ 2 = ∥ Proj 𝑆 1 ( 𝑔 2 ( 𝑊 ))∥ 2 + ∥ ˜ 𝑔 2 ( 𝑊 )∥ 2 ≥ 𝜖 2 1 ∥ 𝑔 2 ( 𝑊 )∥ 2 + ∥ ˜ 𝑔 2 ( 𝑊 )∥ 2 , (27) ∥ Proj 𝑆 2 ( 𝑔 2 ( 𝑊 ))∥ 2 ≥ 𝜖 2 2 ∥ 𝑔 2 ( 𝑊 )∥ 2 , (28) where 𝜖 2 ≤ 𝜖 1 , 𝛼 ≤ 𝐻 / 4 (29) and (b) is true because 𝜖 1 ≥ √︂ 2 𝛼𝐻 4 + 𝛼𝐻 . (30)",
+      "page_start": 3,
+      "word_count": 866
+    },
+    {
+      "heading": "Table 6: Statistics of downstream datasets.",
+      "section_type": "other",
+      "position": 85,
+      "text": "Dataset Cora Cite. Photo Comp. History WikiCS Nodes 2,708 3,186 48,362 87,229 41,551 11,701 Edges 5,429 4,277 500,928 721,081 358,574 215,863 Classes 7 6 12 10 12 10 Domain Cit. Cit. E-com. E-com. E-com. Web To obtain robust initialization for G 2 LoRA, we pre-train on five diverse source datasets spanning citation, biomedical, e-commerce, and social domains: •",
+      "page_start": 66,
+      "word_count": 58
+    },
+    {
+      "heading": "Reddit",
+      "section_type": "other",
+      "position": 90,
+      "text": ": A social interaction network where nodes represent users, edges indicate response relations, and node features are derived from users’ historical posts [8]. For downstream incremental learning tasks, we evaluate G 2 LoRA on six benchmark TAGs covering citation, Wikipedia, e-commerce, and book domains: •",
+      "page_start": 69,
+      "word_count": 45
+    },
+    {
+      "heading": "Different Incremental Learning Settings.",
+      "section_type": "other",
+      "position": 97,
+      "text": "In this Table 7, we present the dataset statistics for different incremental learning set- tings, covering the DIL (Domain Incremental Learning), CIL (Class Incremental Learning), and TIL (Task Incremental Learning) scenar- ios. Specifically, in the DIL setting, the dataset Cora+Citeseer+WikiCS contains 23 classes and is divided into 3 tasks, with class distribu- tions of [7, 6, 10]. In the CIL setting, the datasets include Photo, Computer, and History, with 12, 10, and 12 classes, respectively. The task class distributions are [4, 4, 4], [4, 3, 3], and [4, 4, 4]. Fi- nally, in the TIL setting, the Cora+WikiCS+Photo dataset includes 25 classes and 3 tasks, with a task class distribution of [7, 2, 12]. Notably, in this TIL setting, Cora represents node classification, WikiCS corresponds to edge prediction, and Photo is used for graph classification. These statistics provide foundational data for evaluat- ing the performance of incremental learning methods and highlight the class and task distributions for each learning setting.",
+      "page_start": 2,
+      "word_count": 160
+    },
+    {
+      "heading": "Baseline Setup",
+      "section_type": "other",
+      "position": 101,
+      "text": ". For GNN-based methods, since they cannot process raw text directly, we first utilize a pre-trained Sentence-BERT to extract static semantic embeddings from node attributes and feed them as initial node features. We then train these models sequentially on the streaming tasks using the training set of the current session. For regularization-based (EWC) and distillation-based (LwF) baselines, we apply their respective constraints to the loss function during sequential training to mitigate forgetting. For LLM and GLM-based methods, to eliminate performance variances caused by different foundation models, we adopt LLaMA- 3-8b as the unified backbone for all generative and alignment-based baselines where applicable. For discriminative language models like BERT and RoBERTa, we perform sequential fine-tuning on the text classification task. Uniquely for SimpleCIL, consistent with [ 45 ], we adopt a frozen-backbone strategy: the pre-trained LLM is used strictly as a feature extractor, and only a lightweight projection layer with class prototypes is updated, ensuring high stability. For fair comparisons, we execute all experiments in a strictly sequential manner without accessing future data. For optimization, we use the AdamW optimizer. To ensure convergence while pre- venting overfitting, we set the maximum epochs dynamically based on the model type, coupled with an early stopping mechanism. All models are implemented in PyTorch and trained on NVIDIA A100-80G GPUs. G 2",
+      "page_start": 8,
+      "word_count": 217
+    },
+    {
+      "heading": "LoRA Setup",
+      "section_type": "other",
+      "position": 102,
+      "text": ". (1) Pretraining. We initialize the G 2 LoRA backbone via a con- trastive pre-training stage on the five source datasets described in Appendix A.2. In our main experiments, we use the AdamW opti- mizer with both the learning rate and weight decay set to 1 × 10 − 5 . The graph model used is GraphGPS, consisting of 12 layers with a hidden size of 1024. For the text model, we use a fine-tuned ver- sion of MiniLM 3, featuring 6 layers with a hidden size of 384. To align both models in a unified subspace, we apply a projector to transform the graph model’s 1024 dimensions to match the 384 dimensions of the text model. During pretraining, we only optimize the parameters of the graph model and projector, keeping the text model frozen to reduce training costs and mitigate catastrophic for- getting. Pretraining is conducted over 30 epochs with a batch size of 800 per GPU, utilizing a single A100-80G GPU for pretraining. We will release our pretrained checkpoint after the anonymous phase. (2) Fine-tuning. We use the AdamW optimizer and apply early stopping based on validation performance to prevent overfitting. The batch size is set to 32, and the learning rate is consistent across all baselines, with the optimal parameters obtained by searching within a fixed space. G 2 LoRA is added on the graph side, while the standard LoRA is used for fine-tuning the text side. The specific model parameters will be provided in our code.",
+      "page_start": 9,
+      "word_count": 250
+    },
+    {
+      "heading": "Table 8: Notations and Symbols",
+      "section_type": "other",
+      "position": 105,
+      "text": "Notation Description 𝐺 = (V , E , R) Text-Attributed Graph with node, edge, and text sets {T 0 , T 1 , ..., T 𝑛 − 1 } Sequence of continual learning tasks T 𝑖 = { 𝐺 𝑖 ,𝐶 𝑖 ,𝑉 𝑙 𝑖 } The 𝑖 -th task with graph, categories, and labeled nodes 𝜃 𝐺 ,𝜃 𝑇 Parameters of graph and text encoders W Model weight matrix z 𝑖 , t 𝑖 Node embeddings from graph and text encoders Λ Similarity matrix for graph-text alignment A 𝑡 , B 𝑡 LoRA up- and down-projection matrices H 𝑡 Intermediate representation matrix S 𝑡,𝑐 Discriminative subspace for category 𝑐 M 𝑡 Task-level category-aware subspace M 1: 𝑡 Accumulated historical union subspace 𝛼 𝑐 Class-wise scaling coefficient I 𝑡 Constrained update subspace R 𝑡 Backward transfer subspace 𝜌 𝑡 Modality-wise learning speed ratio 5195",
+      "page_start": 11,
+      "word_count": 144
+    }
+  ],
+  "references_raw": "[1] Hongxu Chen, Hongzhi Yin, Xiangguo Sun, Tong Chen, Bogdan Gabrys, and Katarzyna Musial. 2020. Multi-level graph convolutional networks for cross- platform anchor link prediction. In Proceedings of the 26th ACM SIGKDD interna- tional conference on knowledge discovery & data mining . 1503–1511. [2] Junru Chen, Yang Yang, Tao Yu, Yingying Fan, Xiaolong Mo, and Carl Yang. 2022. Brainnet: Epileptic wave detection from seeg with hierarchical graph diffu- sion learning. In Proceedings of the 28th ACM SIGKDD conference on knowledge discovery and data mining . 2741–2751. [3] Runjin Chen, Tong Zhao, Ajay Kumar Jaiswal, Neil Shah, and Zhangyang Wang. 2024. LLaGA: Large Language and Graph Assistant. In Forty-first International Conference on Machine Learning, ICML 2024, Vienna, Austria, July 21-27, 2024 . OpenReview.net. [4] Zhikai Chen, Haitao Mao, Hang Li, Wei Jin, Hongzhi Wen, Xiaochi Wei, Shuaiqiang Wang, Dawei Yin, Wenqi Fan, Hui Liu, et al . 2024. Exploring the potential of large language models (llms) in learning on graphs."
+}

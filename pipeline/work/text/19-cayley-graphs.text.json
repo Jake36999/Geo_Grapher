@@ -1,0 +1,56 @@
+{
+  "file_path": "E:/Librarian research/19-cayley-graphs.pdf",
+  "page_count": 2,
+  "first_page_text": "21-237: Math Studies Algebra I\nOctober 12, 2022\nLecture 19 : Cayley graphs\nLecturer: Clinton Conley\nScribe: Rajeev Godse\n1\n(Right) Cayley graphs\nGiven a group G and subsets S ⊆G, the corresponding (right) Cayley graph, Cay(G, S), is the\nlabeled, directed graph on vertex set G with an edge labeled by s from g to h when h = gs for s ∈S.\nExamples:\n1. G = Z, S = {1}\n0\n1\n2\n−1\n−2\n. . .\n. . .\n1\n1\n1\n1\n1\n1\n2. G = Z, S = {2, 3}. Similar to above.\n3. G = ⟨a, b : a2 = 1, b5 = 1, aba = b−1⟩, S = {a, b}. You can work it out for yourself, but we get two\n“circles” acting in opposite directions, connected at each vertex bidirectionally by reflections.\n4. G = F2 = ⟨a, b⟩, S = {a, b}. The Cayley graph is an infinite 4-regular tree, as each reduced word\nrepresents a sequence of operations such that the inverse of a previous operation does not occur\nafter that operation.\n5. G = ⟨a, b : aba−1b−1 = e⟩, S = {a, b}. The Cayley graph gives us good intuition that G ≃Z2.\n2\nCommutators (again!)\nRecall, for g, h ∈G, their commutator is [g, h] = ghg−1h−1, and [g, h] = 1 ⇐⇒gh = hg by extreme\nobviousness.\nFurther recall the commutator subgroup, or derived subgroup, G′ = [G, G], is ⟨[a, b] : a, b ∈G⟩.\nMore generally, for A, B ⊆G, define [A, B] = ⟨[a, b] : a ∈A, b ∈B⟩.\nLemma: Let G be a group, H ≤G. The following are equivalent:\n(I) H ◁G\n(II) [H, G] ≤H\nProof : Suppose H ◁G. Let h ∈H, g ∈G. [h, g] = h(h−1)g ∈H. So [H, G] ≤H.\nNow suppose [H, G] ≤H. Let h ∈H, g ∈G. hg = h[h−1, g] ∈H. So H ◁G.\nCertainly, we have [G′, G] ≤[G, G] = G′. So by the lemma, G′ ◁G.\nClaim: For any group G, G/G′ is abelian.\nProof : Let aG′, bG′ ∈G/G′. (aG′)(bG′) = abG′ = [a, b]baG′ = ([a, b]G′)baG′ = bG′aG′.\n1\n",
+  "sections": [
+    {
+      "heading": "Lecture 19 : Cayley graphs",
+      "section_type": "other",
+      "position": 1,
+      "text": "Lecturer: Clinton Conley Scribe: Rajeev Godse 1 (Right) Cayley graphs Given a group G and subsets S ⊆ G , the corresponding (right) Cayley graph , Cay( G, S ), is the labeled, directed graph on vertex set G with an edge labeled by s from g to h when h = gs for s ∈ S . Examples : 1. G = Z , S = { 1 } 0 1 2 − 1 − 2 . . . . . . 1 1 1 1 1 1 2. G = Z , S = { 2 , 3 } . Similar to above. 3. G = ⟨ a, b : a 2 = 1 , b 5 = 1 , aba = b − 1 ⟩ , S = { a, b } . You can work it out for yourself, but we get two “circles” acting in opposite directions, connected at each vertex bidirectionally by reflections. 4. G = F 2 = ⟨ a, b ⟩ , S = { a, b } . The Cayley graph is an infinite 4-regular tree, as each reduced word represents a sequence of operations such that the inverse of a previous operation does not occur after that operation. 5. G = ⟨ a, b : aba − 1 b − 1 = e ⟩ , S = { a, b } . The Cayley graph gives us good intuition that G ≃ Z 2 . 2",
+      "page_start": 2,
+      "word_count": 246
+    },
+    {
+      "heading": "Commutators (again!)",
+      "section_type": "other",
+      "position": 2,
+      "text": "Recall, for g, h ∈ G , their commutator is [ g, h ] = ghg − 1 h − 1 , and [ g, h ] = 1 ⇐⇒ gh = hg by extreme obviousness. Further recall the commutator subgroup , or derived subgroup , G ′ = [ G, G ], is ⟨ [ a, b ] : a, b ∈ G ⟩ . More generally, for A, B ⊆ G , define [ A, B ] = ⟨ [ a, b ] : a ∈ A, b ∈ B ⟩ .",
+      "page_start": 14,
+      "word_count": 94
+    },
+    {
+      "heading": "Lemma",
+      "section_type": "other",
+      "position": 3,
+      "text": ": Let G be a group, H ≤ G . The following are equivalent: (I) H ◁G (II) [ H, G ] ≤ H Proof : Suppose H ◁G . Let h ∈ H , g ∈ G . [ h, g ] = h ( h − 1 ) g ∈ H . So [ H, G ] ≤ H . Now suppose [ H, G ] ≤ H . Let h ∈ H , g ∈ G . h g = h [ h − 1 , g ] ∈ H . So H ◁G . Certainly, we have [ G ′ , G ] ≤ [ G, G ] = G ′ . So by the lemma, G ′ ◁G .",
+      "page_start": 18,
+      "word_count": 124
+    },
+    {
+      "heading": "Claim",
+      "section_type": "other",
+      "position": 4,
+      "text": ": For any group G , G/G ′ is abelian. Proof : Let aG ′ , bG ′ ∈ G/G ′ . ( aG ′ )( bG ′ ) = abG ′ = [ a, b ] baG ′ = ([ a, b ] G ′ ) baG ′ = bG ′ aG ′ . 1",
+      "page_start": 24,
+      "word_count": 56
+    },
+    {
+      "heading": "Theorem",
+      "section_type": "other",
+      "position": 5,
+      "text": ": Let G be a group, H ≤ G . The following are equivalent: (I) G ′ ≤ H (II) H ◁G and G/H is abelian. So G ′ is the least subgroup with abelian quotient. Proof : Suppose G ′ ≤ H . Certainly, [ H, G ] ≤ [ G, G ] = G ′ ≤ H . So from the lemma, H ◁G . Then, as above, ab = [ a, b ] ba , so ( aH )( bH ) = abH = baH = ( bH )( aH ). Now, suppose G/H is abelian. Then ∀ a, b ∈ G , abH = baH . Equivalently, aba − 1 b − 1 H = H , i.e. aba − 1 b − 1 ∈ H . Hence, [ G, G ] ∈ H . 2.1",
+      "page_start": 1,
+      "word_count": 140
+    },
+    {
+      "heading": "As a universal property",
+      "section_type": "other",
+      "position": 6,
+      "text": "The abelianization of a group G is the quotient map q : G → G/G ′ . It is characterized by the following universal property : Given any abelian group A and any homomorphism ϕ : G → A , there exists a unique homomorphism ψ : G/G ′ → A such that ϕ = ψ ◦ q . Proof : Note that by the first IM theorem, G/ ker( ϕ ) ≃ im( ϕ ) ≤ A , so G/ ker( ϕ ) is abelian. Accordingly, G ′ ≤ ker( ϕ ). Thus, whenever gG ′ = hG ′ , we know that ϕ ( g ) = ϕ ( h ) since g − 1 h ∈ G ′ ≤ ker( ϕ ). We may thus unambiguously define ψ : G/G ′ → A by gG ′ �→ ϕ ( g ). Certainly, it works, so ψ is unique. 2",
+      "page_start": 8,
+      "word_count": 152
+    }
+  ],
+  "references_raw": ""
+}

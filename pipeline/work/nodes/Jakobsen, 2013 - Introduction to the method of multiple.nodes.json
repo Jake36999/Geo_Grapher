@@ -1,0 +1,84 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Jakobsen, 2013 - Introduction to the method of multiple.md",
+  "metadata": {
+    "title": "Introduction to the method of multiple scales",
+    "authors": [
+      "Per Jakobsen"
+    ],
+    "year": 2013,
+    "venue": null,
+    "doi": "arxiv:1312.3651",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 91,
+      "text": "As the authors state it:\n\n> Earlier versions of these lecture notes have been used at the Cork Summerschool on Theory and Mathematics Modelling of Ultrashort Pulse Propagation (2013), and as a part of a graduate course in the theory of nonlinear waves in the period 2014-2016. This version has an improved typography and numerous typoes has been corrected. It also has been extended with a section where the method of multiple scales is applied to boundary layer problems for ODEs. The document consists of 78 pages and contains 9 figures.",
+      "claims": [
+        {
+          "text": "As the authors state it: Earlier versions of these lecture notes have been used at the Cork Summerschool on Theory and Mathematics Modelling of Ultrashort Pulse Propagation (2013), and as a part of a graduate course in the theory of nonlinear waves in the period 2014-2016. This version has an improved typography and numerous typoes has been corrected. It also has been extended with a section where",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

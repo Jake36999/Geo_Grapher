@@ -1,0 +1,190 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Zheng, 2026 - Confidence-Aware Tree-of-Thoughts A Federated Safety Net.md",
+  "metadata": {
+    "title": "Confidence-Aware Tree-of-Thoughts: A Federated Safety Net for VLM Agents in Smart-Home Consumer Electronics",
+    "authors": [
+      "Tianle Zheng",
+      "Heng Liu",
+      "Lulu Xu",
+      "Junjie Wang",
+      "Yuxiang Zhang",
+      "Yiyao Yu"
+    ],
+    "year": 2026,
+    "venue": "IEEE Transactions on Consumer Electronics",
+    "doi": "10.1109/TCE.2026.3744254",
+    "abstract_summary": "Defines a verify-before-act task and benchmark for smart-home agents, a dangerous-error safety metric, and a confidence-aware selective tree-of-thoughts router, with exact federated aggregation for fine-tuning."
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 25,
+      "text": "Defines a verify-before-act task and benchmark for smart-home agents, a dangerous-error safety metric, and a confidence-aware selective tree-of-thoughts router, with exact federated aggregation for fine-tuning.",
+      "claims": [
+        {
+          "text": "Defines a verify-before-act task and benchmark for smart-home agents, a dangerous-error safety metric, and a confidence-aware selective tree-of-thoughts router, with exact federated aggregation for fine-tuning.",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 286,
+      "text": "What the paper proposes or defines, as extracted (section, page):\n- **Dangerous-error safety metric** (category A) - Primary safety metric: dangerous-error rate P(ŷ=EXECUTE | y∈REFUSE*), reported with accuracy, false-refusal rate and execute accuracy across splits. (section III. THE SMARTHOME-VSV BENCHMARK, p. 5)\n  > false executions are far more costly than false refusals (the user can easily retry)\n- **Verify-before-act 5-tuple schema** (category B) - Task schema: given image, proposed action verb and target class, agent emits 5-tuple JSON verdict with label, grounding bbox, states and reason. (section III. THE SMARTHOME-VSV BENCHMARK, p. 4)\n  > The label is one of EXECUTE, REFUSE_OBJ_MISSING, or REFUSE_STATE_CONFLICT.\n- **Confidence-Aware Selective ToT routing** (category B) - Three-branch verifier: JSON verdict C, full-image yes/no A, bbox-crop yes/no B; soft threshold on A/B confidences vetoes unsafe executions. (section IV. CONFIDENCE-AWARE SELECTIVE TREE-OF-THOUGHTS, p. 5)\n  > Replace the hard threshold of 0.5 in Smart v1 with τ = 0.7.\n- **Single-token logprob confidence** (category A) - Confidence from single-token yes/no outputs: PA = exp lp(yes)/(exp lp(yes)+exp lp(no)); PB analogously, enabling calibrated soft-threshold routing. (section IV. CONFIDENCE-AWARE SELECTIVE TREE-OF-THOUGHTS, p. 5)\n  > we read the top-20 log-probabilities at the single generation position\n- **FFA-LoRA exact federated aggregation** (category D) - Federated LoRA training where clients share frozen factor A, train and upload only B; server averages B for exact FedAvg of ∆W. (section V. FFA-LORA FEDERATED FINE-TUNING, p. 6)\n  > FFA-LoRA [13] resolves this by freezing A at its initial value and training only B.\n- **Federated drift and recovery analysis** (category C) - Quantifies non-IID federated drift in verifier safety and the recovery from auxiliary branches, with bootstrap confidence intervals. (section VI. EXPERIMENTS, p. 11)\n  > Federated drift is severe under non-IID smart-ho",
+      "claims": [
+        {
+          "text": "Dangerous-error safety metric: Primary safety metric: dangerous-error rate P(ŷ=EXECUTE | y∈REFUSE*), reported with accuracy, false-refusal rate and execute accuracy across splits. (section III. THE SMARTHOME-VSV BENCHMARK, p. 5)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Verify-before-act 5-tuple schema: Task schema: given image, proposed action verb and target class, agent emits 5-tuple JSON verdict with label, grounding bbox, states and reason. (section III. THE SMARTHOME-VSV BENCHMARK, p. 4)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Confidence-Aware Selective ToT routing: Three-branch verifier: JSON verdict C, full-image yes/no A, bbox-crop yes/no B; soft threshold on A/B confidences vetoes unsafe executions. (section IV. CONFIDENCE-AWARE SELECTIVE TREE-OF-THOUGHTS, p. 5)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Single-token logprob confidence: Confidence from single-token yes/no outputs: PA = exp lp(yes)/(exp lp(yes)+exp lp(no)); PB analogously, enabling calibrated soft-threshold routing. (section IV. CONFIDENCE-AWARE SELECTIVE TREE-OF-THOUGHTS, p. 5)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "FFA-LoRA exact federated aggregation: Federated LoRA training where clients share frozen factor A, train and upload only B; server averages B for exact FedAvg of ∆W. (section V. FFA-LORA FEDERATED FINE-TUNING, p. 6)",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Federated drift and recovery analysis: Quantifies non-IID federated drift in verifier safety and the recovery from auxiliary branches, with bootstrap confidence intervals. (section VI. EXPERIMENTS, p. 11)",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Agentic AI & Models",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Dangerous-error safety metric",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Verify-before-act 5-tuple schema",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Confidence-Aware Selective ToT routing",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "Single-token logprob confidence",
+          "definition": null,
+          "concept_type": "term"
+        },
+        {
+          "name": "FFA-LoRA exact federated aggregation",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 198,
+      "text": "- **Dangerous-error safety metric**: Report accuracy and dangerous-error rate P(ˆy = EXECUTE | y ∈REFUSE∗) per cell; also FRR P(ˆy ∈REFUSE | y = EXECUTE) and the safety–utility frontier traced by threshold τ.\n- **Verify-before-act 5-tuple schema**: Each example is (I, a, c): image, action verb, target class. Output 5-tuple JSON: label, evidence bbox, pre state, post state, reason; bbox required when label is EXECUTE.\n- **Confidence-Aware Selective ToT routing**: Compute PA; if PA < τ return REFUSE. If bbox area Abbox > β=0.05, crop padded 10%, compute PB; if PB < τ return REFUSE; else return yC, with τ=0.7.\n- **Single-token logprob confidence**: Read top-20 log-probabilities at the single generation position, aggregate probability mass of tokens whose decoded form starts with yes or no, then renormalize over the two aggregates.\n- **FFA-LoRA exact federated aggregation**: Standard LoRA ∆W = BA; separate averaging is inexact: (1/N ΣBi)(1/N ΣAi) ≠ 1/N ΣBiAi. Freezing A gives B̄·A = (1/N ΣBi)A = 1/N Σ(BiA) = 1/N Σ∆Wi.\n- **Federated drift and recovery analysis**: Compare branch-C dangerous error centralized versus federated on identical splits; apply Conf-Aware veto; quantify uncertainty with nonparametric bootstrap 95% confidence intervals over test samples (3,000 resamples per cell).",
+      "claims": [
+        {
+          "text": "Dangerous-error safety metric: Report accuracy and dangerous-error rate P(ˆy = EXECUTE | y ∈REFUSE∗) per cell; also FRR P(ˆy ∈REFUSE | y = EXECUTE) and the safety–utility frontier traced by threshold τ. - **Verify-before-act 5-tuple schema**: Each example is (I, a, c): image, action verb, target cla",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 297,
+      "text": "- Evidence the authors report:\n  - Dangerous-error safety metric: Used across five VLM backbones and three 500-example test splits; break-even cost ratios computed from raw counts.\n  - Verify-before-act 5-tuple schema: 22,841 auto-derived samples from GQA/ADE20K scene graphs; manual audit of 40 labels found 90% visually correct.\n  - Confidence-Aware Selective ToT routing: Federated aggregate dangerous error fell 76.1% to 47.9%; ablation shows C+A+B beats C+A and C+B on HARD-CONF for every model.\n  - Single-token logprob confidence: GQA-test ECE 0.018–0.107, AUROC 0.927–0.979 across five backbones; yes/no variant appeared in top-20 for all 17,464 logged records.\n  - FFA-LoRA exact federated aggregation: Five rounds over three non-IID households; A-matrix differences across clients were identically zero to machine precision every round.\n  - Federated drift and recovery analysis: Federated branch-C dangerous error rose 19.3% to 76.1%; Conf-Aware recovered 28.2 points (37% relative); CONF-split intervals do not overlap.\n- Limitations the authors state:\n  - Dangerous-error safety metric: Dangerous error overwhelmingly measures object-missing failures, not state misjudgement; only 8 of 1,088 refusal examples test state reasoning.\n  - Verify-before-act 5-tuple schema: Scene-graph-derived labels inherit granularity errors on confusable siblings; audit found four disagreements.\n  - Confidence-Aware Selective ToT routing: Conf-Aware over-refuses valid actions on clean data, costing up to 18 accuracy points on smaller backbones.\n  - Single-token logprob confidence: Requires yes/no to be single tokens; extraction flagged undefined if combined yes/no mass drops below 10−6.\n  - FFA-LoRA exact federated aggregation: One backbone and a stylized fully-disjoint three-client partition; observed gap conflates non-IID partition with frozen-A parameterization.\n  - Federated drift and recovery analysis: All numbers from single training runs with bootstrap intervals; multi-seed replication",
+      "claims": [
+        {
+          "text": "Evidence the authors report:",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Dangerous-error safety metric: Used across five VLM backbones and three 500-example test splits; break-even cost ratios computed from raw counts.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Verify-before-act 5-tuple schema: 22,841 auto-derived samples from GQA/ADE20K scene graphs; manual audit of 40 labels found 90% visually correct.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Confidence-Aware Selective ToT routing: Federated aggregate dangerous error fell 76.1% to 47.9%; ablation shows C+A+B beats C+A and C+B on HARD-CONF for every model.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Single-token logprob confidence: GQA-test ECE 0.018–0.107, AUROC 0.927–0.979 across five backbones; yes/no variant appeared in top-20 for all 17,464 logged records.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "FFA-LoRA exact federated aggregation: Five rounds over three non-IID households; A-matrix differences across clients were identically zero to machine precision every round.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Federated drift and recovery analysis: Federated branch-C dangerous error rose 19.3% to 76.1%; Conf-Aware recovered 28.2 points (37% relative); CONF-split intervals do not overlap.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Limitations the authors state:",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Dangerous-error safety metric: Dangerous error overwhelmingly measures object-missing failures, not state misjudgement; only 8 of 1,088 refusal examples test state reasoning.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Verify-before-act 5-tuple schema: Scene-graph-derived labels inherit granularity errors on confusable siblings; audit found four disagreements.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Confidence-Aware Selective ToT routing: Conf-Aware over-refuses valid actions on clean data, costing up to 18 accuracy points on smaller backbones.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Single-token logprob confidence: Requires yes/no to be single tokens; extraction flagged undefined if combined yes/no mass drops below 10−6.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "FFA-LoRA exact federated aggregation: One backbone and a stylized fully-disjoint three-client partition; observed gap conflates non-IID partition with frozen-A parameterization.",
+          "claim_type": "finding"
+        },
+        {
+          "text": "Federated drift and recovery analysis: All numbers from single training runs with bootstrap intervals; multi-seed replication and federated controls remain future work.",
+          "claim_type": "limitation"
+        },
+        {
+          "text": "Limitations they do not state: not assessed. Results are the authors' own, from their simulations, benchmarks or surveys; none evaluates delegation to cheaper models on software work.",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

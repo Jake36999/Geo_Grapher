@@ -1,0 +1,85 @@
+{
+  "file_path": "D:/Resource-Library/06-Papers/Kassam, 2005 - Fourth-Order Time-Stepping for Stiff PDEs.md",
+  "metadata": {
+    "title": "Fourth-Order Time-Stepping for Stiff PDEs",
+    "authors": [
+      "Aly-Khan Kassam",
+      "Lloyd N. Trefethen"
+    ],
+    "year": 2005,
+    "venue": "SIAM Journal on Scientific Computing",
+    "doi": "10.1137/s1064827502410633",
+    "abstract_summary": "<bottom line: unread>"
+  },
+  "sections": [
+    {
+      "heading": "Bottom Line",
+      "section_type": "abstract",
+      "position": 0,
+      "word_count": 3,
+      "text": "<bottom line: unread>",
+      "claims": [
+        {
+          "text": "<bottom line: unread>",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Claims",
+      "section_type": "results",
+      "position": 1,
+      "word_count": 119,
+      "text": "As the authors state it:\n\n> A modification of the exponential time-differencing fourth-order Runge--Kutta method for solving stiff nonlinear PDEs is presented that solves the problem of numerical instability in the scheme as proposed by Cox and Matthews and generalizes the method to nondiagonal operators. A comparison is made of the performance of this modified exponential time-differencing (ETD) scheme against the competing methods of implicit-explicit differencing, integrating factors, time-splitting, and Fornberg and Driscoll's \"sliders\" for the KdV, Kuramoto--Sivashinsky, Burgers, and Allen--Cahn equations in one space dimension. Implementation of the method is illustrated by short MATLAB programs for two of the equations. It is found that for these applications with fixed time steps, the modified ETD scheme is the best.",
+      "claims": [
+        {
+          "text": "As the authors state it: A modification of the exponential time-differencing fourth-order Runge--Kutta method for solving stiff nonlinear PDEs is presented that solves the problem of numerical instability in the scheme as proposed by Cox and Matthews and generalizes the method to nondiagonal operators. A comparison is made of the performance of this modified exponential time-differencing (ETD) sch",
+          "claim_type": "finding"
+        }
+      ],
+      "concepts": [
+        {
+          "name": "Scientific Simulation & Math",
+          "definition": null,
+          "concept_type": "term"
+        }
+      ]
+    },
+    {
+      "heading": "Method",
+      "section_type": "methods",
+      "position": 2,
+      "word_count": 2,
+      "text": "<method: unread>",
+      "claims": [
+        {
+          "text": "<method: unread>",
+          "claim_type": "method"
+        }
+      ],
+      "concepts": []
+    },
+    {
+      "heading": "Evidence & Limits",
+      "section_type": "limitations",
+      "position": 3,
+      "word_count": 4,
+      "text": "<evidence & limits: unread>",
+      "claims": [
+        {
+          "text": "<evidence & limits: unread>",
+          "claim_type": "limitation"
+        }
+      ],
+      "concepts": []
+    }
+  ],
+  "references_raw": "",
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0
+  },
+  "source": "md_import"
+}

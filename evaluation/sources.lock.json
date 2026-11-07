@@ -1,0 +1,16 @@
+{
+  "version": "evaluation-source-lock-v1",
+  "files": {
+    "app/__init__.py": "a71348053a7d17497cda43e237ae948c955c48a0c9ef5b4e352ec859ae2bb45f",
+    "app/cycle_a.py": "7f58d4c6bd33328837d2ed88599e9f18b76b27dac6c4853d72871790addfee12",
+    "app/cycle_b.py": "ee9de26e7d13877a60baf9ab54632b9ae48d164cd5d55008c7133c4f3e06cf7f",
+    "app/dispatch.py": "0c7ece17e8a3fb0a98dcd15d8fbe22e568d47ce5f45ebcac3f662620a69b72db",
+    "app/helpers.py": "4effdd95a80fe9fc0239caad656904ccbf36b0f469b65b8fc625db4b4edb8708",
+    "app/other.py": "75b62437d4545ae1771cd17ac031465e0ef8ac42771357129ba598ab798e53f2",
+    "app/service.py": "3846bfbbc9b235b6fcd0134c076f5a90d7ebd943e2cd09e7a1332570bd84e926",
+    "app/storage.py": "6af2d639b5a3fbc72f08876acd03a23c14506a6c9442028062bfe821ca0fb321",
+    "app/ui.py": "43cf1ae59451845852e0dc4c1c12353759d7dbe22cc2843ea975b82c8991cf3d",
+    "geographer.rules.yaml": "43724c835e6d54dacaa09e3128972bee26746a52cea688b7ed051e2fb11b6447",
+    "guide.md": "7d9af6418d88320bad76db41761cab7540b0c5be82a289c8be04bc9d8fe18068"
+  }
+}
