@@ -15,6 +15,15 @@ uv run geographer serve --database output/toolset.sqlite --catalog output/named-
 
 Open [the main workspace](http://127.0.0.1:8765/). The original workspace now includes an **Active graph** selector and a **Graphs** checklist in its existing toolbar. Its existing **3D space / List / Matrix** buttons show the selected graphs; search, hierarchy, coverage and inspector stay scoped to the active graph. Selecting an item from another graph activates that graph in the same page. There are no separate collection/detail viewer pages or iframes. Old viewer URLs redirect to `/`. ToolSet's existing snapshot is registered without re-ingestion or identifier changes, and its original API/MCP routes remain unchanged. Scoped graph MCP is `/graph-hub/mcp`. Startup prepares the original published index; omit `--catalog` to run only the single-store workspace. Saved views retain their original snapshots and now also save graph selection.
 
+On this host, system Python carries MCP 2.x, which the servers do not support (the CLI exits with instructions). Restart the local servers under the pinned environment, and run the full release gate before reporting results, with:
+
+```powershell
+./scripts/start-servers.ps1          # main workspace :8765 + graph hub :8774 (logs/PIDs in output/logs)
+./scripts/verify.ps1                 # full pytest + typecheck + build + Playwright; -Live adds the :8765 smoke
+```
+
+The repository tracks the system only: papers, corpora, graph stores, outputs and logs are ignored (see `.gitignore`).
+
 For another ingestion, use a fresh database:
 
 ```powershell

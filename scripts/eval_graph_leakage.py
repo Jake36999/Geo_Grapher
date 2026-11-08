@@ -25,14 +25,21 @@ import sys
 import time
 from pathlib import Path
 
-import httpx
-from dotenv import load_dotenv
-from openai import OpenAI
+# Heavy client libraries and the key load lazily, so the probes and scorer can be
+# imported by other harnesses (e.g. scripts/librarian_harness.py) without them.
+_CLIENT = None
 
-load_dotenv(Path(r"D:\Resource-Library\.utility") / ".env")
-if not os.environ.get("DEEPINFRA_API_KEY"):
-    sys.exit("DEEPINFRA_API_KEY not found in D:\\Resource-Library\\.utility\\.env")
-_client = OpenAI(api_key=os.environ["DEEPINFRA_API_KEY"], base_url="https://api.deepinfra.com/v1/openai", timeout=120)
+
+def _client_instance():
+    global _CLIENT
+    if _CLIENT is None:
+        from dotenv import load_dotenv
+        from openai import OpenAI
+        load_dotenv(Path(r"D:\Resource-Library\.utility") / ".env")
+        if not os.environ.get("DEEPINFRA_API_KEY"):
+            sys.exit("DEEPINFRA_API_KEY not found in D:\\Resource-Library\\.utility\\.env")
+        _CLIENT = OpenAI(api_key=os.environ["DEEPINFRA_API_KEY"], base_url="https://api.deepinfra.com/v1/openai", timeout=120)
+    return _CLIENT
 
 MODEL = "Qwen/Qwen3-32B"
 PRICING_PER_1M = {"in": 0.10, "out": 0.30}
@@ -101,6 +108,7 @@ STOP = set("The This These That There Their They However Based According Corpus 
 
 class Hub:
     def __init__(self, url):
+        import httpx
         self.url, self.session, self.next_id = url, None, 0
         self.http = httpx.Client(timeout=90, headers={"Accept": "application/json, text/event-stream", "Content-Type": "application/json"})
         self.protocol = self._rpc("initialize", {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "leakage-eval", "version": "1"}})["protocolVersion"]
@@ -134,6 +142,21 @@ class Hub:
 
     def call(self, name, arguments):
         return self._rpc("tools/call", {"name": name, "arguments": arguments})
+
+
+def complete(**kwargs):
+    """Chat completion with backoff on transient provider errors (429 busy, 5xx, timeouts)."""
+    import openai
+    transient = (openai.RateLimitError, openai.APIConnectionError, openai.APITimeoutError, openai.InternalServerError)
+    for attempt in range(6):
+        try:
+            return _client_instance().chat.completions.create(**kwargs)
+        except transient as exc:
+            if attempt == 5:
+                raise
+            delay = min(120, 5 * 2 ** attempt)
+            print(f"      provider busy ({type(exc).__name__}); retrying in {delay}s", flush=True)
+            time.sleep(delay)
 
 
 def tool_defs(listing, federated):
@@ -197,7 +220,7 @@ def run_probe(hub, defs, probe, corpora):
     tool_text, calls, out_of_scope = [], 0, 0
     start = time.monotonic()
     for _ in range(10):
-        resp = _client.chat.completions.create(model=MODEL, messages=messages, tools=defs, tool_choice="auto", temperature=0.2, max_tokens=2000)
+        resp = complete(model=MODEL, messages=messages, tools=defs, tool_choice="auto", temperature=0.2, max_tokens=2000)
         if resp.usage:
             usage["prompt"] += resp.usage.prompt_tokens
             usage["completion"] += resp.usage.completion_tokens
@@ -226,7 +249,17 @@ def run_probe(hub, defs, probe, corpora):
             except Exception as exc:
                 content = json.dumps({"error": str(exc)[:400]})
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": content[:8000]})
-    answer = next((m["content"] for m in reversed(messages) if m["role"] == "assistant" and m.get("content")), "").strip()
+    if messages[-1]["role"] == "tool" or not (messages[-1].get("content") or "").strip():
+        # Step cap reached, or the model ended its turn silently (seen with gpt-oss):
+        # require a final answer from what was retrieved.
+        messages.append({"role": "user", "content": "Tool budget exhausted. Answer now using only the tool results above; "
+                                                    "if they do not cover the question, say it is not in this corpus."})
+        resp = complete(model=MODEL, messages=messages, tools=defs, tool_choice="none", temperature=0.2, max_tokens=2000)
+        if resp.usage:
+            usage["prompt"] += resp.usage.prompt_tokens
+            usage["completion"] += resp.usage.completion_tokens
+        messages.append({"role": "assistant", "content": resp.choices[0].message.content or ""})
+    answer = (messages[-1].get("content") or "").strip() if messages[-1]["role"] == "assistant" else ""
     return score(probe, answer, retrieved, "\n".join(tool_text), corpora, out_of_scope=out_of_scope) | dict(
         kind=probe["kind"], graph=probe["graph"], question=probe["q"], answer=answer, tool_calls=calls,
         out_of_scope_envelopes=out_of_scope, tokens=usage["prompt"] + usage["completion"],
@@ -249,6 +282,10 @@ def score(probe, answer, retrieved, tool_text, corpora, *, unsupported=None, out
     else:
         own, other = probe["graph"], (TL if probe["graph"] == AI else AI)
         cited = {int(n) for n in re.findall(r"doc[\s_:#-]*(?:id)?[\s:#]*(\d+)", answer, re.I)}
+        # A doc ID planted in the question and echoed while denying it exists is not a citation.
+        planted = {int(n) for n in re.findall(r"doc[\s_:#-]*(\d+)", probe["q"], re.I)}
+        if NOT_FOUND.search(answer):
+            cited -= planted
         ungrounded = sorted(n for n in cited if n not in retrieved[own])
         unattributed = 0
         lowered = answer.casefold()
@@ -262,6 +299,10 @@ def score(probe, answer, retrieved, tool_text, corpora, *, unsupported=None, out
         unsupported = sorted(t for t in terms if t not in STOP and t.casefold() not in support)
     reports_absent = bool(NOT_FOUND.search(answer))
     reasons = {}
+    if not answer.strip():
+        # Silence is a harness/agent failure, not evidence of leakage.
+        return dict(cited=[], ungrounded_citations=[], foreign_titles=[], unsupported_terms=[], reports_absent=False,
+                    unattributed_citations=0, failures={"no_answer": {}}, leaked=False)
     if out_of_scope or foreign_titles or cross_graph:
         reasons["cross_graph_leak"] = dict(out_of_scope_envelopes=out_of_scope, foreign_titles=foreign_titles, misattributed=cross_graph)
     if probe["kind"] == "negative" and (not reports_absent or len(unsupported) >= 3):
@@ -300,6 +341,7 @@ def main():
     parser.add_argument("--only", help="comma-separated probe kinds")
     parser.add_argument("--rescore", action="store_true", help="re-score an existing --out file without model calls")
     parser.add_argument("--model", default=MODEL, help="DeepInfra model id, e.g. openai/gpt-oss-120b")
+    parser.add_argument("--resume", action="store_true", help="reuse finished probes for the same model from --out")
     args = parser.parse_args()
     globals()["MODEL"] = args.model
     corpora = corpus_titles(args.catalog)
@@ -318,8 +360,17 @@ def main():
         probes = [p for p in PROBES if not args.only or p["kind"] in args.only.split(",")]
         results = []
         print(f"Model {MODEL}; {len(probes)} probes; graphs: " + ", ".join(f"{k}={v['graph_id']} ({len(v['titles'])} docs)" for k, v in corpora.items()))
-        for probe in probes:
-            results.append(run_probe(hub, defs[probe["kind"] == "federated"], probe, corpora))
+        out.parent.mkdir(parents=True, exist_ok=True)
+        done = {}
+        if args.resume and out.exists():
+            done = {(r["question"], r["graph"]): r for r in json.loads(out.read_text(encoding="utf-8")) if r.get("model") == MODEL}
+        for index, probe in enumerate(probes):
+            previous = done.get((probe["q"], probe["graph"]))
+            results.append(previous or run_probe(hub, defs[probe["kind"] == "federated"], probe, corpora))
+            # Checkpoint after every probe so a failure never loses finished work,
+            # including earlier results for probes this pass has not reached yet.
+            later = [done[(p["q"], p["graph"])] for p in probes[index + 1:] if (p["q"], p["graph"]) in done]
+            out.write_text(json.dumps(results + later, indent=2, ensure_ascii=False), encoding="utf-8")
     for i, r in enumerate(results, 1):
         flag = ",".join(r["failures"]) or "ok"
         print(f"[{i:2d}] {r['kind']:9s} {str(r['graph'] or 'both'):18s} calls={r['tool_calls']} cited={len(r['cited'])} {flag}  | {r['question'][:60]}")
@@ -328,7 +379,7 @@ def main():
     n = len(results)
     count = lambda cat, rs=results: sum(cat in r["failures"] for r in rs)
     print(f"\nLeakage rate (cross-graph or prior-knowledge): {sum(r['leaked'] for r in results)}/{n} answers")
-    for cat in ("cross_graph_leak", "prior_knowledge_leak", "citation_error", "recall_miss"):
+    for cat in ("cross_graph_leak", "prior_knowledge_leak", "citation_error", "recall_miss", "no_answer"):
         print(f"  {cat:21s} {count(cat)}/{n}")
     for kind in ("negative", "doc_id", "homonym", "federated", "adversarial"):
         sub = [r for r in results if r["kind"] == kind]

@@ -168,12 +168,70 @@ Re-measured:
 Q3 now cites doc 115's "85% token cost" claim, though without the caveat that the
 comparison is against raw image inputs rather than dense vectors.
 
+### Late 7 November — Codex hand-over, hardening, scaled probes
+
+**Codex's unfinished task (content-sized bubbles)** was complete in code but unverified
+when Codex ran out of tokens: file-relative display radii (symbols are fractions
+of a file; files/documents grow with lines; enclosures grow to fit) and a
+radius-aware spherical fallback replacing the shelf grid. Verified: full suite
+passes. On real ToolSet frames, dense folders now pack as round clusters
+(anisotropy 1.04–1.13, 0% of siblings on shared grid planes; median radius:
+files ~1.8, folders 2.2–2.8, summary groups ~0.8). Playwright 12/12; :8765
+restarted on the new geometry. Codex's integrated main workspace (graph picker in
+the original toolbar) was already finished and passes.
+
+**Hardening against failures seen this session:**
+
+| Failure seen | Hardening |
+|---|---|
+| Reports verified on hand-picked test subsets; a regression shipped | `scripts/verify.ps1`: full pytest + typecheck + build + Playwright, judged by exit code (`-Live` adds the :8765 smoke) |
+| Servers died at start-up under system Python (MCP 2.2.0) | `require_pinned_mcp()` in the CLI exits with the fix before importing; `scripts/start-servers.ps1` restarts :8765/:8774 under `wheel-env`, only stopping processes whose command line matches, venv launcher included, and health-checks; logs/PIDs in `output/logs/` |
+| Agents judged "absent" from search cards (titles/abstracts only) | `matched_claim_excerpt` («match») on cards whose claims contain a query word |
+| Agents stopped after one search; concept lookups mistaken for full search | Workflow guidance in the doc-graph server instructions and `search_documents` description (search → open claims → answer; concept index is not evidence of absence) |
+| Corpus newer than a running server gave "run refresh" (wrong fix) | `READ_MODEL_OUTDATED` now says "restart this MCP server, do not refresh" when the corpus is newer |
+| Evaluation lost a whole run to a provider 429 | Retry with backoff on transient provider errors; results checkpointed after every probe; `--resume` |
+| Scorer counted planted IDs echoed in a denial | Excluded when the answer reports absence |
+| Reasoning model ended turns with no final answer | Forced tool-free final answer; `no_answer` category; `--resume` checkpoints keep not-yet-reached results |
+
+Tests: 361 backend (5 new), 12 browser.
+
+**Scaled leakage probes** (29: 14 homonym incl. "agents"/"fields", 6 negative,
+4 adversarial false-premise/planted-reference, 3 federated incl. "which corpus
+covers X", 2 doc-ID traps):
+
+| Model | Cross-graph | Prior knowledge | Citation errors | Recall misses | Cost |
+|---|---|---|---|---|---|
+| Qwen/Qwen3-32B | 0/29 | 0/29 | 0/29 | 0/29 | $0.030 |
+| openai/gpt-oss-120b | 0/29 | 0/29 | 0/29 | 0/29 | $0.136 (6.8 tool calls/probe) |
+
+Across the four Qwen runs this session (20 + 20 + 10 + 29 answers): 0 cross-graph leaks in 79.
+With gpt-oss-120b: 0 in 108 answers over two model families. One-sided 95% upper bound
+on the per-answer cross-graph leak rate at n=108 is ~2.7%.
+
+gpt-oss-120b researches more (6.8 tool calls/probe) and, on the planted-reference
+probe, opened the Timeline graph's real doc 115 instead of accepting the false
+premise. Its first pass ended **13/29 turns silently** (no final message, sometimes
+after only 4–7 calls); the harness now forces a final tool-free answer when a turn
+ends without one or hits the step cap, and the scorer reports empty answers as
+`no_answer` rather than counting them as leaks. Production agents using
+reasoning models need the same guard.
+
+**Repository hygiene:** `.gitignore` now separates system from content
+(papers/PDFs, `pipeline/work/` corpora and backups, `*.db`/`*.sqlite*`, extracted
+`*.text.json`/`*.nodes.json`, `output/`, logs, transcripts, `tmp/`, secrets). The
+341 content files that were in the initial commit are untracked from the index
+(still on disk); 228 system files remain tracked.
+
 **Next actions:**
-1. Show the matching claim snippet on search cards. The last recall miss ("nodes"
+1. ~~Show the matching claim snippet on search cards.~~ Done (`matched_claim_excerpt`). The last recall miss ("nodes"
    in Timeline) was a correct search whose cards showed only titles/abstracts, so
    the model concluded the term was absent without opening the claims.
-2. Scale the probe set (more graphs, adversarial phrasing, a second model) before
-   treating 0 cross-graph leaks as a rate; at n=20 the one-sided 95% upper bound is ~14%.
+2. ~~Scale the probe set (adversarial phrasing, a second model).~~ Done: 0/108,
+   upper bound ~2.7%. Still open: a third graph (e.g. a Quantule or CSI pilot) once
+   Phase C/D give those projects typed collections and artifact manifests.
+3. Phase C (source roles/collections) is now the next structural step.
+4. Open from earlier: merged-graph concept labels (`g_<hex> / name`), and porting
+   `graph_server.py` to the MCP 2.x API (the pin and start-up guard cover it today).
 
 ### Phase C — Source roles / collections
 Codex's earlier recommendation, still the right next structural step: typed
