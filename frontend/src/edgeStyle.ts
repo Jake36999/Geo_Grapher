@@ -145,7 +145,9 @@ export function colourAt(
   ]);
 }
 
-export const alphaAt = (t: number): number => 0.95 - 0.6 * t;
+export const ALPHA_START = 0.95;
+export const ALPHA_SLOPE = 0.6;
+export const alphaAt = (t: number): number => ALPHA_START - ALPHA_SLOPE * t;
 
 // Status law, world units. Exact and observed are solid (observed pulses in
 // the shader).
@@ -164,3 +166,85 @@ export const STATUS_CODE: Record<RuntimeStatus, number> = {
 };
 export const PULSE_PERIOD_SECONDS = 1.2;
 export const PULSE_GAIN = 1.6;
+
+// ---- Resolution of what reaches the shader (pure; used by Scene.tsx) ----
+export interface RelationFacts {
+  family?: string;
+  resolution_status?: string;
+}
+export interface StyledCurveFields {
+  relationship_family?: RelationshipFamily;
+  runtime_status?: RuntimeStatus;
+}
+
+// Runtime status. An explicit `runtime_status` wins; otherwise derive it from
+// the relationship (G9 status table) for frames that predate v1.1.
+export function resolveStatus(
+  curve: StyledCurveFields,
+  relation?: RelationFacts,
+): RuntimeStatus {
+  if (curve.runtime_status) return curve.runtime_status;
+  if (relation?.family === "runtime") return "observed";
+  if (relation?.family === "expected") return "expected_only";
+  if (
+    relation?.resolution_status === "candidate" ||
+    relation?.resolution_status === "unresolved"
+  )
+    return "candidate";
+  return "exact";
+}
+
+// Family of a relationship curve. The backend never emits `violation`; the
+// active violations win over any family. Absent family means call_or_data.
+export function resolveCurveFamily(
+  curve: StyledCurveFields,
+  violated: boolean,
+): RelationshipFamily {
+  return violated ? "violation" : (curve.relationship_family ?? "call_or_data");
+}
+export function resolveCurveStyle(
+  curve: StyledCurveFields,
+  violated: boolean,
+  relation?: RelationFacts,
+) {
+  return {
+    family: resolveCurveFamily(curve, violated),
+    status: resolveStatus(curve, relation),
+  };
+}
+export function resolveLinkStyle(link: StyledCurveFields): {
+  family: RelationshipFamily;
+  status: RuntimeStatus;
+} {
+  return {
+    family: link.relationship_family ?? "doc_describes",
+    status: link.runtime_status ?? "exact",
+  };
+}
+
+export interface LinkGeometry {
+  link_id: string;
+  fragment_rep: string;
+  entity_rep: string;
+  control_points: [number, number, number][];
+  degree: 1 | 2 | 3;
+  knots: number[];
+}
+// Adapts a documentary link to the curve shape `samples()` consumes.
+export function documentaryCurve(link: LinkGeometry) {
+  return {
+    relationship_id: link.link_id,
+    canonical_source: link.fragment_rep,
+    canonical_target: link.entity_rep,
+    reversed: false,
+    control_points: link.control_points,
+    degree: link.degree,
+    knots: link.knots,
+    normal: [0, 1, 0] as [number, number, number],
+    binormal: [0, 0, 1] as [number, number, number],
+    lane_index: 0,
+    lane_count: 1,
+    lane_spacing: 0,
+    sample_count: 32,
+  };
+}

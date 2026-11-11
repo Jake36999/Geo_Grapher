@@ -10,8 +10,13 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { Vec3, ViewportFrameData } from "../../contracts/geographer.wire";
 import { shortName, type DocumentaryLink, type Node } from "./api";
 import {
-  alphaAt,
+  ALPHA_SLOPE,
+  ALPHA_START,
   colourAt,
+  documentaryCurve,
+  resolveCurveStyle,
+  resolveLinkStyle,
+  type StyledCurveFields,
   dashFor,
   PULSE_GAIN,
   PULSE_PERIOD_SECONDS,
@@ -41,10 +46,6 @@ export type SceneData = Pick<
   ViewportFrameData,
   "nodes" | "relationships" | "spheres" | "curves"
 > & { documentary_links?: DocumentaryLink[] };
-type StyledCurve = {
-  relationship_family?: RelationshipFamily;
-  runtime_status?: RuntimeStatus;
-};
 const EDGE_VERTEX = `
 attribute float aT;
 attribute float aDist;
@@ -82,7 +83,7 @@ void main() {
   if (s > 1.5 && s < 2.5 && mod(vDist, uExpected.x + uExpected.y) > uExpected.x) discard;
   vec3 c = vColor;
   if (s > 2.5) c *= 1.0 + ${(PULSE_GAIN - 1).toFixed(1)} * max(0.0, sin(6.2832 * (vDist * 0.5 - uTime / ${PULSE_PERIOD_SECONDS.toFixed(1)})));
-  float a = 0.95 - 0.60 * vT;
+  float a = ${ALPHA_START.toFixed(2)} - ${ALPHA_SLOPE.toFixed(2)} * vT;
   if (uDimOthers > 0.5 && abs(vEdge - uHover) > 0.5) a *= 0.35;
   gl_FragColor = vec4(min(c, vec3(1.0)), a);
   #include <colorspace_fragment>
@@ -104,23 +105,6 @@ function edgeMaterial() {
       uExpected: { value: new THREE.Vector2(expected.dash, expected.gap) },
     },
   });
-}
-function documentaryCurve(link: DocumentaryLink) {
-  return {
-    relationship_id: link.link_id,
-    canonical_source: link.fragment_rep,
-    canonical_target: link.entity_rep,
-    reversed: false,
-    control_points: link.control_points,
-    degree: link.degree,
-    knots: link.knots,
-    normal: [0, 1, 0],
-    binormal: [0, 0, 1],
-    lane_index: 0,
-    lane_count: 1,
-    lane_spacing: 0,
-    sample_count: 32,
-  } as ViewportFrameData["curves"][number];
 }
 interface Props {
   frame?: SceneData;
@@ -521,16 +505,6 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     tooltip.setAttribute("role", "tooltip");
     tooltip.hidden = true;
     element.append(tooltip);
-    // Runtime status when the frame predates v1.1 `runtime_status` (G9 table).
-    function statusOf(curve: StyledCurve, id: string): RuntimeStatus {
-      if (curve.runtime_status) return curve.runtime_status;
-      const r = relationLookup.get(id);
-      if (r?.family === "runtime") return "observed";
-      if (r?.family === "expected") return "expected_only";
-      if (r?.resolution_status === "candidate" || r?.resolution_status === "unresolved")
-        return "candidate";
-      return "exact";
-    }
     function updateEdges() {
       const data = displayData;
       if (!data) return;
@@ -563,21 +537,20 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           currentLens,
           spheres.get(curve.canonical_source)?.radius ?? 1,
         );
-        const styled = curve as StyledCurve,
-          id = curve.relationship_id;
+        const id = curve.relationship_id;
         drawn.push({
           id,
           points,
-          // The backend never emits `violation`; the active violations win.
-          family: propsRef.current.violations?.includes(id)
-            ? "violation"
-            : (styled.relationship_family ?? "call_or_data"),
-          status: statusOf(styled, id),
+          ...resolveCurveStyle(
+            curve as StyledCurveFields,
+            Boolean(propsRef.current.violations?.includes(id)),
+            relationLookup.get(id),
+          ),
         });
       }
       documentaryLookup = new Map();
       for (const link of data.documentary_links ?? []) {
-        const curve = documentaryCurve(link);
+        const curve = documentaryCurve(link) as unknown as ViewportFrameData["curves"][number];
         documentaryLookup.set(link.link_id, link);
         drawn.push({
           id: link.link_id,
@@ -587,8 +560,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
             currentLens,
             spheres.get(link.fragment_rep)?.radius ?? 1,
           ),
-          family: link.relationship_family ?? "doc_describes",
-          status: link.runtime_status ?? "exact",
+          ...resolveLinkStyle(link),
         });
       }
       for (const [index, item] of drawn.entries()) {

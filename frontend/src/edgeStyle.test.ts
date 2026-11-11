@@ -74,3 +74,99 @@ test("contrastRatio matches known WCAG values", () => {
   assert(Math.abs(contrastRatio("#000000", "#FFFFFF") - 21) < 1e-9);
   assert(Math.abs(contrastRatio("#FFFFFF", "#FFFFFF") - 1) < 1e-9);
 });
+
+import {
+  documentaryCurve,
+  resolveCurveStyle,
+  resolveLinkStyle,
+  resolveStatus,
+  ALPHA_SLOPE,
+  ALPHA_START,
+} from "./edgeStyle.ts";
+
+test("status derives from the relationship when runtime_status is absent", () => {
+  assert.equal(resolveStatus({}, { family: "runtime" }), "observed");
+  assert.equal(resolveStatus({}, { family: "expected" }), "expected_only");
+  assert.equal(
+    resolveStatus({}, { resolution_status: "candidate" }),
+    "candidate",
+  );
+  assert.equal(
+    resolveStatus({}, { resolution_status: "unresolved" }),
+    "candidate",
+  );
+  assert.equal(
+    resolveStatus({}, { family: "static", resolution_status: "exact" }),
+    "exact",
+  );
+  assert.equal(resolveStatus({}, undefined), "exact");
+});
+
+test("explicit runtime_status wins over the relationship", () => {
+  assert.equal(
+    resolveStatus({ runtime_status: "exact" }, { family: "runtime" }),
+    "exact",
+  );
+  assert.equal(resolveStatus({ runtime_status: "observed" }, {}), "observed");
+});
+
+test("violation override wins over every family", () => {
+  for (const f of families)
+    assert.equal(
+      resolveCurveStyle({ relationship_family: f }, true).family,
+      "violation",
+    );
+  assert.equal(
+    resolveCurveStyle({ relationship_family: "hierarchy" }, false).family,
+    "hierarchy",
+  );
+});
+
+test("fallbacks when family or status are absent", () => {
+  assert.deepEqual(resolveCurveStyle({}, false), {
+    family: "call_or_data",
+    status: "exact",
+  });
+  assert.deepEqual(resolveLinkStyle({}), {
+    family: "doc_describes",
+    status: "exact",
+  });
+  assert.deepEqual(
+    resolveLinkStyle({
+      relationship_family: "doc_cites",
+      runtime_status: "candidate",
+    }),
+    { family: "doc_cites", status: "candidate" },
+  );
+});
+
+test("documentary adapter yields a samplable curve", () => {
+  const c = documentaryCurve({
+    link_id: "L",
+    fragment_rep: "F",
+    entity_rep: "E",
+    control_points: [
+      [0, 0, 0],
+      [1, 1, 0],
+      [2, 0, 0],
+    ],
+    degree: 2,
+    knots: [0, 0, 0, 1, 1, 1],
+  });
+  assert.equal(c.relationship_id, "L");
+  assert.equal(c.canonical_source, "F");
+  assert.equal(c.canonical_target, "E");
+  assert.equal(c.reversed, false);
+  assert.equal(c.lane_count, 1);
+  assert.equal(c.lane_spacing, 0);
+  assert.equal(c.sample_count, 32);
+  assert.deepEqual(c.control_points, [
+    [0, 0, 0],
+    [1, 1, 0],
+    [2, 0, 0],
+  ]);
+});
+
+test("alpha constants feed alphaAt", () => {
+  assert.equal(alphaAt(0.5), ALPHA_START - ALPHA_SLOPE * 0.5);
+});
