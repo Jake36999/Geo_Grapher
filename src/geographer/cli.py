@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 from .pipeline import ingest
@@ -64,6 +65,8 @@ def main():
     workspace=sub.add_parser('ingest-workspace',help='Ingest explicit, nonoverlapping project roots; isolated unless resolution_group is declared')
     workspace.add_argument('--manifest',type=Path,required=True);workspace.add_argument('--database',type=Path,required=True)
     workspace.add_argument('--stage',type=int,choices=[1,2,3],default=1);workspace.add_argument('--report',type=Path)
+    discovery=sub.add_parser('discovery-report',help='Deterministic discovery card (discovery-card-v1) as Markdown, optionally JSON')
+    discovery.add_argument('--store',type=Path,required=True);discovery.add_argument('--snapshot');discovery.add_argument('--out',required=True,help='Markdown file, or - for stdout');discovery.add_argument('--json',type=Path)
     graphs=sub.add_parser('ingest-graphs',help='One independent database/graph per project profile')
     graphs.add_argument('--manifest',type=Path,required=True);graphs.add_argument('--catalog',type=Path,required=True)
     graphs.add_argument('--on-overlap',choices=['keep_separate','child_module']);graphs.add_argument('--report',type=Path)
@@ -171,6 +174,22 @@ def main():
         output=json.dumps(report,indent=2,ensure_ascii=False)
         if args.report:args.report.parent.mkdir(parents=True,exist_ok=True);args.report.write_text(output+'\n',encoding='utf-8')
         print(output);return
+    if args.command=='discovery-report':
+        from .discovery import build_card,render_markdown
+        from .model import canonical
+        from .store import SnapshotStore
+        if not args.store.is_file():raise ValueError('Store not found; no empty store was created')
+        store=SnapshotStore(args.store)
+        try:
+            sid=args.snapshot or (store.connection.execute("SELECT snapshot_id FROM snapshot_sets WHERE status='complete' ORDER BY created_at DESC,snapshot_id DESC LIMIT 1").fetchone() or [None])[0]
+            if sid is None:raise ValueError('No complete snapshot in store')
+            card=build_card(store,sid);text=render_markdown(card)
+        finally:store.close()
+        if args.json:args.json.parent.mkdir(parents=True,exist_ok=True);args.json.write_text(canonical(card)+chr(10),encoding='utf-8',newline=chr(10))
+        if args.out=='-':sys.stdout.buffer.write(text.encode('utf-8'));sys.stdout.buffer.flush()
+        else:
+            out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(text.encode('utf-8'))
+        return
     if args.command=="cache-tokenizers":
         from .tokens import cache_weights
         print(json.dumps(cache_weights(args.directory),indent=2));return

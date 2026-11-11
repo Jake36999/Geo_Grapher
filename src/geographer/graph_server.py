@@ -85,10 +85,29 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
 
     @mcp._mcp_server.list_resources()
     async def list_resources():return [types.Resource(uri='geographer://graphs',name='Independent project graphs',mimeType='application/json')]
+    @mcp._mcp_server.list_resource_templates()
+    async def list_resource_templates():
+        return [types.ResourceTemplate(uriTemplate='geographer://graphs/{graph_id}/discovery',name='Discovery card (JSON)',mimeType='application/json'),
+                types.ResourceTemplate(uriTemplate='geographer://graphs/{graph_id}/discovery.md',name='Discovery card (Markdown)',mimeType='text/markdown')]
+    def discovery_card(graph_id):
+        from .discovery import build_card
+        graph_id=router.resolve(graph_id);router.permit(graph_id)
+        snapshot_id=router.catalog.graph(graph_id)['snapshot_id']
+        with router.lease(graph_id) as service:
+            with service.lock:return build_card(service.store,snapshot_id)
     @mcp._mcp_server.read_resource()
     async def read_resource(uri):
-        if str(uri)!='geographer://graphs':raise ValueError('Unknown graph resource')
-        return [ReadResourceContents(content=canonical(router.summary()),mime_type='application/json')]
+        text=str(uri)
+        if text=='geographer://graphs':return [ReadResourceContents(content=canonical(router.summary()),mime_type='application/json')]
+        prefix='geographer://graphs/'
+        if text.startswith(prefix) and text.endswith(('/discovery','/discovery.md')):
+            markdown=text.endswith('.md');graph_id=text[len(prefix):text.rindex('/')]
+            card=await anyio.to_thread.run_sync(discovery_card,graph_id)
+            if markdown:
+                from .discovery import render_markdown
+                return [ReadResourceContents(content=render_markdown(card),mime_type='text/markdown')]
+            return [ReadResourceContents(content=canonical(card),mime_type='application/json')]
+        raise ValueError('Unknown graph resource')
     return mcp
 
 
