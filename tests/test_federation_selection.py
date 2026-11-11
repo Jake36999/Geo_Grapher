@@ -153,3 +153,12 @@ def test_paper_only_graph_defaults_to_silver_paper(two,tmp_path):
     assert router._stratum(catalog.graph(b))==('silver','code')
     catalog.set_stratum(a,'primary','gold','doc')
     assert router._stratum(catalog.graph(a))==('gold','doc')
+
+
+def test_cli_set_graph_stratum(two,monkeypatch,capsys):
+    catalog,_,a,_b=two
+    from geographer import cli
+    monkeypatch.setattr(sys,'argv',['geographer','set-graph-stratum','--catalog',str(catalog.path),'--graph-id',a,'--role','primary','--trust-tier','bronze','--modality','doc'])
+    cli.main()
+    assert json.loads(capsys.readouterr().out)['stratum']=={'role':'primary','trust_tier':'bronze','modality':'doc'}
+    assert json.loads(catalog.graph(a)['profile_json'])['stratum']=={'role':'primary','trust_tier':'bronze','modality':'doc'}
