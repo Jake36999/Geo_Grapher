@@ -194,10 +194,15 @@ def build_frame(service,q,ctx):
     visible.update(protected)
     visible&=set(layout.centres)
     if q['focus_id'] not in visible:raise QueryError('INVALID_REQUEST','Filters exclude the focus')
-    nodes={eid:service._node(ctx,eid,part=part,focus=q['focus_id']) for eid in visible}
-    if q['schema_version']=='1.1':
+    labelled=q['schema_version']=='1.1'
+    nodes={eid:service._node(ctx,eid,part=part,focus=q['focus_id'],labels=labelled) for eid in visible}
+    if labelled:
         from .labels import disambiguate
-        for nid,label in disambiguate(sorted(nodes.values(),key=lambda n:n['id'])).items():nodes[nid]['display_label']=label
+        for eid,n in nodes.items():
+            if n['kind']=='fragment':n['label_text']=g.analyses.get('text:'+eid,{}).get('result',{}).get('text','')
+        ordered=sorted(nodes.values(),key=lambda n:n['id'])
+        for nid,label in disambiguate(ordered).items():nodes[nid]['display_label']=label
+        for n in ordered:n.pop('label_text',None)
     spheres={eid:dict(node_id=eid,center=list(layout.centres[eid]),radius=layout.radii[eid],
                       role='representative' if eid in part.groups else 'context_shell') for eid in visible}
     data=service._payload(sid,ctx,layout_version='sphere-pack-v1',partition_digest=partition_digest,spheres=[],curves=[],

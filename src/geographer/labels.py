@@ -191,10 +191,15 @@ def _degrees(graph):
         incoming=defaultdict(set);outgoing=defaultdict(set);external=defaultdict(set)
         for rid in sorted(graph.relationships):
             r=graph.relationships[rid]
-            if r.family!='static' or r.resolution_status!='exact':continue
+            if r.family!='static':continue
             a,b=graph.entities.get(r.source_subject_id),graph.entities.get(r.target_subject_id)
             if a is None or b is None or a.entity_id==b.entity_id:continue
-            if b.is_external:external[a.entity_id].add(b.qualified_name);continue
+            # The extractor never resolves a call into an external symbol to 'exact'; the
+            # symbol's qualified name is the statically stated callee, so any status counts here.
+            if b.is_external:
+                if r.subtype=='calls':external[a.entity_id].add(b.qualified_name)
+                continue
+            if r.resolution_status!='exact':continue
             if a.is_external or a.repo_id!=b.repo_id:continue
             incoming[b.entity_id].add(a.entity_id);outgoing[a.entity_id].add(b.entity_id)
         cache.update(degrees_key=key,degrees=(incoming,outgoing,external),badges={})

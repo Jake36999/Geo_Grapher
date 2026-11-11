@@ -156,3 +156,54 @@ def test_role_inputs_and_labels_are_hashseed_independent():
         env = {**os.environ, "PYTHONHASHSEED": seed, "PYTHONPATH": str(ROOT / "src")}
         outputs.append(subprocess.run([sys.executable, "-c", SCRIPT], env=env, capture_output=True, check=True).stdout)
     assert outputs[0] == outputs[1] and b"click.command" in outputs[0]
+
+
+REST_FILES = {"docs/guide.md": b"# Guide\n\nInstall the package with pip now.\n\nRun the migrate command today.\n",
+              "app.py": b"def main():\n    return 1\n"}
+
+
+def _rest(client, sid, root):
+    hierarchy = client.get("/api/v1/hierarchy", params={"snapshot_id": sid, "parent_id": root, "documents": "true", "limit": 200}).json()
+    ids = [n["id"] for n in hierarchy["nodes"]]
+    entities = client.post("/api/v1/entities", json={"snapshot_id": sid, "ids": ids}).json()
+    return hierarchy, entities
+
+
+def test_rest_routes_have_stable_labels_and_never_label_text_after_a_1_1_query():
+    from starlette.testclient import TestClient
+    from geographer.server import create_http_app
+    shapes = []
+    for warm in (False, True):
+        with SnapshotStore() as store:
+            sid = ingest(store, [Repository("r", "rev", REST_FILES)], stage=3)["snapshot_id"]
+            svc = QueryService(store, secret=b"w" * 32)
+            ctx = svc._context(sid)
+            root = next(e.entity_id for e in ctx["g"].entities.values() if e.kind == "repository")
+            if warm:
+                focus = next(e.entity_id for e in ctx["g"].entities.values() if e.qualified_name == "app.py.main")
+                q = viewport_request(sid, focus)
+                q.update(schema_version="1.1", identity_mode="canonical_map", grouping={"mode": "atomic"})
+                assert "data" in svc.query("viewport_frame", q)
+            with TestClient(create_http_app(svc), base_url="http://127.0.0.1:8765") as client:
+                hierarchy, entities = _rest(client, sid, root)
+            assert "label_text" not in json.dumps([hierarchy, entities])
+            shapes.append(sorted((n["qualified_name"], n.get("display_label"), n.get("role_badge")) for n in hierarchy["nodes"] + entities["nodes"]))
+            assert all("display_label" in n and "role_badge" in n for n in hierarchy["nodes"])
+    assert shapes[0] == shapes[1]
+
+
+def test_other_1_1_operations_never_carry_label_text():
+    from test_phase5_actor import base, context, id_of
+    with SnapshotStore() as store:
+        sid = ingest(store, [Repository("r", "rev", {**REST_FILES, "lib.py": b"def run(x):\n    return x\n"})], stage=3)["snapshot_id"]
+        svc = QueryService(store, secret=b"x" * 32)
+        arch = svc.query("get_architecture_context", context(svc, sid))
+        found = svc.query("search_entities", {**base(sid), "query": "Install package", "mode": "hybrid", "repo_ids": [], "kinds": [], "limit": 20, "cursor": None})
+        for result in (arch, found):
+            assert "data" in result, result
+            assert "label_text" not in json.dumps(result)
+def test_io_badge_from_external_call_only(extract_module):
+    g, eid = extract_module("def go(p):\n    import sqlite3\n    return sqlite3.connect(p)\n", "m.go")
+    assert role_badge(g, eid) == "IO"
+    g, eid = extract_module("def go(p):\n    import sqlite3\n    return sqlite3.Row\n", "m.go")
+    assert role_badge(g, eid) is None
