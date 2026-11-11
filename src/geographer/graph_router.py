@@ -55,7 +55,7 @@ def _add_citation_handles(node,label):
 class GraphRouter:
     def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None):
         self.catalog=catalog;self.services=OrderedDict();self.lock=threading.RLock();self.cond=threading.Condition(self.lock)
-        self.leases=Counter();self.retired=set();self.borrowed=set()
+        self.leases=Counter();self.retired=set();self.borrowed=set();self.deleting=set()
         self.offered_tools=offered_tools(tools)
         if max_result_chars is not None and (type(max_result_chars) is not int or max_result_chars<1000):
             raise ValueError('max_result_chars must be an integer of at least 1000')
@@ -120,6 +120,7 @@ class GraphRouter:
         row=self.catalog.graph(graph_id)
         key=(graph_id,row['code_database'])
         with self.lock:
+            if graph_id in self.deleting:raise ValueError('GRAPH_BUSY: the graph is being deleted')
             if key not in self.services:
                 from .server import persisted_secret
                 path=Path(row['code_database'])
@@ -159,14 +160,19 @@ class GraphRouter:
         """Retire every service generation of a graph and wait until all are closed."""
         deadline=time.monotonic()+timeout
         with self.cond:
+            self.deleting.add(graph_id)
             keys=[k for k in self.services if k[0]==graph_id]
             for key in keys:self.retired.add(key);self._close_if_idle(key)
             while any(k in self.services for k in keys):
                 remaining=deadline-time.monotonic()
                 if remaining<=0:
-                    self.retired.difference_update(keys)
+                    self.retired.difference_update(keys);self.deleting.discard(graph_id)
                     raise ValueError('GRAPH_BUSY: the graph still has active requests')
                 self.cond.wait(remaining)
+
+    def unretire_graph(self,graph_id):
+        """Clear the deletion tombstone once a delete finished or was abandoned."""
+        with self.cond:self.deleting.discard(graph_id)
 
     @contextmanager
     def lease(self,graph_id):

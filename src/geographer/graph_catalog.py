@@ -1,5 +1,6 @@
 """Independent project stores and explicit, non-merging graph bridges."""
 from __future__ import annotations
+from contextlib import closing
 from datetime import datetime,timezone
 import gc
 import json
@@ -119,7 +120,7 @@ class GraphCatalog:
             if existing:return dict(graph_id=new_id,label=label,copied_from=graph_id,snapshot_id=source['snapshot_id'])
             database=(self.path.parent/'graphs'/new_id/'code.sqlite').resolve();database.parent.mkdir(parents=True,exist_ok=True)
             try:
-                with sqlite3.connect(Path(source['code_database']).resolve().as_uri()+'?mode=ro',uri=True) as src:
+                with closing(sqlite3.connect(Path(source['code_database']).resolve().as_uri()+'?mode=ro',uri=True)) as src:
                     dst=sqlite3.connect(database)
                     try:src.backup(dst)
                     finally:dst.close()
@@ -131,19 +132,32 @@ class GraphCatalog:
                 shutil.rmtree(database.parent,ignore_errors=True);raise
             return dict(graph_id=new_id,label=label,copied_from=graph_id,snapshot_id=source['snapshot_id'])
 
-    def delete_graph(self,graph_id,*,retire=None,protected=frozenset()):
-        """Remove a graph and its bridges; unlink only stores this catalog owns."""
+    def _refuse_if_in_use(self,graph_id,protected):
+        if graph_id in protected:raise ValueError('GRAPH_IN_USE: this is the hub primary graph')
+        if self.connection.execute('SELECT 1 FROM merge_receipts WHERE graph_id=?',(graph_id,)).fetchone():
+            raise ValueError('GRAPH_IN_USE: a merge receipt names this graph')
+        for other in self.graphs():
+            if other['graph_id']!=graph_id and any(s.get('graph_id')==graph_id for s in json.loads(other['profile_json']).get('source_graphs',[])):
+                raise ValueError('GRAPH_IN_USE: it is a source of merged graph '+other['graph_id'])
+
+    def delete_graph(self,graph_id,*,retire=None,protected=frozenset(),restore=None):
+        """Remove a graph and its bridges; unlink only stores this catalog owns.
+
+        `restore` (default: the owner's `unretire_graph` when `retire` is a bound
+        router method) clears the router's deletion tombstone when we finish or fail."""
+        if restore is None and retire is not None:restore=getattr(getattr(retire,'__self__',None),'unretire_graph',None)
+        try:return self._delete_graph(graph_id,retire,protected)
+        finally:
+            if restore is not None:restore(graph_id)
+
+    def _delete_graph(self,graph_id,retire,protected):
         with self.lock:
             row=self.graph(graph_id)
-            if graph_id in protected:raise ValueError('GRAPH_IN_USE: this is the hub primary graph')
-            if self.connection.execute('SELECT 1 FROM merge_receipts WHERE graph_id=?',(graph_id,)).fetchone():
-                raise ValueError('GRAPH_IN_USE: a merge receipt names this graph')
-            for other in self.graphs():
-                if other['graph_id']!=graph_id and any(s.get('graph_id')==graph_id for s in json.loads(other['profile_json']).get('source_graphs',[])):
-                    raise ValueError('GRAPH_IN_USE: it is a source of merged graph '+other['graph_id'])
+            self._refuse_if_in_use(graph_id,protected)  # Early: an obvious refusal retires nothing.
         if retire is not None:retire(graph_id)  # May raise GRAPH_BUSY before anything changes.
         with self.lock,self.connection:
             self.connection.execute('BEGIN IMMEDIATE')
+            self._refuse_if_in_use(graph_id,protected)  # Re-checked: a merge may have landed during retire.
             removed=[r[0] for r in self.connection.execute('SELECT bridge_id FROM bridges WHERE source_graph=? OR target_graph=? ORDER BY bridge_id',(graph_id,graph_id))]
             self.connection.execute('DELETE FROM bridges WHERE source_graph=? OR target_graph=?',(graph_id,graph_id))
             self.connection.execute('DELETE FROM overlap_decisions WHERE graph_a=? OR graph_b=?',(graph_id,graph_id))

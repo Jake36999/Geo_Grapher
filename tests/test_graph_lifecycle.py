@@ -149,3 +149,55 @@ def test_cli_copy_and_delete(hub, tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(sys, 'argv', ['geographer', 'delete-graph', '--catalog', cat, '--graph-id', second['graph_id'], '--confirm-label', 'B'])
     cli.main()
     assert json.loads(capsys.readouterr().out)['deleted'] == second['graph_id']
+
+
+def test_retired_graph_cannot_reopen_before_catalog_delete(hub, tmp_path):
+    catalog, router, first = hub
+    second = import_graph(catalog, tmp_path / 'b', 'B')
+    router.query(second['graph_id'], 'search_entities', request(second))
+    path = Path(catalog.graph(second['graph_id'])['code_database'])
+    seen = []
+
+    def retire_then_probe(gid):
+        router.retire_graph(gid)
+        with pytest.raises(ValueError, match='^GRAPH_BUSY'):
+            router.acquire(gid)  # catalog row still exists here
+        seen.append(True)
+    receipt = catalog.delete_graph(second['graph_id'], retire=retire_then_probe, restore=router.unretire_graph)
+    assert seen and receipt['files_kept'] == [] and not path.exists()
+
+
+def test_refused_or_timed_out_delete_leaves_graph_acquirable(hub, tmp_path):
+    catalog, router, first = hub
+    second = import_graph(catalog, tmp_path / 'b', 'B')
+    key, _ = router.acquire(second['graph_id'])
+    original = router.retire_graph
+    with pytest.raises(ValueError, match='^GRAPH_BUSY'):
+        catalog.delete_graph(second['graph_id'], retire=lambda g: original(g, timeout=0.2))
+    router.release(key)
+    router.release(router.acquire(second['graph_id'])[0])
+    with pytest.raises(ValueError, match='^GRAPH_IN_USE'):
+        catalog.delete_graph(second['graph_id'], retire=router.retire_graph, protected=frozenset({second['graph_id']}))
+    router.release(router.acquire(second['graph_id'])[0])
+    # Refusal discovered only inside the transaction (after retire) also restores access.
+    def retire_then_merge(gid):
+        router.retire_graph(gid)
+        merge_two(catalog, first['graph_id'], gid)
+    with pytest.raises(ValueError, match='^GRAPH_IN_USE'):
+        catalog.delete_graph(second['graph_id'], retire=retire_then_merge, restore=router.unretire_graph)
+    router.release(router.acquire(second['graph_id'])[0])
+
+
+def test_merge_landing_during_retire_aborts_delete_without_changes(hub, tmp_path):
+    catalog, router, first = hub
+    second = import_graph(catalog, tmp_path / 'b', 'B')
+    path = Path(catalog.graph(second['graph_id'])['code_database'])
+    bridge = catalog.add_bridge(first['graph_id'], 'root', second['graph_id'], 'root', 'reference', 'test', [{'note': 'x'}])
+
+    def retire_then_merge(gid):
+        router.retire_graph(gid)
+        merge_two(catalog, first['graph_id'], gid)
+    with pytest.raises(ValueError, match='^GRAPH_IN_USE'):
+        catalog.delete_graph(second['graph_id'], retire=retire_then_merge)
+    assert catalog.graph(second['graph_id']) and path.is_file()
+    assert [b['bridge_id'] for b in catalog.bridges([first['graph_id'], second['graph_id']])] == [bridge]
