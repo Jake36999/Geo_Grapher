@@ -149,3 +149,31 @@ def test_affinity_layout_independent_of_filter_history(frame_for):
     ab = run_pair(("A", fa), ("B", fb))
     ba = run_pair(("B", fb), ("A", fa))
     assert ab["A"] == ba["A"] and ab["B"] == ba["B"] and ab["A"] == ab["B"]
+
+
+# Gate fix D1: real frames have one dominant pair (here weight 200) next to many weight-1 pairs, so
+# w = A/max d made the weight-1 attraction negligible and the repulsion scattered affine siblings.
+DOM_IDS = [f"d{i:02d}" for i in range(17)]
+DOM_RADII = [0.4] * 17
+DOM_AFF = {("d00", "d01"): 200.0} | {(f"d{a:02d}", f"d{b:02d}"): 1.0 for a, b in ((2, 3), (4, 5), (6, 7), (8, 9), (10, 11), (12, 13))}
+DOM_EXT = {"d14": 3.0}
+
+
+def _dominant_pair_gap(seed):
+    centres, radius, *_ = pack_siblings_affinity(DOM_IDS, DOM_RADII, 17, seed, DOM_AFF, DOM_EXT)
+    assert violations(centres, DOM_RADII, radius) <= 1e-4
+    bands = layout_bands(DOM_IDS, DOM_AFF, DOM_EXT)
+    d = {i: unit(c) for i, c in zip(DOM_IDS, centres) if bands[i][1] > 0.42}
+    pairs = [(a, b) for a in sorted(d) for b in sorted(d) if a < b]
+    affine = [dot(d[a], d[b]) for a, b in pairs if (a, b) in DOM_AFF]
+    zero = [dot(d[a], d[b]) for a, b in pairs if (a, b) not in DOM_AFF]
+    assert len(affine) >= 6
+    return sum(affine) / len(affine), sum(zero) / len(zero)
+
+
+def test_weak_affine_pairs_beside_a_dominant_pair_still_cluster():
+    gaps = [_dominant_pair_gap(f"gate-{k}") for k in range(4)]
+    affine = sum(a for a, _ in gaps) / len(gaps)
+    zero = sum(z for _, z in gaps) / len(gaps)
+    print("dominant-pair cosines", affine, zero)
+    assert affine > zero + 0.3

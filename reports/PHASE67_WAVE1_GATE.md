@@ -162,3 +162,52 @@ browser suite          ok (21s)
 - **D1. Affinity layout does not draw affine siblings closer on real graphs.** Mean cosine between sibling centre vectors is lower for affine pairs than for zero-affinity pairs in all four ToolSet and librarian-v2 cells when document-focus frames are included (ToolSet file -0.050 vs -0.012, atomic -0.081 vs -0.011; librarian-v2 atomic -0.263 vs -0.013), and per call affine > zero in only 11 of 24 calls. It holds only on ToolSet root frames. Caveats: librarian-v2 has very few affine pairs (1 to 26) and many parents with K = 2 or 3, where the force layout places siblings antipodally, which dominates the mean. Needs a decision on whether the criterion should be pair-count weighted and K >= 4 only, or the force term in `pack_siblings_affinity` strengthened.
 - **D2. Federation at 4,096 tokens with four graphs returns nothing and mislabels why.** `per_graph = max(512, (limit - 1000) // n)` gives 774 tokens, below the 793-token minimum for a successful `search_entities` envelope. The graph router wraps the response as `{graph_id, result:{error:BUDGET_TOO_SMALL}}`, so the `'error' in envelope` test in `federated_search` never fires. The envelope counts as "no hits" and every graph is reported `no_relevant_hits` (used_tokens 365 of 4,096). Same queries return hits at 8,192, so the reason is wrong and 3,700 tokens go unused.
 - **D3 (observation, minor).** In fragment-heavy documentation frames 17% of ToolSet atomic labels (88 of 504) still fall back to ` (n)` numbering after the snippet step. No documentary links appear in any librarian-v2 frame, and no `doc_cites`, `catalog_bridge`, `violation` or non-exact runtime status occurs in any sampled frame, so those paths are not exercised on real data.
+
+## 5. Gate fixes (D1, D2)
+
+Commit `fix(gate): affinity clustering on real graphs and federation budget split`. Measured on the copies under `output/phase67-gates/wave1/` (root frame at context radius 1 plus the 5 documents with most fragments at radius 2, `node_budget` 120, `sphere-affinity-v1`).
+
+### D1 diagnosis and fix (controller ruling F20)
+
+Re-measured per F20: only pairs with both members outside the core band (F6) and only parents with K >= 4. Mean cosine between sibling centre vectors:
+
+| Graph | View | Before: affine (pairs) | Before: zero | (c) alone: affine | zero | After (b)+(c): affine (pairs) | zero |
+|---|---|---|---|---|---|---|---|
+| ToolSet | file | 0.138 (9) | -0.011 | 0.595 | -0.008 | **0.722 (9)** | -0.008 |
+| ToolSet | atomic | -0.008 (12) | -0.010 | 0.029 | -0.009 | **0.165 (12)** | -0.008 |
+| librarian-v2 | file | none (0 pairs) | -0.011 | none | -0.011 | none (0 pairs) | -0.011 |
+| librarian-v2 | atomic | 0.315 (2) | -0.014 | 0.652 | -0.014 | **0.669 (2)** | -0.014 |
+
+Diagnosis:
+
+- Affinity maps are not mis-lifted or empty. K >= 4 parents carry hundreds of A > 0 pairs (ToolSet file 399, atomic 191, librarian-v2 atomic 44).
+- Nearly all affine pairs contain a core member (core-core or core-mantle). Excluded by F6, only 9, 12, 0 and 2 affine pairs remain, so the criterion population is tiny (librarian-v2 file has none, so it is vacuous there). Over all bands, affine pairs were below zero-affinity pairs before the fix (ToolSet file -0.029 vs -0.011, atomic -0.034 vs -0.010, librarian-v2 atomic -0.133 vs -0.014).
+- Attraction was too weak: `w = A/max d` with one dominant pair (e.g. A = 193 to 218 beside weight-1 pairs) gives most weights about 0.005, far below the repulsion term (0.5/|S|). ToolSet atomic's 0.008 vs 0.010 margin before the fix was noise-level.
+- Tightly packed parents let the collision solver erase the remaining angular structure, so the margin stayed small (0.029) with the weight fix alone.
+
+Fix (both in `src/geographer/geometry.py`, `pack_siblings_affinity` only, so `sphere-pack-v1` is byte-identical and `tests/test_stage4_geometry.py` passes unchanged):
+
+- **(c)** minimum attraction weight for A > 0 pairs: `w = max(0.25, A/max d)`.
+- **(b)** F6 parent-radius slack: `R_P_aff = 1.15 x R_P`.
+
+**G14 formulas change:** the weight line becomes `w(u,v) = max(0.25, A[u][v] / max_S d)`, and the parent radius for `sphere-affinity-v1` is `R_P_aff = 1.15 x R_P`. The controller should amend G14. The layout version string is unchanged; frames cached in memory are keyed per process, but `layouts` rows already persisted in a store under `sphere-affinity-v1` (INSERT OR IGNORE, not read back for frames) keep the old coordinates.
+
+Invariants re-checked on the four ToolSet and librarian-v2 cells: `packing.max_violation` 4.9e-5 to 9.9e-5 (<= 1e-4, i.e. 0 overlaps), no fallback parents, core < mantle < crust in mean `r_norm` fraction of parent radius (ToolSet file 0.468 / 0.567 / 0.737, atomic 0.481 / 0.586 / 0.661; librarian-v2 file 0.382 / none / 0.756, atomic 0.317 / 0.518 / 0.699), cold frame latency 2.18 s and 2.29 s (ToolSet atomic, file), 1.18 s and 1.09 s (librarian-v2), all <= 3.0 s. Deterministic (input-order and repeat tests pass).
+
+Regression test: `test_weak_affine_pairs_beside_a_dominant_pair_still_cluster` (17 siblings, one weight-200 pair plus six weight-1 pairs). RED before the fix: `assert -0.3479 > (-0.0409 + 0.3)` (affine -0.348, zero -0.041); after: affine 0.654, zero -0.103.
+
+### D2 (controller ruling F21)
+
+`GraphRouter.federated_search` no longer pre-splits the budget. Each graph's full and compact tiers are queried with `min(limit_tokens, 32768)` minus the exact token count of the response skeleton; pc-mckp-v1 selects whole envelopes under the total. A nested error (`result.error` or top-level `error`) is detected explicitly: `BUDGET_TOO_SMALL` in both tiers gives `budget_omitted`, any other nested error gives `GRAPH_UNAVAILABLE`; neither can be `no_relevant_hits`. The specification's federation passage was updated. RED before the fix (3 new tests failed), 18 passed after.
+
+Re-measured (5 queries x {4096, 8192} x all 24 permutations over the 4 copied graphs): mismatches across permutations **0 of 240**. Tiers (A / L / T / M) and used tokens:
+
+| Query | 4096 | used | 8192 | used |
+|---|---|---|---|---|
+| graph retrieval token efficiency | full / full / omit / omit (T budget_omitted) | 3,187 | full / full / full / omit | 6,510 |
+| sqlite snapshot store | full / omit / compact / omit | 3,300 | full / omit / full / omit | 4,345 |
+| Paul Warburg | full / omit / omit / full | 2,942 | full / omit / omit / full | 2,942 |
+| manifest validation workflow | full / omit (L budget_omitted) / full / omit | 3,594 | full / full / full / omit | 4,342 |
+| librarian vault resource | full / omit / omit / full (L, T budget_omitted) | 3,808 | full x4 | 7,558 |
+
+The 4096 results are non-empty for all five queries (gate 1.7 had none, 365 tokens used), and every `no_relevant_hits` is a graph with genuinely zero hits.

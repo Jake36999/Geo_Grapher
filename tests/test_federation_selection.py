@@ -162,3 +162,55 @@ def test_cli_set_graph_stratum(two,monkeypatch,capsys):
     cli.main()
     assert json.loads(capsys.readouterr().out)['stratum']=={'role':'primary','trust_tier':'bronze','modality':'doc'}
     assert json.loads(catalog.graph(a)['profile_json'])['stratum']=={'role':'primary','trust_tier':'bronze','modality':'doc'}
+
+
+def minimum_budget_query(sizes,minimum=793):
+    """Like fake_query, but mimics search_entities: BUDGET_TOO_SMALL nested under `result` below `minimum`."""
+    inner=fake_query(sizes)
+    def fake(gid,operation,req):
+        if req['budget']['limit_tokens']-160<minimum:
+            return dict(graph_id=gid,graph_label=gid,result=dict(error=dict(code='BUDGET_TOO_SMALL',message='too small',minimum=minimum)))
+        return inner(gid,operation,req)
+    return fake
+
+
+@pytest.fixture
+def four(tmp_path):
+    catalog=GraphCatalog(tmp_path/'catalog'/'catalog.sqlite')
+    ids=[import_graph(catalog,tmp_path/n,n.upper())['graph_id'] for n in 'abcd']
+    router=GraphRouter(catalog)
+    yield catalog,router,ids
+    router.close();catalog.close()
+
+
+def test_four_graphs_at_4096_return_a_selection_without_presplit(four,monkeypatch):
+    _,router,ids=four
+    # Each graph needs 793+ tokens of budget; the old pre-split gave each graph 774.
+    monkeypatch.setattr(router,'query',minimum_budget_query({g:12 for g in ids}))
+    outcomes=[]
+    for order in (ids,list(reversed(ids))):
+        r=router.federated_search(order,'research',limit_tokens=4096)
+        assert r['results'] and set(r['selection']['tiers'].values())!={'omit'}
+        assert r['used_tokens']==TokenCounter().count(r)<=4096
+        assert all(o['reason']!='no_relevant_hits' for o in r['omitted'])
+        outcomes.append((r['results'],r['omitted'],r['selection']))
+    assert outcomes[0]==outcomes[1]
+
+
+def test_nested_budget_too_small_is_budget_omitted_not_no_relevant_hits(two,monkeypatch):
+    _,router,a,b=two
+    monkeypatch.setattr(router,'query',minimum_budget_query({a:50,b:50},minimum=10**6))
+    r=router.federated_search([a,b],'research',limit_tokens=4096)
+    assert r['results']==[] and set(r['selection']['tiers'].values())=={'omit'}
+    assert sorted((o['graph_id'],o['reason']) for o in r['omitted'])==sorted([(a,'budget_omitted'),(b,'budget_omitted')])
+
+
+def test_other_nested_error_is_graph_unavailable(two,monkeypatch):
+    _,router,a,b=two
+    good=fake_query({a:50,b:50})
+    def mixed(gid,operation,req):
+        if gid==b:return dict(graph_id=gid,graph_label=gid,result=dict(error=dict(code='SNAPSHOT_UNAVAILABLE',message='gone')))
+        return good(gid,operation,req)
+    monkeypatch.setattr(router,'query',mixed)
+    r=router.federated_search([a,b],'research',limit_tokens=4096)
+    assert r['omitted']==[dict(graph_id=b,reason='GRAPH_UNAVAILABLE',message='gone')] and r['selection']['tiers'][a]=='full'

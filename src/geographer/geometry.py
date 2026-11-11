@@ -182,6 +182,9 @@ def pack_siblings_affinity(ids,radii,count,seed,affinity,external,*,preferred_ra
     order=sorted(range(len(ids)),key=lambda i:ids[i])
     sid=[ids[i] for i in order];rad=[radii[i] for i in order];K=len(sid)
     radius=max(preference,PADDING+max(rad),PADDING+(sum((r+GAP/2)**3 for r in rad)/.35)**(1/3))
+    # Gate fix D1 (F6 fallback b): affinity layouts get 15% parent-radius slack so the collision solver
+    # does not erase the angular structure in tightly packed parents. sphere-pack-v1 is unaffected.
+    radius*=1.15
     info=_coreness(sid,affinity,external);hat=[info[i][2] for i in sid]
     A={}
     for (a,b),w in sorted(affinity.items()):
@@ -204,7 +207,8 @@ def pack_siblings_affinity(ids,radii,count,seed,affinity,external,*,preferred_ra
                 for j in range(i+1,K):
                     xj=dirs[j];dx=xj[0]-xi[0];dy=xj[1]-xi[1];dz=xj[2]-xi[2]
                     w=W.get((i,j))
-                    s=w/maxd if w else -rep/max(1e-6,dx*dx+dy*dy+dz*dz)
+                    # Gate fix D1 (c): w=max(0.25,A/max d); one dominant pair must not mute every weaker pair.
+                    s=max(.25,w/maxd) if w else -rep/max(1e-6,dx*dx+dy*dy+dz*dz)
                     fx,fy,fz=force[i];force[i]=(fx+s*dx,fy+s*dy,fz+s*dz)
                     fx,fy,fz=force[j];force[j]=(fx-s*dx,fy-s*dy,fz-s*dz)
             updated=[]

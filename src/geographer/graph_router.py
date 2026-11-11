@@ -279,6 +279,14 @@ class GraphRouter:
             if name and (name==needle or name.rsplit('.',1)[-1]==needle):exact+=1
         return list(range(1,len(hits)+1)),exact
 
+    @staticmethod
+    def _nested_error(envelope):
+        """The error object of a routed envelope: top level, or nested under `result`."""
+        if not isinstance(envelope,dict):return None
+        for holder in (envelope,envelope.get('result')):
+            if isinstance(holder,dict) and isinstance(holder.get('error'),dict):return holder['error']
+        return None
+
     def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation'):
         if isinstance(graph_ids,list):graph_ids=[self.resolve(gid) for gid in graph_ids]
         if not isinstance(graph_ids,list) or not 2<=len(graph_ids)<=8 or len(set(graph_ids))!=len(graph_ids):raise ValueError('Choose 2..8 distinct graph IDs explicitly')
@@ -286,9 +294,15 @@ class GraphRouter:
         if mode not in {'lexical','documentation','hybrid'} or not isinstance(query,str) or not 1<=len(query)<=500:raise ValueError('Invalid search mode or query')
         for gid in graph_ids:self.permit(gid)
         graphs=sorted((self.catalog.graph(gid) for gid in graph_ids),key=lambda g:g['graph_id'])
-        per_graph=max(512,(limit_tokens-1000)//len(graphs))
         counter=TokenCounter();kind=intent(query)
-        envelopes={};unavailable={};candidates=[];utilities={}
+        # No pre-split (F21): every graph is queried against the whole budget less the response
+        # skeleton (graph ids, omission rows, selection maps). pc-mckp-v1 then selects whole
+        # envelopes under the total, so a graph whose smallest envelope cannot fit is omitted.
+        skeleton=dict(graph_ids=graph_ids,results=[],omitted=[dict(graph_id=g['graph_id'],reason='no_relevant_hits') for g in graphs],
+            ranking='independent_per_graph_no_global_rank',tokenizer='o200k_base',used_tokens=limit_tokens,
+            selection=dict(method='pc-mckp-v1',tiers={g['graph_id']:'omit' for g in graphs},utility={g['graph_id']:0 for g in graphs}))
+        per_graph=max(256,min(limit_tokens,32768)-counter.count(skeleton))
+        envelopes={};unavailable={};candidates=[];utilities={};budget_short=set()
         for graph in graphs:
             gid=graph['graph_id']
             # One unavailable graph must not hide the healthy graphs' results.
@@ -299,8 +313,13 @@ class GraphRouter:
                         budget=dict(limit_tokens=per_graph,tokenizer='o200k_base',allow_byte_fallback=False),query=query,
                         mode=mode,repo_ids=[],kinds=[],limit=limit,cursor=None)
                     envelope=self.query(gid,'search_entities',req)
-                    if isinstance(envelope,dict) and 'error' in envelope:raise ValueError(str(envelope['error'].get('message','graph error')))
+                    # The router nests a service error under `result`; it is never "no hits".
+                    err=self._nested_error(envelope)
+                    if err is not None:
+                        if str(err.get('code','')).endswith('BUDGET_TOO_SMALL'):continue
+                        raise ValueError(str(err.get('message','graph error')))
                     tiers[tier]=envelope
+                if not tiers:budget_short.add(gid)
                 trust,modality=self._stratum(graph)
                 try:store_mb=os.path.getsize(graph['code_database'])/1_000_000
                 except OSError:store_mb=0.
@@ -310,7 +329,7 @@ class GraphRouter:
             for tier,envelope in tiers.items():
                 ranks,exact=self._hit_facts(envelope,query)
                 # With at most two full hits the compact envelope carries nothing less.
-                if tier=='compact' and len(self._hit_facts(tiers['full'],query)[0])<=2:continue
+                if tier=='compact' and 'full' in tiers and len(self._hit_facts(tiers['full'],query)[0])<=2:continue
                 utilities[gid][tier]=utility(trust,modality,kind,store_mb,ranks,exact)
                 candidates.append(Candidate(gid,tier,counter.count(envelope),utilities[gid][tier]))
         def assemble(chosen):
@@ -324,7 +343,7 @@ class GraphRouter:
                 else:
                     if tier!='omit':response['results'].append(envelopes[gid][tier])
                     if tier!='full':
-                        reason='budget_compact_only' if tier=='compact' else 'no_relevant_hits' if not any(utilities[gid].values()) else 'budget_omitted'
+                        reason='budget_compact_only' if tier=='compact' else 'budget_omitted' if gid in budget_short or any(utilities[gid].values()) else 'no_relevant_hits'
                         response['omitted'].append(dict(graph_id=gid,reason=reason))
             return response
         def fit(response):

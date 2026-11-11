@@ -132,7 +132,9 @@ every document reference. Agents routed through the Librarian had renumbered bar
 
 `federated_search` requires 2–8 distinct `graph_ids`, a query, optional search mode,
 and a 2,048–32,768 `limit_tokens` cap. It currently compares canonical code/document
-search results. Each graph is searched independently with a bounded allocation:
+search results. Each graph is searched independently against the whole budget
+(`min(limit_tokens, 32768)` less the response skeleton); the budget is not pre-split
+across graphs, because an even share can fall below one graph's smallest envelope:
 
 ```typescript
 interface FederatedSearch {
@@ -165,8 +167,11 @@ graph), query intent, store size and its own hit ranks; utilities are never comp
 as retrieval scores. The response carries `selection = {method, tiers, utility}`,
 keyed by graph ID. If the assembled response overflows, selection is re-run with a
 tighter budget. `omitted[].reason` is one of `GRAPH_UNAVAILABLE`,
-`budget_compact_only` (only the compact envelope is included), `budget_omitted` and
-`no_relevant_hits` (a healthy graph with zero utility). A graph whose store cannot be
+`budget_compact_only` (only the compact envelope is included), `budget_omitted` (no envelope
+fits the total, including a graph whose own query reports `BUDGET_TOO_SMALL`) and
+`no_relevant_hits` (a healthy graph with zero utility; a nested per-graph error is never
+reported as this). A nested error other than `BUDGET_TOO_SMALL` is reported as
+`GRAPH_UNAVAILABLE`. A graph whose store cannot be
 opened appears only in `omitted` with `GRAPH_UNAVAILABLE`; `results` holds healthy
 envelopes only, and the other graphs' results are kept. Missing results are not
 fabricated.
