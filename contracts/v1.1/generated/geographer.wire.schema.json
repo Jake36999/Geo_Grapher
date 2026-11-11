@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "3beeb15fcb693e0e7974b993a5e7d262f33255423793d7d4cf1115e67840b4ca",
+  "contract_sha256": "7efef0554770a2bf89bcf7afc6ea6d7316ac5108ac83c1795ee58359982e74fb",
   "operations": {
     "search_entities": {
       "request": {
@@ -4478,7 +4478,14 @@
           "$ref": "#/$defs/Filter"
         },
         "layout_version": {
-          "const": "sphere-pack-v1"
+          "anyOf": [
+            {
+              "const": "sphere-pack-v1"
+            },
+            {
+              "const": "sphere-affinity-v1"
+            }
+          ]
         },
         "seed": {
           "type": "string"
@@ -4681,7 +4688,14 @@
           "$ref": "#/$defs/Completeness"
         },
         "layout_version": {
-          "const": "sphere-pack-v1"
+          "anyOf": [
+            {
+              "const": "sphere-pack-v1"
+            },
+            {
+              "const": "sphere-affinity-v1"
+            }
+          ]
         },
         "partition_digest": {
           "$ref": "#/$defs/Digest"

@@ -147,6 +147,37 @@ def documentary_links(service,sid,part,tree,centres,visible,budget):
     return links[:max(0,min(200,budget))]
 
 
+def affinity_maps(service,sid,vid,g,hierarchy):
+    """Per display parent: (sibling pair weights, external degree) for sphere-affinity-v1 (master G14)."""
+    parent_of={c:p for p,cs in hierarchy.items() for c in cs}
+    nodes=set(hierarchy)|set(parent_of)
+    def chain(rep):
+        path=[]
+        while rep is not None:path.append(rep);rep=parent_of.get(rep)
+        return path[::-1]
+    pairs=defaultdict(lambda:defaultdict(float));external=defaultdict(lambda:defaultdict(float))
+    def couple(a,b,weight):
+        ca,cb=chain(a),chain(b);k=0
+        while k<min(len(ca),len(cb)) and ca[k]==cb[k]:k+=1
+        if k==0 or k>=len(ca) or k>=len(cb):return
+        u,v=ca[k],cb[k];pairs[ca[k-1]][(min(u,v),max(u,v))]+=weight
+    rows=service.store.connection.execute('SELECT source_rep_id,target_rep_id,witness_count FROM quotient_projections WHERE snapshot_id=? AND view_id=? ORDER BY projection_id',(sid,vid))
+    for a,b,weight in rows:
+        if a not in nodes or b not in nodes or a==b:continue
+        couple(a,b,weight)
+        cb=set(chain(b))
+        for node in chain(a)[1:]:
+            if parent_of[node] not in cb:external[parent_of[node]][node]+=weight
+    tree=service._context(sid)['tree']
+    def rep_of(eid):
+        if eid not in tree.parents and eid!=tree.root:return None
+        return next((x for x in reversed(tree.ancestors(eid)) if x in nodes),None)
+    for row in g.incidences:
+        f,e=rep_of(row['fragment_id']),rep_of(row['entity_id'])
+        if f is not None and e is not None and f!=e:couple(f,e,1.)
+    return {p:(dict(sorted(pairs[p].items())),dict(sorted(external[p].items()))) for p in sorted(hierarchy) if hierarchy[p]}
+
+
 def build_frame(service,q,ctx):
     g=ctx['g'];tree=ctx['tree'];sid=q['snapshot_id']
     if q.get('model_digest') and q['model_digest'] not in service.rules:raise QueryError('NOT_FOUND','Selected rules model unavailable')
@@ -192,6 +223,8 @@ def build_frame(service,q,ctx):
     vid=service._persist_partition(sid,ctx,part,q['filter'],'viewport-partition-v1')
     partition_digest=digest({rep:sorted(members) for rep,members in sorted(part.groups.items())})
     geometry_key='layout:'+digest(sid,grouping,q['seed'],'content-orbits-v3',sorted(admitted) if admitted is not None else None)
+    layout_version=q.get('layout_version','sphere-pack-v1')
+    if layout_version!='sphere-pack-v1':geometry_key='layout:'+digest(geometry_key,layout_version)
     # Cache is per expansion state, not filter/camera/beta. Filters therefore fade
     # existing groups without changing all coordinates or running global physics.
     layout=ctx.setdefault('layouts',{}).get(geometry_key)
@@ -201,7 +234,8 @@ def build_frame(service,q,ctx):
             hierarchy={p:[c for c in children if c in admitted] for p,children in hierarchy.items() if p in admitted}
             counts={p:n for p,n in counts.items() if p in admitted}
             aggregate&=admitted
-        try:layout=pack_tree(hierarchy,tree.root,counts,q['seed'],aggregate,display_radii(ctx,counts))
+        affinity=affinity_maps(service,sid,vid,g,hierarchy) if layout_version=='sphere-affinity-v1' else None
+        try:layout=pack_tree(hierarchy,tree.root,counts,q['seed'],aggregate,display_radii(ctx,counts),affinity)
         except ValueError as exc:raise QueryError('LAYOUT_FAILED',str(exc)) from exc
         ctx['layouts'][geometry_key]=layout
         while len(ctx['layouts'])>16:ctx['layouts'].pop(next(iter(ctx['layouts'])))
@@ -210,7 +244,7 @@ def build_frame(service,q,ctx):
             for eid,centre in layout.centres.items():
                 if eid in g.entities:
                     service.store.connection.execute('INSERT OR IGNORE INTO layouts VALUES(?,?,?,?,?,?,?,?)',
-                        (sid,'sphere-pack-v1',seed,eid,*centre,layout.radii[eid]))
+                        (sid,layout_version,seed,eid,*centre,layout.radii[eid]))
     visible=set(part.groups)
     for rep in part.groups:
         anchor=rep if rep in g.entities else part.shells[rep]
@@ -229,7 +263,7 @@ def build_frame(service,q,ctx):
         for n in ordered:n.pop('label_text',None)
     spheres={eid:dict(node_id=eid,center=list(layout.centres[eid]),radius=layout.radii[eid],
                       role='representative' if eid in part.groups else 'context_shell') for eid in visible}
-    data=service._payload(sid,ctx,layout_version='sphere-pack-v1',partition_digest=partition_digest,spheres=[],curves=[],
+    data=service._payload(sid,ctx,layout_version=layout_version,partition_digest=partition_digest,spheres=[],curves=[],
         packing=dict(tolerance=EPS,fallback_parent_ids=[eid for eid in layout.fallback if eid in visible],max_violation=layout.max_violation),
         scene_completeness=dict(omitted_spheres=lod_omitted,omitted_curves=0))
     data['view_id']=vid

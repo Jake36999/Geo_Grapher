@@ -436,7 +436,7 @@ export interface ViewportFrameRequest extends BaseRequest {
   pins: Id[];
   context_radius: 0 | 1 | 2;
   filter: Filter;
-  layout_version: 'sphere-pack-v1';
+  layout_version: 'sphere-pack-v1' | 'sphere-affinity-v1';
   seed: string;
   beta: number;
   edge_lens: { enabled: boolean; center: Vec3; radius: number; strength: number };
@@ -446,7 +446,7 @@ export interface ViewportFrameRequest extends BaseRequest {
   camera: { eye: Vec3; target: Vec3; up: Vec3; fov_y_degrees: number; near: number; far: number };
 }
 export interface ViewportFrameData extends GraphPayload {
-  layout_version: 'sphere-pack-v1';
+  layout_version: 'sphere-pack-v1' | 'sphere-affinity-v1';
   partition_digest: Digest;
   spheres: { node_id: Id; center: Vec3; radius: number; role: 'representative' | 'context_shell' }[];
   curves: {
