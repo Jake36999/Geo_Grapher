@@ -217,14 +217,18 @@ def test_federation_all_graphs_failing_returns_valid_envelope(hub,tmp_path):
 def test_federation_selection_is_order_independent(hub,tmp_path,monkeypatch):
     catalog,router,first=hub;second=import_graph(catalog,tmp_path/'b','B')
     small,large=first['graph_id'],second['graph_id']
-    envelopes={small:dict(graph_id=small,result=dict(text='small '*200)),large:dict(graph_id=large,result=dict(text='large '*3000))}
-    monkeypatch.setattr(router,'query',lambda gid,operation,req:envelopes[gid])
+    catalog.set_stratum(small,'primary','gold','code');catalog.set_stratum(large,'primary','silver','code')
+    def fake(gid,operation,req):
+        n=req['limit'];words=100 if gid==small else 700
+        return dict(graph_id=gid,result=dict(data=dict(hits=[dict(node_id=f'n{i}') for i in range(n)],nodes=[],text='w '*(words*n))))
+    monkeypatch.setattr(router,'query',fake)
     outcomes=[]
     for order in ([small,large],[large,small]):
         result=router.federated_search(order,'research',limit_tokens=2048)
         assert result['used_tokens']==TokenCounter().count(result)<=2048
         outcomes.append((sorted(r['graph_id'] for r in result['results']),sorted((o['graph_id'],o['reason']) for o in result['omitted']),result['selection']))
     assert outcomes[0]==outcomes[1]
+    assert {'full','compact'}&set(outcomes[0][2]['tiers'].values())
 
 
 def test_catalog_stays_writable_during_ingest_and_rechecks_overlaps(hub,tmp_path,monkeypatch):

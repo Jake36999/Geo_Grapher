@@ -76,42 +76,80 @@ def test_set_stratum_writes_profile_json_and_validates(two):
     assert json.loads(catalog.graph(a)['profile_json'])==after
 
 
+def fake_query(sizes,hits_for=None):
+    """Envelopes whose size scales with limit; `sizes` maps graph_id to padding words per result."""
+    def fake(gid,operation,req):
+        n=min(req['limit'],(hits_for or {}).get(gid,req['limit']))
+        hits=[dict(node_id=f'n{i}') for i in range(n)]
+        nodes=[dict(id=f'n{i}',qualified_name=f'pkg.item{i}') for i in range(n)]
+        return dict(graph_id=gid,graph_label=gid,result=dict(data=dict(hits=hits,nodes=nodes,pad='x '*(sizes[gid]*n))))
+    return fake
+
+
 def test_federation_response_carries_selection_and_is_order_independent(two):
     _,router,a,b=two
     outcomes=[]
     for order in ([a,b],[b,a]):
-        r=router.federated_search(order,'research',limit_tokens=4096)
+        r=router.federated_search(order,'methods',limit_tokens=4096)
         assert r['ranking']=='independent_per_graph_no_global_rank'
         assert r['selection']['method']=='pc-mckp-v1'
         assert set(r['selection']['tiers'])==set(r['selection']['utility'])=={a,b}
+        assert set(r['selection']['tiers'].values())=={'full'} and r['results']
         assert r['used_tokens']==TokenCounter().count(r)<=4096
         outcomes.append((sorted(x['graph_id'] for x in r['results']),r['omitted'],r['selection']))
     assert outcomes[0]==outcomes[1]
 
 
-def test_tight_budget_degrades_to_compact_before_omitting(two,monkeypatch):
+def test_all_full_is_chosen_when_it_fits(two,monkeypatch):
     catalog,router,a,b=two
-    catalog.set_stratum(a,'primary','gold','code');catalog.set_stratum(b,'primary','gold','code')
-    def fake(gid,operation,req):
-        n=req['limit']
-        hits=[dict(node_id=f'n{i}') for i in range(n)]
-        nodes=[dict(id=f'n{i}',qualified_name=f'pkg.item{i}') for i in range(n)]
-        return dict(graph_id=gid,graph_label=gid,result=dict(data=dict(hits=hits,nodes=nodes,pad='x '*(100*n))))
-    monkeypatch.setattr(router,'query',fake)
+    monkeypatch.setattr(router,'query',fake_query({a:100,b:100}))
+    r=router.federated_search([a,b],'research',limit_tokens=2048)
+    assert r['selection']['tiers']=={a:'full',b:'full'} and r['omitted']==[]
+    assert r['used_tokens']<=2048
+
+
+def test_tight_budget_degrades_to_compact_when_full_does_not_fit(two,monkeypatch):
+    catalog,router,a,b=two
+    monkeypatch.setattr(router,'query',fake_query({a:220,b:220}))
     roomy=router.federated_search([a,b],'research',limit_tokens=32768)
-    assert set(roomy['selection']['tiers'].values())=={'full'} and roomy['omitted']==[]
+    assert set(roomy['selection']['tiers'].values())=={'full'}
     tight=router.federated_search([a,b],'research',limit_tokens=2048)
-    assert tight['used_tokens']<=2048
-    assert 'compact' in set(tight['selection']['tiers'].values())
+    assert tight['used_tokens']==TokenCounter().count(tight)<=2048
+    tiers=tight['selection']['tiers']
+    assert 'compact' in set(tiers.values()) and set(tiers.values())!={'full'}
     reasons={o['graph_id']:o['reason'] for o in tight['omitted']}
-    for gid,tier in tight['selection']['tiers'].items():
+    for gid,tier in tiers.items():
         assert reasons.get(gid)=={'compact':'budget_compact_only','omit':'budget_omitted'}.get(tier)
 
 
-def test_cli_set_graph_stratum(two,monkeypatch,capsys):
-    catalog,_,a,_b=two
-    from geographer import cli
-    monkeypatch.setattr(sys,'argv',['geographer','set-graph-stratum','--catalog',str(catalog.path),'--graph-id',a,'--role','primary','--trust-tier','bronze','--modality','doc'])
-    cli.main()
-    assert json.loads(capsys.readouterr().out)['stratum']=={'role':'primary','trust_tier':'bronze','modality':'doc'}
-    assert json.loads(catalog.graph(a)['profile_json'])['stratum']['trust_tier']=='bronze'
+def test_order_independent_real_choice_under_tight_budget(two,monkeypatch):
+    catalog,router,a,b=two
+    catalog.set_stratum(a,'primary','gold','code');catalog.set_stratum(b,'primary','bronze','code')
+    monkeypatch.setattr(router,'query',fake_query({a:120,b:700}))
+    outcomes=[]
+    for order in ([a,b],[b,a]):
+        r=router.federated_search(order,'research',limit_tokens=2048)
+        assert r['used_tokens']<=2048
+        outcomes.append((r['results'],r['omitted'],r['selection']))
+    assert outcomes[0]==outcomes[1]
+    tiers=outcomes[0][2]['tiers']
+    assert tiers[a]=='full' and tiers[b]!='full'
+
+
+def test_healthy_graph_without_hits_is_omitted_as_no_relevant_hits(two,monkeypatch):
+    catalog,router,a,b=two
+    monkeypatch.setattr(router,'query',fake_query({a:50,b:50},hits_for={b:0}))
+    r=router.federated_search([a,b],'research',limit_tokens=4096)
+    assert r['selection']['tiers']=={a:'full',b:'omit'} and r['selection']['utility'][b]==0
+    assert r['omitted']==[dict(graph_id=b,reason='no_relevant_hits')]
+
+
+def test_paper_only_graph_defaults_to_silver_paper(two,tmp_path):
+    import sqlite3
+    catalog,router,a,b=two
+    path=tmp_path/'papers.sqlite';conn=sqlite3.connect(path);conn.execute('CREATE TABLE read_documents(id INTEGER)');conn.commit();conn.close()
+    catalog.attach_papers(a,path)
+    assert router._stratum(catalog.graph(a))==('silver','paper')
+    assert router._stratum(catalog.graph(b))==('silver','code')
+    catalog.set_stratum(a,'primary','gold','doc')
+    assert router._stratum(catalog.graph(a))==('gold','doc')

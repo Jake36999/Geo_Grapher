@@ -48,7 +48,8 @@ def select(candidates,budget):
     """Exact choice of one tier per graph maximising (sum U, -sum tokens), within budget.
 
     Ties break towards the lexicographically smallest sorted (graph_id, tier)
-    assignment, so the result cannot depend on argument order."""
+    assignment (tier order compact < full < omit), so the result cannot depend on
+    argument order."""
     options={}
     for c in candidates:options.setdefault(c.graph_id,{})[c.tier]=c
     graphs=sorted(options)
@@ -57,6 +58,7 @@ def select(candidates,budget):
     for combo in itertools.product(*choices):
         tokens=sum(c.tokens for c in combo if c)
         if tokens>budget:continue
+        # Tie-break: lexicographically smallest assignment, tier order compact < full < omit.
         key=(-sum(c.utility for c in combo if c),tokens,tuple((g,c.tier if c else 'omit') for g,c in zip(graphs,combo)))
         if best_key is None or key<best_key:best_key=key;best=combo
     if best is None:best=(None,)*len(graphs)

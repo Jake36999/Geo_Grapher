@@ -144,7 +144,8 @@ interface FederatedSearch {
 interface FederatedResults {
   graph_ids: string[];
   results: ScopedCodeResponse<unknown>[];
-  omitted: { graph_id: string; reason: 'full_graph_envelope_omitted_by_budget' }[];
+  omitted: { graph_id: string; reason: 'GRAPH_UNAVAILABLE' | 'budget_compact_only' | 'budget_omitted' | 'no_relevant_hits'; message?: string }[];
+  selection: { method: 'pc-mckp-v1'; tiers: Record<string, 'full' | 'compact' | 'omit'>; utility: Record<string, number> };
   ranking: 'independent_per_graph_no_global_rank';
   tokenizer: 'o200k_base';
   used_tokens: number;
@@ -154,10 +155,21 @@ interface FederatedResults {
 There is no global BM25/RRF normalization and no graph union. Packing retains or
 omits a whole valid graph envelope, preserving node/relationship endpoint closure.
 The final serialized response is counted exactly, including omission metadata.
-When over budget, the largest envelope is omitted first (ties: the later one), so
-the outcome does not depend on argument order. An inner query error remains
-explicit; a graph whose store cannot be opened yields its own `GRAPH_UNAVAILABLE`
-entry while the other graphs' results are kept. Missing results are not fabricated.
+Each healthy graph is queried at two sizes (`full`: 5 results, `compact`: 2) and the
+router chooses `full`, `compact` or omission per graph (`pc-mckp-v1`). The choice is
+an exact search that maximises total utility, then minimises tokens, then takes the
+lexicographically smallest assignment (compact < full < omit), so the outcome does
+not depend on argument order. A graph's utility weights its trust tier, modality
+(`profile_json.stratum`; default `silver` with `code`, or `paper` for a paper-only
+graph), query intent, store size and its own hit ranks; utilities are never compared
+as retrieval scores. The response carries `selection = {method, tiers, utility}`,
+keyed by graph ID. If the assembled response overflows, selection is re-run with a
+tighter budget. `omitted[].reason` is one of `GRAPH_UNAVAILABLE`,
+`budget_compact_only` (only the compact envelope is included), `budget_omitted` and
+`no_relevant_hits` (a healthy graph with zero utility). A graph whose store cannot be
+opened appears only in `omitted` with `GRAPH_UNAVAILABLE`; `results` holds healthy
+envelopes only, and the other graphs' results are kept. Missing results are not
+fabricated.
 Cross-graph similarity/impact/conformance and paper-specific federation are not
 implemented as automatic traversals. Agents can make separate explicitly scoped
 queries and keep their origins attached.

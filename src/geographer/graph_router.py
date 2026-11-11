@@ -302,7 +302,9 @@ class GraphRouter:
                 if gid in unavailable:response['omitted'].append(dict(graph_id=gid,reason='GRAPH_UNAVAILABLE',message=unavailable[gid]))
                 else:
                     if tier!='omit':response['results'].append(envelopes[gid][tier])
-                    if tier!='full':response['omitted'].append(dict(graph_id=gid,reason='budget_compact_only' if tier=='compact' else 'budget_omitted'))
+                    if tier!='full':
+                        reason='budget_compact_only' if tier=='compact' else 'no_relevant_hits' if not any(utilities[gid].values()) else 'budget_omitted'
+                        response['omitted'].append(dict(graph_id=gid,reason=reason))
             return response
         def fit(response):
             for _ in range(12):
@@ -314,7 +316,7 @@ class GraphRouter:
         # Envelopes are indivisible: a partial node/edge list would break endpoint closure.
         # The skeleton prices everything but the envelopes; overflow found after exact
         # counting of the assembled response tightens the budget and selects again.
-        budget=limit_tokens-fit(assemble({c.graph_id:'full' for c in candidates}|{g:'omit' for g in unavailable}))
+        budget=limit_tokens-fit(assemble({}))
         for _ in range(5):
             response=assemble(select(candidates,budget))
             count=fit(response)
