@@ -147,7 +147,7 @@ def documentary_links(service,sid,part,tree,centres,visible,budget):
     return links[:max(0,min(200,budget))]
 
 
-def affinity_maps(service,sid,vid,g,hierarchy):
+def affinity_maps(service,sid,baseline,g,hierarchy):
     """Per display parent: (sibling pair weights, external degree) for sphere-affinity-v1 (master G14)."""
     parent_of={c:p for p,cs in hierarchy.items() for c in cs}
     nodes=set(hierarchy)|set(parent_of)
@@ -161,8 +161,10 @@ def affinity_maps(service,sid,vid,g,hierarchy):
         while k<min(len(ca),len(cb)) and ca[k]==cb[k]:k+=1
         if k==0 or k>=len(ca) or k>=len(cb):return
         u,v=ca[k],cb[k];pairs[ca[k-1]][(min(u,v),max(u,v))]+=weight
-    rows=service.store.connection.execute('SELECT source_rep_id,target_rep_id,witness_count FROM quotient_projections WHERE snapshot_id=? AND view_id=? ORDER BY projection_id',(sid,vid))
-    for a,b,weight in rows:
+    # Projections of the unfiltered baseline partition (the one the geometry cache is keyed on),
+    # so the cached layout never depends on which query filter was requested first.
+    rows=sorted(project(g,baseline,'affinity-baseline',ALL_ENTITIES),key=lambda r:r['projection_id'])
+    for a,b,weight in ((r['source_rep_id'],r['target_rep_id'],r['witness_count']) for r in rows):
         if a not in nodes or b not in nodes or a==b:continue
         couple(a,b,weight)
         cb=set(chain(b))
@@ -234,7 +236,7 @@ def build_frame(service,q,ctx):
             hierarchy={p:[c for c in children if c in admitted] for p,children in hierarchy.items() if p in admitted}
             counts={p:n for p,n in counts.items() if p in admitted}
             aggregate&=admitted
-        affinity=affinity_maps(service,sid,vid,g,hierarchy) if layout_version=='sphere-affinity-v1' else None
+        affinity=affinity_maps(service,sid,baseline,g,hierarchy) if layout_version=='sphere-affinity-v1' else None
         try:layout=pack_tree(hierarchy,tree.root,counts,q['seed'],aggregate,display_radii(ctx,counts),affinity)
         except ValueError as exc:raise QueryError('LAYOUT_FAILED',str(exc)) from exc
         ctx['layouts'][geometry_key]=layout

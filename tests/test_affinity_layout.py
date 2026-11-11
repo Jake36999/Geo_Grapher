@@ -123,3 +123,29 @@ def test_affinity_layout_latency_toolset(tmp_path):
         assert elapsed <= 3.0, elapsed
     finally:
         store.close()
+
+
+def test_affinity_layout_independent_of_filter_history(frame_for):
+    import copy
+    from conftest import viewport_request
+    from geographer.analysis import DEFAULT_FILTER
+    fa = copy.deepcopy(DEFAULT_FILTER)
+    fb = copy.deepcopy(DEFAULT_FILTER); fb["resolution_statuses"] = ["candidate"]
+
+    def run_pair(first, second):
+        frame_for(grouping={"mode": "atomic"})          # fresh store and service
+        svc = frame_for.svc
+        sid = svc.store.connection.execute("SELECT snapshot_id FROM snapshots").fetchone()[0]
+        root = next(e.entity_id for e in svc._context(sid)["g"].entities.values() if e.kind == "repository")
+        out = {}
+        for name, f in (first, second):
+            req = viewport_request(sid, root)
+            req.update(schema_version="1.1", grouping={"mode": "atomic"}, layout_version="sphere-affinity-v1", filter=f)
+            result = svc.query("viewport_frame", req)
+            assert "error" not in result, result
+            out[name] = result["data"]["spheres"]
+        return out
+
+    ab = run_pair(("A", fa), ("B", fb))
+    ba = run_pair(("B", fb), ("A", fa))
+    assert ab["A"] == ba["A"] and ab["B"] == ba["B"] and ab["A"] == ab["B"]
