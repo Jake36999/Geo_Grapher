@@ -8,50 +8,66 @@ import pytest
 
 from geographer.geometry import pack_siblings_affinity, layout_bands, violations, pack_siblings, unit, dot
 
-IDS = [f"n{i}" for i in range(9)]
-RADII = [0.4] * 9
-# hub n0 coupled to n1..n4; pair n5-n6 coupled; n7, n8 isolated (n8 has external calls)
-AFF = {("n0", f"n{i}"): 3.0 for i in range(1, 5)} | {("n5", "n6"): 2.0}
-EXT = {"n8": 4.0, "n0": 2.0}
+IDS = [f"n{i}" for i in range(10)]
+RADII = [0.4] * 10
+# hub n0 coupled to n1..n4; pairs n5-n6 and n7-n8 coupled; n9 isolated (with external calls)
+AFF = {("n0", f"n{i}"): 3.0 for i in range(1, 5)} | {("n5", "n6"): 2.0, ("n7", "n8"): 2.0}
+EXT = {"n9": 4.0, "n0": 2.0}
 
 
 def test_bands_follow_master_g14():
     b = layout_bands(IDS, AFF, EXT)
     assert b["n0"][0] == "core" and 0.05 <= b["n0"][1] <= 0.42
     assert b["n5"][0] == "mantle" and 0.42 <= b["n5"][1] <= 0.72
-    assert b["n7"] == ("crust", 0.95) and b["n8"][0] == "crust" and 0.72 <= b["n8"][1] < 0.95
+    assert b["n7"][0] == "mantle" and b["n8"][0] == "mantle"
+    assert b["n9"][0] == "crust" and 0.72 <= b["n9"][1] < 0.95
+    assert layout_bands(IDS, AFF, {})["n9"] == ("crust", 0.95)
 
 
 def test_no_overlap_and_containment():
-    centres, radius, fallback, err = pack_siblings_affinity(IDS, RADII, 9, "s", AFF, EXT)
+    centres, radius, fallback, err = pack_siblings_affinity(IDS, RADII, 10, "s", AFF, EXT)
     assert violations(centres, RADII, radius) <= 1e-4
 
 
 def test_radial_order_core_mantle_crust():
-    centres, radius, *_ = pack_siblings_affinity(IDS, RADII, 9, "s", AFF, EXT)
+    centres, radius, *_ = pack_siblings_affinity(IDS, RADII, 10, "s", AFF, EXT)
     r = {i: math.sqrt(dot(c, c)) / radius for i, c in zip(IDS, centres)}
-    assert r["n0"] < min(r["n5"], r["n6"]) and max(r["n5"], r["n6"]) < min(r["n7"], r["n8"])
+    mantle = [r[i] for i in ("n5", "n6", "n7", "n8")]
+    assert r["n0"] < min(mantle) and max(mantle) < r["n9"]
+
+
+def _angular_gap(**kw):
+    centres, *_ = pack_siblings_affinity(IDS, RADII, 10, "s", AFF, EXT, **kw)
+    bands = layout_bands(IDS, AFF, EXT)
+    d = {i: unit(c) for i, c in zip(IDS, centres) if bands[i][1] > 0.42}
+    pairs = [(a, b) for a in sorted(d) for b in sorted(d) if a < b]
+    affine = [dot(d[a], d[b]) for a, b in pairs if (a, b) in AFF]
+    zero = [dot(d[a], d[b]) for a, b in pairs if (a, b) not in AFF]
+    assert len(affine) >= 2
+    return sum(affine) / len(affine), sum(zero) / len(zero)
 
 
 def test_affine_pairs_cluster_by_angle():
-    # The default minimal parent radius is saturated by nine 0.4 spheres, so collisions
-    # dominate direction; give the parent room (preferred_radius) to test the relaxation.
-    centres, *_ = pack_siblings_affinity(IDS, RADII, 9, "s", AFF, EXT, preferred_radius=4.0)
-    d = {i: unit(c) for i, c in zip(IDS, centres)}
-    affine = [dot(d[a], d[b]) for (a, b) in AFF]
-    zero = [dot(d[a], d[b]) for a in IDS for b in IDS if a < b and (a, b) not in AFF]
-    assert sum(affine) / len(affine) > sum(zero) / len(zero)
+    # F6: directions are only meaningful outside the core band.
+    affine, zero = _angular_gap()
+    print("default radius cosines", affine, zero)
+    assert affine > zero
+
+
+def test_affine_pairs_cluster_by_angle_with_slack():
+    affine, zero = _angular_gap(preferred_radius=4.0)
+    assert affine > zero
 
 
 def test_input_order_invariant_and_deterministic():
-    a = pack_siblings_affinity(IDS, RADII, 9, "s", AFF, EXT)
+    a = pack_siblings_affinity(IDS, RADII, 10, "s", AFF, EXT)
     perm = list(reversed(IDS))
-    b = pack_siblings_affinity(perm, [0.4] * 9, 9, "s", AFF, EXT)
+    b = pack_siblings_affinity(perm, [0.4] * 10, 10, "s", AFF, EXT)
     assert dict(zip(IDS, a[0])) == dict(zip(perm, b[0]))
 
 
 def test_no_affinity_degenerates_to_valid_layout():
-    centres, radius, fallback, err = pack_siblings_affinity(IDS, RADII, 9, "s", {}, {})
+    centres, radius, fallback, err = pack_siblings_affinity(IDS, RADII, 10, "s", {}, {})
     assert violations(centres, RADII, radius) <= 1e-4 and all(layout_bands(IDS, {}, {})[i] == ("crust", 0.95) for i in IDS)
 
 
@@ -84,6 +100,7 @@ TOOLSET = Path("F:/uv-data/Geo_Grapher/output/toolset.sqlite")
 
 
 @pytest.mark.integration
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 @pytest.mark.skipif(not TOOLSET.exists(), reason="ToolSet gate store absent")
 def test_affinity_layout_latency_toolset(tmp_path):
     from geographer.service import QueryService
