@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "9c5b919f8a29837dfcdc0362c134e9103795fcacf561c79f7b42254549d53066",
+  "contract_sha256": "4da67e9828db0059564985322927abb466f8dfcc40961d3e14d49f567ad4f3e4",
   "operations": {
     "search_entities": {
       "request": {
@@ -4848,6 +4848,80 @@
             "omitted_curves"
           ],
           "additionalProperties": false
+        },
+        "documentary_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "link_id": {
+                "$ref": "#/$defs/Id"
+              },
+              "fragment_rep": {
+                "$ref": "#/$defs/Id"
+              },
+              "entity_rep": {
+                "$ref": "#/$defs/Id"
+              },
+              "role": {
+                "anyOf": [
+                  {
+                    "const": "discusses"
+                  },
+                  {
+                    "const": "documents"
+                  },
+                  {
+                    "const": "rationale_for"
+                  },
+                  {
+                    "const": "cites"
+                  }
+                ]
+              },
+              "incidence_count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "control_points": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Vec3"
+                }
+              },
+              "degree": {
+                "anyOf": [
+                  {
+                    "const": 1
+                  },
+                  {
+                    "const": 2
+                  },
+                  {
+                    "const": 3
+                  }
+                ]
+              },
+              "knots": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "required": [
+              "link_id",
+              "fragment_rep",
+              "entity_rep",
+              "role",
+              "incidence_count",
+              "control_points",
+              "degree",
+              "knots"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "required": [

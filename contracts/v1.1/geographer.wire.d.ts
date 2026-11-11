@@ -466,6 +466,11 @@ export interface ViewportFrameData extends GraphPayload {
   }[];
   packing: { tolerance: 0.0001; fallback_parent_ids: Id[]; max_violation: number };
   scene_completeness: { omitted_spheres: number; omitted_curves: number };
+  documentary_links?: {
+    link_id: Id; fragment_rep: Id; entity_rep: Id;
+    role: 'discusses' | 'documents' | 'rationale_for' | 'cites';
+    incidence_count: number; control_points: Vec3[]; degree: 1 | 2 | 3; knots: number[];
+  }[];
 }
 export type ViewportFrameResponse = Response<ViewportFrameData>;
 export interface OperationMap {

@@ -6,7 +6,7 @@ from .analysis import DEFAULT_FILTER,selected_relationships
 from .model import digest
 
 REFS={'id','node_id','entity_id','source','target','parent_id','source_subject_id','target_subject_id','projection_id','relationship_id',
-      'focus_id','representative_focus_id','start_id','scope_id','component_id','source_component_id','target_component_id','canonical_source','canonical_target','doc_handle','resolved_source','resolved_target'}
+      'focus_id','representative_focus_id','start_id','scope_id','component_id','source_component_id','target_component_id','canonical_source','canonical_target','doc_handle','resolved_source','resolved_target','fragment_rep','entity_rep'}
 ARRAY_REFS={'ancestor_ids','evidence_ids','witness_path_ids','witness_projection_ids','fragment_ids','fallback_parent_ids','call_relationship_ids','alternatives','relationship_ids'}
 
 class ActorEncoder:

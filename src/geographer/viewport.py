@@ -123,6 +123,29 @@ def control_polygon(tree,part,centres,a,b):
     return points
 
 
+def documentary_links(service,sid,part,tree,centres,visible,budget):
+    """Doc->code threads. Incidences are hyperedges; each is projected onto visible reps, never made a relationship."""
+    g=service._context(sid)['g']
+    def rep_of(eid):
+        if eid not in tree.parents and eid!=tree.root:return None
+        return next((a for a in reversed(tree.ancestors(eid)) if a in visible),None)
+    counts=Counter()
+    for row in g.incidences:
+        f,e=rep_of(row['fragment_id']),rep_of(row['entity_id'])
+        if f is None or e is None or f==e or f in tree.ancestors(e) or e in tree.ancestors(f):continue
+        counts[(f,e,row['role'])]+=1
+    links=[]
+    for (f,e,role),count in counts.items():
+        if f not in centres or e not in centres:continue
+        try:points=control_polygon(tree,part,centres,f,e)
+        except KeyError:continue
+        degree,knots=knots_for(len(points))
+        links.append(dict(link_id='doclink:'+digest(f,e,role)[:24],fragment_rep=f,entity_rep=e,role=role,incidence_count=count,
+            control_points=[list(p) for p in points],degree=degree,knots=knots))
+    links.sort(key=lambda l:(-l['incidence_count'],l['link_id']))
+    return links[:max(0,min(200,budget))]
+
+
 def build_frame(service,q,ctx):
     g=ctx['g'];tree=ctx['tree'];sid=q['snapshot_id']
     if q.get('model_digest') and q['model_digest'] not in service.rules:raise QueryError('NOT_FOUND','Selected rules model unavailable')
@@ -249,6 +272,12 @@ def build_frame(service,q,ctx):
     for index,(row,records,curve) in enumerate(curve_candidates):
         if index<q['curve_budget']:records['curves']=[curve]
         units.append(Unit('curve:'+row['projection_id'],1,200,records))
+    if labelled:
+        data['documentary_links']=[]
+        for link in documentary_links(service,sid,part,tree,layout.centres,visible,q['curve_budget']):
+            ids={link['fragment_rep'],link['entity_rep']}
+            for rep in list(ids):ids.update(set(tree.ancestors(rep))&visible)
+            units.append(Unit('doclink:'+link['link_id'],2,60,dict(nodes=[nodes[eid] for eid in sorted(ids)],spheres=[spheres[eid] for eid in sorted(ids)],documentary_links=[link])))
     data['scene_completeness']['omitted_curves']=hidden_relationships+max(0,len(curve_candidates)-q['curve_budget'])
     if lod_omitted:data['coverage']['limitations'].append('Some expanded branches were collapsed into exact residual groups to respect the scene budget' if grouping['mode']=='mixed' else 'Some complete representatives and their relationships are outside the scene budget; the stored partition remains complete')
     plan=service._plan('viewport_frame',q,data,units,vid,'viewport')
