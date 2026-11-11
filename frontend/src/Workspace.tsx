@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import App from "./App";
 import GraphMergeReview from "./GraphMergeReview";
-import { setWorkspaceGraph } from "./api";
+import GraphActions from "./GraphLifecycle";
+import { getActiveGraphs, setActiveGraphs, setWorkspaceGraph } from "./api";
 import type {
   GraphPick,
   WorkspaceGraph,
@@ -16,6 +17,7 @@ export default function Workspace() {
   const [pending, setPending] = useState<GraphPick>(),
     [settings, setSettings] = useState<WorkspaceSettings>();
   const [showBridges, setShowBridges] = useState(true);
+  const [activeSet, setActiveSet] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [focus, setFocus] = useState<
     Record<string, { snapshot: string; id: string }>
@@ -77,6 +79,30 @@ export default function Workspace() {
     if (graphs.length)
       localStorage.setItem("geographer.graphs.v1", JSON.stringify(selected));
   }, [graphs.length, selected.join()]);
+  useEffect(() => {
+    getActiveGraphs()
+      .then((r) => setActiveSet(r.graph_ids))
+      .catch(() => {});
+  }, []);
+  async function reloadGraphs() {
+    const data = await (await fetch("/api/graphs")).json();
+    setGraphs(data.graphs);
+    return data.graphs as WorkspaceGraph[];
+  }
+  async function toggleActive(id: string) {
+    const next = activeSet.includes(id)
+      ? activeSet.filter((g) => g !== id)
+      : [...activeSet, id];
+    if (next.length < 1 || next.length > 4) return;
+    try {
+      const saved = await setActiveGraphs(next);
+      setActiveSet(saved.graph_ids);
+      setSelected(saved.graph_ids);
+      if (!saved.graph_ids.includes(active)) setActive(saved.graph_ids[0]);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
   const remember = useCallback(
     (graph: string, snapshot: string, id: string) =>
       setFocus((old) =>
@@ -194,6 +220,35 @@ export default function Workspace() {
               >
                 Centre
               </button>
+              <button
+                aria-pressed={activeSet.includes(g.graph_id)}
+                disabled={
+                  g.availability === "unavailable" ||
+                  (!activeSet.includes(g.graph_id) && activeSet.length >= 4) ||
+                  (activeSet.includes(g.graph_id) && activeSet.length <= 1)
+                }
+                onClick={() => toggleActive(g.graph_id)}
+                aria-label={`Active set ${g.label}`}
+                title="Shared scene members (at most 4)"
+              >
+                Active
+              </button>
+              <GraphActions
+                graph={g}
+                onCopied={() => reloadGraphs().catch((e) => setError(e.message))}
+                onDeleted={async (id) => {
+                  try {
+                    const rest = (await reloadGraphs()).filter(
+                      (x) => x.availability !== "unavailable",
+                    );
+                    setSelected((old) => old.filter((x) => x !== id));
+                    if (active === id && rest.length) setActive(rest[0].graph_id);
+                    setActiveSet((await getActiveGraphs()).graph_ids);
+                  } catch (e) {
+                    setError((e as Error).message);
+                  }
+                }}
+              />
             </div>
           ))}
           <label>

@@ -559,3 +559,50 @@ export function validSaved(value: unknown): boolean {
         !x.filter.resolution_statuses.includes("observed")),
   );
 }
+
+async function lifecycleRequest<T>(
+  method: string,
+  url: string,
+  body?: unknown,
+): Promise<T> {
+  const response = await fetch(url, {
+    method,
+    headers: body === undefined ? {} : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok)
+    throw Error(
+      typeof result?.error === "string" ? result.error : `HTTP ${response.status}`,
+    );
+  return result as T;
+}
+
+export interface GraphDeleteReceipt {
+  deleted: string;
+  bridges_removed: string[];
+  files_unlinked: string[];
+  files_kept: string[];
+}
+
+export const copyGraph = (graphId: string, label: string) =>
+  lifecycleRequest<{ graph_id: string; label: string; copied_from: string }>(
+    "POST",
+    `/api/graphs/${encodeURIComponent(graphId)}/copy`,
+    { label },
+  );
+
+export const deleteGraph = (graphId: string, confirmLabel: string) =>
+  lifecycleRequest<GraphDeleteReceipt>(
+    "DELETE",
+    `/api/graphs/${encodeURIComponent(graphId)}`,
+    { confirm_label: confirmLabel },
+  );
+
+export const getActiveGraphs = () =>
+  lifecycleRequest<{ graph_ids: string[] }>("GET", "/api/workspace/active-graphs");
+
+export const setActiveGraphs = (graphIds: string[]) =>
+  lifecycleRequest<{ graph_ids: string[] }>("PUT", "/api/workspace/active-graphs", {
+    graph_ids: graphIds,
+  });

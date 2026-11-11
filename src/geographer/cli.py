@@ -93,6 +93,10 @@ def main():
     stratum.add_argument('--catalog',type=Path,required=True);stratum.add_argument('--graph-id',required=True);stratum.add_argument('--role',required=True)
     from .federation import TIER_WEIGHT,MODALITIES
     stratum.add_argument('--trust-tier',required=True,choices=sorted(TIER_WEIGHT));stratum.add_argument('--modality',required=True,choices=sorted(MODALITIES))
+    copying=sub.add_parser('copy-graph',help='Independent online copy of a graph code store under a new label')
+    copying.add_argument('--catalog',type=Path,required=True);copying.add_argument('--graph-id',required=True);copying.add_argument('--label',required=True)
+    deleting=sub.add_parser('delete-graph',help='Delete a graph and its bridges; only catalog-owned stores are unlinked')
+    deleting.add_argument('--catalog',type=Path,required=True);deleting.add_argument('--graph-id',required=True);deleting.add_argument('--confirm-label',required=True)
     for name in ('plan-graph-merge','merge-graphs'):
         merging=sub.add_parser(name,help='Reviewed namespace-preserving physical merge into a new graph')
         merging.add_argument('--catalog',type=Path,required=True);merging.add_argument('--graph-id',action='append',required=True)
@@ -100,7 +104,7 @@ def main():
         if name=='merge-graphs':merging.add_argument('--plan-id',required=True)
     args = parser.parse_args()
     if args.command in {'serve','serve-graphs'}:require_pinned_mcp()
-    if args.command in {'ingest-graphs','serve-graphs','plan-graph','attach-graph-papers','set-graph-stratum','plan-graph-merge','merge-graphs'}:
+    if args.command in {'ingest-graphs','serve-graphs','plan-graph','attach-graph-papers','set-graph-stratum','copy-graph','delete-graph','plan-graph-merge','merge-graphs'}:
         from .graph_catalog import GraphCatalog,CollisionReview
         if args.command!='ingest-graphs' and not args.catalog.is_file():raise ValueError('Graph catalog not found; no empty catalog was created')
         catalog=GraphCatalog(args.catalog)
@@ -130,6 +134,10 @@ def main():
             elif args.command=='merge-graphs':
                 from .graph_merge import execute_merge
                 result=execute_merge(catalog,args.graph_id,args.label,args.plan_id)
+            elif args.command=='copy-graph':result=catalog.copy_graph(args.graph_id,args.label)
+            elif args.command=='delete-graph':
+                if catalog.graph(args.graph_id)['label']!=args.confirm_label:raise ValueError('--confirm-label does not match the graph label')
+                result=catalog.delete_graph(args.graph_id)
             elif args.command=='set-graph-stratum':
                 catalog.set_stratum(args.graph_id,args.role,args.trust_tier,args.modality)
                 result=dict(graph_id=args.graph_id,stratum=json.loads(catalog.graph(args.graph_id)['profile_json'])['stratum'])

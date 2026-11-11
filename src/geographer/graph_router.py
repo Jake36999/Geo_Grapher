@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 import os
 import threading
+import time
 import sqlite3
 import json
 
@@ -53,7 +54,7 @@ def _add_citation_handles(node,label):
 
 class GraphRouter:
     def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None):
-        self.catalog=catalog;self.services=OrderedDict();self.lock=threading.RLock()
+        self.catalog=catalog;self.services=OrderedDict();self.lock=threading.RLock();self.cond=threading.Condition(self.lock)
         self.leases=Counter();self.retired=set();self.borrowed=set()
         self.offered_tools=offered_tools(tools)
         if max_result_chars is not None and (type(max_result_chars) is not int or max_result_chars<1000):
@@ -152,7 +153,20 @@ class GraphRouter:
 
     def release(self,key):
         with self.lock:
-            self.leases[key]-=1;self._close_if_idle(key)
+            self.leases[key]-=1;self._close_if_idle(key);self.cond.notify_all()
+
+    def retire_graph(self,graph_id,timeout=10.0):
+        """Retire every service generation of a graph and wait until all are closed."""
+        deadline=time.monotonic()+timeout
+        with self.cond:
+            keys=[k for k in self.services if k[0]==graph_id]
+            for key in keys:self.retired.add(key);self._close_if_idle(key)
+            while any(k in self.services for k in keys):
+                remaining=deadline-time.monotonic()
+                if remaining<=0:
+                    self.retired.difference_update(keys)
+                    raise ValueError('GRAPH_BUSY: the graph still has active requests')
+                self.cond.wait(remaining)
 
     @contextmanager
     def lease(self,graph_id):
@@ -230,6 +244,7 @@ class GraphRouter:
             rows.append(dict(graph_id=graph['graph_id'],label=graph['label'],root_path=graph['root_path'],
                 graph_kind=profile.get('graph_kind','project'),repo_ids=profile.get('owner_repo_ids',[graph['graph_id']]),
                 source_graph_ids=[s['graph_id'] for s in profile.get('source_graphs',[])],
+                owned_store=self.catalog.owns_store(graph),bridge_count=self.catalog.bridge_count(graph['graph_id']),copied_from=profile.get('copied_from'),
                 snapshot_id=graph['snapshot_id'],entity_count=count,papers_available=bool(graph['paper_database']),availability=availability,error=error))
         return dict(graphs=rows,scope_policy='one_graph_per_call; explicit federation only',composition='display_only')
 

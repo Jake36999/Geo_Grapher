@@ -99,7 +99,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     async def guard(request,call_next):
         denied=await security.validate_request(request,is_post=request.method=='POST')
         if denied:return denied
-        if request.method=='POST':
+        if request.method in {'POST','PUT','DELETE'}:
             chunks=[];size=0
             async for chunk in request.stream():
                 size+=len(chunk)
@@ -134,6 +134,44 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
             body=await request.json()
             return JSONResponse(await anyio.to_thread.run_sync(lambda:execute_merge(router.catalog,body['graph_ids'],body['label'],body['plan_id'])))
         except (ValueError,KeyError,TypeError) as exc:return JSONResponse({'error':str(exc)},status_code=409)
+    active_graphs=[]
+    def active_now():
+        known=[g['graph_id'] for g in router.catalog.graphs() if router.allowed is None or g['graph_id'] in router.allowed]
+        ids=[g for g in active_graphs if g in known]
+        if not ids and known:ids=[primary_graph_id if primary_graph_id in known else known[0]]
+        return ids
+    async def active_get(request):return JSONResponse(dict(graph_ids=await anyio.to_thread.run_sync(active_now)))
+    async def active_put(request):
+        try:
+            ids=(await request.json())['graph_ids']
+            if not isinstance(ids,list) or not 1<=len(ids)<=4 or len(set(ids))!=len(ids) or any(not isinstance(i,str) for i in ids):raise ValueError('Choose 1..4 distinct graph IDs')
+            for gid in ids:router.permit(gid);router.catalog.graph(gid)
+        except (ValueError,KeyError,TypeError) as exc:return JSONResponse({'error':str(exc) or 'Invalid active graph set'},status_code=400)
+        active_graphs[:]=ids
+        return JSONResponse(dict(graph_ids=ids))
+    async def copy(request):
+        gid=request.path_params['graph_id']
+        try:
+            body=await request.json();router.permit(gid);router.catalog.graph(gid)
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.catalog.copy_graph(gid,body['label'])))
+        except (KeyError,TypeError,ValueError) as exc:
+            unknown=str(exc).startswith(('Unknown graph_id','graph_id is not available'))
+            return JSONResponse({'error':str(exc)},status_code=404 if unknown else 400)
+    async def delete(request):
+        gid=request.path_params['graph_id']
+        try:
+            row=router.catalog.graph(gid);router.permit(gid)
+        except ValueError as exc:return JSONResponse({'error':str(exc)},status_code=404)
+        try:body=await request.json();confirm=body['confirm_label']
+        except (ValueError,KeyError,TypeError):return JSONResponse({'error':'confirm_label is required'},status_code=400)
+        if confirm!=row['label']:return JSONResponse({'error':'confirm_label does not match the graph label'},status_code=400)
+        try:
+            receipt=await anyio.to_thread.run_sync(lambda:router.catalog.delete_graph(gid,retire=router.retire_graph,protected=frozenset({primary_graph_id} if primary_graph_id else ())))
+        except ValueError as exc:
+            code=str(exc).split(':')[0]
+            return JSONResponse({'error':str(exc)},status_code=409 if code in {'GRAPH_IN_USE','GRAPH_BUSY'} else 400)
+        active_graphs[:]=[g for g in active_graphs if g!=gid]
+        return JSONResponse(receipt)
     class Dispatch:
         async def __call__(self,scope,receive,send):
             gid=scope['path_params']['graph_id']
@@ -173,7 +211,9 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     app.router.routes.extend([Route('/api/graphs',graphs),Route('/api/graphs/bridges',bridges,methods=['POST']),
         Route('/api/graphs/frame',composition,methods=['POST']),
         Route('/api/graphs/merge/plan',merge_plan,methods=['POST']),Route('/api/graphs/merge/execute',merge_execute,methods=['POST']),
-        Route('/api/graphs/plan',plan,methods=['POST']),Route('/',index),Route('/collection/',collection),
+        Route('/api/graphs/plan',plan,methods=['POST']),
+        Route('/api/graphs/{graph_id}/copy',copy,methods=['POST']),Route('/api/graphs/{graph_id}',delete,methods=['DELETE']),
+        Route('/api/workspace/active-graphs',active_get),Route('/api/workspace/active-graphs',active_put,methods=['PUT']),Route('/',index),Route('/collection/',collection),
         Route('/favicon.svg',lambda request:FileResponse(frontend/'favicon.svg')),
         Route('/THIRD_PARTY_NOTICES.txt',lambda request:FileResponse(frontend/'THIRD_PARTY_NOTICES.txt')),
         Mount('/graphs/{graph_id}',app=Dispatch()),Mount('/assets',app=StaticFiles(directory=frontend/'assets'))])
@@ -200,7 +240,7 @@ def create_main_workspace(service,router,host='127.0.0.1',port=8765):
             await stack.enter_async_context(hub_lifespan(hub))
             yield
     app.router.lifespan_context=lifespan
-    routes=[r for r in hub.router.routes if getattr(r,'path','').startswith(('/api/graphs','/graphs/')) or getattr(r,'path','') in {'/','/collection/'}]
+    routes=[r for r in hub.router.routes if getattr(r,'path','').startswith(('/api/graphs','/api/workspace/','/graphs/')) or getattr(r,'path','') in {'/','/collection/'}]
     async def legacy(request):return RedirectResponse('/'+('?graph='+primary if primary else ''))
     app.router.routes[:0]=[*routes,Route('/legacy/',legacy),Mount('/graph-hub',app=hub)]
     return app
