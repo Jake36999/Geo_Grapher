@@ -89,6 +89,10 @@ def main():
     plan.add_argument('--catalog',type=Path,required=True);plan.add_argument('--root',type=Path,required=True)
     papers=sub.add_parser('attach-graph-papers',help='Bind an existing independent paper corpus to one graph')
     papers.add_argument('--catalog',type=Path,required=True);papers.add_argument('--graph-id',required=True);papers.add_argument('--database',type=Path,required=True)
+    stratum=sub.add_parser('set-graph-stratum',help='Record a graph trust tier and modality for federated search')
+    stratum.add_argument('--catalog',type=Path,required=True);stratum.add_argument('--graph-id',required=True);stratum.add_argument('--role',required=True)
+    from .federation import TIER_WEIGHT,MODALITIES
+    stratum.add_argument('--trust-tier',required=True,choices=sorted(TIER_WEIGHT));stratum.add_argument('--modality',required=True,choices=sorted(MODALITIES))
     for name in ('plan-graph-merge','merge-graphs'):
         merging=sub.add_parser(name,help='Reviewed namespace-preserving physical merge into a new graph')
         merging.add_argument('--catalog',type=Path,required=True);merging.add_argument('--graph-id',action='append',required=True)
@@ -96,7 +100,7 @@ def main():
         if name=='merge-graphs':merging.add_argument('--plan-id',required=True)
     args = parser.parse_args()
     if args.command in {'serve','serve-graphs'}:require_pinned_mcp()
-    if args.command in {'ingest-graphs','serve-graphs','plan-graph','attach-graph-papers','plan-graph-merge','merge-graphs'}:
+    if args.command in {'ingest-graphs','serve-graphs','plan-graph','attach-graph-papers','set-graph-stratum','plan-graph-merge','merge-graphs'}:
         from .graph_catalog import GraphCatalog,CollisionReview
         if args.command!='ingest-graphs' and not args.catalog.is_file():raise ValueError('Graph catalog not found; no empty catalog was created')
         catalog=GraphCatalog(args.catalog)
@@ -126,6 +130,9 @@ def main():
             elif args.command=='merge-graphs':
                 from .graph_merge import execute_merge
                 result=execute_merge(catalog,args.graph_id,args.label,args.plan_id)
+            elif args.command=='set-graph-stratum':
+                catalog.set_stratum(args.graph_id,args.role,args.trust_tier,args.modality)
+                result=dict(graph_id=args.graph_id,stratum=json.loads(catalog.graph(args.graph_id)['profile_json'])['stratum'])
             elif args.command=='attach-graph-papers':catalog.attach_papers(args.graph_id,args.database);result=dict(graph_id=args.graph_id,papers_attached=True)
             else:
                 from .graph_router import GraphRouter

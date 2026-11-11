@@ -175,6 +175,19 @@ class GraphCatalog:
                 if not papers.execute("SELECT 1 FROM sqlite_master WHERE name='read_documents'").fetchone():raise ValueError('Paper read model missing')
             self.connection.execute('UPDATE graphs SET paper_database=? WHERE graph_id=?',(str(path),graph_id))
 
+    def set_stratum(self,graph_id,role,trust_tier,modality):
+        """Record a graph's federation stratum under profile_json['stratum']."""
+        from .federation import TIER_WEIGHT,MODALITIES
+        if not isinstance(role,str) or not role.strip() or len(role)>64:raise ValueError('role must be a non-empty string of at most 64 characters')
+        if trust_tier not in TIER_WEIGHT:raise ValueError(f'trust_tier must be one of {sorted(TIER_WEIGHT)}')
+        if modality not in MODALITIES:raise ValueError(f'modality must be one of {sorted(MODALITIES)}')
+        with self.lock,self.connection:
+            self.connection.execute('BEGIN IMMEDIATE')
+            row=self.connection.execute('SELECT profile_json FROM graphs WHERE graph_id=?',(graph_id,)).fetchone()
+            if row is None:raise ValueError('Unknown graph_id')
+            profile=json.loads(row[0]);profile['stratum']=dict(role=role,trust_tier=trust_tier,modality=modality)
+            self.connection.execute('UPDATE graphs SET profile_json=? WHERE graph_id=?',(canonical(profile),graph_id))
+
     def add_bridge(self,source_graph,source_ref,target_graph,target_ref,kind,rationale,evidence):
         if source_graph==target_graph:raise ValueError('Bridge endpoints must be different graphs')
         if kind not in {'child_module','reference','concept_equivalence','document_identity'}:raise ValueError('Unknown bridge kind')

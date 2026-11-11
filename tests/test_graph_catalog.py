@@ -198,20 +198,33 @@ def test_federation_keeps_healthy_graphs_when_one_store_is_missing(hub,tmp_path)
     with catalog.connection:catalog.connection.execute('UPDATE graphs SET code_database=? WHERE graph_id=?',(str(tmp_path/'missing.sqlite'),second['graph_id']))
     result=router.federated_search([first['graph_id'],second['graph_id']],'research',limit_tokens=8192)
     by_graph={r['graph_id']:r for r in result['results']}
-    assert 'result' in by_graph[first['graph_id']]
-    assert by_graph[second['graph_id']]['error']['code']=='GRAPH_UNAVAILABLE'
+    assert 'result' in by_graph[first['graph_id']] and second['graph_id'] not in by_graph
+    assert [(o['graph_id'],o['reason']) for o in result['omitted']]==[(second['graph_id'],'GRAPH_UNAVAILABLE')]
     assert result['used_tokens']==TokenCounter().count(result)<=8192
 
 
-def test_federation_budget_drops_largest_envelope_regardless_of_order(hub,tmp_path,monkeypatch):
+def test_federation_all_graphs_failing_returns_valid_envelope(hub,tmp_path):
+    catalog,router,first=hub;second=import_graph(catalog,tmp_path/'b','B')
+    ids=(first['graph_id'],second['graph_id'])
+    with catalog.connection:
+        for gid in ids:catalog.connection.execute('UPDATE graphs SET code_database=? WHERE graph_id=?',(str(tmp_path/f'missing-{gid}.sqlite'),gid))
+    result=router.federated_search(list(ids),'research',limit_tokens=4096)
+    assert result['results']==[]
+    assert sorted((o['graph_id'],o['reason']) for o in result['omitted'])==sorted((g,'GRAPH_UNAVAILABLE') for g in ids)
+    assert result['used_tokens']==TokenCounter().count(result)<=4096
+
+
+def test_federation_selection_is_order_independent(hub,tmp_path,monkeypatch):
     catalog,router,first=hub;second=import_graph(catalog,tmp_path/'b','B')
     small,large=first['graph_id'],second['graph_id']
     envelopes={small:dict(graph_id=small,result=dict(text='small '*200)),large:dict(graph_id=large,result=dict(text='large '*3000))}
     monkeypatch.setattr(router,'query',lambda gid,operation,req:envelopes[gid])
+    outcomes=[]
     for order in ([small,large],[large,small]):
         result=router.federated_search(order,'research',limit_tokens=2048)
-        assert [o['graph_id'] for o in result['omitted']]==[large]
-        assert [r['graph_id'] for r in result['results']]==[small]
+        assert result['used_tokens']==TokenCounter().count(result)<=2048
+        outcomes.append((sorted(r['graph_id'] for r in result['results']),sorted((o['graph_id'],o['reason']) for o in result['omitted']),result['selection']))
+    assert outcomes[0]==outcomes[1]
 
 
 def test_catalog_stays_writable_during_ingest_and_rechecks_overlaps(hub,tmp_path,monkeypatch):

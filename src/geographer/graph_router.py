@@ -2,10 +2,12 @@
 from collections import Counter,OrderedDict
 from contextlib import contextmanager
 from pathlib import Path
+import os
 import threading
 import sqlite3
 import json
 
+from .federation import Candidate,MODALITIES,TIER_WEIGHT,intent,select,utility
 from .model import canonical
 from .service import QueryService
 from .store import SnapshotStore
@@ -231,35 +233,93 @@ class GraphRouter:
                 snapshot_id=graph['snapshot_id'],entity_count=count,papers_available=bool(graph['paper_database']),availability=availability,error=error))
         return dict(graphs=rows,scope_policy='one_graph_per_call; explicit federation only',composition='display_only')
 
+    def _stratum(self,graph):
+        """(trust_tier, modality) from profile_json['stratum'], else the default:
+        silver code, or silver paper for a paper-only graph (papers, 0 code entities)."""
+        stratum=json.loads(graph['profile_json']).get('stratum')
+        if isinstance(stratum,dict) and stratum.get('trust_tier') in TIER_WEIGHT and stratum.get('modality') in MODALITIES:
+            return stratum['trust_tier'],stratum['modality']
+        if graph['paper_database']:
+            with self.lease(graph['graph_id']) as service:
+                with service.lock:
+                    code=service.store.connection.execute("SELECT count(*) FROM entities WHERE snapshot_id=? AND kind IN ('class','function','method','attribute','constant')",(graph['snapshot_id'],)).fetchone()[0]
+            if not code:return 'silver','paper'
+        return 'silver','code'
+
+    @staticmethod
+    def _hit_facts(envelope,query):
+        """1-based ranks of the returned hits and how many name the query exactly."""
+        data=(envelope.get('result') or {}).get('data') or {}
+        hits=data.get('hits') or []
+        names={n.get('id'):str(n.get('qualified_name',''))for n in data.get('nodes') or []}
+        needle=query.casefold();exact=0
+        for hit in hits:
+            name=names.get(hit.get('node_id'),'').casefold()
+            if name and (name==needle or name.rsplit('.',1)[-1]==needle):exact+=1
+        return list(range(1,len(hits)+1)),exact
+
     def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation'):
         if isinstance(graph_ids,list):graph_ids=[self.resolve(gid) for gid in graph_ids]
         if not isinstance(graph_ids,list) or not 2<=len(graph_ids)<=8 or len(set(graph_ids))!=len(graph_ids):raise ValueError('Choose 2..8 distinct graph IDs explicitly')
         if type(limit_tokens) is not int or not 2048<=limit_tokens<=32768:raise ValueError('Federation budget must be 2048..32768 tokens')
         if mode not in {'lexical','documentation','hybrid'} or not isinstance(query,str) or not 1<=len(query)<=500:raise ValueError('Invalid search mode or query')
         for gid in graph_ids:self.permit(gid)
-        graphs=[self.catalog.graph(gid) for gid in graph_ids]
-        response=dict(graph_ids=graph_ids,results=[],omitted=[],ranking='independent_per_graph_no_global_rank',tokenizer='o200k_base',used_tokens=0)
+        graphs=sorted((self.catalog.graph(gid) for gid in graph_ids),key=lambda g:g['graph_id'])
         per_graph=max(512,(limit_tokens-1000)//len(graphs))
+        counter=TokenCounter();kind=intent(query)
+        envelopes={};unavailable={};candidates=[];utilities={}
         for graph in graphs:
-            req=dict(schema_version='1.1',request_id='federated-search',snapshot_id=graph['snapshot_id'],
-                budget=dict(limit_tokens=per_graph,tokenizer='o200k_base',allow_byte_fallback=False),query=query,
-                mode=mode,repo_ids=[],kinds=[],limit=5,cursor=None)
+            gid=graph['graph_id']
             # One unavailable graph must not hide the healthy graphs' results.
-            try:response['results'].append(self.query(graph['graph_id'],'search_entities',req))
+            try:
+                tiers={}
+                for tier,limit in (('full',5),('compact',2)):
+                    req=dict(schema_version='1.1',request_id='federated-search',snapshot_id=graph['snapshot_id'],
+                        budget=dict(limit_tokens=per_graph,tokenizer='o200k_base',allow_byte_fallback=False),query=query,
+                        mode=mode,repo_ids=[],kinds=[],limit=limit,cursor=None)
+                    envelope=self.query(gid,'search_entities',req)
+                    if isinstance(envelope,dict) and 'error' in envelope:raise ValueError(str(envelope['error'].get('message','graph error')))
+                    tiers[tier]=envelope
+                trust,modality=self._stratum(graph)
+                try:store_mb=os.path.getsize(graph['code_database'])/1_000_000
+                except OSError:store_mb=0.
             except (ValueError,sqlite3.DatabaseError,OSError) as exc:
-                response['results'].append(dict(graph_id=graph['graph_id'],error=dict(code='GRAPH_UNAVAILABLE',message=str(exc)[:300])))
-        counter=TokenCounter()
-        # Treat each independently valid graph envelope as indivisible: removing
-        # a partial node/edge collection would break endpoint closure.
-        while True:
+                unavailable[gid]=str(exc)[:300];continue
+            envelopes[gid]=tiers;utilities[gid]={}
+            for tier,envelope in tiers.items():
+                ranks,exact=self._hit_facts(envelope,query)
+                # With at most two full hits the compact envelope carries nothing less.
+                if tier=='compact' and len(self._hit_facts(tiers['full'],query)[0])<=2:continue
+                utilities[gid][tier]=utility(trust,modality,kind,store_mb,ranks,exact)
+                candidates.append(Candidate(gid,tier,counter.count(envelope),utilities[gid][tier]))
+        def assemble(chosen):
+            response=dict(graph_ids=graph_ids,results=[],omitted=[],ranking='independent_per_graph_no_global_rank',tokenizer='o200k_base',used_tokens=0,
+                selection=dict(method='pc-mckp-v1',tiers={},utility={}))
+            for graph in graphs:
+                gid=graph['graph_id'];tier=chosen.get(gid,'omit')
+                response['selection']['tiers'][gid]=tier
+                response['selection']['utility'][gid]=0 if gid in unavailable else utilities[gid].get(tier,0)
+                if gid in unavailable:response['omitted'].append(dict(graph_id=gid,reason='GRAPH_UNAVAILABLE',message=unavailable[gid]))
+                else:
+                    if tier!='omit':response['results'].append(envelopes[gid][tier])
+                    if tier!='full':response['omitted'].append(dict(graph_id=gid,reason='budget_compact_only' if tier=='compact' else 'budget_omitted'))
+            return response
+        def fit(response):
             for _ in range(12):
                 count=counter.count(response)
                 if count==response['used_tokens']:break
                 response['used_tokens']=count
             count=counter.count(response)
-            if count<=limit_tokens and count==response['used_tokens']:return response
-            if not response['results']:raise ValueError('Federation metadata exceeds token budget')
-            # Drop the largest envelope so the outcome doesn't depend on argument order.
-            sizes=[counter.count(r) for r in response['results']]
-            omitted=response['results'].pop(max(range(len(sizes)),key=lambda i:(sizes[i],i)))
-            response['omitted'].append(dict(graph_id=omitted['graph_id'],reason='full_graph_envelope_omitted_by_budget'))
+            return count if count==response['used_tokens'] else limit_tokens+1
+        # Envelopes are indivisible: a partial node/edge list would break endpoint closure.
+        # The skeleton prices everything but the envelopes; overflow found after exact
+        # counting of the assembled response tightens the budget and selects again.
+        budget=limit_tokens-fit(assemble({c.graph_id:'full' for c in candidates}|{g:'omit' for g in unavailable}))
+        for _ in range(5):
+            response=assemble(select(candidates,budget))
+            count=fit(response)
+            if count<=limit_tokens:return response
+            budget-=count-limit_tokens
+        response=assemble({})
+        if fit(response)>limit_tokens:raise ValueError('Federation metadata exceeds token budget')
+        return response
