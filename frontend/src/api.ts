@@ -10,7 +10,12 @@ import visibilityPresets from "../../contracts/visibility-presets.json";
 import type {
   OperationMap as ActorOperations,
   NodeRecord as ActorNode,
+  ViewportFrameData as ActorViewportFrameData,
 } from "../../contracts/v1.1/geographer.wire";
+/** v1.1 documentary link layer (hyperedge incidences drawn as threads). */
+export type DocumentaryLink = NonNullable<
+  ActorViewportFrameData["documentary_links"]
+>[number];
 export type GroupMode =
   | "mixed"
   | "repository"
@@ -369,6 +374,13 @@ export async function workspaceFrame(
   return response as unknown as SuccessEnvelope<ViewportFrameData>;
 }
 
+export function frameLinks(
+  frame: object | undefined,
+): DocumentaryLink[] | undefined {
+  return (frame as { documentary_links?: DocumentaryLink[] } | undefined)
+    ?.documentary_links;
+}
+
 export function mergeFrame(
   old: ViewportFrameData | undefined,
   page: ViewportFrameData,
@@ -388,6 +400,15 @@ export function mergeFrame(
     ),
     spheres: merge(old.spheres, page.spheres, (s) => s.node_id),
     curves: merge(old.curves, page.curves, (c) => c.relationship_id),
+    ...(frameLinks(old) || frameLinks(page)
+      ? {
+          documentary_links: merge(
+            frameLinks(old) ?? [],
+            frameLinks(page) ?? [],
+            (l) => l.link_id,
+          ),
+        }
+      : {}),
     scene_completeness: {
       omitted_spheres: Math.max(
         0,

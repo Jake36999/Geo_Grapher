@@ -446,7 +446,8 @@ export default function App({
       pins,
       context_radius: contextRadius,
       filter,
-      layout_version: "sphere-pack-v1",
+      // Older servers answer sphere-pack-v1; the frame echoes what was used.
+      layout_version: "sphere-affinity-v1" as unknown as ViewportFrameRequest["layout_version"],
       seed: "geographer-workspace-v1",
       beta,
       edge_lens: { enabled: lens, center: [0, 0, 0], radius: 5, strength: 0.8 },
@@ -1816,17 +1817,23 @@ export default function App({
                 />
                 <div className="legend">
                   <span>○ enclosure / summary</span>
-                  <span>→ direction: darker source to lighter target</span>
-                  <span>·· candidate / unresolved · –– expected only</span>
                   <span>
-                    Solid: calls · long dash: imports · paired dash: inherits
+                    → Colour = relationship: orange call/data · violet
+                    hierarchy · cyan design rationale · sky describes · teal
+                    cites · gold bridge · red violation
                   </span>
                   <span>
-                    Grey: static · sage: observed · amber: rule violation
+                    → Direction: bright at the source, fading into the target
                   </span>
                   <span>
-                    Size: capped content / membership and packing space.
-                    Position is not similarity.
+                    → Pattern: solid exact · dashed candidate · dotted expected
+                    only · pulsing observed at runtime
+                  </span>
+                  <span>
+                    {(composition?.frames.find((f) => f.frame)?.frame ?? frame?.data)
+                      ?.layout_version === "sphere-pack-v1"
+                      ? "Size: content and packing share. Position is not similarity."
+                      : "→ Size: content & packing share · Radial depth: coreness vs. indifference · Angle: relational affinity"}
                   </span>
                 </div>
                 <div
