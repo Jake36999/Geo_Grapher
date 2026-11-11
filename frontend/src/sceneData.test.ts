@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { composeScene, renderId } from "./composition.ts";
 import { editedScene } from "./layoutEditing.ts";
+import { canonicalActor } from "./actorDecode.ts";
 
 const link = {
   link_id: "L1",
@@ -100,4 +101,20 @@ test("editedScene moves documentary control points with endpoint transforms", ()
   assert.deepEqual(pts[1], [1, 5, 0]); // midway: half the entity offset
   assert.deepEqual(pts[2], [2, 10, 0]); // at the entity end: fully moved
   assert.equal(edited.documentary_links![0].link_id, "L1");
+});
+
+test("canonicalActor decodes documentary link endpoints", () => {
+  
+  const decoded = canonicalActor({
+    revisions: [],
+    data: {
+      ids: { n2: "frag-id", n5: "ent-id" },
+      view_id: null,
+      nodes: [],
+      documentary_links: [{ link_id: "L", fragment_rep: "n2", entity_rep: "n5" }],
+    } as any,
+  });
+  const l = (decoded.data as any).documentary_links[0];
+  assert.equal(l.fragment_rep, "frag-id");
+  assert.equal(l.entity_rep, "ent-id");
 });

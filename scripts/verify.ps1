@@ -35,6 +35,7 @@ Step 'backend (full suite)' { & $python -m pytest tests -q --ignore=tests/node_m
 if (-not $SkipFrontend) {
   Step 'frontend typecheck' { npm run typecheck }
   Step 'frontend build' { npm run build }
+  Step 'frontend unit' { npm run test:unit }
 }
 if (-not $SkipBrowser) { Step 'browser suite' { & ./node_modules/.bin/playwright.cmd test --config playwright.graphs.config.cjs } }
 if ($Live) { Step 'live main workspace' { node scripts/qa-main-workspace.cjs } }

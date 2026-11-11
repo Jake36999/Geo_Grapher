@@ -9,7 +9,7 @@ from .analysis import DEFAULT_FILTER
 def display_data(result):
     """Decode only wire identity positions, never identifiers inside source/prose."""
     data=result['data'];ids=data.get('ids',{})
-    fields={'id','entity_id','parent_id','node_id','source','target','canonical_source','canonical_target','relationship_id','view_id','projection_id'}
+    fields={'id','entity_id','parent_id','node_id','source','target','canonical_source','canonical_target','relationship_id','view_id','projection_id','fragment_rep','entity_rep'}
     def decode(value,key=''):
         if isinstance(value,list):return [decode(v,key) for v in value]
         if isinstance(value,dict):return {k:decode(v,k) for k,v in value.items()}

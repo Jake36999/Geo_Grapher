@@ -28,6 +28,10 @@ def test_copy_is_independent_and_queryable(hub, tmp_path):
     assert Path(row['code_database']) == catalog.path.parent / 'graphs' / copy['graph_id'] / 'code.sqlite'
     assert router.query(copy['graph_id'], 'search_entities', request(first))['result']['data']['hits']
     assert catalog.copy_graph(first['graph_id'], 'A copy')['graph_id'] == copy['graph_id']
+    assert 'stratum' not in json.loads(row['profile_json'])
+    catalog.set_stratum(first['graph_id'], 'primary', 'gold', 'code')
+    stratified = catalog.copy_graph(first['graph_id'], 'Stratified')
+    assert json.loads(catalog.graph(stratified['graph_id'])['profile_json'])['stratum'] == json.loads(catalog.graph(first['graph_id'])['profile_json'])['stratum']
     # A copy must not make its source root look like an overlap.
     assert catalog.plan_root(tmp_path / 'a')['collisions'] == []
 
@@ -201,3 +205,43 @@ def test_merge_landing_during_retire_aborts_delete_without_changes(hub, tmp_path
         catalog.delete_graph(second['graph_id'], retire=retire_then_merge)
     assert catalog.graph(second['graph_id']) and path.is_file()
     assert [b['bridge_id'] for b in catalog.bridges([first['graph_id'], second['graph_id']])] == [bridge]
+
+
+def test_copy_backup_does_not_hold_catalog_lock(hub, tmp_path):
+    catalog, router, first = hub
+    other = import_graph(catalog, tmp_path / 'b', 'B')
+    started, release = threading.Event(), threading.Event()
+    real = catalog._backup
+
+    def slow(src, dst):
+        started.set()
+        assert release.wait(30)
+        real(src, dst)
+
+    catalog._backup = slow
+    result = {}
+    worker = threading.Thread(target=lambda: result.update(catalog.copy_graph(first['graph_id'], 'Slow')))
+    worker.start()
+    try:
+        assert started.wait(30)
+        probe = {}
+        reader = threading.Thread(target=lambda: probe.update(row=catalog.graph(other['graph_id'])))
+        reader.start();reader.join(5)
+        assert not reader.is_alive() and probe['row']['graph_id'] == other['graph_id']
+    finally:
+        release.set();worker.join(30)
+    assert result['graph_id'] and catalog.graph(result['graph_id'])
+
+
+def test_copy_clears_stale_store_files(hub, tmp_path):
+    catalog, router, first = hub
+    from geographer.model import digest
+    new_id = 'g_' + digest('copy-v1', first['graph_id'], 'Stale', first['ingestion']['snapshot_id'])[:24]
+    directory = catalog.path.parent / 'graphs' / new_id
+    directory.mkdir(parents=True)
+    for name in ('code.sqlite', 'code.sqlite-wal', 'code.sqlite-shm'):
+        (directory / name).write_bytes(b'stale')
+    copy = catalog.copy_graph(first['graph_id'], 'Stale')
+    assert copy['graph_id'] == new_id
+    assert not (directory / 'code.sqlite-wal').exists()
+    assert router.query(new_id, 'search_entities', request(first))['result']['data']['hits']

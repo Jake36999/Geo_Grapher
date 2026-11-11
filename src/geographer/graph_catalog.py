@@ -110,27 +110,41 @@ class GraphCatalog:
         with self.lock:return self.connection.execute('SELECT count(*) FROM bridges WHERE source_graph=? OR target_graph=?',(graph_id,graph_id)).fetchone()[0]
 
     def copy_graph(self,graph_id,label):
-        """Independent online copy of a graph's code store; paper corpora are not copied."""
+        """Independent online copy of a graph's code store; paper corpora are not copied.
+
+        The catalog lock is held only to validate and to publish; the (possibly
+        very large) SQLite backup runs unlocked so hub queries are not stalled."""
         if not isinstance(label,str) or not label.strip() or len(label)>200:raise ValueError('label must be a non-empty string of at most 200 characters')
         label=label.strip()
         with self.lock:
             source=self.graph(graph_id);profile=json.loads(source['profile_json'])
             new_id='g_'+digest('copy-v1',graph_id,label,source['snapshot_id'])[:24]
-            existing=self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone()
-            if existing:return dict(graph_id=new_id,label=label,copied_from=graph_id,snapshot_id=source['snapshot_id'])
-            database=(self.path.parent/'graphs'/new_id/'code.sqlite').resolve();database.parent.mkdir(parents=True,exist_ok=True)
-            try:
-                with closing(sqlite3.connect(Path(source['code_database']).resolve().as_uri()+'?mode=ro',uri=True)) as src:
-                    dst=sqlite3.connect(database)
-                    try:src.backup(dst)
-                    finally:dst.close()
-                new_profile=dict(graph_kind='copy',copied_from=graph_id,owner_repo_ids=profile.get('owner_repo_ids',[graph_id]))
+            result=dict(graph_id=new_id,label=label,copied_from=graph_id,snapshot_id=source['snapshot_id'])
+            if self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone():return result
+            source_path=Path(source['code_database']).resolve();root_path=source['root_path'];snapshot_id=source['snapshot_id']
+        database=(self.path.parent/'graphs'/new_id/'code.sqlite').resolve();database.parent.mkdir(parents=True,exist_ok=True)
+        try:
+            # Leftovers of an earlier failed delete/copy are never a valid base for the backup.
+            for suffix in ('','-wal','-shm'):
+                database.with_name(database.name+suffix).unlink(missing_ok=True)
+            with closing(sqlite3.connect(source_path.as_uri()+'?mode=ro',uri=True)) as src:
+                dst=sqlite3.connect(database)
+                try:self._backup(src,dst)
+                finally:dst.close()
+            new_profile=dict(graph_kind='copy',copied_from=graph_id,owner_repo_ids=profile.get('owner_repo_ids',[graph_id]))
+            if profile.get('stratum'):new_profile['stratum']=profile['stratum']
+            with self.lock:
+                # Lost race: the winner owns this directory (same id), so leave it alone.
+                if self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone():return result
                 with self.connection:
-                    self.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?)',(new_id,'copy:'+new_id,source['root_path'],label,str(database),
-                        source['snapshot_id'],canonical(new_profile),datetime.now(timezone.utc).isoformat()))
-            except BaseException:
-                shutil.rmtree(database.parent,ignore_errors=True);raise
-            return dict(graph_id=new_id,label=label,copied_from=graph_id,snapshot_id=source['snapshot_id'])
+                    self.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?)',(new_id,'copy:'+new_id,root_path,label,str(database),
+                        snapshot_id,canonical(new_profile),datetime.now(timezone.utc).isoformat()))
+        except BaseException:
+            shutil.rmtree(database.parent,ignore_errors=True);raise
+        return result
+
+    @staticmethod
+    def _backup(src,dst):src.backup(dst)
 
     def _refuse_if_in_use(self,graph_id,protected):
         if graph_id in protected:raise ValueError('GRAPH_IN_USE: this is the hub primary graph')

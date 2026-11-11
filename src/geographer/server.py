@@ -136,7 +136,7 @@ def create_http_app(service,host='127.0.0.1',port=8765):
     async def local_request_guard(request,call_next):
         failure=await security.validate_request(request,is_post=request.method=='POST')
         if failure:return failure
-        if request.method=='POST':
+        if request.method in {'POST','PUT','DELETE'}:
             try:
                 length=request.headers.get('content-length')
                 if length and (not length.isdecimal() or int(length)>4194304):raise ValueError()
