@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "4da67e9828db0059564985322927abb466f8dfcc40961d3e14d49f567ad4f3e4",
+  "contract_sha256": "3beeb15fcb693e0e7974b993a5e7d262f33255423793d7d4cf1115e67840b4ca",
   "operations": {
     "search_entities": {
       "request": {
@@ -4786,6 +4786,47 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
+              },
+              "relationship_family": {
+                "anyOf": [
+                  {
+                    "const": "call_or_data"
+                  },
+                  {
+                    "const": "hierarchy"
+                  },
+                  {
+                    "const": "doc_rationale"
+                  },
+                  {
+                    "const": "doc_describes"
+                  },
+                  {
+                    "const": "doc_cites"
+                  },
+                  {
+                    "const": "catalog_bridge"
+                  },
+                  {
+                    "const": "violation"
+                  }
+                ]
+              },
+              "runtime_status": {
+                "anyOf": [
+                  {
+                    "const": "exact"
+                  },
+                  {
+                    "const": "candidate"
+                  },
+                  {
+                    "const": "observed"
+                  },
+                  {
+                    "const": "expected_only"
+                  }
+                ]
               }
             },
             "required": [
@@ -4908,6 +4949,47 @@
                 "items": {
                   "type": "number"
                 }
+              },
+              "relationship_family": {
+                "anyOf": [
+                  {
+                    "const": "call_or_data"
+                  },
+                  {
+                    "const": "hierarchy"
+                  },
+                  {
+                    "const": "doc_rationale"
+                  },
+                  {
+                    "const": "doc_describes"
+                  },
+                  {
+                    "const": "doc_cites"
+                  },
+                  {
+                    "const": "catalog_bridge"
+                  },
+                  {
+                    "const": "violation"
+                  }
+                ]
+              },
+              "runtime_status": {
+                "anyOf": [
+                  {
+                    "const": "exact"
+                  },
+                  {
+                    "const": "candidate"
+                  },
+                  {
+                    "const": "observed"
+                  },
+                  {
+                    "const": "expected_only"
+                  }
+                ]
               }
             },
             "required": [

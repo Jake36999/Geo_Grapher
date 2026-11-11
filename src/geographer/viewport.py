@@ -7,6 +7,7 @@ import json
 from .analysis import TreeIndex,partition,DEFAULT_FILTER,project,selected_relationships
 from .geometry import pack_tree,frame,knots_for,norm,sub,EPS,size_preference
 from .model import canonical,digest
+from .edge_classes import classify_relationship,classify_documentary
 from .packing import Unit
 from .service import QueryError
 
@@ -141,7 +142,7 @@ def documentary_links(service,sid,part,tree,centres,visible,budget):
         except KeyError:continue
         degree,knots=knots_for(len(points))
         links.append(dict(link_id='doclink:'+digest(f,e,role)[:24],fragment_rep=f,entity_rep=e,role=role,incidence_count=count,
-            control_points=[list(p) for p in points],degree=degree,knots=knots))
+            control_points=[list(p) for p in points],degree=degree,knots=knots,relationship_family=classify_documentary(role),runtime_status='exact'))
     links.sort(key=lambda l:(-l['incidence_count'],l['link_id']))
     return links[:max(0,min(200,budget))]
 
@@ -266,6 +267,7 @@ def build_frame(service,q,ctx):
                 curve=dict(relationship_id=row['projection_id'],canonical_source=a,canonical_target=b,reversed=row['source_rep_id']!=a,
                     control_points=[list(p) for p in points],degree=degree,knots=knots,normal=list(normal),binormal=list(binormal),
                     lane_index=index,lane_count=len(group),lane_spacing=.08,sample_count=48)
+                if q['schema_version']=='1.1':curve['relationship_family'],curve['runtime_status']=classify_relationship(row['family'],row['subtype'],row['resolution_status'])
                 curve_candidates.append((row,records,curve))
             else:units.append(Unit('internal:'+row['projection_id'],2,100,records))
     curve_candidates.sort(key=lambda item:(tree.distance(q['focus_id'],part.shells.get(item[0]['source_rep_id']) or tree.root),item[0]['projection_id']))
