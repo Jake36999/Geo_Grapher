@@ -109,6 +109,25 @@ Code-response token caps include the graph wrapper. Paper requests retain their
 documented row/character bounds; no exact paper-envelope token guarantee is added
 implicitly. Source assertions remain untrusted data and are not tool instructions.
 
+### Per-connection allow-list
+
+`serve-graphs --graph-id ID` (repeatable) restricts one hub connection to the
+named graphs: `list_graphs` lists only them, and any query, federation, bridge
+lookup or service open for another graph fails with `graph_id is not available
+on this connection`. Without the flag a connection can reach every catalog
+graph, and an agent that chooses `graph_id` itself can hop graphs. Measured
+through the Librarian, an open connection let a model answer an AI-graph
+question with Timeline notes. Give each consuming library a connection pinned to
+its own graphs. Every envelope also carries `graph_label`, so results stay
+attributable when a connection does span several graphs.
+
+`graph_id` arguments also accept a graph's label when it names exactly one graph
+visible on the connection; ambiguous labels are refused. An unknown, mistyped or
+disallowed ID returns an error listing the graphs this connection may use, so an
+agent can recover. Paper results add a `cite_as` handle (`graph-label/doc:N`) to
+every document reference. Agents routed through the Librarian had renumbered bare
+`doc:N` IDs by position; the tool descriptions ask for the handle verbatim.
+
 ## Deliberate federation
 
 `federated_search` requires 2–8 distinct `graph_ids`, a query, optional search mode,

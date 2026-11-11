@@ -230,6 +230,10 @@ reasoning models need the same guard.
    upper bound ~2.7%. Still open: a third graph (e.g. a Quantule or CSI pilot) once
    Phase C/D give those projects typed collections and artifact manifests.
 3. Phase C (source roles/collections) is now the next structural step.
+3a. 8 Nov: Graphify comparison and Librarian integration. See
+    [GRAPHIFY_COMPARISON_AND_LIBRARIAN_INTEGRATION_20261108.md](GRAPHIFY_COMPARISON_AND_LIBRARIAN_INTEGRATION_20261108.md).
+    Added `serve-graphs --graph-id` allow-lists and `graph_label` envelopes after
+    a Librarian-routed probe showed an agent hopping graphs on an open connection.
 4. Open from earlier: merged-graph concept labels (`g_<hex> / name`), and porting
    `graph_server.py` to the MCP 2.x API (the pin and start-up guard cover it today).
 

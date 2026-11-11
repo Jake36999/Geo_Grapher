@@ -86,6 +86,113 @@ def test_explicit_federation_keeps_graph_envelopes_and_token_bound(hub,tmp_path)
     with pytest.raises(ValueError):router.federated_search([],'research')
 
 
+def test_graph_label_aliases_and_recoverable_errors(hub,tmp_path):
+    catalog,router,first=hub;second=import_graph(catalog,tmp_path/'b','B')
+    by_label=router.query('a','search_entities',request(first))
+    assert by_label['graph_id']==first['graph_id'] and by_label['graph_label']=='A'
+    with pytest.raises(ValueError) as typo:router.query(first['graph_id'][:-3],'search_entities',request(first))
+    assert 'Unknown graph_id' in str(typo.value) and first['graph_id'] in str(typo.value) and 'B (' in str(typo.value)
+    import_graph(catalog,tmp_path/'c','B')
+    with pytest.raises(ValueError,match='ambiguous'):router.query('B','search_entities',request(second))
+    scoped=GraphRouter(catalog,allowed=[first['graph_id']])
+    try:
+        with pytest.raises(ValueError,match='not available on this connection; available: A'):scoped.query(second['graph_id'],'search_entities',request(second))
+        with pytest.raises(ValueError,match='not available'):scoped.bridges(['A',second['graph_id']])
+    finally:scoped.close()
+
+
+def test_paper_results_carry_graph_qualified_citation_handles(hub,tmp_path):
+    import sqlite3
+    from pipeline import stage3_build_db as db
+    from pipeline.artifacts import write_json
+    catalog,router,first=hub;path=tmp_path/'cite.papers.sqlite';conn=sqlite3.connect(path);conn.executescript(db.DDL)
+    artifact=tmp_path/'cite.json';write_json(artifact,dict(file_path='p.pdf',metadata=dict(title='Graph citation handles paper',authors=[]),sections=[dict(heading='Results',position=0,text='A network result.',claims=[dict(text='The network result holds.',claim_type='finding')],concepts=[dict(name='network',definition='A graph',concept_type='term')])]))
+    db.load_nodes_file(artifact,conn);conn.commit();conn.close();catalog.attach_papers(first['graph_id'],path)
+    found=router.query('A','paper_search_documents',{'query':'networks'})['result']['results'][0]
+    assert found['id']=='doc:1' and found['cite_as']=='A/doc:1'
+    document=router.query(first['graph_id'],'paper_get_document',{'title':'doc:1','detail':'claims'})['result']
+    assert document['cite_as']=='A/doc:1'
+    concept=router.query(first['graph_id'],'paper_get_concept',{'name':'network'})['result']['matches'][0]
+    assert concept['documents'][0]['cite_as']=='A/doc:1' and 'cite_as' not in concept
+
+
+def test_single_graph_connection_needs_no_graph_id_and_presets_limit_tools(hub,tmp_path):
+    from geographer.graph_router import offered_tools,TOOL_PRESETS
+    catalog,_,first=hub;second=import_graph(catalog,tmp_path/'b','B')
+    pinned=GraphRouter(catalog,allowed=[first['graph_id']],tools='code')
+    try:
+        assert pinned.query(None,'search_entities',request(first))['graph_id']==first['graph_id']
+        assert pinned.offered_tools==TOOL_PRESETS['code']
+    finally:pinned.close()
+    two=GraphRouter(catalog,allowed=[first['graph_id'],second['graph_id']])
+    try:
+        with pytest.raises(ValueError,match='graph_id is required'):two.query(None,'search_entities',request(first))
+    finally:two.close()
+    assert offered_tools('all') is None and offered_tools('list_graphs, paper_get_document')=={'list_graphs','paper_get_document'}
+    with pytest.raises(ValueError,match='Unknown tools'):offered_tools('papers,nope')
+
+
+def test_mcp_preset_hides_and_refuses_other_tools_and_graph_id_is_optional(hub):
+    from mcp import ClientSession,StdioServerParameters
+    from mcp.client.stdio import stdio_client
+    catalog,_,first=hub
+    async def check():
+        params=StdioServerParameters(command=sys.executable,args=['-m','geographer','serve-graphs','--catalog',str(catalog.path),
+            '--transport','stdio','--graph-id',first['graph_id'],'--tools','code'],env={**os.environ,'PYTHONPATH':str(Path('src').resolve())})
+        async with stdio_client(params) as (r,w):
+            async with ClientSession(r,w) as session:
+                await session.initialize()
+                names={t.name for t in (await session.list_tools()).tools}
+                assert names=={'list_graphs','search_entities','get_architecture_context','find_dependants','get_entity_content','check_architecture'}
+                schema=next(t for t in (await session.list_tools()).tools if t.name=='search_entities').inputSchema
+                assert schema['required']==['request']
+                found=await session.call_tool('search_entities',{'request':request(first)})
+                assert not found.isError and found.structuredContent['graph_id']==first['graph_id']
+                refused=await session.call_tool('find_similar_code',{'request':{}})
+                assert refused.isError and 'not offered' in refused.structuredContent['error']['message']
+    asyncio.run(check())
+
+
+def test_size_cap_pages_whole_items_instead_of_cutting_json(hub,tmp_path):
+    import sqlite3
+    from pipeline import stage3_build_db as db
+    from pipeline.artifacts import write_json
+    catalog,_,first=hub;path=tmp_path/'many.papers.sqlite';conn=sqlite3.connect(path);conn.executescript(db.DDL)
+    for i in range(8):
+        artifact=tmp_path/f'p{i}.json'
+        write_json(artifact,dict(file_path=f'p{i}.pdf',metadata=dict(title=f'Network study number {i}',authors=[],abstract_summary='A network result. '*30),
+            sections=[dict(heading='Results',position=0,text='Network text.',claims=[dict(text=f'Network claim {i}.',claim_type='finding')],concepts=[])]))
+        db.load_nodes_file(artifact,conn)
+    conn.commit();conn.close();catalog.attach_papers(first['graph_id'],path)
+    capped=GraphRouter(catalog,max_result_chars=2500)
+    try:
+        envelope=capped.query('A','paper_search_documents',{'query':'network','limit':8})
+        result=envelope['result'];kept=len(result['results'])
+        assert len(json.dumps(envelope,ensure_ascii=False))<=2500 and 1<=kept<8
+        assert result['count']==kept and result['pagination']['next_offset']==kept and result['size_limit']['items_withheld']==8-kept
+        rest=capped.query('A','paper_search_documents',{'query':'network','limit':8,'offset':kept})['result']['results']
+        assert {d['id'] for d in result['results']}.isdisjoint({d['id'] for d in rest}) and rest
+    finally:capped.close()
+    with pytest.raises(ValueError):GraphRouter(catalog,max_result_chars=10)
+
+
+def test_allow_list_makes_other_graphs_unreachable_on_that_connection(hub,tmp_path):
+    catalog,_,first=hub;second=import_graph(catalog,tmp_path/'b','B')
+    catalog.add_bridge(first['graph_id'],'root',second['graph_id'],'root','reference','Operator reference',[{'source':'test'}])
+    scoped=GraphRouter(catalog,allowed=[first['graph_id']])
+    try:
+        envelope=scoped.query(first['graph_id'],'search_entities',request(first))
+        assert envelope['graph_label']=='A' and 'result' in envelope
+        with pytest.raises(ValueError,match='not available on this connection'):scoped.query(second['graph_id'],'search_entities',request(second))
+        with pytest.raises(ValueError,match='not available'):scoped.service(second['graph_id'])
+        with pytest.raises(ValueError,match='not available'):scoped.federated_search([first['graph_id'],second['graph_id']],'research')
+        with pytest.raises(ValueError,match='not available'):scoped.bridges([first['graph_id'],second['graph_id']])
+        assert [g['graph_id'] for g in scoped.summary()['graphs']]==[first['graph_id']]
+    finally:scoped.close()
+    with pytest.raises(ValueError):GraphRouter(catalog,allowed=['g_000000000000000000000000'])
+    with pytest.raises(ValueError):GraphRouter(catalog,allowed=[])
+
+
 def test_federation_keeps_healthy_graphs_when_one_store_is_missing(hub,tmp_path):
     catalog,router,first=hub;second=import_graph(catalog,tmp_path/'b','B')
     with catalog.connection:catalog.connection.execute('UPDATE graphs SET code_database=? WHERE graph_id=?',(str(tmp_path/'missing.sqlite'),second['graph_id']))

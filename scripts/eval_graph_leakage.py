@@ -99,7 +99,7 @@ PROBES += [
 ]
 MODEL_PRICING = {"Qwen/Qwen3-32B": (0.10, 0.30), "openai/gpt-oss-20b": (0.03, 0.14), "openai/gpt-oss-120b": (0.09, 0.45)}
 
-NOT_FOUND = re.compile(r"(does not (contain|cover|include|mention|discuss|address|appear)|doesn't (contain|cover|mention|appear)|cannot provide|no (direct |relevant |matching )?(documents?|papers?|information|notes?|mention|matches|results)|zero results|returned no|not (covered|found|present|in this corpus|available)|corpus (lacks|has no)|nothing (in|about))", re.I)
+NOT_FOUND = re.compile(r"(does not (contain|cover|include|mention|discuss|address|appear)|doesn't (contain|cover|mention|appear)|(is|are) not (discussed|addressed|mentioned|covered)|lacks? coverage|cannot provide|no (direct |relevant |matching )?(documents?|papers?|information|notes?|mention|matches|results)|zero results|returned no|not (covered|found|present|in this corpus|available)|corpus (lacks|has no)|nothing (in|about))", re.I)
 # Homonym probes: the literal stem whose presence in a corpus makes "not found" a recall miss.
 HOMONYM_TERMS = {"networks": "network", "'model'": "model", "nodes": "node", "patterns": "pattern", "knowledge": "knowledge",
                  "agents": "agent", "fields": "field"}
@@ -198,10 +198,13 @@ def federated_attribution(answer):
         cited.update((g.lower(), int(n)) for g, n in explicit)
         stripped = re.sub(r"(ai-research-papers|timeline-mapping)\s*/\s*doc[:\s#]*\d+", "", line, flags=re.I)
         mentions = [(m.start(), AI if m.group(1) else TL) for m in CORPUS_MENTION.finditer(stripped)]
+        named = {g for _, g in mentions}
         if re.match(r"\s*(#+|\*\*)", line):
             # A heading naming exactly one corpus opens its section; a neutral heading closes it.
-            named = {g for _, g in mentions}
             current = named.pop() if len(named) == 1 else None
+        elif len(named) == 1:
+            # A paragraph opener naming one corpus ("The timeline-mapping graph ...") also opens it.
+            current = next(iter(named))
         for m in re.finditer(r"doc[\s_:#-]*(?:id)?[\s:#]*(\d+)", stripped, re.I):
             before = [g for pos, g in mentions if pos < m.start()]
             owner = before[-1] if before else current
@@ -317,7 +320,8 @@ def score(probe, answer, retrieved, tool_text, corpora, *, unsupported=None, out
     for topic, owner in probe.get("expect", {}).items():
         other = TL if owner == AI else AI
         for line in answer.splitlines():
-            if topic.casefold() in line.casefold() and CORPUS_MENTION.search(line):
+            # "GraphRAG is not discussed in timeline-mapping" attributes nothing.
+            if topic.casefold() in line.casefold() and CORPUS_MENTION.search(line) and not NOT_FOUND.search(line):
                 named = {AI if m.group(1) else TL for m in CORPUS_MENTION.finditer(line)}
                 if named == {other}:
                     reasons.setdefault("cross_graph_leak", {}).setdefault("misattributed_topics", []).append(f"{topic}->{other}")

@@ -1,6 +1,7 @@
 """Local CLI. Repository source is never imported as part of ingestion."""
 import argparse
 import json
+import os
 from pathlib import Path
 
 from .pipeline import ingest
@@ -67,8 +68,23 @@ def main():
     graphs.add_argument('--manifest',type=Path,required=True);graphs.add_argument('--catalog',type=Path,required=True)
     graphs.add_argument('--on-overlap',choices=['keep_separate','child_module']);graphs.add_argument('--report',type=Path)
     graphserver=sub.add_parser('serve-graphs',help='Graph-scoped MCP and display-only multi-graph UI')
-    graphserver.add_argument('--catalog',type=Path,required=True);graphserver.add_argument('--transport',choices=['stdio','http'],default='http');graphserver.add_argument('--port',type=int,default=8765)
+    # Environment defaults let an MCP host (e.g. Librarian's curated list, whose
+    # args cannot reference variables) configure a pinned launch per person.
+    env_catalog=os.environ.get('GEOGRAPHER_CATALOG')
+    graphserver.add_argument('--catalog',type=Path,default=Path(env_catalog) if env_catalog else None,required=not env_catalog,
+        help='Graph catalog (default: $GEOGRAPHER_CATALOG)');graphserver.add_argument('--transport',choices=['stdio','http'],default='http');graphserver.add_argument('--port',type=int,default=8765)
     graphserver.add_argument('--ui-origin',help='Compatibility listener: redirect its viewer to this loopback origin')
+    env_graphs=[g.strip() for g in os.environ.get('GEOGRAPHER_GRAPHS','').split(',') if g.strip()]
+    graphserver.add_argument('--graph-id',action='append',dest='allow_graph',metavar='GRAPH_ID',default=None,
+        help='Expose only this graph (repeatable; default: comma-separated $GEOGRAPHER_GRAPHS). '
+             'Turns per-call scoping into an access boundary for this connection')
+    graphserver.add_argument('--tools',default=os.environ.get('GEOGRAPHER_TOOLS') or None,
+        help="Tool surface: 'all' (default), 'papers', 'code', or comma-separated tool names "
+             "(default: $GEOGRAPHER_TOOLS). For hosts that offer an agent only a few tools per turn")
+    env_cap=os.environ.get('GEOGRAPHER_MAX_RESULT_CHARS','').strip()
+    graphserver.add_argument('--max-result-chars',type=int,default=int(env_cap) if env_cap.isdigit() else None,
+        help="Fit paper results to a client's size cap (e.g. 7500 for Librarian) by paging whole items, never cutting JSON "
+             "(default: $GEOGRAPHER_MAX_RESULT_CHARS)")
     plan=sub.add_parser('plan-graph',help='Read-only root collision review before graph import')
     plan.add_argument('--catalog',type=Path,required=True);plan.add_argument('--root',type=Path,required=True)
     papers=sub.add_parser('attach-graph-papers',help='Bind an existing independent paper corpus to one graph')
@@ -114,7 +130,7 @@ def main():
             else:
                 from .graph_router import GraphRouter
                 from .graph_server import create_graph_http,create_graph_mcp
-                router=GraphRouter(catalog)
+                router=GraphRouter(catalog,allowed=args.allow_graph or env_graphs or None,max_result_chars=args.max_result_chars,tools=args.tools)
                 try:
                     if args.transport=='stdio':create_graph_mcp(router,port=args.port).run(transport='stdio')
                     else:
