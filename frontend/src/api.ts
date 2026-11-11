@@ -66,6 +66,8 @@ export type Node = NodeRecord & {
   child_count?: number;
   summary?: ActorNode["summary"];
   group_preview?: ActorNode["group_preview"];
+  display_label?: ActorNode["display_label"];
+  role_badge?: ActorNode["role_badge"];
 };
 export interface RuntimeCollection {
   collection_id: string;
@@ -404,6 +406,8 @@ export function mergeFrame(
 }
 
 export function shortName(node: Node): string {
+  if (typeof node.display_label === "string" && node.display_label !== "")
+    return node.display_label;
   if (node.kind === "repository" && graphDisplayLabel() && graphBasePath().includes(node.repo_id)) return graphDisplayLabel()!;
   if (node.kind === "residual")
     return `Other contents · ${node.member_count.toLocaleString()}`;

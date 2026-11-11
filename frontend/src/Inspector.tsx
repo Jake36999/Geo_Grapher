@@ -576,7 +576,18 @@ export default function Inspector({
         {node && (
           <div className="entity-heading">
             <span className="kind-badge">{node.kind.replaceAll("_", " ")}</span>
-            <h2>{shortName(node)}</h2>
+            <h2>
+              {shortName(node)}
+              {node.role_badge && (
+                <span
+                  className="tiny-badge role-badge"
+                  title="Role"
+                  style={{ marginLeft: 8, verticalAlign: "middle" }}
+                >
+                  [{node.role_badge}]
+                </span>
+              )}
+            </h2>
             <p className="qualified-name" title={node.qualified_name}>
               {node.qualified_name}
             </p>

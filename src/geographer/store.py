@@ -395,7 +395,7 @@ class SnapshotStore:
             for aid,result in incoming.analyses.items():
                 # Source evidence survives; source-local query plans, partitions,
                 # diagnostics and layout caches do not describe the new union.
-                if result['algorithm_version'] in {'source-bytes-v1','py-ast-v1','documentary-v1','documentary-v2','documentary-tree-v1','source-context-v1','declaration-v1','c3-static-v1','tree-sitter-syntax-v1','runtime-collection-v1'}:
+                if result['algorithm_version'] in {'source-bytes-v1','py-ast-v1','documentary-v1','documentary-v2','documentary-tree-v1','source-context-v1','declaration-v1','role-inputs-v1','c3-static-v1','tree-sitter-syntax-v1','runtime-collection-v1'}:
                     graph.analyses[aid]=result
         graph.augment()
         config = {"stage": stage, "merge": sorted((sid for _, sid in sources)), "mode": "disjoint_fact_union", "merge_version":"namespace-union-v2"}

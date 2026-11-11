@@ -49,6 +49,8 @@ export interface NodeRecord {
   membership_handle: Id | null;
   summary: NodeSummary;
   group_preview: GroupPreview | null;
+  display_label?: string | null;
+  role_badge?: 'Entry' | 'Schema' | 'Gate' | 'IO' | 'Core' | 'Util' | 'Spec' | null;
 }
 export interface EvidenceHandle {
   id: Id;

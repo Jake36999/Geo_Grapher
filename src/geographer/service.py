@@ -150,7 +150,8 @@ class QueryService:
                 name=next((c['id'] for c in model.model['components'] if eid=='view:component:'+digest(model.digest,c['id'])),name)
             return dict(id=eid,entity_id=None,kind=kind,sort='synthetic',repo_id='@workspace',language='none',qualified_name=name,
                         parent_id=shell,depth=None,source=None,flags=dict(is_test=False,is_generated=False,is_vendor=False,is_external=False),
-                        member_count=len(members),membership_handle=self._handle('members',dict(members=members)),ast_body_hash=None,wl_3hop_hash=None,doi=None)
+                        member_count=len(members),membership_handle=self._handle('members',dict(members=members)),ast_body_hash=None,wl_3hop_hash=None,doi=None,
+                        **(dict(display_label=None,role_badge=None) if self.active_version=='1.1' else {}))
         if eid not in ctx['g'].entities:raise QueryError('NOT_FOUND','Entity is outside snapshot')
         e=ctx['g'].entities[eid]
         node=dict(id=eid,entity_id=eid,kind=e.kind,sort=e.sort,repo_id=e.repo_id,language=e.language,qualified_name=e.qualified_name,
@@ -160,7 +161,18 @@ class QueryService:
                   ast_body_hash=e.ast_body_hash,wl_3hop_hash=e.wl_3hop_hash,doi=ctx['tree'].doi(eid,focus) if focus else None)
         if part and eid in part.groups and len(part.groups[eid])>1:
             node['membership_handle']=self._handle('members',dict(members=sorted(part.groups[eid])))
+        if self.active_version=='1.1':self._label(ctx,node,eid)
         return node
+
+    def _label(self,ctx,node,eid):
+        # 1.1 wire only: the frozen 1.0 NodeRecord forbids extra properties.
+        from . import labels
+        g=ctx['g']
+        node['display_label']=labels.base_label(g,eid) if node['kind'] in labels.LABELLED_KINDS else None
+        cache=ctx.setdefault('role_badges',{})
+        if eid not in cache:cache[eid]=labels.role_badge(g,eid)
+        node['role_badge']=cache[eid]
+        if node['kind']=='fragment':node['label_text']=g.analyses.get('text:'+eid,{}).get('result',{}).get('text','')
 
     def _evidence(self,ctx,e):
         location=None

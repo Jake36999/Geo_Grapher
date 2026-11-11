@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "afe8eccc42e14d215681dbc4bd93cba2352ed7018a3ce8e67ac3f17af8c48e0a",
+  "contract_sha256": "9c5b919f8a29837dfcdc0362c134e9103795fcacf561c79f7b42254549d53066",
   "operations": {
     "search_entities": {
       "request": {
@@ -632,6 +632,45 @@
           "anyOf": [
             {
               "$ref": "#/$defs/GroupPreview"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "display_label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 48
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role_badge": {
+          "anyOf": [
+            {
+              "const": "Entry"
+            },
+            {
+              "const": "Schema"
+            },
+            {
+              "const": "Gate"
+            },
+            {
+              "const": "IO"
+            },
+            {
+              "const": "Core"
+            },
+            {
+              "const": "Util"
+            },
+            {
+              "const": "Spec"
             },
             {
               "type": "null"

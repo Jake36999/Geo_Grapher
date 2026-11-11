@@ -236,6 +236,8 @@ class PythonExtractor(StaticDispatch):
                         ('async def ' if isinstance(node,ast.AsyncFunctionDef) else 'def ')+name+'('+ast.unparse(node.args)+')'+(' -> '+ast.unparse(node.returns) if getattr(node,'returns',None) else ''))
                 self.graph.analyses['declaration:'+eid]=dict(algorithm_version='declaration-v1',scope={'entity_id':eid},
                     result={'signature':header,'docstring':None if isinstance(node,ast.Lambda) else ast.get_docstring(node,clean=False)})
+                self.graph.analyses['role-inputs:'+eid]=dict(algorithm_version='role-inputs-v1',scope={'entity_id':eid},
+                    result={'decorators':[ast.unparse(d) for d in getattr(node,'decorator_list',[])],'bases':[ast.unparse(b) for b in getattr(node,'bases',[])]})
                 if kind in {"function", "method"}:
                     try:
                         if eid in self.normal_forms:
