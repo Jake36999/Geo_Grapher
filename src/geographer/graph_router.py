@@ -397,11 +397,20 @@ class GraphRouter:
             scope_anchor_identities=[dict(graph_id=g,snapshot_id=rows[g]['snapshot_id'],id='root',qualified_name=label[g],basis='snapshot_identity_only') for g in graph_ids],
             header=dict(counts=counts,total_items=len(bundles),offset=offset),
             next_cursor=key+':'+'9'*9,limit_tokens=limit_tokens)  # placeholder cursor reserves its maximum size
-        out=pack_items(header,bundles[offset:],limit_tokens,TokenCounter())
-        if not out['items'] and offset<len(bundles):raise ValueError('BUDGET_TOO_SMALL: the next item does not fit; raise limit_tokens')
-        end=offset+len(out['items'])
-        out['next_cursor']=f'{key}:{end}' if end<len(bundles) else None
-        out['used_tokens']=TokenCounter().count(out)
+        counter=TokenCounter();budget=limit_tokens
+        size=lambda o:len(json.dumps(o,ensure_ascii=False,default=str))
+        for _ in range(8):
+            out=pack_items(header,bundles[offset:],budget,counter)
+            if not out['items'] and offset<len(bundles):raise ValueError('BUDGET_TOO_SMALL: the next item does not fit; raise limit_tokens')
+            end=offset+len(out['items'])
+            out['next_cursor']=f'{key}:{end}' if end<len(bundles) else None
+            out['used_tokens']=counter.count(out)
+            # A connection size cap (e.g. a Librarian client withholds results over ~8,000 chars): shrink the
+            # token budget so whole items drop and the cursor resumes, instead of the client withholding all.
+            if not self.max_result_chars or size(out)<=self.max_result_chars or len(out['items'])<=1:break
+            budget=max(256,int(budget*self.max_result_chars/size(out)*0.9))
+        if self.max_result_chars and size(out)>self.max_result_chars:
+            raise ValueError('RESULT_TOO_LARGE: one item exceeds this connection\'s max_result_chars')
         return out
 
     def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation'):

@@ -147,3 +147,24 @@ def test_mcp_tool_listed_in_cross_preset(router_two_graphs_many_entities):
         assert anyio.run(names) == sorted(TOOL_PRESETS["cross"])
     finally:
         scoped.close()
+
+
+def test_connection_char_cap_is_respected_by_dropping_whole_items(router_two_graphs_many_entities):
+    import json
+    router, a, b = router_two_graphs_many_entities
+    capped = GraphRouter(router.catalog, max_result_chars=7500)
+    try:
+        seen, cursor = [], None
+        for mode in ("evolution_diff", "clone_candidates", "bridge_candidates"):
+            cursor = None
+            while True:
+                out = capped.analyze_cross_graphs([a, b], mode, limit_tokens=8192, cursor=cursor)
+                assert len(json.dumps(out, ensure_ascii=False)) <= 7500
+                if mode == "evolution_diff":
+                    seen.extend(canonical(i) for i in out["items"]); total = out["header"]["total_items"]
+                cursor = out["next_cursor"]
+                if cursor is None:
+                    break
+        assert len(seen) == len(set(seen)) == total  # every item delivered exactly once across capped pages
+    finally:
+        capped.close()
