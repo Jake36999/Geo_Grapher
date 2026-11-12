@@ -67,6 +67,9 @@ def main():
     workspace.add_argument('--stage',type=int,choices=[1,2,3],default=1);workspace.add_argument('--report',type=Path)
     discovery=sub.add_parser('discovery-report',help='Deterministic discovery card (discovery-card-v1) as Markdown, optionally JSON')
     discovery.add_argument('--store',type=Path,required=True);discovery.add_argument('--snapshot');discovery.add_argument('--out',required=True,help='Markdown file, or - for stdout');discovery.add_argument('--json',type=Path)
+    drift=sub.add_parser('drift-report',help='Five-tier drift between two snapshots (master G3), as JSON')
+    for side in ('a','b'):drift.add_argument(f'--store-{side}',type=Path,required=True);drift.add_argument(f'--snapshot-{side}',required=True)
+    drift.add_argument('--out',type=Path,required=True)
     graphs=sub.add_parser('ingest-graphs',help='One independent database/graph per project profile')
     graphs.add_argument('--manifest',type=Path,required=True);graphs.add_argument('--catalog',type=Path,required=True)
     graphs.add_argument('--on-overlap',choices=['keep_separate','child_module']);graphs.add_argument('--report',type=Path)
@@ -174,6 +177,15 @@ def main():
         output=json.dumps(report,indent=2,ensure_ascii=False)
         if args.report:args.report.parent.mkdir(parents=True,exist_ok=True);args.report.write_text(output+'\n',encoding='utf-8')
         print(output);return
+    if args.command=='drift-report':
+        from .drift import drift_report
+        from .model import canonical
+        from .store import SnapshotStore
+        for path in (args.store_a,args.store_b):
+            if not path.is_file():raise SystemExit(f'Store not found: {path}')
+        with SnapshotStore(args.store_a) as a,SnapshotStore(args.store_b) as b:
+            report=drift_report(a,args.snapshot_a,b,args.snapshot_b)
+        args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(canonical(report)+'\n',encoding='utf-8');return
     if args.command=='discovery-report':
         from .discovery import build_card,render_markdown
         from .model import canonical
