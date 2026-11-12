@@ -319,3 +319,49 @@ def clone_pairs(catalog, graph_ids: list[str], limit: int = 200) -> dict:
     finally:
         conn.close()
 
+
+
+def pack_items(header: dict, bundles: list[dict], limit_tokens: int, counter) -> dict:
+    """Admit whole ``{item, nodes}`` bundles in order under an exact complete-envelope token cap.
+
+    The envelope is ``header`` plus ``items``, endpoint-closed ``nodes`` (deduplicated by
+    ``(graph_id, id)``), ``omitted_items`` and ``used_tokens``. It is re-counted exactly every 16
+    admitted items and at the end; on overflow the last admitted items are popped until it fits.
+    Admission stops at the first overflow, so a cursor can resume in order (``len(items)`` admitted).
+    """
+    items: list[dict] = []
+    node_rows: dict[tuple, dict] = {}
+    uses: dict[tuple, int] = {}
+
+    def envelope():
+        nodes = [node_rows[k] for k in sorted(node_rows)]
+        out = dict(header, items=list(items), nodes=nodes, omitted_items=len(bundles) - len(items), used_tokens=limit_tokens)
+        return out
+
+    def admit(bundle):
+        items.append(bundle["item"])
+        for n in bundle["nodes"]:
+            key = (n["graph_id"], n["id"])
+            node_rows.setdefault(key, n); uses[key] = uses.get(key, 0) + 1
+
+    def pop():
+        items.pop()
+        for n in admitted_bundles.pop()["nodes"]:
+            key = (n["graph_id"], n["id"]); uses[key] -= 1
+            if not uses[key]:
+                del uses[key], node_rows[key]
+
+    admitted_bundles: list[dict] = []
+    overflow = False
+    for bundle in bundles:
+        admit(bundle); admitted_bundles.append(bundle)
+        if len(items) % 16 == 0 and counter.count(envelope()) > limit_tokens:
+            overflow = True
+            break
+    while items and counter.count(envelope()) > limit_tokens:
+        pop(); overflow = True
+    out = envelope()
+    if counter.count(out) > limit_tokens:
+        raise ValueError("BUDGET_TOO_SMALL: the response header alone exceeds limit_tokens")
+    out["used_tokens"] = counter.count(out)
+    return out

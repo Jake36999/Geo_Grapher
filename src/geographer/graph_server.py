@@ -61,6 +61,13 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
         for name,description,schema in [
             ('list_graphs','Discover graph IDs and their latest project snapshots.',dict(type='object',properties={},additionalProperties=False)),
             ('list_bridges','Only declared bridges with both endpoints in explicitly selected graphs.',dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True)},required=['graph_ids'],additionalProperties=False)),
+            ('analyze_cross_graphs','cross-graph-v1, read-only: evolution_diff (exactly 2 graphs), clone_candidates or bridge_candidates (2..8). '
+             'Rankings stay per graph; bridge candidates are unreviewed scores, never bridges. Items are packed whole under limit_tokens; '
+             'resume with next_cursor. Cite endpoints by cite_as.',
+             dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True),
+                'mode':dict(enum=['evolution_diff','clone_candidates','bridge_candidates','bridge_impact','theory_conformance']),
+                'limit_tokens':dict(type='integer',minimum=1024,maximum=32768),'cursor':{'type':['string','null'],'maxLength':40}},
+                required=['graph_ids','mode'],additionalProperties=False)),
             ('federated_search','Explicit comparison, per-graph rankings and a complete-envelope token cap; no graph or alias merging.',dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True),'query':dict(type='string',minLength=1,maxLength=500),'limit_tokens':dict(type='integer',minimum=2048,maximum=32768),'mode':dict(enum=['lexical','documentation','hybrid'])},required=['graph_ids','query'],additionalProperties=False))]:
             schemas[name]=schema;tools.append(types.Tool(name=name,description=description,inputSchema=schema,outputSchema={'type':'object'},annotations=types.ToolAnnotations(readOnlyHint=True)))
         return tools if offered is None else [t for t in tools if t.name in offered]
@@ -74,6 +81,10 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
             jsonschema.validate(arguments,schemas[name])
             if name=='list_graphs':result=await anyio.to_thread.run_sync(router.summary)
             elif name=='list_bridges':result=dict(bridges=router.bridges(arguments['graph_ids']))
+            elif name=='analyze_cross_graphs':
+                from functools import partial
+                result=await anyio.to_thread.run_sync(partial(router.analyze_cross_graphs,arguments['graph_ids'],arguments['mode'],
+                    limit_tokens=arguments.get('limit_tokens',4096),cursor=arguments.get('cursor')))
             elif name=='federated_search':
                 from functools import partial
                 result=await anyio.to_thread.run_sync(partial(router.federated_search,**arguments))
@@ -132,6 +143,24 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     async def bridges(request):
         try:return JSONResponse(dict(bridges=router.bridges((await request.json())['graph_ids'])))
         except (ValueError,KeyError,TypeError):return JSONResponse({'error':'Select explicit graph_ids'},status_code=400)
+    async def proposals_get(request):
+        try:
+            ids=[g for g in request.query_params.get('graph_ids','').split(',') if g]
+            status=request.query_params.get('status','pending')
+            return JSONResponse(dict(proposals=await anyio.to_thread.run_sync(lambda:router.bridge_proposals(ids,status))))
+        except (ValueError,KeyError,TypeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+    async def proposals_post(request):
+        try:
+            body=await request.json()
+            limit=body.get('limit',50)
+            return JSONResponse(dict(proposals=await anyio.to_thread.run_sync(lambda:router.propose_bridges(body['graph_a'],body['graph_b'],body['kind'],limit))))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+    async def proposal_decide(request):
+        try:
+            body=await request.json();pid=request.path_params['proposal_id']
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.review_proposal(pid,body['decision'],body['rationale'])))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:
+            return JSONResponse({'error':str(e)[:200]},status_code=409 if 'ALREADY_DECIDED' in str(e) else 400)
     async def plan(request):
         try:return JSONResponse(router.catalog.plan_root((await request.json())['root_path']))
         except (ValueError,KeyError,TypeError):return JSONResponse({'error':'Invalid project root'},status_code=400)
@@ -231,6 +260,8 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         Route('/api/graphs/frame',composition,methods=['POST']),
         Route('/api/graphs/merge/plan',merge_plan,methods=['POST']),Route('/api/graphs/merge/execute',merge_execute,methods=['POST']),
         Route('/api/graphs/plan',plan,methods=['POST']),
+        Route('/api/graphs/bridge-proposals',proposals_get),Route('/api/graphs/bridge-proposals',proposals_post,methods=['POST']),
+        Route('/api/graphs/bridge-proposals/{proposal_id}',proposal_decide,methods=['POST']),
         Route('/api/graphs/{graph_id}/copy',copy,methods=['POST']),Route('/api/graphs/{graph_id}',delete,methods=['DELETE']),
         Route('/api/workspace/active-graphs',active_get),Route('/api/workspace/active-graphs',active_put,methods=['PUT']),Route('/',index),Route('/collection/',collection),
         Route('/favicon.svg',lambda request:FileResponse(frontend/'favicon.svg')),

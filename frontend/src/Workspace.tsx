@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import App from "./App";
 import GraphMergeReview from "./GraphMergeReview";
+import BridgeReview from "./BridgeReview";
 import GraphActions from "./GraphLifecycle";
 import { getActiveGraphs, setActiveGraphs, setWorkspaceGraph } from "./api";
 import type {
@@ -271,6 +272,11 @@ export default function Workspace() {
                 })
                 .catch((e) => setError(e.message));
             }}
+          />
+          <BridgeReview
+            graphIds={selected}
+            labels={Object.fromEntries(graphs.map((g) => [g.graph_id, g.label]))}
+            onDecided={() => setSelected((s) => [...s])}
           />
           {error && <p role="alert">{error}</p>}
         </div>
