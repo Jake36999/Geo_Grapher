@@ -134,3 +134,11 @@ def test_clone_pairs_validates_graph_ids(catalog, tmp_path):
         clone_pairs(catalog, [a])
     with pytest.raises(ValueError):
         clone_pairs(catalog, [a, a])
+
+
+def test_clone_pairs_ignore_older_snapshots_in_the_same_store(catalog, tmp_path):
+    ids = [make_graph(catalog, tmp_path / n, n, {"u.py": SHARED}) for n in ("q1", "q2")]
+    root = tmp_path / "q1"; (root / "extra.py").write_text("def extra():\n    return 9\n", encoding="utf-8")
+    catalog.import_project(root, Repository.from_directory(root, "q1"), label="q1")  # second snapshot, same store
+    out = clone_pairs(catalog, ids)
+    assert len(out["pairs"]) == 1

@@ -263,9 +263,9 @@ def clone_pairs(catalog, graph_ids: list[str], limit: int = 200) -> dict:
             ast_matches = conn.execute(f'''
                 SELECT e1.entity_id, e2.entity_id
                 FROM g{i}.entity_fingerprints ef1
-                JOIN g{i}.entities e1 ON ef1.entity_id = e1.entity_id
+                JOIN g{i}.entities e1 ON ef1.entity_id = e1.entity_id AND e1.snapshot_id = ef1.snapshot_id
                 JOIN g{j}.entity_fingerprints ef2 ON ef1.ast_body_hash = ef2.ast_body_hash
-                JOIN g{j}.entities e2 ON ef2.entity_id = e2.entity_id
+                JOIN g{j}.entities e2 ON ef2.entity_id = e2.entity_id AND e2.snapshot_id = ef2.snapshot_id
                 WHERE ef1.snapshot_id = ? AND ef2.snapshot_id = ?
                   AND ef1.ast_body_hash IS NOT NULL AND ef2.ast_body_hash IS NOT NULL
                   AND e1.kind = e2.kind AND e1.kind IN ('function', 'method', 'class')
@@ -285,10 +285,10 @@ def clone_pairs(catalog, graph_ids: list[str], limit: int = 200) -> dict:
             sig_guard_matches = conn.execute(f'''
                 SELECT e1.entity_id, e2.entity_id
                 FROM g{i}.entity_fingerprints ef1
-                JOIN g{i}.entities e1 ON ef1.entity_id = e1.entity_id
+                JOIN g{i}.entities e1 ON ef1.entity_id = e1.entity_id AND e1.snapshot_id = ef1.snapshot_id
                 JOIN g{j}.entity_fingerprints ef2 ON ef1.signature_hash = ef2.signature_hash 
                                                   AND ef1.ts_guard_hash = ef2.ts_guard_hash
-                JOIN g{j}.entities e2 ON ef2.entity_id = e2.entity_id
+                JOIN g{j}.entities e2 ON ef2.entity_id = e2.entity_id AND e2.snapshot_id = ef2.snapshot_id
                 WHERE ef1.snapshot_id = ? AND ef2.snapshot_id = ?
                   AND ef1.signature_hash IS NOT NULL AND ef2.signature_hash IS NOT NULL
                   AND ef1.ts_guard_hash IS NOT NULL AND ef2.ts_guard_hash IS NOT NULL
