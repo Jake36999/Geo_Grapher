@@ -60,6 +60,7 @@ class GraphCatalog:
         self.connection.executescript(DDL)
         self.lock=threading.RLock()
         self.merge_lock=threading.Lock();self.import_lock=threading.Lock()
+        self._copying=set()
 
     def close(self):self.connection.close()
 
@@ -121,9 +122,11 @@ class GraphCatalog:
             new_id='g_'+digest('copy-v1',graph_id,label,source['snapshot_id'])[:24]
             result=dict(graph_id=new_id,label=label,copied_from=graph_id,snapshot_id=source['snapshot_id'])
             if self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone():return result
+            if new_id in self._copying:raise ValueError('GRAPH_BUSY: this copy is already in progress')
+            self._copying.add(new_id)
             source_path=Path(source['code_database']).resolve();root_path=source['root_path'];snapshot_id=source['snapshot_id']
-        database=(self.path.parent/'graphs'/new_id/'code.sqlite').resolve();database.parent.mkdir(parents=True,exist_ok=True)
         try:
+            database=(self.path.parent/'graphs'/new_id/'code.sqlite').resolve();database.parent.mkdir(parents=True,exist_ok=True)
             # Leftovers of an earlier failed delete/copy are never a valid base for the backup.
             for suffix in ('','-wal','-shm'):
                 database.with_name(database.name+suffix).unlink(missing_ok=True)
@@ -140,7 +143,13 @@ class GraphCatalog:
                     self.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?)',(new_id,'copy:'+new_id,root_path,label,str(database),
                         snapshot_id,canonical(new_profile),datetime.now(timezone.utc).isoformat()))
         except BaseException:
-            shutil.rmtree(database.parent,ignore_errors=True);raise
+            # Only this call's own, unpublished directory may be removed.
+            with self.lock:
+                owned=not self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone()
+                if owned:shutil.rmtree(database.parent,ignore_errors=True)
+            raise
+        finally:
+            with self.lock:self._copying.discard(new_id)
         return result
 
     @staticmethod

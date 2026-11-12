@@ -245,3 +245,91 @@ def test_copy_clears_stale_store_files(hub, tmp_path):
     assert copy['graph_id'] == new_id
     assert not (directory / 'code.sqlite-wal').exists()
     assert router.query(new_id, 'search_entities', request(first))['result']['data']['hits']
+
+
+def test_concurrent_same_id_copies_do_not_clobber(hub, tmp_path):
+    catalog, router, first = hub
+    inside = threading.Event()
+    release = threading.Event()
+    original = catalog._backup
+
+    def slow(src, dst):
+        inside.set()
+        assert release.wait(30)
+        original(src, dst)
+
+    catalog._backup = slow
+    outcomes = []
+
+    def run():
+        try:
+            outcomes.append(('ok', catalog.copy_graph(first['graph_id'], 'Race')['graph_id']))
+        except ValueError as exc:
+            outcomes.append(('err', str(exc)))
+
+    a = threading.Thread(target=run)
+    a.start()
+    try:
+        assert inside.wait(30)
+        b = threading.Thread(target=run)
+        b.start();b.join(10)
+        assert not b.is_alive()
+    finally:
+        release.set();a.join(30)
+    kinds = sorted(k for k, _ in outcomes)
+    assert kinds == ['err', 'ok'] and any('GRAPH_BUSY' in v for k, v in outcomes if k == 'err')
+    new_id = next(v for k, v in outcomes if k == 'ok')
+    assert Path(catalog.graph(new_id)['code_database']).is_file()
+    assert router.query(new_id, 'search_entities', request(first))['result']['data']['hits']
+
+
+def test_copy_busy_refusal_clears_in_progress_marker(hub, tmp_path):
+    catalog, router, first = hub
+    inside = threading.Event()
+    release = threading.Event()
+    original = catalog._backup
+
+    def slow(src, dst):
+        inside.set()
+        assert release.wait(30)
+        original(src, dst)
+
+    catalog._backup = slow
+    worker = threading.Thread(target=lambda: catalog.copy_graph(first['graph_id'], 'Again'))
+    worker.start()
+    try:
+        assert inside.wait(30)
+        with pytest.raises(ValueError, match='GRAPH_BUSY'):
+            catalog.copy_graph(first['graph_id'], 'Again')
+    finally:
+        release.set();worker.join(30)
+    assert catalog._copying == set()
+    catalog._backup = original
+    again = catalog.copy_graph(first['graph_id'], 'Again')
+    assert catalog.graph(again['graph_id'])
+    # A different label after a refusal also works.
+    assert catalog.copy_graph(first['graph_id'], 'Other')['graph_id'] != again['graph_id']
+
+
+def test_failing_second_copy_keeps_published_directory(hub, tmp_path):
+    catalog, router, first = hub
+    original = catalog._backup
+    published = {}
+
+    def backup_then_publish(src, dst):
+        original(src, dst)
+        # Simulate the race winner publishing this id while we were mid-backup.
+        path = dst.execute('PRAGMA database_list').fetchone()[2]
+        new_id = Path(path).parent.name
+        with catalog.lock, catalog.connection:
+            catalog.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?)', (
+                new_id, 'copy:' + new_id, 'r', 'Keep', path, first['ingestion']['snapshot_id'], '{}', 'now'))
+        published['id'] = new_id;published['path'] = Path(path)
+        raise RuntimeError('post-publish failure')
+
+    catalog._backup = backup_then_publish
+    with pytest.raises(RuntimeError):
+        catalog.copy_graph(first['graph_id'], 'Keep')
+    assert published['path'].is_file()
+    assert catalog.graph(published['id'])
+    assert catalog._copying == set()
