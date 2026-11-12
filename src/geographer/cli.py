@@ -71,6 +71,12 @@ def main():
     init.add_argument('--root',type=Path,required=True);init.add_argument('--catalog',type=Path,required=True)
     init.add_argument('--plan-out',default='-',help='Plan JSON file, or - for stdout');init.add_argument('--apply',type=Path,help='Apply every partition of this saved plan')
     init.add_argument('--yes',action='store_true',help='Scan and apply every proposed partition')
+    diffg=sub.add_parser('diff-graphs',help='Fingerprint diff and quotient-cycle delta between two catalog graphs, as JSON')
+    diffg.add_argument('--catalog',type=Path,required=True);diffg.add_argument('--graph-a',required=True);diffg.add_argument('--graph-b',required=True)
+    diffg.add_argument('--out',type=Path,required=True)
+    clones=sub.add_parser('clone-report',help='Cross-graph structural clones (py-ast-v1, signature+guard), as JSON')
+    clones.add_argument('--catalog',type=Path,required=True);clones.add_argument('--graph-ids',required=True,help='Comma-separated, 2..8 graphs')
+    clones.add_argument('--limit',type=int,default=200);clones.add_argument('--out',type=Path,required=True)
     drift=sub.add_parser('drift-report',help='Five-tier drift between two snapshots (master G3), as JSON')
     for side in ('a','b'):drift.add_argument(f'--store-{side}',type=Path,required=True);drift.add_argument(f'--snapshot-{side}',required=True)
     drift.add_argument('--out',type=Path,required=True)
@@ -196,6 +202,17 @@ def main():
         if args.plan_out=='-':sys.stdout.buffer.write((canonical(plan)+'\n').encode('utf-8'))
         else:Path(args.plan_out).parent.mkdir(parents=True,exist_ok=True);Path(args.plan_out).write_text(canonical(plan)+'\n',encoding='utf-8')
         return
+    if args.command in ('diff-graphs','clone-report'):
+        from .cross_graph import clone_pairs,diff_graphs
+        from .graph_catalog import GraphCatalog
+        from .model import canonical
+        if not args.catalog.is_file():raise SystemExit(f'Catalog not found: {args.catalog}')
+        catalog=GraphCatalog(args.catalog)
+        try:
+            result=(diff_graphs(catalog,args.graph_a,args.graph_b) if args.command=='diff-graphs' else
+                    clone_pairs(catalog,[g.strip() for g in args.graph_ids.split(',') if g.strip()],limit=args.limit))
+        finally:catalog.close()
+        args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(canonical(result)+'\n',encoding='utf-8');return
     if args.command=='drift-report':
         from .drift import drift_report
         from .model import canonical

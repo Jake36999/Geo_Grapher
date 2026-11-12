@@ -142,3 +142,15 @@ def test_clone_pairs_ignore_older_snapshots_in_the_same_store(catalog, tmp_path)
     catalog.import_project(root, Repository.from_directory(root, "q1"), label="q1")  # second snapshot, same store
     out = clone_pairs(catalog, ids)
     assert len(out["pairs"]) == 1
+
+
+def test_cli_diff_graphs_and_clone_report(catalog, tmp_path, monkeypatch):
+    import json, sys
+    from geographer import cli
+    a = make_graph(catalog, tmp_path / "v1", "v1", PING)
+    b = make_graph(catalog, tmp_path / "v2", "v2", PONG)
+    for argv, out in ((["diff-graphs", "--graph-a", a, "--graph-b", b], tmp_path / "d.json"),
+                      (["clone-report", "--graph-ids", f"{a},{b}"], tmp_path / "c.json")):
+        monkeypatch.setattr(sys, "argv", ["geographer", *argv, "--catalog", str(catalog.path), "--out", str(out)])
+        cli.main()
+        assert json.loads(out.read_text(encoding="utf-8"))
