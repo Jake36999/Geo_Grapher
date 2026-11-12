@@ -21,6 +21,23 @@ from starlette.staticfiles import StaticFiles
 from .model import canonical,digest
 from .wire import WireContracts
 from .resources import resource_root
+
+
+def _inline_tool_schema(schema):
+    """Expose concrete request fields to function-call clients, preserving constraints."""
+    def expand(value, seen=()):
+        if isinstance(value,list):return [expand(v,seen) for v in value]
+        if not isinstance(value,dict):return value
+        if '$ref' in value:
+            ref=value['$ref']
+            if not ref.startswith('#/') or ref in seen:raise ValueError('Invalid generated request schema reference')
+            target=schema
+            for part in ref[2:].split('/'):target=target[part.replace('~1','/').replace('~0','~')]
+            resolved=expand(target,(*seen,ref))
+            siblings={k:expand(v,seen) for k,v in value.items() if k not in {'$ref','$defs','$schema'}}
+            return dict(allOf=[resolved,siblings]) if siblings else resolved
+        return {k:expand(v,seen) for k,v in value.items() if k!='$defs'}
+    return expand(schema)
 from .graph_router import CODE_OPERATIONS,PAPER_OPERATIONS
 
 
@@ -42,8 +59,8 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
     offered=router.offered_tools
     schemas={}
     for op in sorted(CODE_OPERATIONS-{'viewport_frame'}):
-        request=wire.schema(op,'request');defs=request.pop('$defs',{})
-        schemas[op]=dict(type='object',properties=dict(graph_id=graph_schema,request=request),required=scoped_required,additionalProperties=False,**{'$defs':defs})
+        request=_inline_tool_schema(wire.schema(op,'request'))
+        schemas[op]=dict(type='object',properties=dict(graph_id=graph_schema,request=request),required=scoped_required,additionalProperties=False)
     @mcp._mcp_server.list_tools()
     async def list_tools():
         from .server import TOOL_GUIDANCE
@@ -63,7 +80,9 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
         except ImportError:pass  # Paper tools are an optional source extension.
         for name,description,schema in [
             ('list_graphs','Discover graph IDs and their latest project snapshots.',dict(type='object',properties={},additionalProperties=False)),
-            ('compile_task_packet','Compile a snapshot-bound, cited task packet with structured upstream port contracts.',
+            ('compile_task_packet','Compile a snapshot-bound, cited task packet with structured upstream port contracts. '
+             'Anchors use entity:<canonical ID> (prefix entity: even when the ID itself begins entity:). '
+             'Search with request.identity_mode=canonical_map and read data.ids to obtain canonical IDs; scoped aliases alone are not bridge refs.',
              dict(type='object',properties={'graph_id':graph_schema,'anchors':dict(type='array',items={'type':'string'},minItems=1,maxItems=8),
                 'instruction':{'type':'string'},'profile':dict(enum=['tier3_leaf','tier2_forager','tier1_lead']),
                 'upstream':dict(type='array',items={'type':'object'})},required=['graph_id','anchors','instruction'],additionalProperties=False)),
