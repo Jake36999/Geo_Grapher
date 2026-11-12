@@ -49,6 +49,8 @@ export interface NodeRecord {
   membership_handle: Id | null;
   summary: NodeSummary;
   group_preview: GroupPreview | null;
+  display_label?: string | null;
+  role_badge?: 'Entry' | 'Schema' | 'Gate' | 'IO' | 'Core' | 'Util' | 'Spec' | null;
 }
 export interface EvidenceHandle {
   id: Id;
@@ -434,7 +436,7 @@ export interface ViewportFrameRequest extends BaseRequest {
   pins: Id[];
   context_radius: 0 | 1 | 2;
   filter: Filter;
-  layout_version: 'sphere-pack-v1';
+  layout_version: 'sphere-pack-v1' | 'sphere-affinity-v1';
   seed: string;
   beta: number;
   edge_lens: { enabled: boolean; center: Vec3; radius: number; strength: number };
@@ -444,7 +446,7 @@ export interface ViewportFrameRequest extends BaseRequest {
   camera: { eye: Vec3; target: Vec3; up: Vec3; fov_y_degrees: number; near: number; far: number };
 }
 export interface ViewportFrameData extends GraphPayload {
-  layout_version: 'sphere-pack-v1';
+  layout_version: 'sphere-pack-v1' | 'sphere-affinity-v1';
   partition_digest: Digest;
   spheres: { node_id: Id; center: Vec3; radius: number; role: 'representative' | 'context_shell' }[];
   curves: {
@@ -461,9 +463,18 @@ export interface ViewportFrameData extends GraphPayload {
     lane_count: number;
     lane_spacing: number;
     sample_count: number;
+    relationship_family?: 'call_or_data' | 'hierarchy' | 'doc_rationale' | 'doc_describes' | 'doc_cites' | 'catalog_bridge' | 'violation';
+    runtime_status?: 'exact' | 'candidate' | 'observed' | 'expected_only';
   }[];
   packing: { tolerance: 0.0001; fallback_parent_ids: Id[]; max_violation: number };
   scene_completeness: { omitted_spheres: number; omitted_curves: number };
+  documentary_links?: {
+    link_id: Id; fragment_rep: Id; entity_rep: Id;
+    role: 'discusses' | 'documents' | 'rationale_for' | 'cites';
+    incidence_count: number; control_points: Vec3[]; degree: 1 | 2 | 3; knots: number[];
+    relationship_family?: 'call_or_data' | 'hierarchy' | 'doc_rationale' | 'doc_describes' | 'doc_cites' | 'catalog_bridge' | 'violation';
+    runtime_status?: 'exact' | 'candidate' | 'observed' | 'expected_only';
+  }[];
 }
 export type ViewportFrameResponse = Response<ViewportFrameData>;
 export interface OperationMap {

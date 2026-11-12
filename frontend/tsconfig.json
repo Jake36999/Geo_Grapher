@@ -12,5 +12,6 @@
     "noEmit": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "../contracts/geographer.wire.d.ts"]
+  "include": ["src", "../contracts/geographer.wire.d.ts"],
+  "exclude": ["src/**/*.test.ts"]
 }

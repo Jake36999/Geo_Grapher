@@ -149,6 +149,115 @@ def pack_siblings(ids,radii,count,seed,*,attempts=8,sweeps=256,preferred_radius=
     return centres,radius,True,error
 
 
+def _coreness(ids,affinity,external):
+    """Master G14 coreness and band. Returns id -> (band, r_norm, c_hat, d)."""
+    ids=sorted(ids);pairs={}
+    for (a,b),w in sorted(affinity.items()):
+        if a!=b and w>0:
+            key=(min(a,b),max(a,b));pairs[key]=pairs.get(key,0.)+w
+    d={i:0. for i in ids}
+    for (a,b),w in sorted(pairs.items()):
+        if a in d and b in d:d[a]+=w;d[b]+=w
+    c={i:math.log1p(d[i])+.5*math.log1p(max(0.,external.get(i,0.))) for i in ids}
+    top=max(c.values(),default=0.)
+    result={}
+    for i in ids:
+        h=c[i]/top if top>0 else 0.
+        if d[i]==0:band,r='crust',.95-.23*h
+        elif h>=.66:band,r='core',.42-.37*(h-.66)/.34
+        else:band,r='mantle',.72-.30*h/.66
+        result[i]=(band,r,h,d[i])
+    return result
+
+
+def layout_bands(ids,affinity,external):
+    return {i:(v[0],v[1]) for i,v in _coreness(ids,affinity,external).items()}
+
+
+def pack_siblings_affinity(ids,radii,count,seed,affinity,external,*,preferred_radius=None,steps=40,attempts=8,sweeps=256):
+    """sphere-affinity-v1 (master G14): radial depth encodes coreness, direction encodes affinity."""
+    if len(ids)!=len(radii) or any(not math.isfinite(r) or r<=0 for r in radii):raise ValueError('Invalid child radii')
+    preference=size_preference(count) if preferred_radius is None else preferred_radius
+    if not radii:return [],1.,False,0.
+    order=sorted(range(len(ids)),key=lambda i:ids[i])
+    sid=[ids[i] for i in order];rad=[radii[i] for i in order];K=len(sid)
+    radius=max(preference,PADDING+max(rad),PADDING+(sum((r+GAP/2)**3 for r in rad)/.35)**(1/3))
+    # Gate fix D1 (F6 fallback b): affinity layouts get 15% parent-radius slack so the collision solver
+    # does not erase the angular structure in tightly packed parents. sphere-pack-v1 is unaffected.
+    radius*=1.15
+    info=_coreness(sid,affinity,external);hat=[info[i][2] for i in sid]
+    A={}
+    for (a,b),w in sorted(affinity.items()):
+        if a!=b and w>0 and a in info and b in info:
+            key=(min(a,b),max(a,b));A[key]=A.get(key,0.)+w
+    index={name:n for n,name in enumerate(sid)}
+    W={(index[a],index[b]):w for (a,b),w in sorted(A.items())}
+    maxd=max((info[i][3] for i in sid),default=0.)
+    phase=2*math.pi*int(digest(seed,sid)[:16],16)/2**64
+    seeded=sorted(range(K),key=lambda n:(-hat[n],sid[n]));dirs=[None]*K
+    for rank,n in enumerate(seeded):
+        z=1-2*(rank+.5)/K;theta=phase+rank*GOLDEN
+        dirs[n]=(math.sqrt(1-z*z)*math.cos(theta),math.sqrt(1-z*z)*math.sin(theta),z)
+    if K>1 and steps*(K*(K-1)//2)<=2000000:
+        rep=.5/K
+        for k in range(steps):
+            eta=.15*(1-k/steps);force=[(0.,0.,0.)]*K
+            for i in range(K):
+                xi=dirs[i]
+                for j in range(i+1,K):
+                    xj=dirs[j];dx=xj[0]-xi[0];dy=xj[1]-xi[1];dz=xj[2]-xi[2]
+                    w=W.get((i,j))
+                    # Gate fix D1 (c): w=max(0.25,A/max d); one dominant pair must not mute every weaker pair.
+                    s=max(.25,w/maxd) if w else -rep/max(1e-6,dx*dx+dy*dy+dz*dz)
+                    fx,fy,fz=force[i];force[i]=(fx+s*dx,fy+s*dy,fz+s*dz)
+                    fx,fy,fz=force[j];force[j]=(fx-s*dx,fy-s*dy,fz-s*dz)
+            updated=[]
+            for i in range(K):
+                x=dirs[i];f=force[i];radial=dot(f,x)
+                ft=(f[0]-radial*x[0],f[1]-radial*x[1],f[2]-radial*x[2])
+                moved=add(x,mul(ft,eta))
+                updated.append(unit(moved) if norm(moved)>=1e-12 else x)
+            dirs=updated
+    centres=[]
+    for n in range(K):
+        rho=info[sid[n]][1]*max(0.,radius-PADDING-rad[n])
+        centres.append(mul(dirs[n],rho) if K>1 else (0.,0.,0.))
+    mobility=[1/(1+3*h) for h in hat]
+    budget=min(attempts*sweeps,max(0,1000000//max(1,K*(K-1)//2)))
+    solved=None
+    for attempt in range(attempts):
+        for _ in range(min(sweeps,budget)):
+            budget-=1
+            for i in range(K):
+                for j in range(i+1,K):
+                    a,b=centres[i],centres[j];dx=b[0]-a[0];dy=b[1]-a[1];dz=b[2]-a[2]
+                    squared=dx*dx+dy*dy+dz*dz;required=rad[i]+rad[j]+GAP
+                    if squared<required*required:
+                        distance=math.sqrt(squared);shift=required-distance
+                        share=mobility[i]/(mobility[i]+mobility[j])
+                        if distance>1e-12:
+                            inv=1/distance;ux=dx*inv;uy=dy*inv;uz=dz*inv
+                        else:ux,uy,uz=frame((0,0,0),(0,0,0),sid[i]+sid[j])[0]
+                        si=shift*share;sj=shift*(1-share)
+                        centres[i]=(a[0]-ux*si,a[1]-uy*si,a[2]-uz*si);centres[j]=(b[0]+ux*sj,b[1]+uy*sj,b[2]+uz*sj)
+            for i,r in enumerate(rad):
+                allowed=radius-PADDING-r;distance=norm(centres[i])
+                if distance>allowed:centres[i]=mul(centres[i],allowed/distance)
+            if violations(centres,rad,radius)<=EPS:solved=(centres,radius,False);break
+            if budget<=0:break
+        if solved or budget<=0:break
+        radius*=1.15;centres=[mul(c,1.15) for c in centres]
+    if solved is None:
+        centres,radius=compact_fallback(sid,rad,preference,seed);solved=(centres,radius,True)
+    centres,radius,used=solved
+    centres=[tuple(round(x,9) for x in c) for c in centres]
+    error=violations(centres,rad,radius)
+    if error>EPS or not math.isfinite(radius) or radius>1e12:raise ValueError('No valid bounded layout')
+    out=[None]*len(ids)
+    for rank,i in enumerate(order):out[i]=centres[rank]
+    return out,radius,used,error
+
+
 @dataclass
 class Packing:
     centres:dict
@@ -157,7 +266,7 @@ class Packing:
     max_violation:float
 
 
-def pack_tree(children,root,counts,seed,aggregate=(),preferred_radii=None):
+def pack_tree(children,root,counts,seed,aggregate=(),preferred_radii=None,affinity=None):
     """Bottom-up radius solve followed by top-down rigid subtree translation."""
     order=[];stack=[root]
     while stack:
@@ -169,7 +278,9 @@ def pack_tree(children,root,counts,seed,aggregate=(),preferred_radii=None):
         if not cs:
             radii[p]=preferred_radii.get(p,size_preference(counts.get(p,1)) if p in aggregate or counts.get(p,1)>1 else 1.)
             continue
-        offsets,radius,used,error=pack_siblings(cs,[radii[c] for c in cs],counts.get(p,1),seed+':'+p,preferred_radius=preferred_radii.get(p))
+        if affinity is not None and p in affinity:
+            offsets,radius,used,error=pack_siblings_affinity(cs,[radii[c] for c in cs],counts.get(p,1),seed+':'+p,affinity[p][0],affinity[p][1],preferred_radius=preferred_radii.get(p))
+        else:offsets,radius,used,error=pack_siblings(cs,[radii[c] for c in cs],counts.get(p,1),seed+':'+p,preferred_radius=preferred_radii.get(p))
         radii[p]=radius;local.update(zip(cs,offsets));maximum=max(maximum,error)
         if used:fallback.append(p)
     centres={root:(0.,0.,0.)}

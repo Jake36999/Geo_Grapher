@@ -11,6 +11,10 @@ export interface WorkspaceGraph {
   availability?: string;
   error?: string;
   repo_ids?: string[];
+  owned_store?: boolean;
+  bridge_count?: number;
+  graph_kind?: string;
+  copied_from?: string | null;
 }
 export interface WorkspaceSettings {
   view: "spatial" | "list" | "matrix";

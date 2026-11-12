@@ -1,11 +1,15 @@
 """Independent project stores and explicit, non-merging graph bridges."""
 from __future__ import annotations
+from contextlib import closing
 from datetime import datetime,timezone
+import gc
 import json
 import os
 from pathlib import Path
 import sqlite3
+import shutil
 import threading
+import time
 
 from .model import canonical,digest
 from .pipeline import ingest
@@ -56,6 +60,7 @@ class GraphCatalog:
         self.connection.executescript(DDL)
         self.lock=threading.RLock()
         self.merge_lock=threading.Lock();self.import_lock=threading.Lock()
+        self._copying=set()
 
     def close(self):self.connection.close()
 
@@ -97,12 +102,118 @@ class GraphCatalog:
             self.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?)',(gid,'store:'+os.path.normcase(str(path)),str(path),', '.join(owners),str(path),sid[0],profile,datetime.now(timezone.utc).isoformat()))
             return gid
 
+    def owns_store(self,row):
+        """True only for a store under <catalog_dir>/graphs/<graph_id>/; anything else is registered."""
+        try:return Path(row['code_database']).resolve().is_relative_to((self.path.parent/'graphs'/row['graph_id']).resolve())
+        except (OSError,ValueError):return False
+
+    def bridge_count(self,graph_id):
+        with self.lock:return self.connection.execute('SELECT count(*) FROM bridges WHERE source_graph=? OR target_graph=?',(graph_id,graph_id)).fetchone()[0]
+
+    def copy_graph(self,graph_id,label):
+        """Independent online copy of a graph's code store; paper corpora are not copied.
+
+        The catalog lock is held only to validate and to publish; the (possibly
+        very large) SQLite backup runs unlocked so hub queries are not stalled."""
+        if not isinstance(label,str) or not label.strip() or len(label)>200:raise ValueError('label must be a non-empty string of at most 200 characters')
+        label=label.strip()
+        with self.lock:
+            source=self.graph(graph_id);profile=json.loads(source['profile_json'])
+            new_id='g_'+digest('copy-v1',graph_id,label,source['snapshot_id'])[:24]
+            result=dict(graph_id=new_id,label=label,copied_from=graph_id,snapshot_id=source['snapshot_id'])
+            if self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone():return result
+            if new_id in self._copying:raise ValueError('GRAPH_BUSY: this copy is already in progress')
+            self._copying.add(new_id)
+            source_path=Path(source['code_database']).resolve();root_path=source['root_path'];snapshot_id=source['snapshot_id']
+        try:
+            database=(self.path.parent/'graphs'/new_id/'code.sqlite').resolve();database.parent.mkdir(parents=True,exist_ok=True)
+            # Leftovers of an earlier failed delete/copy are never a valid base for the backup.
+            for suffix in ('','-wal','-shm'):
+                database.with_name(database.name+suffix).unlink(missing_ok=True)
+            with closing(sqlite3.connect(source_path.as_uri()+'?mode=ro',uri=True)) as src:
+                dst=sqlite3.connect(database)
+                try:self._backup(src,dst)
+                finally:dst.close()
+            new_profile=dict(graph_kind='copy',copied_from=graph_id,owner_repo_ids=profile.get('owner_repo_ids',[graph_id]))
+            if profile.get('stratum'):new_profile['stratum']=profile['stratum']
+            with self.lock:
+                # Lost race: the winner owns this directory (same id), so leave it alone.
+                if self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone():return result
+                with self.connection:
+                    self.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?)',(new_id,'copy:'+new_id,root_path,label,str(database),
+                        snapshot_id,canonical(new_profile),datetime.now(timezone.utc).isoformat()))
+        except BaseException:
+            # Only this call's own, unpublished directory may be removed.
+            with self.lock:
+                owned=not self.connection.execute('SELECT 1 FROM graphs WHERE graph_id=?',(new_id,)).fetchone()
+                if owned:shutil.rmtree(database.parent,ignore_errors=True)
+            raise
+        finally:
+            with self.lock:self._copying.discard(new_id)
+        return result
+
+    @staticmethod
+    def _backup(src,dst):src.backup(dst)
+
+    def _refuse_if_in_use(self,graph_id,protected):
+        if graph_id in protected:raise ValueError('GRAPH_IN_USE: this is the hub primary graph')
+        if self.connection.execute('SELECT 1 FROM merge_receipts WHERE graph_id=?',(graph_id,)).fetchone():
+            raise ValueError('GRAPH_IN_USE: a merge receipt names this graph')
+        for other in self.graphs():
+            if other['graph_id']!=graph_id and any(s.get('graph_id')==graph_id for s in json.loads(other['profile_json']).get('source_graphs',[])):
+                raise ValueError('GRAPH_IN_USE: it is a source of merged graph '+other['graph_id'])
+
+    def delete_graph(self,graph_id,*,retire=None,protected=frozenset(),restore=None):
+        """Remove a graph and its bridges; unlink only stores this catalog owns.
+
+        `restore` (default: the owner's `unretire_graph` when `retire` is a bound
+        router method) clears the router's deletion tombstone when we finish or fail."""
+        if restore is None and retire is not None:restore=getattr(getattr(retire,'__self__',None),'unretire_graph',None)
+        try:return self._delete_graph(graph_id,retire,protected)
+        finally:
+            if restore is not None:restore(graph_id)
+
+    def _delete_graph(self,graph_id,retire,protected):
+        with self.lock:
+            row=self.graph(graph_id)
+            self._refuse_if_in_use(graph_id,protected)  # Early: an obvious refusal retires nothing.
+        if retire is not None:retire(graph_id)  # May raise GRAPH_BUSY before anything changes.
+        with self.lock,self.connection:
+            self.connection.execute('BEGIN IMMEDIATE')
+            self._refuse_if_in_use(graph_id,protected)  # Re-checked: a merge may have landed during retire.
+            removed=[r[0] for r in self.connection.execute('SELECT bridge_id FROM bridges WHERE source_graph=? OR target_graph=? ORDER BY bridge_id',(graph_id,graph_id))]
+            self.connection.execute('DELETE FROM bridges WHERE source_graph=? OR target_graph=?',(graph_id,graph_id))
+            self.connection.execute('DELETE FROM overlap_decisions WHERE graph_a=? OR graph_b=?',(graph_id,graph_id))
+            self.connection.execute('DELETE FROM graphs WHERE graph_id=?',(graph_id,))
+        path=Path(row['code_database']);unlinked=[];kept=[]
+        if not self.owns_store(row):
+            kept.append(str(path.resolve()))
+        else:
+            path=path.resolve()
+            if path.is_file():
+                try:
+                    with sqlite3.connect(path) as conn:conn.execute('PRAGMA wal_checkpoint(TRUNCATE)')
+                    conn.close()
+                except sqlite3.Error:pass
+            gc.collect()
+            for target in (path,path.with_name(path.name+'-wal'),path.with_name(path.name+'-shm'),path.with_name(path.name+'.cursor-secret')):
+                if not target.exists():continue
+                for attempt in range(5):
+                    try:target.unlink();unlinked.append(str(target));break
+                    except FileNotFoundError:break
+                    except PermissionError:
+                        if attempt==4:kept.append(str(target))
+                        else:time.sleep(0.05*2**attempt)
+            try:path.parent.rmdir()
+            except OSError:pass
+        return dict(deleted=graph_id,bridges_removed=removed,files_unlinked=unlinked,files_kept=kept)
+
     def plan_root(self,root):
         path,key=self.root_identity(root)
         if not path.is_dir():raise ValueError('Project root must be an existing directory')
         collisions=[];existing=None
         for row in self.graphs():
-            if row['root_key'].startswith(('merge:','store:')):continue
+            if row['root_key'].startswith(('merge:','store:','copy:')):continue
             other=Path(row['root_path'])
             if key==row['root_key']:existing=row['graph_id']
             elif path.is_relative_to(other):collisions.append(dict(graph_id=row['graph_id'],relation='inside_existing_root'))
@@ -174,6 +285,19 @@ class GraphCatalog:
             with sqlite3.connect(path.as_uri()+'?mode=ro',uri=True) as papers:
                 if not papers.execute("SELECT 1 FROM sqlite_master WHERE name='read_documents'").fetchone():raise ValueError('Paper read model missing')
             self.connection.execute('UPDATE graphs SET paper_database=? WHERE graph_id=?',(str(path),graph_id))
+
+    def set_stratum(self,graph_id,role,trust_tier,modality):
+        """Record a graph's federation stratum under profile_json['stratum']."""
+        from .federation import TIER_WEIGHT,MODALITIES
+        if not isinstance(role,str) or not role.strip() or len(role)>64:raise ValueError('role must be a non-empty string of at most 64 characters')
+        if trust_tier not in TIER_WEIGHT:raise ValueError(f'trust_tier must be one of {sorted(TIER_WEIGHT)}')
+        if modality not in MODALITIES:raise ValueError(f'modality must be one of {sorted(MODALITIES)}')
+        with self.lock,self.connection:
+            self.connection.execute('BEGIN IMMEDIATE')
+            row=self.connection.execute('SELECT profile_json FROM graphs WHERE graph_id=?',(graph_id,)).fetchone()
+            if row is None:raise ValueError('Unknown graph_id')
+            profile=json.loads(row[0]);profile['stratum']=dict(role=role,trust_tier=trust_tier,modality=modality)
+            self.connection.execute('UPDATE graphs SET profile_json=? WHERE graph_id=?',(canonical(profile),graph_id))
 
     def add_bridge(self,source_graph,source_ref,target_graph,target_ref,kind,rationale,evidence):
         if source_graph==target_graph:raise ValueError('Bridge endpoints must be different graphs')

@@ -30,7 +30,7 @@ def record_key(collection,record):
     if collection=='paths':return (record['source'],record['target'])
     keys={"nodes":"id","relationships":"id","witnesses":"id","evidence_handles":"id",
           "hits":"node_id","results":"node_id","matches":"node_id","findings":"id",
-          "spheres":"node_id","curves":"relationship_id"}
+          "spheres":"node_id","curves":"relationship_id","documentary_links":"link_id"}
     if collection in keys:return record[keys[collection]]
     return digest(record)
 
@@ -47,6 +47,7 @@ def combine(mandatory,units,*,copy_records=True):
         if collection=="hits":values.sort(key=lambda r:(-r["score"],r["node_id"]))
         elif collection=="results":values.sort(key=lambda r:(r["hop_count"],r["node_id"]))
         elif collection=="chunks":values.sort(key=lambda r:(r["source"]["start_line"],r["sha256"]))
+        elif collection=="documentary_links":values.sort(key=lambda r:(-r["incidence_count"],r["link_id"]))
         elif collection.endswith('sibling_stubs'):values.sort(key=lambda r:(r['source']['start_line'],r['content_handle']))
         else:values.sort(key=lambda r:record_key(collection,r))
         if '.' in collection:

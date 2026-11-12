@@ -136,7 +136,7 @@ def create_http_app(service,host='127.0.0.1',port=8765):
     async def local_request_guard(request,call_next):
         failure=await security.validate_request(request,is_post=request.method=='POST')
         if failure:return failure
-        if request.method=='POST':
+        if request.method in {'POST','PUT','DELETE'}:
             try:
                 length=request.headers.get('content-length')
                 if length and (not length.isdecimal() or int(length)>4194304):raise ValueError()
@@ -254,11 +254,11 @@ def create_http_app(service,host='127.0.0.1',port=8765):
                         entity=dict(raw);entity.pop('snapshot_id');graph.add(Entity(**entity))
                     revisions=[dict(r) for r in service.store.connection.execute("SELECT repo_id,revision,digest FROM snapshots WHERE snapshot_id=? AND repo_id<>'@workspace' ORDER BY repo_id",(row['snapshot_id'],))]
                     ctx={'g':graph,'revisions':revisions,'revmap':{r['repo_id']:r['revision'] for r in revisions}}
-                    roots=[service._node(ctx,e.entity_id) for e in ctx['g'].entities.values() if e.kind=='repository']
+                    roots=[service._node(ctx,e.entity_id,labels=True) for e in ctx['g'].entities.values() if e.kind=='repository']
                     counts={name:service.store.connection.execute(f'SELECT count(*) FROM {name} WHERE snapshot_id=?',(row['snapshot_id'],)).fetchone()[0] for name in ('entities','relationships')}
                     statuses=dict(service.store.connection.execute('SELECT resolution_status,count(*) FROM relationships WHERE snapshot_id=? GROUP BY resolution_status',(row['snapshot_id'],)))
                     snapshots.append(dict(snapshot_id=row['snapshot_id'],created_at=row['created_at'],stage=json.loads(row['config_json']).get('stage',1),
-                        revisions=ctx['revisions'],root=service._node(ctx,next(e.entity_id for e in graph.entities.values() if e.kind=='workspace')),repositories=roots,counts=counts,statuses=statuses,
+                        revisions=ctx['revisions'],root=service._node(ctx,next(e.entity_id for e in graph.entities.values() if e.kind=='workspace'),labels=True),repositories=roots,counts=counts,statuses=statuses,
                         runtime_collections=runtime_collections,
                         telemetry_available=bool(runtime_collections) or service.store.connection.execute("SELECT 1 FROM relationships WHERE snapshot_id=? AND family='runtime' LIMIT 1",(row['snapshot_id'],)).fetchone() is not None))
                 return dict(snapshots=snapshots,models=[dict(digest=m.digest,world_policy=m.model['world_policy']) for m in service.rules.values()])
@@ -283,7 +283,7 @@ def create_http_app(service,host='127.0.0.1',port=8765):
                     def count(eid):
                         return sum(ctx['g'].entities[c].kind!='scope_atom' and (request.query_params.get('external')=='true' or not ctx['g'].entities[c].is_external) and
                                    (request.query_params.get('documents')=='true' or ctx['g'].entities[c].sort!='text') for c in ctx['tree'].children[eid])
-                    return dict(nodes=[{**service._node(ctx,eid),'child_count':count(eid)} for eid in chosen],next_after=chosen[-1] if len(ids)>limit else None)
+                    return dict(nodes=[{**service._node(ctx,eid,labels=True),'child_count':count(eid)} for eid in chosen],next_after=chosen[-1] if len(ids)>limit else None)
             return JSONResponse(await anyio.to_thread.run_sync(read))
         except (ValueError,KeyError,QueryError) as exc:return JSONResponse({'error':str(exc)},status_code=400)
     app.router.routes.append(Route('/api/v1/hierarchy',hierarchy,methods=['GET']))
@@ -294,7 +294,7 @@ def create_http_app(service,host='127.0.0.1',port=8765):
             def read():
                 with service.lock:
                     ctx=service._context(payload['snapshot_id'])
-                    return dict(nodes=[{**service._node(ctx,eid),'child_count':len(ctx['tree'].children[eid])} for eid in payload['ids'] if eid in ctx['g'].entities],
+                    return dict(nodes=[{**service._node(ctx,eid,labels=True),'child_count':len(ctx['tree'].children[eid])} for eid in payload['ids'] if eid in ctx['g'].entities],
                                 missing_ids=[eid for eid in payload['ids'] if eid not in ctx['g'].entities])
             return JSONResponse(await anyio.to_thread.run_sync(read))
         except (ValueError,KeyError,QueryError) as exc:return JSONResponse({'error':str(exc)},status_code=400)

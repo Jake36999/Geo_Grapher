@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "afe8eccc42e14d215681dbc4bd93cba2352ed7018a3ce8e67ac3f17af8c48e0a",
+  "contract_sha256": "7efef0554770a2bf89bcf7afc6ea6d7316ac5108ac83c1795ee58359982e74fb",
   "operations": {
     "search_entities": {
       "request": {
@@ -632,6 +632,45 @@
           "anyOf": [
             {
               "$ref": "#/$defs/GroupPreview"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "display_label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 48
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role_badge": {
+          "anyOf": [
+            {
+              "const": "Entry"
+            },
+            {
+              "const": "Schema"
+            },
+            {
+              "const": "Gate"
+            },
+            {
+              "const": "IO"
+            },
+            {
+              "const": "Core"
+            },
+            {
+              "const": "Util"
+            },
+            {
+              "const": "Spec"
             },
             {
               "type": "null"
@@ -4439,7 +4478,14 @@
           "$ref": "#/$defs/Filter"
         },
         "layout_version": {
-          "const": "sphere-pack-v1"
+          "anyOf": [
+            {
+              "const": "sphere-pack-v1"
+            },
+            {
+              "const": "sphere-affinity-v1"
+            }
+          ]
         },
         "seed": {
           "type": "string"
@@ -4642,7 +4688,14 @@
           "$ref": "#/$defs/Completeness"
         },
         "layout_version": {
-          "const": "sphere-pack-v1"
+          "anyOf": [
+            {
+              "const": "sphere-pack-v1"
+            },
+            {
+              "const": "sphere-affinity-v1"
+            }
+          ]
         },
         "partition_digest": {
           "$ref": "#/$defs/Digest"
@@ -4747,6 +4800,47 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
+              },
+              "relationship_family": {
+                "anyOf": [
+                  {
+                    "const": "call_or_data"
+                  },
+                  {
+                    "const": "hierarchy"
+                  },
+                  {
+                    "const": "doc_rationale"
+                  },
+                  {
+                    "const": "doc_describes"
+                  },
+                  {
+                    "const": "doc_cites"
+                  },
+                  {
+                    "const": "catalog_bridge"
+                  },
+                  {
+                    "const": "violation"
+                  }
+                ]
+              },
+              "runtime_status": {
+                "anyOf": [
+                  {
+                    "const": "exact"
+                  },
+                  {
+                    "const": "candidate"
+                  },
+                  {
+                    "const": "observed"
+                  },
+                  {
+                    "const": "expected_only"
+                  }
+                ]
               }
             },
             "required": [
@@ -4809,6 +4903,121 @@
             "omitted_curves"
           ],
           "additionalProperties": false
+        },
+        "documentary_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "link_id": {
+                "$ref": "#/$defs/Id"
+              },
+              "fragment_rep": {
+                "$ref": "#/$defs/Id"
+              },
+              "entity_rep": {
+                "$ref": "#/$defs/Id"
+              },
+              "role": {
+                "anyOf": [
+                  {
+                    "const": "discusses"
+                  },
+                  {
+                    "const": "documents"
+                  },
+                  {
+                    "const": "rationale_for"
+                  },
+                  {
+                    "const": "cites"
+                  }
+                ]
+              },
+              "incidence_count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "control_points": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Vec3"
+                }
+              },
+              "degree": {
+                "anyOf": [
+                  {
+                    "const": 1
+                  },
+                  {
+                    "const": 2
+                  },
+                  {
+                    "const": 3
+                  }
+                ]
+              },
+              "knots": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "relationship_family": {
+                "anyOf": [
+                  {
+                    "const": "call_or_data"
+                  },
+                  {
+                    "const": "hierarchy"
+                  },
+                  {
+                    "const": "doc_rationale"
+                  },
+                  {
+                    "const": "doc_describes"
+                  },
+                  {
+                    "const": "doc_cites"
+                  },
+                  {
+                    "const": "catalog_bridge"
+                  },
+                  {
+                    "const": "violation"
+                  }
+                ]
+              },
+              "runtime_status": {
+                "anyOf": [
+                  {
+                    "const": "exact"
+                  },
+                  {
+                    "const": "candidate"
+                  },
+                  {
+                    "const": "observed"
+                  },
+                  {
+                    "const": "expected_only"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "link_id",
+              "fragment_rep",
+              "entity_rep",
+              "role",
+              "incidence_count",
+              "control_points",
+              "degree",
+              "knots"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "required": [

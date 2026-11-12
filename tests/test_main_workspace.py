@@ -69,3 +69,18 @@ def test_existing_main_store_is_registered_without_reextracting_or_rewriting_ids
 def store_service(store):
     from geographer.service import QueryService
     return QueryService(store)
+
+
+def test_oversized_put_and_delete_bodies_return_413(tmp_path):
+    root=tmp_path/'project';root.mkdir();(root/'a.py').write_text('def run(): return 1\n',encoding='utf-8')
+    catalog=GraphCatalog(tmp_path/'catalog.sqlite')
+    imported=catalog.import_project(root,Repository.from_directory(root,'Project'),label='Project')
+    router=GraphRouter(catalog)
+    try:
+        with TestClient(create_main_workspace(router.service(imported['graph_id']),router),base_url='http://127.0.0.1:8765') as client:
+            big=b'x'*(4194304+10)
+            assert client.put('/api/workspace/active-graphs',content=big).status_code==413
+            assert client.request('DELETE','/api/graphs/'+imported['graph_id'],content=big).status_code==413
+            assert client.put('/api/workspace/active-graphs',json={'graph_ids':[imported['graph_id']]}).status_code==200
+    finally:
+        router.close();catalog.close()

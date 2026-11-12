@@ -1,5 +1,6 @@
 import type { Vec3, ViewportFrameData } from "../../contracts/geographer.wire";
 import type { SceneData } from "./Scene";
+import type { DocumentaryLink } from "./api";
 
 export interface OriginAddress {
   graph_id: string;
@@ -100,6 +101,15 @@ export function composeScene(input: Composition) {
         canonical_target: id(curve.canonical_target),
         control_points: curve.control_points.map(point),
         lane_spacing: curve.lane_spacing * scale,
+      });
+    for (const link of (item.frame as { documentary_links?: DocumentaryLink[] })
+      .documentary_links ?? [])
+      (data.documentary_links ??= []).push({
+        ...link,
+        link_id: id(link.link_id, "relationship"),
+        fragment_rep: id(link.fragment_rep),
+        entity_rep: id(link.entity_rep),
+        control_points: link.control_points.map(point),
       });
   }
   return { data, origins };

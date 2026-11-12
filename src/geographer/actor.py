@@ -6,7 +6,7 @@ from .analysis import DEFAULT_FILTER,selected_relationships
 from .model import digest
 
 REFS={'id','node_id','entity_id','source','target','parent_id','source_subject_id','target_subject_id','projection_id','relationship_id',
-      'focus_id','representative_focus_id','start_id','scope_id','component_id','source_component_id','target_component_id','canonical_source','canonical_target','doc_handle','resolved_source','resolved_target'}
+      'focus_id','representative_focus_id','start_id','scope_id','component_id','source_component_id','target_component_id','canonical_source','canonical_target','doc_handle','resolved_source','resolved_target','fragment_rep','entity_rep'}
 ARRAY_REFS={'ancestor_ids','evidence_ids','witness_path_ids','witness_projection_ids','fragment_ids','fallback_parent_ids','call_relationship_ids','alternatives','relationship_ids'}
 
 class ActorEncoder:
@@ -108,6 +108,7 @@ class ActorEncoder:
                 examples.append(dict(id=a,qualified_name=e.qualified_name,kind=e.kind,signature=sig[:240] if sig else None))
             preview=dict(kind_counts=dict(Counter(self.g.entities[self.owner(a)].kind for a in members)),top_exemplars=examples,exemplars_complete=len(examples)==len(members))
         result={k:node[k] for k in ('id','kind','sort','repo_id','language','qualified_name','parent_id','source','flags','member_count','membership_handle')}
+        result.update({k:node[k] for k in ('display_label','role_badge') if k in node})
         result.update(is_synthetic=node['entity_id'] is None or node['sort']=='synthetic',representation=representation,
             summary=self.summary(eid) if eid in self.g.entities else dict(signature=None,doc_gist=None,doc_handle=None,truncated=False),group_preview=preview)
         if representation=='context_shell':result['member_count']=0;result['membership_handle']=None

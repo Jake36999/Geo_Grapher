@@ -12,6 +12,7 @@ from geographer.source import Repository
 from geographer.store import SnapshotStore
 from geographer.service import QueryService
 from geographer.tokens import TokenCounter
+from conftest import viewport_request
 
 
 def test_packing_constraints_and_requested_noncollinear_fallback():
@@ -39,13 +40,6 @@ def test_clamped_greville_spline_endpoints_monotonicity_lanes_and_lens():
     b=lane_samples(points,.8,normal,1,2,.08,lens=lens,segments=100)
     assert all(norm(sub(x,y))>0 for x,y in zip(a[1:-1],b[1:-1]))
     assert lane_samples(points,.8,normal,0,2,.08,segments=100,reversed=True)==list(reversed(lane_samples(points,.8,normal,0,2,.08,segments=100)))
-
-
-def viewport_request(sid,focus,budget=32768):
-    return dict(schema_version='1.0',request_id='viewport-test',snapshot_id=sid,budget=dict(limit_tokens=budget,tokenizer='o200k_base',allow_byte_fallback=False),
-        focus_id=focus,revealed_ids=[],pins=[],context_radius=2,filter=copy.deepcopy(DEFAULT_FILTER),layout_version='sphere-pack-v1',seed='view-v1',beta=.8,
-        edge_lens=dict(enabled=False,center=[0,0,0],radius=5.,strength=.8),node_budget=100,curve_budget=200,
-        viewport=dict(width_px=1440,height_px=900,device_pixel_ratio=1),camera=dict(eye=[0,0,100],target=[0,0,0],up=[0,1,0],fov_y_degrees=45,near=.01,far=10000))
 
 
 def test_arbitrary_depth_focus_retains_every_ancestor_and_three_point_lca():

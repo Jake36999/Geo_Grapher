@@ -9,7 +9,7 @@ from .analysis import DEFAULT_FILTER
 def display_data(result):
     """Decode only wire identity positions, never identifiers inside source/prose."""
     data=result['data'];ids=data.get('ids',{})
-    fields={'id','entity_id','parent_id','node_id','source','target','canonical_source','canonical_target','relationship_id','view_id','projection_id'}
+    fields={'id','entity_id','parent_id','node_id','source','target','canonical_source','canonical_target','relationship_id','view_id','projection_id','fragment_rep','entity_rep'}
     def decode(value,key=''):
         if isinstance(value,list):return [decode(v,key) for v in value]
         if isinstance(value,dict):return {k:decode(v,k) for k,v in value.items()}
@@ -67,7 +67,7 @@ def compose_frame(router, requests):
                     viewport=dict(width_px=1440,height_px=900,device_pixel_ratio=1),
                     camera=dict(eye=[0,0,100],target=[0,0,0],up=[0,1,0],fov_y_degrees=45,near=.01,far=10000))
                 if request.get('grouping'):
-                    q.update(schema_version='1.1',identity_mode='canonical_map',grouping=request['grouping'],model_digest=request.get('model_digest'))
+                    q.update(schema_version='1.1',layout_version='sphere-affinity-v1',identity_mode='canonical_map',grouping=request['grouping'],model_digest=request.get('model_digest'))
                 q['revealed_ids']=request.get('revealed_ids',[]);q['pins']=request.get('pins',[])
                 result=service.query('viewport_frame',q)
             if 'error' in result:raise ValueError(result['error'].get('message','Frame unavailable'))
