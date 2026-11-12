@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Hashed contract files: byte-exact LF on every checkout (the wire.py and baseline-digest checks hash raw bytes).
+contracts/** text eol=lf
+FINAL_DESIGN_SPECIFICATION.md text eol=lf
+TECHNICAL_IMPLEMENTATION_BLUEPRINT.md text eol=lf
