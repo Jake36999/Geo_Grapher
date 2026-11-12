@@ -415,6 +415,8 @@ def prepare_analysis(graph):
     for eid,value in hashes.items():
         graph.entities[eid].wl_3hop_hash=value
     graph.analyses["wl:"+digest(DEFAULT_FILTER)]=dict(algorithm_version="directed-wl3-v1",scope={"filter":DEFAULT_FILTER},result={"node_hashes":hashes})
+    from .fingerprints import complete_fingerprints
+    complete_fingerprints(graph)
     vertices,rels=subject_graph(graph)
     tree=TreeIndex(graph)
     for e in sorted(graph.entities.values(),key=lambda e:e.entity_id):

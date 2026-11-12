@@ -36,6 +36,9 @@ def ingest(store: SnapshotStore, repositories: list[Repository], *, snapshot_id:
     if stage >= 2:
         from .analysis import prepare_analysis
         prepare_analysis(graph)
+    else:
+        from .fingerprints import complete_fingerprints
+        complete_fingerprints(graph)
     if stage >= 3:
         from .analysis import DEFAULT_FILTER
         from .contraction import contract_helpers

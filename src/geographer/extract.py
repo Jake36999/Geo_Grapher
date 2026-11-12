@@ -13,6 +13,7 @@ from pathlib import PurePosixPath
 
 from .cfg import CFG, UNBOUND, join, target_names
 from .model import Graph, Entity, Relationship, Evidence, canonical, digest, entity_id, EXTRACTOR_VERSION
+from .fingerprints import guard_clauses, local_names, signature_hash, ts_guard_hash
 from .normalize import normalized_ast
 from .scopes import ScopeIndex, Scope
 from .source import Repository
@@ -238,6 +239,8 @@ class PythonExtractor(StaticDispatch):
                     result={'signature':header,'docstring':None if isinstance(node,ast.Lambda) else ast.get_docstring(node,clean=False)})
                 self.graph.analyses['role-inputs:'+eid]=dict(algorithm_version='role-inputs-v1',scope={'entity_id':eid},
                     result={'decorators':[ast.unparse(d) for d in getattr(node,'decorator_list',[])],'bases':[ast.unparse(b) for b in getattr(node,'bases',[])]})
+                self.graph.fingerprints[eid]={'signature_hash':signature_hash(header,self.graph.analyses['role-inputs:'+eid]['result']['decorators']),
+                    'ts_guard_hash':ts_guard_hash(guard_clauses(node,local_names(scope),unit.text.split('\n')))}
                 if kind in {"function", "method"}:
                     try:
                         if eid in self.normal_forms:
