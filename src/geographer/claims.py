@@ -43,7 +43,7 @@ def static_details(unit, source, subtype, node, details, status):
     primary=reasons[0] if reasons else ('UNSUPPORTED_ANALYSIS' if status=='unresolved' else
              'CFG_BRANCH_REBOUND' if status=='candidate' else 'UNAMBIGUOUS_IMPORT_MEMBER' if subtype.startswith('imports') else 'LEXICAL_UNIQUE_BINDING')
     if primary not in REASONS or any(r not in REASONS for r in reasons):raise ValueError('Unknown static reason code')
-    raw=unit.repo.files[unit.path]
+    raw=getattr(unit,'source_bytes',None) or unit.repo.files[unit.path]
     if not hasattr(unit,'claim_source_cache'):unit.claim_source_cache=source_cache(raw,unit.text)
     cache=unit.claim_source_cache
     span=source_span(raw,unit.text,node,cache)
