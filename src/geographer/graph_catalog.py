@@ -322,7 +322,10 @@ class GraphCatalog:
         result=dict(graph_id=gid,root_plan=plan,ingestion=report)
         if old_sid is not None and old_sid!=report['snapshot_id']:
             from .lineage import sweep
-            result['lineage']=sweep(self,gid,old_sid,report['snapshot_id'])
+            # The snapshot is already published: a sweep failure must not report the import as failed.
+            # States stay as they were (the sweep writes in one transaction); a later sweep re-evaluates.
+            try:result['lineage']=sweep(self,gid,old_sid,report['snapshot_id'])
+            except (ValueError,OSError,sqlite3.Error) as exc:result['lineage']=dict(error=f'LINEAGE_SWEEP_FAILED: {str(exc)[:300]}')
         return result
 
     def derive_graph(self,source_graph_id,*,exclude_rel_paths,label):

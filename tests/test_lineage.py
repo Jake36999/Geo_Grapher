@@ -220,3 +220,13 @@ def test_register_card_tracks_card_entities(lineage_world):
     assert aid.startswith("card:") and state(w.catalog, aid) == "accepted"
     w.edit("f signature").reingest()
     assert state(w.catalog, aid) == "demoted_contestable"
+
+
+def test_sweep_failure_does_not_fail_a_published_import(lineage_world, monkeypatch):
+    import geographer.lineage as lineage
+    w = lineage_world()
+    monkeypatch.setattr(lineage, "sweep", lambda *a, **k: (_ for _ in ()).throw(sqlite3.OperationalError("disk I/O error")))
+    out = w.edit("f signature").catalog.import_project(w.root, Repository.from_directory(w.root, "code"), label="code")
+    assert out["lineage"]["error"].startswith("LINEAGE_SWEEP_FAILED")
+    assert w.catalog.graph(w.code)["snapshot_id"] == out["ingestion"]["snapshot_id"]  # published
+    assert state(w.catalog, w.bridge_id) == "accepted"  # unchanged until a later sweep
