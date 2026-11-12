@@ -47,3 +47,8 @@ blob-report/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Librarian vault folders created when the repo was opened as a library (2026-11-12); never commit.
+.librarian/
+/About/
+/Indexes/
