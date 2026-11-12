@@ -67,6 +67,10 @@ def main():
     workspace.add_argument('--stage',type=int,choices=[1,2,3],default=1);workspace.add_argument('--report',type=Path)
     discovery=sub.add_parser('discovery-report',help='Deterministic discovery card (discovery-card-v1) as Markdown, optionally JSON')
     discovery.add_argument('--store',type=Path,required=True);discovery.add_argument('--snapshot');discovery.add_argument('--out',required=True,help='Markdown file, or - for stdout');discovery.add_argument('--json',type=Path)
+    init=sub.add_parser('init-workspace',help='Plan disjoint graph partitions for any folder (workspace-init-v1); applies only with --apply or --yes')
+    init.add_argument('--root',type=Path,required=True);init.add_argument('--catalog',type=Path,required=True)
+    init.add_argument('--plan-out',default='-',help='Plan JSON file, or - for stdout');init.add_argument('--apply',type=Path,help='Apply every partition of this saved plan')
+    init.add_argument('--yes',action='store_true',help='Scan and apply every proposed partition')
     drift=sub.add_parser('drift-report',help='Five-tier drift between two snapshots (master G3), as JSON')
     for side in ('a','b'):drift.add_argument(f'--store-{side}',type=Path,required=True);drift.add_argument(f'--snapshot-{side}',required=True)
     drift.add_argument('--out',type=Path,required=True)
@@ -177,6 +181,21 @@ def main():
         output=json.dumps(report,indent=2,ensure_ascii=False)
         if args.report:args.report.parent.mkdir(parents=True,exist_ok=True);args.report.write_text(output+'\n',encoding='utf-8')
         print(output);return
+    if args.command=='init-workspace':
+        from .graph_catalog import GraphCatalog
+        from .model import canonical
+        from .workspace_init import apply,scan
+        if args.apply or args.yes:
+            catalog=GraphCatalog(args.catalog)
+            try:
+                plan=json.loads(args.apply.read_text(encoding='utf-8')) if args.apply else scan(args.root,catalog)
+                print(canonical(apply(catalog,plan,approved_keys={p['key'] for p in plan['partitions']})))
+            finally:catalog.close()
+            return
+        plan=scan(args.root)
+        if args.plan_out=='-':sys.stdout.buffer.write((canonical(plan)+'\n').encode('utf-8'))
+        else:Path(args.plan_out).parent.mkdir(parents=True,exist_ok=True);Path(args.plan_out).write_text(canonical(plan)+'\n',encoding='utf-8')
+        return
     if args.command=='drift-report':
         from .drift import drift_report
         from .model import canonical
