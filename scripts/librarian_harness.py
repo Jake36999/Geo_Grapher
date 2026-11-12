@@ -30,6 +30,7 @@ import argparse
 import json
 import os
 import re
+import sqlite3
 import sys
 import tempfile
 import time
@@ -58,6 +59,14 @@ BENCH = [
     ("What token efficiency advantages do graph-based retrieval methods claim over dense vector search?", ["85"]),
     ("What graph neural network techniques appear in the corpus, and which papers use them?", ["229", "152"]),
     ("What are the main evaluation benchmarks used in papers about knowledge graph construction?", ["234"]),
+]
+
+CODE_BENCH = [
+    ('What tool set may research helpers use? Cite the defining code.', ['HELPER_TOOLS']),
+    ('What does delegate use to cap concurrent tier 1 helpers? Cite the code.', ['lead_agents']),
+    ('How does the Clerk run and check one task? Cite the code.', ['run_one']),
+    ('How are external MCP structured results bounded? Cite the code.', ['MAX_EXTERNAL_RESULT']),
+    ('How does the loop choose its fallback context window? Cite the code.', ['DEFAULT_CONTEXT_TOKENS']),
 ]
 
 WORKFLOW = ("Use only the geo-grapher tools. First call list_graphs to find the graph_id for the named "
@@ -89,33 +98,49 @@ class Harness:
     library's graph(s) - how a Librarian library would be configured in practice."""
 
     def __init__(self, catalog: Path, workdir: Path, scoping: str = "open", launch: str = "source",
-                 bundles: bool = False):
+                 bundles: bool = False, context_tokens: int | None = None, preset: str = 'papers',
+                 graph_label: str = 'librarian-v2', wheel: Path | None = None):
+        from resource_librarian.mcp_client import external_result_limit
+        if context_tokens is not None and (type(context_tokens) is not int or context_tokens < 1024):
+            raise ValueError('context_tokens must be at least 1024')
+        self.context_tokens = context_tokens
+        self.route_policy = {} if context_tokens is None else {'context_tokens':context_tokens}
+        self.preset = preset
+        self.graph_label = graph_label
+        self.limit_chars = external_result_limit(context_tokens)
+        server_cap = str(self.limit_chars - 500)
         init(workdir / "vault", name="Geo-Grapher harness")
         self.vault = Vault(workdir / "vault")
         self.manager = McpManager(workdir / "config")
         self.corpora = probes.corpus_titles(catalog)
         self.labels = {v["graph_id"]: k for k, v in self.corpora.items()}
-        ids = {label: info["graph_id"] for label, info in self.corpora.items()}
+        with sqlite3.connect(catalog.resolve().as_uri()+'?mode=ro',uri=True) as con:
+            self.labels.update({gid:label for gid,label in con.execute('SELECT graph_id,label FROM graphs')})
+        ids = {label:gid for gid,label in self.labels.items()}
         if scoping == "library":
-            servers = {"geo_ai": [ids[probes.AI]], "geo_tl": [ids[probes.TL]], "geo_both": [ids[probes.AI], ids[probes.TL]]}
+            servers = ({"geo_ai": [ids[probes.AI]], "geo_tl": [ids[probes.TL]], "geo_both": [ids[probes.AI], ids[probes.TL]]}
+                       if preset == 'papers' else {'geo_code':[ids[graph_label]]})
         else:
             servers = {SERVER: []}
         self.tools: dict[str, dict[str, str]] = {}
         for name, allowed in servers.items():
             if launch == "uvx":
                 # Exactly the Librarian curated entry: a pinned package, configured by env.
-                definition = {"command": "uvx", "args": ["--from", f"geo-grapher=={PACKAGE_VERSION}", "geographer",
+                source = str(wheel.resolve()) if wheel is not None else f'geo-grapher=={PACKAGE_VERSION}'
+                definition = {"command": "uvx", "args": ["--from", source, "geographer",
                                                          "serve-graphs", "--transport", "stdio"],
                               "env": {"GEOGRAPHER_CATALOG": str(catalog), "GEOGRAPHER_GRAPHS": ",".join(allowed),
-                                      "GEOGRAPHER_TOOLS": "papers",
-                                      "GEOGRAPHER_MAX_RESULT_CHARS": "7500", "UV_FIND_LINKS": str(ROOT / "dist"),
+                                      "GEOGRAPHER_TOOLS": preset,
+                                      "GEOGRAPHER_MAX_RESULT_CHARS": server_cap, "UV_FIND_LINKS": str(ROOT / "dist"),
                                       **({"UV_CACHE_DIR": os.environ["UV_CACHE_DIR"]} if os.environ.get("UV_CACHE_DIR") else {})}}
+                if wheel is not None:
+                    definition['args']=['--refresh-package','geo-grapher',*definition['args']]
                 if not allowed:
                     definition["env"].pop("GEOGRAPHER_GRAPHS")
             else:
                 # Librarian withholds structured results over 8,000 chars; page under that instead.
                 args = ["-m", "geographer", "serve-graphs", "--catalog", str(catalog), "--transport", "stdio",
-                        "--max-result-chars", "7500"]
+                        "--max-result-chars", server_cap, "--tools", preset]
                 for gid in allowed:
                     args += ["--graph-id", gid]
                 definition = {"command": str(WHEEL_PYTHON), "args": args,
@@ -128,7 +153,8 @@ class Harness:
             if not status[name]["connected"]:
                 raise SystemExit(f"Librarian could not connect to {name}: {status[name]['error']}")
             self.tools[name] = {n.split("__", 2)[2]: n for n in self.manager.tool_names(name)}
-            missing = [t for t in ("list_graphs", "paper_search_documents", "paper_get_document") if t not in self.tools[name]]
+            required = ('list_graphs', 'paper_search_documents', 'paper_get_document') if preset == 'papers' else ('list_graphs','search_entities','get_entity_content')
+            missing = [t for t in required if t not in self.tools[name]]
             if missing:
                 raise SystemExit(f"{name} did not offer {missing}")
         self.scoping = scoping
@@ -144,13 +170,15 @@ class Harness:
     def server_for(self, graph_label: str | None) -> str:
         if self.scoping != "library":
             return SERVER
+        if self.preset != 'papers':return 'geo_code'
         return {probes.AI: "geo_ai", probes.TL: "geo_tl", None: "geo_both"}[graph_label]
 
     def close(self) -> None:
         self.manager.stop()
 
     def call(self, tool: str, arguments: dict, server: str | None = None) -> dict:
-        return REGISTRY.call(self.tools[server or next(iter(self.tools))][tool], arguments, Context(tier="contribute"))
+        return REGISTRY.call(self.tools[server or next(iter(self.tools))][tool], arguments,
+                             Context(tier="contribute",extras={'external_result_limit':self.limit_chars}))
 
     def run(self, provider, prompt: str, max_steps: int = 12, server: str | None = None) -> dict:
         events: list[dict] = []
@@ -165,8 +193,10 @@ class Harness:
         else:
             loop = Loop(self.vault, provider, tier="contribute", scribe=None, max_steps=max_steps,
                         extras={"use_tool_bundles": False}, on_event=events.append)
-            loop.only = frozenset(self.tools[server or next(iter(self.tools))][t] for t in CORE
+            selected = CORE if self.preset == 'papers' else sorted(self.tools[server or next(iter(self.tools))])
+            loop.only = frozenset(self.tools[server or next(iter(self.tools))][t] for t in selected
                                   if t in self.tools[server or next(iter(self.tools))])
+        loop.context_limit = self.route_policy.get('context_tokens',0)
         hidden = self._only_server(server or next(iter(self.tools))) if self.bundles else []
         try:
             offered = sorted(t.name for t in loop.tools() if t.name.startswith("mcp__"))
@@ -175,11 +205,11 @@ class Harness:
         finally:
             for spec in hidden:
                 REGISTRY.register(spec)
-        retrieved: dict[str, set[int]] = {label: set() for label in self.corpora}
+        retrieved: dict[str, set[int]] = {label: set() for label in sorted(set(self.labels.values()))}
         graphs_called, tool_text, withheld, errors, blocked, bundle_refused = [], [], 0, 0, 0, 0
         pending_graph = None
         pinned = self.server_graphs.get(server or next(iter(self.tools)), [])
-        ids_by_label = {label: info["graph_id"] for label, info in self.corpora.items()}
+        ids_by_label = {label:gid for gid,label in self.labels.items()}
         for event in events:
             if event["type"] == "tool_call":
                 ref = (event.get("arguments") or {}).get("graph_id")
@@ -218,6 +248,12 @@ def provider_for(model: str):
 
 
 def smoke(h: Harness) -> None:
+    if h.preset != 'papers':
+        for server in h.tools:
+            out=h.call('list_graphs',{},server)
+            assert not out.get('is_error') and not out.get('error'), out
+            print(f'{server}: preset={h.preset} tools={len(h.tools[server])} limit_chars={h.limit_chars}')
+        return
     for server in h.tools:
         graphs = json.loads(h.call("list_graphs", {}, server)["content"])
         print(f"{server} lists:", [(g["label"], g["graph_id"]) for g in graphs["graphs"]])
@@ -234,15 +270,22 @@ def smoke(h: Harness) -> None:
     print("tools offered:", sorted(h.tools))
 
 
-def bench(h: Harness, model: str, out: Path) -> None:
+def bench(h: Harness, model: str, out: Path, resume: bool = False) -> None:
     provider = provider_for(model)
-    results = []
-    for question, markers in BENCH:
-        prompt = f"Graph: 'ai-research-papers'. {WORKFLOW}\n\nQuestion: {question}"
-        r = h.run(provider, prompt, server=h.server_for(probes.AI))
+    results = json.loads(out.read_text(encoding='utf-8')) if resume and out.exists() else []
+    code = h.preset != 'papers'
+    target = h.graph_label if code else probes.AI
+    target_id = next((gid for gid,label in h.labels.items() if label == target),None)
+    if target_id is None:raise ValueError(f'Benchmark graph {target!r} is unavailable')
+    workflow = 'Discover list_graphs, then use graph-local search and source content; cite returned handles exactly.' if code else WORKFLOW
+    for question, markers in CODE_BENCH if code else BENCH:
+        if any(r['question']==question for r in results):continue
+        prompt = f"Graph: '{target}'. {workflow}\n\nQuestion: {question}"
+        r = h.run(provider, prompt, server=h.server_for(None if code else probes.AI))
         r.update(question=question, model=model, markers=markers,
                  markers_found=[m for m in markers if m in r["answer"]],
-                 wrong_graph_calls=sum(g != h.corpora[probes.AI]["graph_id"] for g in r["graphs_called"]))
+                 wrong_graph_calls=sum(g != target_id for g in r["graphs_called"]),
+                 benchmark='code' if code else 'papers',context_tokens=h.context_tokens,preset=h.preset)
         r.pop("tool_text")
         results.append(r)
         print(f"[bench] calls={r['tool_calls']:2d} steps={r['steps']:2d} stopped={r['stopped'] or '-':10s} "
@@ -257,11 +300,12 @@ def bench(h: Harness, model: str, out: Path) -> None:
           f"{sum(r['wrong_graph_calls'] for r in results)}; withheld {sum(r['withheld_oversize'] for r in results)}")
 
 
-def run_probes(h: Harness, model: str, out: Path, only: str | None) -> None:
+def run_probes(h: Harness, model: str, out: Path, only: str | None, resume: bool = False) -> None:
     provider = provider_for(model)
     chosen = [p for p in probes.PROBES if not only or p["kind"] in only.split(",")]
-    results = []
+    results = json.loads(out.read_text(encoding='utf-8')) if resume and out.exists() else []
     for probe in chosen:
+        if any((r['kind'],r['graph'],r['question'])==(probe['kind'],probe['graph'],probe['q']) for r in results):continue
         federated = probe["kind"] == "federated"
         prompt = (f"{FEDERATED} {WORKFLOW}" if federated else f"Graph: '{probe['graph']}'. {WORKFLOW}") + \
                  f"\n\nQuestion: {probe['q']}"
@@ -303,6 +347,11 @@ def main() -> None:
     parser.add_argument("mode", choices=["smoke", "bench", "probes"])
     parser.add_argument("--catalog", type=Path, default=ROOT / "output" / "phase-b" / "catalog.sqlite")
     parser.add_argument("--model", default="Qwen/Qwen3-32B")
+    parser.add_argument('--context-tokens',type=int,help='Declared route context window; unknown preserves the 128k fallback')
+    parser.add_argument('--preset',choices=['lead','code','papers','cross'],default='papers')
+    parser.add_argument('--graph-label',default='librarian-v2',help='Code benchmark graph; code facts have their own denominator')
+    parser.add_argument('--wheel',type=Path,help='Exact local wheel for uvx verification, avoiding a stale same-version cached build')
+    parser.add_argument('--resume',action='store_true',help='Keep completed first attempts and continue an interrupted benchmark/probe file')
     parser.add_argument("--out", type=Path)
     parser.add_argument("--only", help="comma-separated probe kinds")
     parser.add_argument("--scoping", choices=["open", "library"], default="open",
@@ -317,14 +366,14 @@ def main() -> None:
     out = args.out or ROOT / "output" / "librarian" / f"{args.mode}-{args.scoping}-{args.model.split('/')[-1]}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="geo-librarian-") as tmp:
-        h = Harness(args.catalog.resolve(), Path(tmp), args.scoping, args.launch, args.bundles == "on")
+        h = Harness(args.catalog.resolve(), Path(tmp), args.scoping, args.launch, args.bundles == "on",args.context_tokens,args.preset,args.graph_label,args.wheel)
         try:
             if args.mode == "smoke":
                 smoke(h)
             elif args.mode == "bench":
-                bench(h, args.model, out)
+                bench(h, args.model, out,args.resume)
             else:
-                run_probes(h, args.model, out, args.only)
+                run_probes(h, args.model, out, args.only,args.resume)
         finally:
             h.close()
     if args.mode != "smoke":
