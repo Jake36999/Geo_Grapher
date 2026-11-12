@@ -143,3 +143,9 @@ def test_symlinked_directory_is_excluded(tree, tmp_path):
 def test_scan_rejects_missing_root(tmp_path):
     with pytest.raises(ValueError):
         scan(tmp_path / "nope")
+
+
+def test_partition_globs_are_relative_to_their_own_root(tree):
+    (tree / "legacy" / "build").mkdir(); (tree / "legacy" / "build" / "gen.py").write_text("x=1\n", encoding="utf-8")
+    legacy = keyed(scan(tree))["legacy"]
+    assert legacy["exclude_globs"] == ["build", "build/*"]

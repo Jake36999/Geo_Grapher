@@ -240,13 +240,13 @@ def scan(root, catalog=None) -> dict:
             part["exclude_globs"] = all_exclusions[:]
         else:
             # Other partitions get just their own subtree exclusions plus hygiene
-            subtree_root = part["subtrees"][0]
-            part["exclude_globs"] = [subtree_root, subtree_root + "/*"]
-            # Add hygiene exclusions within this partition
+            # Globs are relative to this partition's own root; it never excludes itself.
+            prefix = part["subtrees"][0] + "/"
+            part["exclude_globs"] = []
             for excl in excluded:
-                if excl["rel"].startswith(subtree_root + "/") or excl["rel"] == subtree_root:
-                    part["exclude_globs"].append(excl["rel"])
-                    part["exclude_globs"].append(excl["rel"] + "/*")
+                if excl["rel"].startswith(prefix):
+                    inner = excl["rel"][len(prefix):]
+                    part["exclude_globs"].extend([inner, inner + "/*"])
             part["exclude_globs"].sort()
 
     # Sort file counts
