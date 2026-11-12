@@ -14,7 +14,7 @@ from pathlib import Path, PurePosixPath
 from .model import digest
 
 EXCLUDED = {".git", ".venv", "venv", "__pycache__", "node_modules", ".cache", "graphifyy"}
-SUPPORTED = {".py", ".md", ".txt", ".js", ".ts", ".tsx", ".jsx"}
+SUPPORTED = {".py", ".md", ".txt", ".js", ".ts", ".tsx", ".jsx", ".ipynb"}
 
 
 def valid_path(name: str) -> bool:

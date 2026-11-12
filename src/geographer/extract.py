@@ -13,6 +13,7 @@ from pathlib import PurePosixPath
 
 from .cfg import CFG, UNBOUND, join, target_names
 from .model import Graph, Entity, Relationship, Evidence, canonical, digest, entity_id, EXTRACTOR_VERSION
+from .fingerprints import guard_clauses, local_names, signature_hash, ts_guard_hash
 from .normalize import normalized_ast
 from .scopes import ScopeIndex, Scope
 from .source import Repository
@@ -57,6 +58,7 @@ class PythonExtractor(StaticDispatch):
         if len({r.repo_id for r in repositories})!=len(repositories):raise ValueError('Duplicate repository namespaces')
         self.graph = Graph()
         self.failures = {r.repo_id: [] for r in repositories}
+        self.notebooks = {}  # rel_path -> NotebookSource (ipynb-v1), for markdown-cell fragments
         self.units: list[Unit] = []
         self.module_map: dict[str, list[Unit]] = defaultdict(list)
         self.namespace_map: dict[str, set[str]] = defaultdict(set)
@@ -166,6 +168,21 @@ class PythonExtractor(StaticDispatch):
         suffix = PurePosixPath(path).suffix
         parent = self.parent_directory(repo.repo_id, path)
         fid = entity_id(repo.repo_id, "file", path)
+        notebook = None
+        if suffix == ".ipynb":
+            # ipynb-v1: line numbers and source bytes refer to the virtual Python text.
+            from .notebooks import NotebookFormatError, to_virtual_source
+            try:
+                notebook = to_virtual_source(data, path)
+            except NotebookFormatError as exc:
+                self.failures[repo.repo_id].append(dict(rel_path=path, language="python", code="NotebookFormatError", message=str(exc)))
+                self.graph.add(Entity(fid, repo.repo_id, "file", path, parent, rel_path=path, start_line=1, end_line=1, language="python", **self.flags(path)))
+                return
+            for index in notebook.unparsed:
+                self.failures[repo.repo_id].append(dict(rel_path=path, language="python", code="SyntaxError",
+                                                        message=f"notebook cell {index} unparsed; commented out in the virtual source"))
+            data, suffix = notebook.python_text.encode("utf-8"), ".py"
+            self.notebooks[path] = notebook
         if suffix in {".md", ".txt"}:
             self.graph.add(Entity(fid, repo.repo_id, "document", path, parent, sort="text", language="markdown" if suffix == ".md" else "text", rel_path=path,
                                   start_line=1, end_line=max(1, len(data.splitlines())), **self.flags(path)))
@@ -174,6 +191,8 @@ class PythonExtractor(StaticDispatch):
                                   language="python" if suffix == ".py" else "javascript" if suffix in {".js", ".jsx"} else "typescript", **self.flags(path)))
         self.graph.analyses["source:" + fid] = dict(algorithm_version="source-bytes-v1", scope={"entity_id": fid},
                                                  result={"rel_path": path, "bytes_base64": base64.b64encode(data).decode("ascii")})
+        if notebook is not None:
+            self.graph.analyses["source:" + fid]["result"].update(coordinate_space="ipynb-python-v1", notebook_sha256=notebook.notebook_sha256)
         if suffix != ".py":
             if suffix not in {".md", ".txt"}:
                 self.fallback(repo, path, data, fid)
@@ -193,6 +212,7 @@ class PythonExtractor(StaticDispatch):
             setattr(self.graph.entities[fid], key, val)
         modules = repo.modules(path)
         unit = Unit(repo, path, text, tree, scopes, fid, modules)
+        unit.source_bytes = data  # the virtual Python bytes for a notebook (ipynb-v1)
         self.units.append(unit)
         unit.owners[scopes.root] = fid
         for name in modules:
@@ -238,6 +258,8 @@ class PythonExtractor(StaticDispatch):
                     result={'signature':header,'docstring':None if isinstance(node,ast.Lambda) else ast.get_docstring(node,clean=False)})
                 self.graph.analyses['role-inputs:'+eid]=dict(algorithm_version='role-inputs-v1',scope={'entity_id':eid},
                     result={'decorators':[ast.unparse(d) for d in getattr(node,'decorator_list',[])],'bases':[ast.unparse(b) for b in getattr(node,'bases',[])]})
+                self.graph.fingerprints[eid]={'signature_hash':signature_hash(header,self.graph.analyses['role-inputs:'+eid]['result']['decorators']),
+                    'ts_guard_hash':ts_guard_hash(guard_clauses(node,local_names(scope),unit.text.split('\n')))}
                 if kind in {"function", "method"}:
                     try:
                         if eid in self.normal_forms:
@@ -615,9 +637,31 @@ class PythonExtractor(StaticDispatch):
                 self.graph.analyses['document:'+fid]=dict(algorithm_version=VERSION,scope={'entity_id':fid},result={
                     'document_id':fid,'coordinate_space':'decoded_docstring_value','source_fragment_id':fid,
                     'literal_start_line':doc.lineno,'literal_end_line':doc.end_lineno,**parsed})
+        notebook = self.notebooks.get(unit.path)
+        skip_lines = set()
+        if notebook is not None:
+            # Markdown cells become their own fragments; their commented-out lines and every
+            # cell header are virtual-source scaffolding, never comment fragments.
+            from .documents import parse_document, VERSION
+            file_id = entity_id(unit.repo.repo_id, "file", unit.path)
+            for cell in notebook.cells:
+                skip_lines.add(cell.start_line)
+                if cell.cell_type == "code":
+                    continue
+                skip_lines.update(range(cell.start_line, cell.end_line + 1))
+                text = notebook.cell_text(cell.index)
+                if cell.cell_type != "markdown" or cell.end_line <= cell.start_line or not text.strip():
+                    continue
+                fid = self.fragment(unit.repo, unit.path, file_id, text, cell.start_line + 1, cell.end_line,
+                                    self.mentions(text, file_id), "documents")
+                parsed = parse_document(text.encode("utf-8"), unit.path + f":cell{cell.index}.md"); parsed.pop("blocks")
+                parsed["sections"][0]["fragment_ids"] = [fid]
+                self.graph.analyses["document:" + fid] = dict(algorithm_version=VERSION, scope={"entity_id": fid}, result={
+                    "document_id": fid, "coordinate_space": "ipynb-markdown-cell", "source_fragment_id": fid,
+                    "literal_start_line": cell.start_line + 1, "literal_end_line": cell.end_line, **parsed})
         try:
             for token in tokenize.generate_tokens(io.StringIO(unit.text).readline):
-                if token.type != tokenize.COMMENT:
+                if token.type != tokenize.COMMENT or token.start[0] in skip_lines:
                     continue
                 # Attach to the narrowest containing entity; references form a hyperedge.
                 candidates = [e for e in self.graph.entities.values() if e.repo_id == unit.repo.repo_id and e.rel_path == unit.path and
