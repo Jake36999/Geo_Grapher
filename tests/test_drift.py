@@ -141,3 +141,18 @@ def test_cli_drift_report_writes_json(tmp_path, monkeypatch):
     cli.main()
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["counts"].get("CONTRACT_CHANGE", 0) >= 1
+
+
+def test_counterpart_without_fingerprint_row_is_unknown_not_missing():
+    """G3 order 2: a counterpart exists but has no fingerprint row (e.g. a file or external symbol)."""
+    from types import SimpleNamespace as NS
+    row = dict(span_sha256="s", ast_body_hash="a", signature_hash="g", ts_guard_hash="t", exact_out_edges_hash="o", wl_3hop_hash="w")
+    ent = lambda qn="m.f": NS(repo_id="r", qualified_name=qn, kind="function", start_line=1)
+    ext = lambda: NS(repo_id="r", qualified_name="print", kind="external", start_line=None)
+    class Fake:
+        def __init__(self, fps): self.fps = fps
+        def graph(self, sid): return NS(entities={"e1": ent(), "e3": ent("m.g"), "x1": ext()})
+        def fingerprints(self, sid): return self.fps
+    report = drift_report(Fake({"e1": row, "e3": row}), "a", Fake({"e3": row}), "b")
+    tiers = {r["entity_id"]: r["tier"] for r in report["entities"]}
+    assert tiers == {"e1": "UNKNOWN", "e3": "IDENTICAL", "x1": "UNKNOWN"}

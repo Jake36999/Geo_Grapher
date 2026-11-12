@@ -211,7 +211,8 @@ def drift_report(
         fn = new_fp.get(counterpart) if counterpart else None
         start_b = base_entities[eid].start_line
         start_n = new_entities[counterpart].start_line if counterpart else None
-        t = tier(fb, fn, start_b, start_n, rule == "unique_ast")
+        # G3 order 2: a counterpart that exists but has no fingerprint row is UNKNOWN, not MISSING.
+        t = "UNKNOWN" if counterpart and fn is None else tier(fb, fn, start_b, start_n, rule == "unique_ast")
         rows.append(
             {
                 "entity_id": eid,
