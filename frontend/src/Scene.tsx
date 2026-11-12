@@ -132,6 +132,8 @@ interface Props {
   ) => void;
   onEnter: (id: string) => void;
   onFailure: (reason: string) => void;
+  /** Called with (node id, source path) for every box-selected node and its descendants. */
+  onPrune?: (selected: { id: string; rel_path: string }[]) => void;
 }
 
 type Bucket = { mesh: THREE.InstancedMesh; capacity: number; ids: string[] };
@@ -164,6 +166,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           resetLayout: () => void;
           scaleSelection: (factor: number) => void;
           moveSelection: (dx: number, dy: number) => void;
+          selectedIds: () => string[];
         }
       | undefined
     >(undefined);
@@ -852,6 +855,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         update();
       },
       scaleSelection: (factor) => manipulate(factor, [0, 0, 0]),
+      selectedIds: () => [...selection],
       moveSelection: (dx, dy) => {
         const pivot = selectionPivot(),
           step =
@@ -1447,6 +1451,25 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         <span data-testid="layout-selection-status" aria-live="polite">
           {editCount} selected
         </span>
+        {props.onPrune && (
+          <button
+            disabled={!editCount}
+            onClick={() => {
+              const frame = props.frame;
+              if (!frame) return;
+              // Box selection keeps only enclosure roots; prune by every file beneath them.
+              const ids = descendants(frame, controller.current?.selectedIds() ?? []);
+              props.onPrune?.(
+                frame.nodes
+                  .filter((n) => ids.has(n.id) && n.source?.rel_path)
+                  .map((n) => ({ id: n.id, rel_path: n.source!.rel_path! }))
+                  .sort((a, b) => a.id.localeCompare(b.id)),
+              );
+            }}
+          >
+            Prune selection…
+          </button>
+        )}
         <button
           disabled={!editCount}
           onClick={() => controller.current?.scaleSelection(1.15)}

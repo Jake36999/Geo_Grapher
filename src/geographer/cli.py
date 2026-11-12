@@ -90,6 +90,7 @@ def main():
     graphserver.add_argument('--catalog',type=Path,default=Path(env_catalog) if env_catalog else None,required=not env_catalog,
         help='Graph catalog (default: $GEOGRAPHER_CATALOG)');graphserver.add_argument('--transport',choices=['stdio','http'],default='http');graphserver.add_argument('--port',type=int,default=8765)
     graphserver.add_argument('--ui-origin',help='Compatibility listener: redirect its viewer to this loopback origin')
+    graphserver.add_argument('--browse-root',action='append',type=Path,default=[],metavar='DIR',help='Folder the UI directory picker may browse (repeatable; none disables the picker)')
     env_graphs=[g.strip() for g in os.environ.get('GEOGRAPHER_GRAPHS','').split(',') if g.strip()]
     graphserver.add_argument('--graph-id',action='append',dest='allow_graph',metavar='GRAPH_ID',default=None,
         help='Expose only this graph (repeatable; default: comma-separated $GEOGRAPHER_GRAPHS). '
@@ -166,7 +167,7 @@ def main():
                     if args.transport=='stdio':create_graph_mcp(router,port=args.port).run(transport='stdio')
                     else:
                         import uvicorn
-                        uvicorn.run(create_graph_http(router,port=args.port,ui_origin=args.ui_origin),host='127.0.0.1',port=args.port)
+                        uvicorn.run(create_graph_http(router,port=args.port,ui_origin=args.ui_origin,browse_roots=args.browse_root),host='127.0.0.1',port=args.port)
                 finally:router.close()
                 return
             output=json.dumps(result,indent=2)

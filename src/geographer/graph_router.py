@@ -7,9 +7,10 @@ import threading
 import time
 import sqlite3
 import json
+import re
 
 from .federation import Candidate,MODALITIES,TIER_WEIGHT,intent,select,utility
-from .model import canonical
+from .model import canonical,digest
 from .service import QueryService
 from .store import SnapshotStore
 from .tokens import TokenCounter
@@ -24,7 +25,10 @@ PAPER_OPERATIONS={'search_documents','get_outline','get_section','get_document',
 TOOL_PRESETS={
     'papers':frozenset({'list_graphs','paper_search_documents','paper_get_document','paper_find_by_concept','paper_get_related','paper_get_section'}),
     'code':frozenset({'list_graphs','search_entities','get_architecture_context','find_dependants','get_entity_content','check_architecture'}),
+    'cross':frozenset({'list_graphs','federated_search','list_bridges','analyze_cross_graphs','search_entities','get_entity_content'}),
 }
+CROSS_MODES=('evolution_diff','clone_candidates','bridge_candidates')
+CROSS_LATER=('bridge_impact','theory_conformance')  # wave 4
 
 
 def offered_tools(spec):
@@ -32,7 +36,7 @@ def offered_tools(spec):
     if spec is None or spec in ('','all'):return None
     if spec in TOOL_PRESETS:return TOOL_PRESETS[spec]
     names=frozenset(s.strip() for s in str(spec).split(',') if s.strip())
-    known={op for op in CODE_OPERATIONS-{'viewport_frame'}}|{'paper_'+op for op in PAPER_OPERATIONS}|{'list_graphs','list_bridges','federated_search'}
+    known={op for op in CODE_OPERATIONS-{'viewport_frame'}}|{'paper_'+op for op in PAPER_OPERATIONS}|{'list_graphs','list_bridges','federated_search','analyze_cross_graphs'}
     unknown=sorted(names-known)
     if unknown or not names:raise ValueError(f"Unknown tools {unknown}; use 'all', {sorted(TOOL_PRESETS)} or tool names")
     return names
@@ -96,7 +100,21 @@ class GraphRouter:
     def bridges(self,graph_ids):
         graph_ids=[self.resolve(gid) for gid in graph_ids]
         for gid in graph_ids:self.permit(gid)
-        return self.catalog.bridges(graph_ids)
+        # Lineage state (master G5) so read-only clients can see staleness.
+        return [{**b,'state':self.catalog.bridge_state(b['bridge_id'])} for b in self.catalog.bridges(graph_ids)]
+
+    def bridge_proposals(self,graph_ids,status='pending'):
+        graph_ids=[self.resolve(gid) for gid in graph_ids]
+        for gid in graph_ids:self.permit(gid)
+        return self.catalog.proposals(graph_ids,status)
+
+    def propose_bridges(self,graph_a,graph_b,kind,limit=50):
+        a,b=self.resolve(graph_a),self.resolve(graph_b);self.permit(a);self.permit(b)
+        return self.catalog.propose_bridges(a,b,kind=kind,limit=limit)
+
+    def review_proposal(self,proposal_id,decision,rationale):
+        p=self.catalog.proposal(proposal_id);self.permit(p['source_graph']);self.permit(p['target_graph'])
+        return self.catalog.review_proposal(proposal_id,decision,rationale)
 
     def close(self):
         with self.lock:
@@ -286,6 +304,114 @@ class GraphRouter:
         for holder in (envelope,envelope.get('result')):
             if isinstance(holder,dict) and isinstance(holder.get('error'),dict):return holder['error']
         return None
+
+    def analyze_cross_graphs(self,graph_ids,mode,*,limit_tokens=4096,cursor=None):
+        """cross-graph-v1: one mode-parameterised read-only analysis over explicitly selected graphs.
+
+        Items are packed whole under an exact complete-envelope cap; every item endpoint has a node
+        (endpoint closure); a snapshot-bound cursor resumes in order. Graph-local rankings only.
+        """
+        from .cross_graph import clone_pairs,diff_graphs,pack_items
+        if mode in CROSS_LATER:raise ValueError(f'MODE_NOT_AVAILABLE: {mode} arrives in a later wave')
+        if mode not in CROSS_MODES:raise ValueError(f'Unknown mode; choose one of {list(CROSS_MODES)}')
+        if not isinstance(graph_ids,list):raise ValueError('graph_ids must be a list')
+        graph_ids=sorted(self.resolve(g) for g in graph_ids)
+        want=(2,2) if mode=='evolution_diff' else (2,8)
+        if not want[0]<=len(graph_ids)<=want[1] or len(set(graph_ids))!=len(graph_ids):
+            raise ValueError(f'{mode} needs {want[0]}' + ('' if want[0]==want[1] else f'..{want[1]}') + ' distinct graph IDs')
+        if type(limit_tokens) is not int or not 1024<=limit_tokens<=32768:raise ValueError('limit_tokens must be 1024..32768')
+        for gid in graph_ids:self.permit(gid)
+        rows={gid:self.catalog.graph(gid) for gid in graph_ids}
+        key=digest(mode,graph_ids,[rows[g]['snapshot_id'] for g in graph_ids])[:16]
+        offset=0
+        if cursor is not None:
+            if not isinstance(cursor,str) or not re.fullmatch(r'[0-9a-f]{16}:[0-9]{1,9}',cursor):raise ValueError('INVALID_CURSOR')
+            if cursor.split(':')[0]!=key:raise ValueError('STALE_CURSOR: a selected graph has a new snapshot; restart without a cursor')
+            offset=int(cursor.split(':')[1])
+        label={g:rows[g]['label'] for g in graph_ids}
+        names={}
+        def node(gid,ref,qualified_name=None):
+            return dict(graph_id=gid,id=ref,qualified_name=qualified_name,cite_as=f"{label[gid]}/{ref if not ref.startswith('doc:') else ref.split('#')[0]}")
+        def lookup(gid,eids):
+            from .store import SnapshotStore
+            want_ids=sorted(set(eids)-set(names.get(gid,{})))
+            if want_ids:
+                with SnapshotStore(rows[gid]['code_database']) as store:
+                    for start in range(0,len(want_ids),500):
+                        chunk=want_ids[start:start+500]
+                        for eid,qn in store.connection.execute('SELECT entity_id,qualified_name FROM entities WHERE snapshot_id=? AND entity_id IN (%s)'%','.join('?'*len(chunk)),(rows[gid]['snapshot_id'],*chunk)):
+                            names.setdefault(gid,{})[eid]=qn
+            return names.get(gid,{})
+        omitted=[];bundles=[];counts={}
+        if mode=='evolution_diff':
+            a,b=graph_ids
+            try:result=diff_graphs(self.catalog,a,b)
+            except ValueError as exc:
+                result=None;omitted=[dict(graph_id=g,reason=str(exc).split(':')[0]) for g in graph_ids]
+            if result is not None:
+                counts=dict(classes=result['classes'],quotient_cycle_delta=result['quotient_cycle_delta']['counts'])
+                for p in result['pairs']:
+                    ends=[node(a,'entity:'+p['entity_a'],p['qualified_name_a']),node(b,'entity:'+p['entity_b'],p['qualified_name_b'])]
+                    bundles.append(dict(item=dict(kind='pair',**{'class':p['class']},endpoints=[dict(graph_id=n['graph_id'],id=n['id']) for n in ends]),nodes=ends))
+                for gid,side in ((a,'exclusive_a'),(b,'exclusive_b')):
+                    qn=lookup(gid,result[side])
+                    for eid in result[side]:
+                        end=node(gid,'entity:'+eid,qn.get(eid))
+                        bundles.append(dict(item=dict(kind='exclusive',**{'class':'STRATUM_EXCLUSIVE'},endpoints=[dict(graph_id=gid,id=end['id'])]),nodes=[end]))
+                for entry in result['quotient_cycle_delta']['entries']:
+                    bundles.append(dict(item=dict(kind='quotient_cycle',**entry,endpoints=[]),nodes=[]))
+        elif mode=='clone_candidates':
+            try:result=clone_pairs(self.catalog,graph_ids,limit=5000)
+            except ValueError as exc:
+                result=None;omitted=[dict(graph_id=g,reason=str(exc).split(':')[0]) for g in graph_ids]
+            if result is not None:
+                by={}
+                for p in result['pairs']:
+                    by.setdefault(p['graph_a'],[]).append(p['entity_a']);by.setdefault(p['graph_b'],[]).append(p['entity_b'])
+                qn={g:lookup(g,ids) for g,ids in by.items()}
+                counts=dict(pairs=len(result['pairs']),truncated=result['truncated'])
+                for p in result['pairs']:
+                    ends=[node(p['graph_a'],'entity:'+p['entity_a'],qn[p['graph_a']].get(p['entity_a'])),node(p['graph_b'],'entity:'+p['entity_b'],qn[p['graph_b']].get(p['entity_b']))]
+                    bundles.append(dict(item=dict(kind='clone',match=p['match'],endpoints=[dict(graph_id=n['graph_id'],id=n['id']) for n in ends]),nodes=ends))
+        else:
+            from .bridges import alias_policy,code_candidates,paper_candidates,score_pairs
+            policy=alias_policy();sides={}
+            for gid in graph_ids:
+                try:
+                    r=rows[gid]
+                    sides[gid]=paper_candidates(r['paper_database'],policy) if r['paper_database'] else code_candidates(r['code_database'],r['snapshot_id'],policy) if r['snapshot_id'] else []
+                except (ValueError,sqlite3.DatabaseError,OSError) as exc:omitted.append(dict(graph_id=gid,reason=type(exc).__name__))
+            ok=[g for g in graph_ids if g in sides]
+            pairs=[(a,b,p) for i,a in enumerate(ok) for b in ok[i+1:] for p in score_pairs(sides[a],sides[b],200)]
+            pairs.sort(key=lambda x:(-x[2]['score'],x[0],x[2]['source_ref'],x[1],x[2]['target_ref']))
+            counts=dict(candidates=len(pairs))
+            for a,b,p in pairs:
+                qa=lookup(a,[p['source_ref'][7:]]) if p['source_ref'].startswith('entity:') and not rows[a]['paper_database'] else {}
+                qb=lookup(b,[p['target_ref'][7:]]) if p['target_ref'].startswith('entity:') and not rows[b]['paper_database'] else {}
+                ends=[node(a,p['source_ref'],qa.get(p['source_ref'][7:])),node(b,p['target_ref'],qb.get(p['target_ref'][7:]))]
+                bundles.append(dict(item=dict(kind='bridge_candidate',score=p['score'],features=p['features'],status='unreviewed',
+                    endpoints=[dict(graph_id=n['graph_id'],id=n['id']) for n in ends]),nodes=ends))
+        if offset>len(bundles):raise ValueError('INVALID_CURSOR')
+        header=dict(engine_version='cross-graph-v1',mode=mode,graph_ids=graph_ids,ranking='independent_per_graph_no_global_rank',
+            omitted_graphs=omitted,
+            scope_anchor_identities=[dict(graph_id=g,snapshot_id=rows[g]['snapshot_id'],id='root',qualified_name=label[g],basis='snapshot_identity_only') for g in graph_ids],
+            header=dict(counts=counts,total_items=len(bundles),offset=offset),
+            next_cursor=key+':'+'9'*9,limit_tokens=limit_tokens)  # placeholder cursor reserves its maximum size
+        counter=TokenCounter();budget=limit_tokens
+        size=lambda o:len(json.dumps(o,ensure_ascii=False,default=str))
+        for _ in range(8):
+            out=pack_items(header,bundles[offset:],budget,counter)
+            if not out['items'] and offset<len(bundles):raise ValueError('BUDGET_TOO_SMALL: the next item does not fit; raise limit_tokens')
+            end=offset+len(out['items'])
+            out['next_cursor']=f'{key}:{end}' if end<len(bundles) else None
+            out['used_tokens']=counter.count(out)
+            # A connection size cap (e.g. a Librarian client withholds results over ~8,000 chars): shrink the
+            # token budget so whole items drop and the cursor resumes, instead of the client withholding all.
+            if not self.max_result_chars or size(out)<=self.max_result_chars or len(out['items'])<=1:break
+            budget=max(256,int(budget*self.max_result_chars/size(out)*0.9))
+        if self.max_result_chars and size(out)>self.max_result_chars:
+            raise ValueError('RESULT_TOO_LARGE: one item exceeds this connection\'s max_result_chars')
+        return out
 
     def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation'):
         if isinstance(graph_ids,list):graph_ids=[self.resolve(gid) for gid in graph_ids]

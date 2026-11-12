@@ -1,5 +1,8 @@
 """Scoped MCP plus display-only multi-graph workspace hosting."""
 import json
+import os
+import stat
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -15,7 +18,7 @@ from starlette.responses import JSONResponse,FileResponse,RedirectResponse,HTMLR
 from starlette.routing import Route,Mount
 from starlette.staticfiles import StaticFiles
 
-from .model import canonical
+from .model import canonical,digest
 from .wire import WireContracts
 from .resources import resource_root
 from .graph_router import CODE_OPERATIONS,PAPER_OPERATIONS
@@ -61,6 +64,13 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
         for name,description,schema in [
             ('list_graphs','Discover graph IDs and their latest project snapshots.',dict(type='object',properties={},additionalProperties=False)),
             ('list_bridges','Only declared bridges with both endpoints in explicitly selected graphs.',dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True)},required=['graph_ids'],additionalProperties=False)),
+            ('analyze_cross_graphs','cross-graph-v1, read-only: evolution_diff (exactly 2 graphs), clone_candidates or bridge_candidates (2..8). '
+             'Rankings stay per graph; bridge candidates are unreviewed scores, never bridges. Items are packed whole under limit_tokens; '
+             'resume with next_cursor. Cite endpoints by cite_as.',
+             dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True),
+                'mode':dict(enum=['evolution_diff','clone_candidates','bridge_candidates','bridge_impact','theory_conformance']),
+                'limit_tokens':dict(type='integer',minimum=1024,maximum=32768),'cursor':{'type':['string','null'],'maxLength':40}},
+                required=['graph_ids','mode'],additionalProperties=False)),
             ('federated_search','Explicit comparison, per-graph rankings and a complete-envelope token cap; no graph or alias merging.',dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True),'query':dict(type='string',minLength=1,maxLength=500),'limit_tokens':dict(type='integer',minimum=2048,maximum=32768),'mode':dict(enum=['lexical','documentation','hybrid'])},required=['graph_ids','query'],additionalProperties=False))]:
             schemas[name]=schema;tools.append(types.Tool(name=name,description=description,inputSchema=schema,outputSchema={'type':'object'},annotations=types.ToolAnnotations(readOnlyHint=True)))
         return tools if offered is None else [t for t in tools if t.name in offered]
@@ -74,6 +84,10 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
             jsonschema.validate(arguments,schemas[name])
             if name=='list_graphs':result=await anyio.to_thread.run_sync(router.summary)
             elif name=='list_bridges':result=dict(bridges=router.bridges(arguments['graph_ids']))
+            elif name=='analyze_cross_graphs':
+                from functools import partial
+                result=await anyio.to_thread.run_sync(partial(router.analyze_cross_graphs,arguments['graph_ids'],arguments['mode'],
+                    limit_tokens=arguments.get('limit_tokens',4096),cursor=arguments.get('cursor')))
             elif name=='federated_search':
                 from functools import partial
                 result=await anyio.to_thread.run_sync(partial(router.federated_search,**arguments))
@@ -111,7 +125,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
     return mcp
 
 
-def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui=False,primary_graph_id=None):
+def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui=False,primary_graph_id=None,browse_roots=()):
     from .server import create_http_app
     mcp=create_graph_mcp(router,host,port);app=mcp.streamable_http_app();children={}
     security=TransportSecurityMiddleware(mcp.settings.transport_security)
@@ -132,6 +146,85 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     async def bridges(request):
         try:return JSONResponse(dict(bridges=router.bridges((await request.json())['graph_ids'])))
         except (ValueError,KeyError,TypeError):return JSONResponse({'error':'Select explicit graph_ids'},status_code=400)
+    allowed_roots=[Path(r).resolve(strict=True) for r in browse_roots]
+    def browsable(raw):
+        """Resolve a picker path; None unless it is an existing directory inside a --browse-root with no reparse point."""
+        if not allowed_roots or not isinstance(raw,str) or not raw or len(raw)>1000 or raw.startswith(('\\\\','//')):return None
+        try:path=Path(raw).resolve(strict=True)
+        except (OSError,RuntimeError,ValueError):return None
+        root=next((r for r in allowed_roots if path==r or path.is_relative_to(r)),None)
+        if root is None or not path.is_dir():return None
+        probe=root
+        for part in path.relative_to(root).parts:  # every component below the root: no junction or symlink
+            probe=probe/part
+            try:st=os.lstat(probe)
+            except OSError:return None
+            if getattr(st,'st_file_attributes',0)&0x400 or stat.S_ISLNK(st.st_mode):return None
+        return path
+    async def fs_roots(request):return JSONResponse(dict(roots=[str(r) for r in allowed_roots]))
+    async def fs_list(request):
+        path=browsable(request.query_params.get('path',''))
+        if path is None:return JSONResponse({'error':'PATH_NOT_BROWSABLE'},status_code=403)
+        def listing():
+            names=[]
+            with os.scandir(path) as entries:
+                for entry in entries:
+                    try:
+                        if entry.is_dir(follow_symlinks=False) and not (getattr(entry.stat(follow_symlinks=False),'st_file_attributes',0)&0x400):names.append(entry.name)
+                    except OSError:continue
+            return sorted(names)[:500]
+        return JSONResponse(dict(path=str(path),dirs=await anyio.to_thread.run_sync(listing)))
+    previews={};jobs={};job_lock=threading.Lock()
+    async def ingest_preview(request):
+        from .workspace_init import scan
+        try:body=await request.json();path=browsable(body.get('root'))
+        except (ValueError,TypeError,AttributeError):path=None
+        if path is None:return JSONResponse({'error':'PATH_NOT_BROWSABLE'},status_code=403)
+        try:plan=await anyio.to_thread.run_sync(lambda:scan(path,router.catalog))
+        except (ValueError,OSError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+        previews[plan['plan_id']]=plan
+        while len(previews)>16:previews.pop(next(iter(previews)))
+        return JSONResponse(plan)
+    async def ingest_execute(request):
+        from . import workspace_init
+        try:
+            body=await request.json();plan=previews[body['plan_id']];keys=set(body['approved_keys'])
+            if not isinstance(body['approved_keys'],list) or not keys or not all(isinstance(k,str) for k in keys):raise ValueError('approved_keys must be a non-empty list')
+        except (ValueError,KeyError,TypeError,AttributeError):return JSONResponse({'error':'Unknown plan_id (preview first) or invalid approved_keys'},status_code=400)
+        with job_lock:
+            if any(j['state'] in ('queued','running') for j in jobs.values()):return JSONResponse({'error':'JOB_RUNNING'},status_code=409)
+            job_id='job_'+digest(plan['plan_id'],sorted(keys),len(jobs))[:16];jobs[job_id]=dict(state='running',reports=[],error=None)
+        def run():
+            try:jobs[job_id].update(state='done',reports=workspace_init.apply(router.catalog,plan,approved_keys=keys))
+            except Exception as e:jobs[job_id].update(state='failed',error=str(e)[:500])
+        threading.Thread(target=run,name='geographer-ingest-job',daemon=True).start()
+        return JSONResponse(dict(job_id=job_id))
+    async def job_status(request):
+        job=jobs.get(request.path_params['job_id'])
+        return JSONResponse(job) if job else JSONResponse({'error':'Unknown job'},status_code=404)
+    async def prune(request):
+        try:
+            body=await request.json();gid=router.resolve(request.path_params['graph_id']);router.permit(gid)
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.catalog.derive_graph(gid,exclude_rel_paths=body['exclude_rel_paths'],label=body['label'])))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+    async def proposals_get(request):
+        try:
+            ids=[g for g in request.query_params.get('graph_ids','').split(',') if g]
+            status=request.query_params.get('status','pending')
+            return JSONResponse(dict(proposals=await anyio.to_thread.run_sync(lambda:router.bridge_proposals(ids,status))))
+        except (ValueError,KeyError,TypeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+    async def proposals_post(request):
+        try:
+            body=await request.json()
+            limit=body.get('limit',50)
+            return JSONResponse(dict(proposals=await anyio.to_thread.run_sync(lambda:router.propose_bridges(body['graph_a'],body['graph_b'],body['kind'],limit))))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+    async def proposal_decide(request):
+        try:
+            body=await request.json();pid=request.path_params['proposal_id']
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.review_proposal(pid,body['decision'],body['rationale'])))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:
+            return JSONResponse({'error':str(e)[:200]},status_code=409 if 'ALREADY_DECIDED' in str(e) else 400)
     async def plan(request):
         try:return JSONResponse(router.catalog.plan_root((await request.json())['root_path']))
         except (ValueError,KeyError,TypeError):return JSONResponse({'error':'Invalid project root'},status_code=400)
@@ -231,6 +324,11 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         Route('/api/graphs/frame',composition,methods=['POST']),
         Route('/api/graphs/merge/plan',merge_plan,methods=['POST']),Route('/api/graphs/merge/execute',merge_execute,methods=['POST']),
         Route('/api/graphs/plan',plan,methods=['POST']),
+        Route('/api/graphs/bridge-proposals',proposals_get),Route('/api/graphs/bridge-proposals',proposals_post,methods=['POST']),
+        Route('/api/graphs/bridge-proposals/{proposal_id}',proposal_decide,methods=['POST']),
+        Route('/api/fs/roots',fs_roots),Route('/api/fs/list',fs_list),
+        Route('/api/workspace/ingest-preview',ingest_preview,methods=['POST']),Route('/api/workspace/ingest-execute',ingest_execute,methods=['POST']),
+        Route('/api/workspace/jobs/{job_id}',job_status),Route('/api/graphs/{graph_id}/prune',prune,methods=['POST']),
         Route('/api/graphs/{graph_id}/copy',copy,methods=['POST']),Route('/api/graphs/{graph_id}',delete,methods=['DELETE']),
         Route('/api/workspace/active-graphs',active_get),Route('/api/workspace/active-graphs',active_put,methods=['PUT']),Route('/',index),Route('/collection/',collection),
         Route('/favicon.svg',lambda request:FileResponse(frontend/'favicon.svg')),

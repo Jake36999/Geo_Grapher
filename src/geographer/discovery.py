@@ -287,3 +287,27 @@ def render_markdown(card: dict) -> str:
     if not card["surprising_links"]:
         out.append("- none")
     return "\n".join(out) + "\n"
+
+
+def register_card(catalog, graph_id: str, card: dict) -> str:
+    """Record a discovery card as a lineage artifact (lineage-v1, master G5).
+
+    Its single clause holds one TOPOLOGICAL_WL3 ground premise per entity named in its rows
+    (bottleneck entities, surprising-link endpoints, cycle representatives), bound to the card's
+    snapshot. Returns the artifact id.
+    """
+    from .lineage import register
+    ids = set()
+    for row in card.get("boundary_bottlenecks", []):
+        ids.add(row.get("entity_id"))
+    for row in card.get("surprising_links", []):
+        ids.update((row.get("source_rep_id"), row.get("target_rep_id")))
+    for row in card.get("quotient_cycles", []):
+        ids.update(row.get("representative_ids") or [])
+    ids = sorted(i for i in ids if isinstance(i, str) and i.startswith("entity:"))
+    artifact_id = "card:" + digest(graph_id, card["snapshot_id"], card.get("card_version"), ids)
+    if not ids:
+        return artifact_id  # nothing to track: a card with no entity rows never goes stale
+    register(catalog, artifact_id, "discovery_card",
+             [[{"graph_id": graph_id, "ref": "entity:" + eid, "contract": "TOPOLOGICAL_WL3", "baseline_snapshot_id": card["snapshot_id"]} for eid in ids]])
+    return artifact_id

@@ -183,13 +183,14 @@ export interface CayleyDiagnostic {
   interpretation: 'abelian_completion_degree_lower_bound';
 }
 export interface QIReport {
-  mode: 'off' | 'helper_tree_balls_v1';
+  mode: 'off' | 'helper_tree_balls_v1' | 'directed-helper-condensation-v1';
   metric: 'undirected_unweighted_hops';
   requested_diameter: number;
   measured_max_intrinsic_diameter: number;
   A: number;
   B: number;
-  directed_reachability_preserved: false;
+  directed_reachability_preserved: boolean;
+  semantics?: 'existential_member_reachability';
   group_count: number;
   internal_witness_count: number;
   crossing_witness_count: number;
@@ -282,7 +283,7 @@ export interface GetArchitectureContextRequest extends BaseRequest {
   context_radius: 0 | 1 | 2;
   filter: Filter;
   pins: Id[];
-  qi: { enabled: boolean; max_diameter: number };
+  qi: { enabled: boolean; max_diameter: number; algorithm?: 'helper_tree_balls_v1' | 'directed-helper-condensation-v1' };
   cursor: Cursor | null;
 }
 export interface GetArchitectureContextData extends GraphPayload {

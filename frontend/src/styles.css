@@ -1577,3 +1577,26 @@ dialog input {
 .integrated-workspace .app-header {position:relative;z-index:35;}
 .shared-graph-canvas {height:max(420px,calc(100dvh - 360px));}
 @media(max-width:600px){.shared-graph-canvas {height:360px;}.graph-workspace {padding:12px;}}
+
+/* Prune-by-derivation confirmation (wave 3 Task 7): floats above the scene, never under the canvas. */
+.prune-dialog {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 5;
+  max-width: 360px;
+  max-height: 50%;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--border, #8884);
+  border-radius: 8px;
+  background: var(--panel, var(--background, #fff));
+  color: var(--text, inherit);
+  pointer-events: auto;
+}
+.prune-dialog ul {
+  margin: 4px 0;
+  padding-left: 18px;
+  max-height: 120px;
+  overflow: auto;
+}

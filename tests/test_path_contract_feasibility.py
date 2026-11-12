@@ -113,3 +113,53 @@ def test_archived_v3_schema_really_excluded_the_expected_public_target():
     schema=request['response_format']['json_schema']['schema']
     assert request['prompt']['answer_contract']['requested_paths'][0]['target']=='app/service.py.process'
     assert 'app/service.py.process' not in schema['properties']['paths']['items']['items']['enum']
+
+
+# --- U7 guard: contraction never leaks into path steps (Phase 6-7 wave 3 Task 1) -------------------
+
+HELPERS = {'lib.py': b'def _a():\n    return 1\ndef _b():\n    return _a()\ndef _c():\n    return _b()\ndef run():\n    return _c()\n',
+           'ui.py': b'from lib import run\ndef display():\n    return run()\n'}
+
+
+@pytest.fixture
+def service_with_helpers():
+    from geographer.analysis import DEFAULT_FILTER
+    store = SnapshotStore()
+    sid = ingest(store, [Repository('repo', 'revision', HELPERS)], stage=3)['snapshot_id']
+    svc = QueryService(store, secret=b'x' * 32)
+    ids = {e.qualified_name: e.entity_id for e in store.graph(sid).entities.values()}
+    req = dict(schema_version='1.1', request_id='atomic-paths', snapshot_id=sid,
+               budget=dict(limit_tokens=8192, tokenizer='o200k_base', allow_byte_fallback=False),
+               focus_id=ids['ui.py.display'], grouping={'mode': 'atomic'}, context_radius=2,
+               filter=copy.deepcopy(DEFAULT_FILTER), pins=[ids['lib.py._a']], qi={'enabled': True, 'max_diameter': 2}, cursor=None,
+               path_request=dict(template='CALL_CHAIN_WITH_HELPERS', max_hops=4, max_expansions=20000, undirected=False, boundary_model_digest=None))
+    yield svc, sid, req
+    store.close()
+
+
+def test_path_steps_stay_atomic_when_qi_enabled(service_with_helpers):
+    svc, sid, req = service_with_helpers
+    result = svc.query('get_architecture_context', req)
+    assert 'error' not in result, result
+    data = result['data']
+    assert data['qi']['A'] >= 1, 'the fixture must form at least one contraction group'
+    witnesses = {w['id']: w for w in data['witnesses']}; nodes = {n['id']: n for n in data['nodes']}
+    steps = [s for p in data['paths'] for s in p['steps']]
+    assert data['paths'] and data['paths'][0]['outcome'] == 'found' and len(steps) == 4
+    chain = [witnesses[s['relationship_id']] for s in steps]  # every step resolves to an emitted witness
+    assert all(w['projection_id'] is None and w['subtype'] == 'calls' and w['resolution_status'] == 'exact' for w in chain)
+    assert any(n['kind'] == 'qi' for n in data['nodes']), 'contraction groups must be present in the frame'
+    assert all(nodes[w[end]]['kind'] == 'function' for w in chain for end in ('source', 'target'))  # never a qi group
+    assert all(a['target'] == b['source'] for a, b in zip(chain, chain[1:]))
+
+
+def test_anchor_identities_present_on_no_path():
+    suite, files, _ = load_suite(); task = next(t for t in suite['tasks'] if t['id'] == 'disconnected')
+    with SnapshotStore() as store:
+        sid = ingest(store, [Repository('evaluation', 'fixture-v1', {p: b for p, b in files.items() if not p.endswith('.yaml')})], stage=3)['snapshot_id']
+        model = ArchitectureRules(files['geographer.rules.yaml']); service = QueryService(store, rules=[model])
+        evidence, _ = retrieve(service, sid, model, store.graph(sid), files, task, 'flat_search', TokenCounter())
+        prompt = model_prompt(task, evidence, sorted({f for t in suite['tasks'] for f in t['oracle']['facts']}))
+    names = {a['qualified_name'] for a in prompt['evidence']['scope']['anchor_identities']}
+    assert names == {'app/other.py.detached', 'app/storage.py.save'}
+    assert prompt['answer_contract']['requested_paths'] == [dict(source='app/other.py.detached', target='app/storage.py.save')]
