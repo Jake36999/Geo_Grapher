@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "aac5ec71892f934b3e8d80ad4b1c14a9980622830e66ef76d487dcc8166f88ff",
+  "contract_sha256": "51d2abed5adac566030a02d14367481522e7d626b844e303381673eb402f8faa",
   "operations": {
     "search_entities": {
       "request": {
@@ -227,6 +227,19 @@
     "BudgetRequest": {
       "type": "object",
       "properties": {
+        "profile": {
+          "anyOf": [
+            {
+              "const": "tier3_leaf"
+            },
+            {
+              "const": "tier2_forager"
+            },
+            {
+              "const": "tier1_lead"
+            }
+          ]
+        },
         "limit_tokens": {
           "type": "integer",
           "minimum": 256,

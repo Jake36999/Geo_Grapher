@@ -63,15 +63,24 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
         except ImportError:pass  # Paper tools are an optional source extension.
         for name,description,schema in [
             ('list_graphs','Discover graph IDs and their latest project snapshots.',dict(type='object',properties={},additionalProperties=False)),
+            ('compile_task_packet','Compile a snapshot-bound, cited task packet with structured upstream port contracts.',
+             dict(type='object',properties={'graph_id':graph_schema,'anchors':dict(type='array',items={'type':'string'},minItems=1,maxItems=8),
+                'instruction':{'type':'string'},'profile':dict(enum=['tier3_leaf','tier2_forager','tier1_lead']),
+                'upstream':dict(type='array',items={'type':'object'})},required=['graph_id','anchors','instruction'],additionalProperties=False)),
             ('list_bridges','Only declared bridges with both endpoints in explicitly selected graphs.',dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True)},required=['graph_ids'],additionalProperties=False)),
             ('analyze_cross_graphs','cross-graph-v1, read-only: evolution_diff (exactly 2 graphs), clone_candidates or bridge_candidates (2..8). '
              'Rankings stay per graph; bridge candidates are unreviewed scores, never bridges. Items are packed whole under limit_tokens; '
              'resume with next_cursor. Cite endpoints by cite_as.',
              dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True),
                 'mode':dict(enum=['evolution_diff','clone_candidates','bridge_candidates','bridge_impact','theory_conformance']),
-                'limit_tokens':dict(type='integer',minimum=1024,maximum=32768),'cursor':{'type':['string','null'],'maxLength':40}},
+                'start':dict(type='object',properties={'graph_id':graph_schema,'ref':{'type':'string'}},required=['graph_id','ref'],additionalProperties=False),
+                'max_hops':dict(type='integer',minimum=0,maximum=32),
+                'pinned_graphs':dict(type='array',items=graph_schema,uniqueItems=True,maxItems=8),
+                'theory_graph':graph_schema,'code_graph':graph_schema,
+                'limit_tokens':dict(type='integer',minimum=1024,maximum=32768),'profile':dict(enum=['tier3_leaf','tier2_forager','tier1_lead']),
+                'cursor':{'type':['string','null'],'maxLength':40}},
                 required=['graph_ids','mode'],additionalProperties=False)),
-            ('federated_search','Explicit comparison, per-graph rankings and a complete-envelope token cap; no graph or alias merging.',dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True),'query':dict(type='string',minLength=1,maxLength=500),'limit_tokens':dict(type='integer',minimum=2048,maximum=32768),'mode':dict(enum=['lexical','documentation','hybrid'])},required=['graph_ids','query'],additionalProperties=False))]:
+            ('federated_search','Explicit comparison, per-graph rankings and a complete-envelope token cap; no graph or alias merging.',dict(type='object',properties={'graph_ids':dict(type='array',items=graph_schema,minItems=2,maxItems=8,uniqueItems=True),'query':dict(type='string',minLength=1,maxLength=500),'limit_tokens':dict(type='integer',minimum=256,maximum=32768),'profile':dict(enum=['tier3_leaf','tier2_forager','tier1_lead']),'mode':dict(enum=['lexical','documentation','hybrid'])},required=['graph_ids','query'],additionalProperties=False))]:
             schemas[name]=schema;tools.append(types.Tool(name=name,description=description,inputSchema=schema,outputSchema={'type':'object'},annotations=types.ToolAnnotations(readOnlyHint=True)))
         return tools if offered is None else [t for t in tools if t.name in offered]
 
@@ -83,11 +92,13 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
             if offered is not None and name not in offered:raise ValueError('Tool not offered on this connection')
             jsonschema.validate(arguments,schemas[name])
             if name=='list_graphs':result=await anyio.to_thread.run_sync(router.summary)
+            elif name=='compile_task_packet':
+                from functools import partial
+                result=await anyio.to_thread.run_sync(partial(router.compile_task_packet,**arguments))
             elif name=='list_bridges':result=dict(bridges=router.bridges(arguments['graph_ids']))
             elif name=='analyze_cross_graphs':
                 from functools import partial
-                result=await anyio.to_thread.run_sync(partial(router.analyze_cross_graphs,arguments['graph_ids'],arguments['mode'],
-                    limit_tokens=arguments.get('limit_tokens',4096),cursor=arguments.get('cursor')))
+                result=await anyio.to_thread.run_sync(partial(router.analyze_cross_graphs,**arguments))
             elif name=='federated_search':
                 from functools import partial
                 result=await anyio.to_thread.run_sync(partial(router.federated_search,**arguments))

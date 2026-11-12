@@ -131,6 +131,7 @@ export type Grouping =
   { mode: 'conceptual'; model_digest: Digest } |
   { mode: 'mixed'; revealed_ids: Id[] };
 export interface BudgetRequest {
+  profile?: 'tier3_leaf' | 'tier2_forager' | 'tier1_lead';
   limit_tokens: number;
   tokenizer: 'o200k_base' | 'cl100k_base';
   allow_byte_fallback: boolean;
