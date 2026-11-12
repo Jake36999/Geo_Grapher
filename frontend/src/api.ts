@@ -180,7 +180,7 @@ export async function json<T>(
   signal?: AbortSignal,
 ): Promise<T> {
   const prefix = graphBasePath();
-  const target = prefix !== "/" && url.startsWith("/api/") && !url.startsWith('/api/graphs') ? prefix.slice(0,-1) + url : url;
+  const target = prefix !== "/" && url.startsWith("/api/") && !/^\/api\/(graphs|fs|workspace)(\/|\?|$)/.test(url) ? prefix.slice(0,-1) + url : url;
   const response = await fetch(target, {
     method: body === undefined ? "GET" : "POST",
     headers: body === undefined ? {} : { "Content-Type": "application/json" },

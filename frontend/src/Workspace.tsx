@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import App from "./App";
 import GraphMergeReview from "./GraphMergeReview";
 import BridgeReview from "./BridgeReview";
+import WorkspaceIngest from "./WorkspaceIngest";
 import GraphActions from "./GraphLifecycle";
 import { getActiveGraphs, setActiveGraphs, setWorkspaceGraph } from "./api";
 import type {
@@ -273,6 +274,14 @@ export default function Workspace() {
                 .catch((e) => setError(e.message));
             }}
           />
+          <WorkspaceIngest
+            onIngested={() => {
+              fetch("/api/graphs")
+                .then((r) => r.json())
+                .then((data) => setGraphs(data.graphs))
+                .catch((e) => setError(e.message));
+            }}
+          />
           <BridgeReview
             graphIds={selected}
             labels={Object.fromEntries(graphs.map((g) => [g.graph_id, g.label]))}
@@ -300,6 +309,7 @@ export default function Workspace() {
         remember,
         showBridges,
         restoreGraphs,
+        reloadGraphs,
       }}
     />
   );

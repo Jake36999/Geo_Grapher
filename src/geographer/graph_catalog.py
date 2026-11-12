@@ -14,6 +14,7 @@ import time
 from .model import canonical,digest
 from .pipeline import ingest
 from .store import SnapshotStore
+from .source import Repository
 
 DDL='''
 PRAGMA foreign_keys=ON;
@@ -323,6 +324,50 @@ class GraphCatalog:
             from .lineage import sweep
             result['lineage']=sweep(self,gid,old_sid,report['snapshot_id'])
         return result
+
+    def derive_graph(self,source_graph_id,*,exclude_rel_paths,label):
+        """Prune by derivation (master G8): re-ingest the source root into a NEW graph with extra excludes.
+
+        The source graph, its snapshots and its profile are unchanged. The derived graph skips root
+        overlap review because it is explicitly derived (its profile says so); its id is deterministic,
+        so deriving the same exclusion again refreshes it instead of duplicating it.
+        """
+        import re as _re
+        if not isinstance(exclude_rel_paths,list) or not 1<=len(exclude_rel_paths)<=500:raise ValueError('exclude_rel_paths must list 1..500 relative paths')
+        clean=set()
+        for raw in exclude_rel_paths:
+            if not isinstance(raw,str):raise ValueError('exclude_rel_paths must be strings')
+            rel=raw.replace('\\','/').strip().rstrip('/')  # a leading '/' stays: absolute paths are refused below
+            if not rel or len(rel)>400 or rel.startswith(('/','~')) or _re.match(r'^[A-Za-z]:',rel) or any(part in ('','.','..') for part in rel.split('/')):
+                raise ValueError(f'Invalid relative path {raw[:80]!r}')
+            clean.add(rel)
+        if not isinstance(label,str) or not label.strip() or len(label)>120:raise ValueError('A label of 1..120 characters is required')
+        source=self.graph(source_graph_id);profile=json.loads(source['profile_json'])
+        if profile.get('graph_kind') in ('registered_store','copy') or profile.get('existing_store'):
+            raise ValueError('Only graphs ingested from a project root can be pruned by derivation')
+        root=Path(source['root_path'])
+        if not root.is_dir():raise ValueError('Source root is not available for re-ingestion')
+        new_id='g_'+digest('derived-v1',source_graph_id,sorted(clean))[:24]
+        globs=sorted({g for rel in clean for g in (rel,rel+'/*')})
+        excludes=sorted(set(profile.get('exclude_globs',[]))|set(globs))
+        repository=Repository.from_directory(root,new_id,source_roots=tuple(profile.get('source_roots',[''])) or ('',),
+            include_globs=tuple(profile.get('include_globs',['*'])) or ('*',),exclude_globs=tuple(excludes))
+        repository.repo_id=new_id;repository.resolution_group=None
+        database=self.path.parent/'graphs'/new_id/'code.sqlite';database.parent.mkdir(parents=True,exist_ok=True)
+        with self.import_lock,SnapshotStore(database) as store:
+            # Identical bytes: reuse the existing complete snapshot, as import_project does.
+            row=store.connection.execute("SELECT s.snapshot_id FROM snapshots s JOIN snapshot_sets ss ON ss.snapshot_id=s.snapshot_id "
+                "WHERE s.repo_id=? AND s.digest=? AND ss.status='complete' ORDER BY ss.created_at DESC LIMIT 1",(new_id,repository.content_digest)).fetchone()
+            report=dict(snapshot_id=row[0],status='reused') if row else ingest(store,[repository],stage=3)
+        derived=dict(graph_kind='derived',derived_from=source_graph_id,source_roots=list(repository.source_roots),
+            include_globs=list(repository.include_globs),exclude_globs=excludes,owner_repo_ids=[new_id])
+        if 'stratum' in profile:derived['stratum']=profile['stratum']
+        now=datetime.now(timezone.utc).isoformat()
+        with self.lock,self.connection:
+            self.connection.execute('BEGIN IMMEDIATE')
+            self.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?) ON CONFLICT(graph_id) DO UPDATE SET label=excluded.label,snapshot_id=excluded.snapshot_id,profile_json=excluded.profile_json',
+                (new_id,'derived:'+new_id,str(root),label.strip(),str(database),report['snapshot_id'],canonical(derived),now))
+        return dict(graph_id=new_id,derived_from=source_graph_id,exclude_globs=globs,ingestion=report)
 
     def attach_papers(self,graph_id,path):
         path=Path(path).resolve()

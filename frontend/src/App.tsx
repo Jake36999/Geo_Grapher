@@ -136,6 +136,8 @@ export default function App({
     [viewFailed, setViewFailed] = useState(false),
     [status, setStatus] = useState("Opening the local workspace…"),
     [error, setError] = useState(""),
+    pruneGraph = () => workspace?.active ?? graphBasePath().match(/^\/graphs\/(g_[0-9a-f]{24})\//)?.[1],
+    [pruneDraft, setPruneDraft] = useState<{ paths: string[]; label: string; graph?: string; busy?: boolean; message?: string }>(),
     [drawer, setDrawer] = useState<"hierarchy" | "inspector" | null>(null);
   const [search, setSearch] = useState(""),
     [results, setResults] = useState<Node[]>([]),
@@ -1814,7 +1816,70 @@ export default function App({
                     setStatus(reason);
                     changeView("list");
                   }}
+                  onPrune={(selected) => {
+                    // Prune always targets this view's graph; in a composed scene, keep only nodes from it.
+                    const graph = pruneGraph();
+                    const paths = [
+                      ...new Set(
+                        selected
+                          .filter((s) => !composition || composition.origins.get(s.id)?.graph_id === graph)
+                          .map((s) => s.rel_path),
+                      ),
+                    ].sort();
+                    setPruneDraft(
+                      graph && paths.length
+                        ? { paths, label: "", graph }
+                        : { paths: [], label: "", message: "The selection holds no files of this graph." },
+                    );
+                  }}
                 />
+                {pruneDraft && (
+                  <form
+                    className="prune-dialog"
+                    aria-label="Prune selection"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      setPruneDraft({ ...pruneDraft, busy: true, message: "" });
+                      try {
+                        const out = await json<{ graph_id: string }>(
+                          `/api/graphs/${encodeURIComponent(pruneDraft.graph ?? "")}/prune`,
+                          { exclude_rel_paths: pruneDraft.paths, label: pruneDraft.label.trim() },
+                        );
+                        await workspace?.reloadGraphs();
+                        setPruneDraft({ ...pruneDraft, busy: false, message: `Created derived graph ${out.graph_id}` });
+                      } catch (err) {
+                        setPruneDraft({ ...pruneDraft, busy: false, message: (err as Error).message });
+                      }
+                    }}
+                  >
+                    <p>
+                      Create a new graph without {pruneDraft.paths.length} path(s). The current graph is unchanged.
+                    </p>
+                    <ul>
+                      {pruneDraft.paths.map((p) => (
+                        <li key={p}>
+                          <code>{p}</code>
+                        </li>
+                      ))}
+                    </ul>
+                    <label>
+                      New graph label{" "}
+                      <input
+                        value={pruneDraft.label}
+                        maxLength={120}
+                        disabled={pruneDraft.busy}
+                        onChange={(e) => setPruneDraft({ ...pruneDraft, label: e.target.value })}
+                      />
+                    </label>{" "}
+                    <button type="submit" disabled={pruneDraft.busy || !pruneDraft.graph || !pruneDraft.label.trim() || !pruneDraft.paths.length}>
+                      Create pruned graph
+                    </button>{" "}
+                    <button type="button" onClick={() => setPruneDraft(undefined)}>
+                      Close
+                    </button>
+                    {pruneDraft.message && <p role="status">{pruneDraft.message}</p>}
+                  </form>
+                )}
                 <div className="legend">
                   <span>○ enclosure / summary</span>
                   <span>

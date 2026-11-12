@@ -44,6 +44,7 @@ export interface WorkspaceControls {
   settings?: WorkspaceSettings;
   showBridges: boolean;
   restoreGraphs: (ids: string[]) => void;
+  reloadGraphs: () => Promise<unknown>;
   pending?: GraphPick;
   consume: () => void;
   pick: (pick: Omit<GraphPick, "serial">) => void;

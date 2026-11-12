@@ -22,7 +22,10 @@ with tempfile.TemporaryDirectory(prefix='geographer-merge-qa-',ignore_cleanup_er
         catalog.import_project(root,Repository.from_directory(root,name),label=name)
     graph_ids=[g['graph_id'] for g in catalog.graphs()]
     catalog.add_bridge(graph_ids[0],'root',graph_ids[1],'root','reference','Synthetic QA reference, not a code dependency',[{'source':'test fixture'}])
-    router=GraphRouter(catalog);app=create_graph_http(router,port=8775)
+    ws=base/'ws';(ws/'src').mkdir(parents=True);(ws/'docs').mkdir()
+    (ws/'src'/'tool.py').write_text('def tool():\n    return 2\n',encoding='utf-8');(ws/'docs'/'guide.md').write_text('# Guide\n',encoding='utf-8')
+    (ws/'README.md').write_text('Picker fixture.\n',encoding='utf-8')
+    router=GraphRouter(catalog);app=create_graph_http(router,port=8775,browse_roots=[ws])
     async def advance(request):
         row=next(g for g in catalog.graphs() if g['label']=='Alpha')
         root=Path(row['root_path']);(root/'README.md').write_text('Advanced fixture generation.',encoding='utf-8')
