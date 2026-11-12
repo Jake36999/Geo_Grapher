@@ -14,6 +14,7 @@ from functools import partial
 from .analysis import (DEFAULT_FILTER,TreeIndex,Partition,partition,project,materialize_view,
                        subject_graph,boundary_ratios,cayley_bounds,selected_relationships,condensations,persist_projection_view)
 from .contraction import contract_helpers
+from .contraction_directed import boosted_kappa,contract_view,kappa
 from .cursors import CursorPlans,InvalidCursor
 from .model import canonical,digest
 from .packing import GreedyPacker,Unit,combine,BudgetTooSmall,PACKER_VERSION
@@ -440,7 +441,12 @@ class QueryService:
                 mapping,findings=model.check(g,sid,set(g.entities),self._coverage(sid,ctx),q['filter'])
                 finding_components={x for f in findings if f['status']=='forbidden_present' for x in (f['source_component_id'],f['target_component_id'])}
                 protected.update(eid for eid,c in mapping.items() if 'view:component:'+digest(model.digest,c) in finding_components)
-            membership,groups,qi=contract_helpers(g,sid,protected,q['qi']['max_diameter'],q['filter'])
+            algorithm=q['qi'].get('algorithm','helper_tree_balls_v1');certificate=None
+            if algorithm=='directed-helper-condensation-v1':
+                # Protected spine (master G6 III): the focus, its ancestors and pins (bridge endpoints arrive in Task 4).
+                membership,groups,qi,certificate=contract_view(g,sid,protected|{focus},q['filter'])
+                qi['requested_diameter']=q['qi']['max_diameter']
+            else:membership,groups,qi=contract_helpers(g,sid,protected,q['qi']['max_diameter'],q['filter'])
             newgroups={};kinds={};shells={}
             for rep,atoms in part.groups.items():
                 target=membership.get(rep,rep);newgroups.setdefault(target,set()).update(atoms)
@@ -448,9 +454,50 @@ class QueryService:
                 parent=tree.parents.get(rep) or tree.root
                 shells[target]=tree.lca(shells[target],parent) if target in shells else parent
             part=Partition(q['grouping'],newgroups,kinds,shells)
-            qi['membership_handle']=self._handle('qi',dict(groups={r:sorted(m) for r,m in groups.items()},certificate={**qi,'membership_handle':None}))
+            qi['membership_handle']=self._handle('qi',dict(groups={r:sorted(m) for r,m in groups.items()},certificate={**qi,'membership_handle':None,
+                **({'contraction':certificate} if certificate is not None else {})}))
         vid=self._persist_partition(sid,ctx,part,q['filter'],'context-partition-v1') if q['qi']['enabled'] or q['grouping']['mode']=='conceptual' else materialize_view(self.store,sid,g,q['grouping'],q['filter'])[0]
         return part,vid,qi
+
+    def _anomaly_subjects(self,sid,ctx,model_digest,filters):
+        """Subjects touching a feedback-arc witness, and (per digest) a forbidden_present witness; cached per snapshot."""
+        cache=ctx.setdefault('anomaly_subjects',{'fas':None,'violations':{}})
+        if cache['fas'] is None:
+            from .discovery import feedback_arcs
+            back=sorted(feedback_arcs(self.store,sid));subjects=set()
+            for start in range(0,len(back),500):
+                chunk=back[start:start+500]
+                for (rid,) in self.store.connection.execute('SELECT relationship_id FROM quotient_witness_map WHERE snapshot_id=? AND projection_id IN (%s)'%','.join('?'*len(chunk)),(sid,*chunk)):
+                    r=ctx['g'].relationships.get(rid)
+                    if r is not None:subjects.update((r.source_subject_id,r.target_subject_id))
+            cache['fas']=subjects
+        if model_digest is None or model_digest not in self.rules:return cache['fas'],set()
+        if model_digest not in cache['violations']:
+            g=ctx['g'];model=self.rules[model_digest]
+            mapping,findings=model.check(g,sid,set(g.entities),self._coverage(sid,ctx),filters)
+            bad={(f['source_component_id'],f['target_component_id']) for f in findings if f['status']=='forbidden_present'}
+            comp=lambda e:'view:component:'+digest(model_digest,mapping.get(e,'Unmapped'))
+            _,rels=subject_graph(g,filters)
+            cache['violations'][model_digest]={x for r in rels if (comp(r.source_subject_id),comp(r.target_subject_id)) in bad for x in (r.source_subject_id,r.target_subject_id)}
+        return cache['fas'],cache['violations'][model_digest]
+
+    def _block_units(self,q,ctx,part,vid,rows,blocks,focus):
+        """Directed blocks: a tier-1 summary node and tier-2 member expansions, utility κ' (boundary witnesses weight κ)."""
+        counter=TokenCounter(q['budget']['tokenizer']);tree=ctx['tree'];g=ctx['g']
+        fas,violations=self._anomaly_subjects(q['snapshot_id'],ctx,q.get('review_model_digest'),q['filter'])
+        units=[]
+        for rep in blocks:
+            members=sorted(part.groups[rep])
+            boundary=[row for row in rows if (row['source_rep_id']==rep)!=(row['target_rep_id']==rep)]
+            # Boundary projections are packed by the relationship units, which carry both endpoint nodes (closure).
+            summary=dict(nodes=[self._node(ctx,rep,part=part,focus=focus)])
+            expansions=[dict(nodes=[self._node(ctx,m,focus=focus)]) for m in members if m in g.entities]
+            k=kappa(max(tree.doi(m,focus) for m in members),sum(row['witness_count'] for row in boundary),
+                    sum(counter.count(r) for r in expansions),counter.count(summary))
+            k=boosted_kappa(k,violation=bool(violations&set(members)),feedback=bool(fas&set(members)))
+            units.append(Unit('block:'+rep,1,k,summary))
+            units.extend(Unit('block-member:'+m,2,k,r) for m,r in zip([m for m in members if m in g.entities],expansions))
+        return units
 
     def _get_architecture_context(self,q,ctx):
         sid=q['snapshot_id'];part,vid,qi=self._architecture(q,ctx)
@@ -479,8 +526,11 @@ class QueryService:
             focus_set=set(focus_atoms)
             reps.update(rep for rep,members in part.groups.items() if members&focus_set and members&subject_atoms)
         units=[]
-        for rep in sorted(reps-required):units.append(Unit('node:'+rep,3,20,dict(nodes=[self._node(ctx,rep,part=part,focus=focus)])))
         rows=self.store.connection.execute('SELECT * FROM quotient_projections WHERE snapshot_id=? AND view_id=? ORDER BY projection_id',(sid,vid)).fetchall()
+        directed=qi.get('mode')=='directed-helper-condensation-v1'
+        blocks={rep for rep in reps if directed and part.kinds.get(rep)=='qi'}
+        for rep in sorted(reps-required-blocks):units.append(Unit('node:'+rep,3,20,dict(nodes=[self._node(ctx,rep,part=part,focus=focus)])))
+        if blocks:units.extend(self._block_units(q,ctx,part,vid,rows,sorted(blocks),focus))
         for row in rows:
             if row['source_rep_id'] not in reps and row['target_rep_id'] not in reps:continue
             ids={row['source_rep_id'],row['target_rep_id']}

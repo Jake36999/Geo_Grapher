@@ -1,4 +1,5 @@
 """Directed graph contraction with convexity and port completeness checks."""
+import math
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 from typing import Dict, List, Set, Tuple, Optional, FrozenSet
@@ -272,36 +273,33 @@ def contract_directed(vertices: List[str], edges: List[Tuple[str, str]], parent:
     # Sort candidates by (min(member), -len(B), tuple(sorted(B)))
     candidate_list.sort(key=lambda b: (min(b), -len(b), tuple(sorted(b))))
     
-    # Current quotient Q as an arc set over quotient vertices (initially the input DAG).
+    # Current quotient Q as successor/predecessor sets over quotient vertices (initially the input DAG).
     membership = {v: v for v in sorted(vertex_set)}
-    arcs = set(edge_set)
+    quotient_succ: Dict[str, set] = {v: set() for v in membership}
+    quotient_pred: Dict[str, set] = {v: set() for v in membership}
+    for u, v in edge_set:
+        quotient_succ[u].add(v); quotient_pred[v].add(u)
 
-    def adjacency(arc_set):
-        s: Dict[str, List[str]] = {v: [] for v in set(membership.values())}
-        p: Dict[str, List[str]] = {v: [] for v in s}
-        for u, v in sorted(arc_set):
-            s[u].append(v); p[v].append(u)
-        return s, p
-
-    def compute_rank(s, p):
-        """Longest-path depth from Q's sources; None if Q is cyclic."""
-        indeg = {v: len(p[v]) for v in s}
-        rank = {v: 0 for v in s}
-        queue = deque(sorted(v for v in s if indeg[v] == 0)); done = 0
+    def topo_rank():
+        """Longest-path depth from Q's sources (a strictly increasing numbering); None if Q is cyclic."""
+        indeg = {v: len(quotient_pred[v]) for v in quotient_succ}
+        order = {v: 0.0 for v in quotient_succ}
+        queue = deque(sorted(v for v in quotient_succ if indeg[v] == 0)); done = 0
         while queue:
             v = queue.popleft(); done += 1
-            for w in s[v]:
-                rank[w] = max(rank[w], rank[v] + 1); indeg[w] -= 1
+            for w in sorted(quotient_succ[v]):
+                order[w] = max(order[w], order[v] + 1); indeg[w] -= 1
                 if indeg[w] == 0:
                     queue.append(w)
-        return rank if done == len(s) else None
+        return order if done == len(quotient_succ) else None
 
+    # is_convex only needs a numbering in which every arc strictly increases (y on a path x⇝y⇝z lies strictly
+    # between x and z). Contracting keeps it valid when the block's value fits between its neighbours; otherwise renumber.
+    rank = topo_rank()
     cert_candidates = len(candidate_list)
     cert_accepted = 0
     cert_rejected: Dict[str, int] = defaultdict(int)
     accepted_blocks: Dict[str, Tuple[str, ...]] = {}
-    quotient_succ, quotient_pred = adjacency(arcs)
-    rank = compute_rank(quotient_succ, quotient_pred)
 
     for candidate in candidate_list:
         if len(candidate) < 2:
@@ -312,32 +310,47 @@ def contract_directed(vertices: List[str], edges: List[Tuple[str, str]], parent:
             cert_rejected["protected"] += 1; continue
         if any(membership[v] != v or v in accepted_blocks for v in candidate):
             cert_rejected["overlaps_accepted"] += 1; continue
-        if not is_convex(set(candidate), quotient_succ, quotient_pred, rank):
+        block = set(candidate)
+        if not is_convex(block, quotient_succ, quotient_pred, rank):
             cert_rejected["not_convex"] += 1; continue
-        if ports_check and not ports_complete(set(candidate), quotient_succ, quotient_pred):
+        if ports_check and not ports_complete(block, quotient_succ, quotient_pred):
             cert_rejected["ports_incomplete"] += 1; continue
-        rep = min(candidate)
-        new_arcs = {(rep if u in candidate else u, rep if v in candidate else v) for u, v in arcs}
-        new_arcs = {(u, v) for u, v in new_arcs if u != v}
-        saved = dict(membership)
-        for v in candidate:
-            membership[v] = rep
-        s, p = adjacency(new_arcs)
-        new_rank = compute_rank(s, p)
-        if new_rank is None:  # cannot happen for a convex block of a DAG (G6); counted, never accepted
-            membership = saved
+        rep = min(block)
+        outs = {w for v in block for w in quotient_succ[v]} - block
+        ins = {u for v in block for u in quotient_pred[v]} - block
+        if outs & ins:  # a vertex both before and after the block: contracting would close a cycle (G6 says never)
             cert_rejected["creates_cycle"] += 1; continue
-        arcs, quotient_succ, quotient_pred, rank = new_arcs, s, p, new_rank
-        accepted_blocks[rep] = tuple(sorted(candidate))
+        for v in block:
+            for w in quotient_succ[v] - block:
+                quotient_pred[w].discard(v); quotient_pred[w].add(rep)
+            for u in quotient_pred[v] - block:
+                quotient_succ[u].discard(v); quotient_succ[u].add(rep)
+            if v != rep:
+                del quotient_succ[v], quotient_pred[v]
+        quotient_succ[rep], quotient_pred[rep] = outs, ins
+        low = max((rank[u] for u in ins), default=None); high = min((rank[w] for w in outs), default=None)
+        for v in block - {rep}:
+            del rank[v]
+        if low is None and high is None:
+            rank[rep] = 0.0
+        elif low is None:
+            rank[rep] = high - 1
+        elif high is None:
+            rank[rep] = low + 1
+        elif high - low > 1e-6:
+            rank[rep] = (low + high) / 2
+        else:
+            rank = topo_rank()
+            if rank is None:  # unreachable for a convex block of a DAG; fail loudly rather than return a bad quotient
+                raise AssertionError("directed contraction produced a cyclic quotient")
+        for v in block:
+            membership[v] = rep
+        accepted_blocks[rep] = tuple(sorted(block))
         cert_accepted += 1
 
-    # Build final result
     final_membership = dict(sorted(membership.items()))
-    final_blocks = {}
-    for rep, members in sorted(accepted_blocks.items()):
-        final_blocks[rep] = members
-    
-    # Build certificate
+    final_blocks = dict(sorted(accepted_blocks.items()))
+
     certificate = {"candidates": cert_candidates, "accepted": cert_accepted,
                    "rejected": dict(sorted((k, v) for k, v in cert_rejected.items() if v > 0))}
 
@@ -346,3 +359,86 @@ def contract_directed(vertices: List[str], edges: List[Tuple[str, str]], parent:
         blocks=final_blocks,
         certificate=certificate
     )
+
+
+# --- query-time adapter and packing utility (wave 3 Task 3) -------------------------------------------
+
+def kappa(doi_max: float, boundary_witnesses: int, t_atomic: int, t_summary: int) -> float:
+    """κ(B) = exp(0.5·DOI_max)·(1 + boundary witnesses) / max(1, T_atomic − T_summary)."""
+    return round(math.exp(0.5 * doi_max) * (1 + boundary_witnesses) / max(1, t_atomic - t_summary), 6)
+
+
+def boosted_kappa(kappa: float, *, violation: bool, feedback: bool) -> float:
+    """κ'(B) = κ(B)·(1 + 2·V + F): blocks touching a violation or a feedback-arc witness expand first."""
+    return round(kappa * (1 + 2 * int(violation) + int(feedback)), 6)
+
+
+MODE = "directed-helper-condensation-v1"
+
+
+def contract_view(graph, snapshot_id: str, protected, filters, max_depth: int = 3):
+    """Directed contraction of the exact static subject graph; same return shape as ``contract_helpers``.
+
+    Vertices are SCCs of the subject graph (G6 works on the condensation). Only singleton SCCs of
+    first-party function/method subjects get their containment parent; everything else gets a unique
+    parent, so it is never contracted. Blocks expand to their atoms; a block's representative is a
+    ``view:qi:`` id, so the existing partition and payload code treats it as a QI group.
+    """
+    from .analysis import subject_graph, tarjan
+    from .model import digest
+    subjects, rels = subject_graph(graph, filters)
+    rels = [r for r in rels if r.family == "static" and r.resolution_status == "exact"]
+    scc_of: Dict[str, str] = {}
+    for comp in tarjan(subjects, [(r.source_subject_id, r.target_subject_id) for r in rels]):
+        rep = min(comp)
+        for v in comp:
+            scc_of[v] = rep
+    comps: Dict[str, List[str]] = defaultdict(list)
+    for v in sorted(subjects):
+        comps[scc_of[v]].append(v)
+    arcs = sorted({(scc_of[r.source_subject_id], scc_of[r.target_subject_id]) for r in rels
+                   if scc_of[r.source_subject_id] != scc_of[r.target_subject_id]})
+    parent = {}
+    for node, members in comps.items():
+        e = graph.entities[node]
+        ok = len(members) == 1 and e.kind in {"function", "method"} and not any((e.is_test, e.is_generated, e.is_vendor, e.is_external))
+        parent[node] = (e.parent_id or "@root") if ok else "@fixed:" + node
+    guard = {scc_of[v] for v in protected if v in scc_of}
+    c = contract_directed(sorted(comps), arcs, parent, guard, max_depth)
+    membership: Dict[str, str] = {}
+    records: Dict[str, set] = {}
+    for node, members in sorted(comps.items()):
+        block = c.membership[node]
+        if block in c.blocks:
+            atoms = sorted(a for n in c.blocks[block] for a in comps[n])
+            rep = "view:qi:" + digest(snapshot_id, filters, MODE, atoms)
+        else:
+            atoms, rep = members, None
+        if rep is None:
+            for a in members:  # uncontracted: each subject is its own group
+                membership[a] = a; records[a] = {a}
+        else:
+            records.setdefault(rep, set()).update(atoms)
+            for a in atoms:
+                membership[a] = rep
+    adj: Dict[str, set] = defaultdict(set)
+    for r in rels:
+        u, v = r.source_subject_id, r.target_subject_id
+        if u != v:
+            adj[u].add(v); adj[v].add(u)
+    measured = 0
+    for members in records.values():
+        for start in sorted(members):
+            seen = {start: 0}; queue = deque([start])
+            while queue:
+                u = queue.popleft()
+                for w in sorted(adj[u] & members):
+                    if w not in seen:
+                        seen[w] = seen[u] + 1; queue.append(w)
+            measured = max(measured, max(seen.values()))
+    internal = sum(membership.get(r.source_subject_id) == membership.get(r.target_subject_id) for r in rels)
+    qi = dict(mode=MODE, metric="undirected_unweighted_hops", requested_diameter=max_depth, measured_max_intrinsic_diameter=measured,
+              A=measured + 1, B=measured, directed_reachability_preserved=True, semantics=c.semantics,
+              group_count=len(records), internal_witness_count=internal, crossing_witness_count=len(rels) - internal,
+              membership_handle=None)
+    return membership, records, qi, c.certificate
