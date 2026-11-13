@@ -138,3 +138,49 @@ All of this is post-release quality work. **It doesn't block** finalisation road
 2. The budget for the final measurement: raise the pool by about $3 (option a), or stay within $2.25 (option b)?
 3. The held-out v2 pass mark: 85% overall and 80% per run (proposed), or keep 90% and 88%?
 4. Whether to proceed with F1–F4 (merges and release) in parallel with this quality track. Recommended: yes.
+
+## 7. Owner decisions (2026-11-13) and the reliability approach
+
+**Decisions:**
+- **The L2 semantic channel is approved.** It ships as the optional, local-only extra `geo-grapher[semantic]`, using `model2vec` static embeddings (with `fastembed` optional). It is off by default. Source code is never sent to a hosted embedding service.
+- **Budget:** the owner added $6, so **$8.25 is available** in the `geo-grapher` pool. Spending still goes through receipts and the ledger, every paid run is registered before dispatch, and a no-model dry run comes first.
+- **F1–F4** (the release track) may proceed in parallel. Merging and pushing still need explicit owner approval.
+- **The reliability approach changes.** Don't try to guarantee single-shot reliability. Instead, **identify the predictable failure patterns, detect each one at run time, and attach a bounded recovery or remedial workflow to it.** Success is measured end to end with recovery, and first-attempt success is still reported separately, for honesty.
+
+### 7.1 The failure-pattern catalogue
+
+Every pattern below was observed in this project's evidence:
+
+| ID | Pattern | Evidence | Run-time detector | Recovery or remedy |
+|---|---|---|---|---|
+| FP1 | **Query compression**: the agent's keywords drop the question's distinguishing words | Agent queries hit 32% (33/102); the question text hits 13/25 | Low fused top-hit score, or no hit whose `doc_gist`/`why` shares ≥ 2 content words with the question | Re-search once, automatically, with the question (or its key sentence) verbatim plus the agent's terms; multi-query fusion |
+| FP2 | **Vocabulary mismatch**: a paraphrase of the docs | 12/25 miss even verbatim | Lexical and semantic top-8 lists disagree; low lexical confidence | Semantic channel (L2). Return the fused list, with `match: lexical\|semantic\|both` per hit |
+| FP3 | **Retrieved but not opened**: the answer is in the hits and skipped | Wave 4: the target at #1 and skipped | Final answer cites no entity whose gist overlaps the question, while a top-3 hit does | One bounded "check the top unopened candidate" step before answering |
+| FP4 | **Delivered but not used**: the answer is in the opened source but missing from the answer | Wave 4 run 1 (×2); held-out Q16 run 3 | Self-check: does a delivered range define the asked-for thing that the answer doesn't name? | A revision pass (P3, re-tested **validly** this time) |
+| FP5 | **Wrong granularity**: the answer names the function and not the constant, or the reverse | Q02 | The answer names an entity adjacent (reads or calls) to the defining entity | The answer contract names both the defining identifier and the place it's applied. In scoring, keys are equivalence sets (§4.4) |
+| FP6 | **Invalid or mistyped IDs** | Waves 3–4 | A structured error code | Scoped ID recovery with real candidates (done in A3.2) |
+| FP7 | **Step-limit exhaustion** | Wave 4 run 1 | `completed_at_step_limit` | Final synthesis from the evidence (done in A3.1). Also log which pattern consumed the steps |
+| FP8 | **Measurement defects**: a harness profile error; substring detectors; garbled or mis-keyed items | §19 | No-model dry run; structured-code detectors; two-reviewer item checks | Block paid dispatch until they're clean (§5 step 1) |
+
+### 7.2 How a recovery workflow must behave
+
+- **Bounded.** At most one recovery action per pattern per episode, and recoveries share a budget of at most 3 extra steps per episode. Without that, recovery becomes unbounded retrying.
+- **Deterministic triggers.** Detectors use structured signals (scores, overlaps, error codes, coverage records), never model judgement. Only FP4's self-check uses a model call, and it's counted in the step budget.
+- **Logged.** Every episode records `recoveries: [{pattern, trigger_value, action, outcome: resolved|unresolved}]` in the receipt and the benchmark row.
+- **No leakage.** Recovery never uses the answer key, the marker list or any benchmark-specific text. Each trigger and remedy must be valid for an arbitrary user question.
+- **Placement:**
+  - **search-side** remedies (FP1, FP2, FP6) live in Geo-Grapher's front door and work for every client;
+  - **agent-side** remedies (FP3, FP4, FP7) live in the Librarian `code-research` role's loop.
+
+### 7.3 Measurement with recovery
+
+- **Offline first, at no cost.** Extend `eval_retrieval_offline.py` to simulate FP1 and FP2 recovery: for each recorded agent query, apply the detector and the re-search. Report recall@8 before and after recovery, plus the trigger rate and the false-trigger rate (how often a recovery fires when the original was already right).
+- **One small paid diagnostic pilot** (about $0.5), before the final cycle: the 30 development questions (the 5 originals plus the 25 repaired v1), 1 run, all recoveries on. Its purpose is to measure trigger and recovery rates per pattern, and to find new failure patterns. It is not a gate. Any new pattern found is added to §7.1 with a detector and a remedy, then re-measured offline.
+- **The final registered cycle** (about $3–3.5 with recovery steps): held-out v2 at 25 × 3 runs plus dev at 5 × 3. Register:
+  - end-to-end success with recovery ≥ 85% overall and ≥ 80% per run;
+  - dev 5/5 per run;
+  - 0 wrong-graph, 0 withheld (by structured codes), ≤ 10 calls per question on average (the limit is raised from 8 to allow bounded recovery);
+  - also report **first-attempt success** (before any recovery fires) and **per-pattern recovery rates**. These are not gated, but must be shown.
+  
+  Stop after this cycle, whatever the result.
+- **Budget check:** about $0.05 for generation, $0.5 for the pilot and $3.5 for the final cycle, about $4.05 in total, against $8.25 available. Keep at least $2 in reserve. If the dry run estimates more than $5, stop and ask the owner.
