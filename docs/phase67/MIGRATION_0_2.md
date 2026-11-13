@@ -20,6 +20,9 @@ Creating a legacy binding does not establish current validity or equivalence; in
 | Porter FTS and query-word handling | Restart/use the new service so its query-time lexical index rebuilds; this alone does **not** require re-ingestion |
 | Flat IDs, real error choices and coverage metadata | Use the new server/adapter; old readable snapshots retain their facts |
 | Librarian final-at-step-limit behavior | Use the feature-worktree runtime after its approved integration; this is separate from indexing |
+| Multi-query ranking and bounded search pagination | Restart the server; existing canonical snapshots remain readable; follow `next_offset` when present |
+| Optional local semantic retrieval | Install the candidate wheel with `[semantic]`, provision local model assets and explicitly build a derived cache for each snapshot; leave configuration unset to retain lexical-only behavior |
+| Episode recovery accounting | Integrate the matching Librarian feature runtime and Geo server together; request metadata carries the ledger without adding nested model-facing arguments |
 
 The roadmap grouped FTS with re-ingestion changes. The implementation builds the lexical index per service context, so re-ingestion is required for the new source/documentary facts, not merely for the tokenizer. Neither query ranking nor a new adapter silently adds constants to an old snapshot.
 
