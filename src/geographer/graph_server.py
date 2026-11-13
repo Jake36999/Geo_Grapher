@@ -209,17 +209,21 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     def browsable(raw):
         """Resolve a picker path; None unless it is an existing directory inside a --browse-root with no reparse point."""
         if not allowed_roots or not isinstance(raw,str) or not raw or len(raw)>1000 or raw.startswith(('\\\\','//')):return None
-        try:path=Path(raw).resolve(strict=True)
+        if '..' in Path(raw).parts:return None
+        try:path=Path(os.path.abspath(raw))
         except (OSError,RuntimeError,ValueError):return None
         root=next((r for r in allowed_roots if path==r or path.is_relative_to(r)),None)
-        if root is None or not path.is_dir():return None
+        if root is None:return None
         probe=root
         for part in path.relative_to(root).parts:  # every component below the root: no junction or symlink
             probe=probe/part
             try:st=os.lstat(probe)
-            except OSError:return None
+            except (OSError,ValueError):return None
             if getattr(st,'st_file_attributes',0)&0x400 or stat.S_ISLNK(st.st_mode):return None
-        return path
+        try:resolved=path.resolve(strict=True)
+        except (OSError,RuntimeError,ValueError):return None
+        if not resolved.is_dir() or not (resolved==root or resolved.is_relative_to(root)):return None
+        return resolved
     async def fs_roots(request):return JSONResponse(dict(roots=[str(r) for r in allowed_roots]))
     async def fs_list(request):
         path=browsable(request.query_params.get('path',''))
@@ -250,11 +254,14 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
             body=await request.json();plan=previews[body['plan_id']];keys=set(body['approved_keys'])
             if not isinstance(body['approved_keys'],list) or not keys or not all(isinstance(k,str) for k in keys):raise ValueError('approved_keys must be a non-empty list')
         except (ValueError,KeyError,TypeError,AttributeError):return JSONResponse({'error':'Unknown plan_id (preview first) or invalid approved_keys'},status_code=400)
+        if browsable(plan['root']) is None:return JSONResponse({'error':'PATH_NOT_BROWSABLE'},status_code=403)
         with job_lock:
             if any(j['state'] in ('queued','running') for j in jobs.values()):return JSONResponse({'error':'JOB_RUNNING'},status_code=409)
             job_id='job_'+digest(plan['plan_id'],sorted(keys),len(jobs))[:16];jobs[job_id]=dict(state='running',reports=[],error=None)
         def run():
-            try:jobs[job_id].update(state='done',reports=workspace_init.apply(router.catalog,plan,approved_keys=keys))
+            try:
+                if browsable(plan['root']) is None:raise ValueError('PATH_NOT_BROWSABLE: preview root changed before job start')
+                jobs[job_id].update(state='done',reports=workspace_init.apply(router.catalog,plan,approved_keys=keys))
             except Exception as e:jobs[job_id].update(state='failed',error=str(e)[:500])
         threading.Thread(target=run,name='geographer-ingest-job',daemon=True).start()
         return JSONResponse(dict(job_id=job_id))

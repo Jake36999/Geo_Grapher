@@ -83,6 +83,35 @@ def test_picker_disabled_without_browse_roots(hub):
     assert client.get("/api/fs/roots").json()["roots"] == []
 
 
+def test_picker_refuses_junction_even_when_target_is_inside_allowed_root(picker_client):
+    client, root = picker_client
+    link = root / 'inside-junction'
+    made = subprocess.run(['cmd', '/c', 'mklink', '/J', str(link), str(root / 'proj')], capture_output=True)
+    if made.returncode:pytest.skip('junction creation not permitted')
+    assert client.get('/api/fs/list', params={'path': str(link)}).status_code == 403
+    assert client.post('/api/workspace/ingest-preview', json={'root': str(link)}).status_code == 403
+
+
+def test_ingest_revalidates_preview_root_before_starting_job(picker_client, tmp_path):
+    import os
+    client, root = picker_client
+    project = root / 'proj'
+    plan = client.post('/api/workspace/ingest-preview', json={'root': str(project)}).json()
+    backup = root / 'saved-proj'
+    assert project.resolve().is_relative_to(root.resolve()) and backup.parent == root
+    project.rename(backup)
+    try:
+        made = subprocess.run(['cmd', '/c', 'mklink', '/J', str(project), str(tmp_path / 'outside')], capture_output=True)
+        if made.returncode:pytest.skip('junction creation not permitted')
+        response = client.post('/api/workspace/ingest-execute', json={'plan_id': plan['plan_id'], 'approved_keys': [plan['partitions'][0]['key']]})
+        if response.status_code == 200:wait_job(client, response.json()['job_id'])
+        assert response.status_code == 403
+    finally:
+        if project.exists():os.rmdir(project)  # Remove the junction entry, never its target.
+        assert backup.resolve().is_relative_to(root.resolve())
+        backup.rename(project)
+
+
 def wait_job(client, job_id, timeout=120):
     end = time.time() + timeout
     while time.time() < end:
