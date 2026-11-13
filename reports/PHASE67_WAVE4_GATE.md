@@ -645,3 +645,73 @@ Diagnostic A/B decision: **do not retain P3** under the predeclared criterion. N
 ## Registered single final quality-track cycle
 
 Registration: `reports/PHASE67_CODE_QUALITY_FINAL_REGISTRATION.json`, SHA256 `23981aadedb4757f63be580b9b2117768e46817c41b912daafdf494e6d79af6a`. This is the only authorised quality-track cycle: dev 15/15; held-out >=68/75 and >=22/25 per run; zero wrong-graph/withheld; mean calls <=8. 90 episodes, three runs each, at the registered production profile. No product changes, replacement questions or extra cycle; stop whatever the result.
+
+Final quality cycle dev run 1: `{"calls": 24, "correct": 5, "cost_usd": 0.10955960000000002, "group": "dev", "run": 1, "self_check_rejected": 0, "tool_errors": 0, "total": 5, "withheld": 1, "wrong_graph": 0}`.
+
+Final quality cycle heldout run 1: `{"calls": 127, "correct": 14, "cost_usd": 0.6464649, "group": "heldout", "run": 1, "self_check_rejected": 0, "tool_errors": 0, "total": 25, "withheld": 0, "wrong_graph": 0}`.
+
+Final quality cycle dev run 2: `{"calls": 27, "correct": 5, "cost_usd": 0.1372894, "group": "dev", "run": 2, "self_check_rejected": 0, "tool_errors": 0, "total": 5, "withheld": 1, "wrong_graph": 0}`.
+
+Final quality cycle heldout run 2: `{"calls": 122, "correct": 18, "cost_usd": 0.5874692999999999, "group": "heldout", "run": 2, "self_check_rejected": 0, "tool_errors": 0, "total": 25, "withheld": 0, "wrong_graph": 0}`.
+
+Final quality cycle dev run 3: `{"calls": 30, "correct": 5, "cost_usd": 0.1568277, "group": "dev", "run": 3, "self_check_rejected": 0, "tool_errors": 0, "total": 5, "withheld": 1, "wrong_graph": 0}`.
+
+Final quality cycle heldout run 3: `{"calls": 121, "correct": 17, "cost_usd": 0.5806140000000002, "group": "heldout", "run": 3, "self_check_rejected": 0, "tool_errors": 0, "total": 25, "withheld": 0, "wrong_graph": 0}`.
+
+Final quality-track verdict: **FAIL**. `{"calls_per_question": 5.011111111111111, "cost_usd": 2.2182249, "development_correct": 15, "development_total": 15, "evaluation_closed": true, "heldout_correct": 49, "heldout_total": 75, "no_repeat": true, "passed": false, "runs": [{"calls": 24, "correct": 5, "cost_usd": 0.10955960000000002, "group": "dev", "run": 1, "self_check_rejected": 0, "tool_errors": 0, "total": 5, "withheld": 1, "wrong_graph": 0}, {"calls": 127, "correct": 14, "cost_usd": 0.6464649, "group": "heldout", "run": 1, "self_check_rejected": 0, "tool_errors": 0, "total": 25, "withheld": 0, "wrong_graph": 0}, {"calls": 27, "correct": 5, "cost_usd": 0.1372894, "group": "dev", "run": 2, "self_check_rejected": 0, "tool_errors": 0, "total": 5, "withheld": 1, "wrong_graph": 0}, {"calls": 122, "correct": 18, "cost_usd": 0.5874692999999999, "group": "heldout", "run": 2, "self_check_rejected": 0, "tool_errors": 0, "total": 25, "withheld": 0, "wrong_graph": 0}, {"calls": 30, "correct": 5, "cost_usd": 0.1568277, "group": "dev", "run": 3, "self_check_rejected": 0, "tool_errors": 0, "total": 5, "withheld": 1, "wrong_graph": 0}, {"calls": 121, "correct": 17, "cost_usd": 0.5806140000000002, "group": "heldout", "run": 3, "self_check_rejected": 0, "tool_errors": 0, "total": 25, "withheld": 0, "wrong_graph": 0}]}`. Evaluation is closed; no further model dispatch. Wave-4 release gate remains closed at 12/15.
+
+## Closed-cycle results and delivery evidence
+
+| Set | Run | Correct / total | Tool calls/question | Errors | Wrong graph | Withheld | Cost |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| dev | 1 | 5/5 | 4.80 | 0 | 0 | 1 | $0.1095596 |
+| heldout | 1 | 14/25 | 5.08 | 0 | 0 | 0 | $0.6464649 |
+| dev | 2 | 5/5 | 5.40 | 0 | 0 | 1 | $0.1372894 |
+| heldout | 2 | 18/25 | 4.88 | 0 | 0 | 0 | $0.5874693 |
+| dev | 3 | 5/5 | 6.00 | 0 | 0 | 1 | $0.1568277 |
+| heldout | 3 | 17/25 | 4.84 | 0 | 0 | 0 | $0.5806140 |
+
+Registered verdict: **FAIL**. Development **15/15**; held-out **49/75**. Mean tool calls **5.01**. Cycle cost **$2.2182249**. No replacement run or product tuning follows.
+
+| Held-out stratum | Correct / total |
+|---|---:|
+| constants | 18/30 |
+| functions | 21/30 |
+| behaviors | 10/15 |
+| librarian-v2 | 23/39 |
+| ToolSet | 26/36 |
+
+Coverage classes for held-out misses: `{"delivered_not_used": 1, "not_retrieved": 25}`. Independently verified target source ranges: **68**; invalid hashes/provenance: **0**. The defining source line was returned in **46/75** episodes. Metadata/card retrieval is not counted as source-body delivery.
+
+Coverage scope: the frozen recorder captures search/content coverage and supplemental constant-card IDs. Architecture, packet and cross-graph payloads do not supply equivalent range records; 0/75 episodes used those operations. An absence classification in such an episode is provisional, not proof the agent never saw the definition in another payload. Positive hash-verified delivery remains positive evidence. These limits do not rescore answers.
+
+Supplementary citation check: 28/75 episodes contain entity citation handles; 28/75 have at least one identity present in delivered scoped metadata; 0/75 contain at least one identity not verified by the bounded records. This check normalizes the `entity:` prefix and is not proof of literal handle copying or substantive claim support. It does not alter the registered marker scores.
+
+### Held-out misses (all original rows retained)
+
+| Question | Expected defining identifier / source | Missed runs and coverage class |
+|---|---|---|
+| heldout-02: Which implementation compacts the history of older tool results sent to the model, clipping them to a character limit while keeping the full log intact? | `KEEP_RESULTS`; `src/resource_librarian/loop.py:128` | run 1: not_retrieved (definition line not verified returned); run 2: not_retrieved (definition line not verified returned); run 3: not_retrieved (definition line not verified returned) |
+| heldout-03: Which implementation reads non-model-provider API keys (such as web search backends and GitHub repository intake) from the environment? | `SEARCH_KEYS`; `src/resource_librarian/keys.py:46` | run 1: not_retrieved (definition line not verified returned) |
+| heldout-04: Which implementation defines the whole the documented implementation that reads its job from /job/spec.json, imports one module, calls one function, and prints a marked JSON line? | `RUNNER`; `src/resource_librarian/claim_run.py:64` | run 1: not_retrieved (definition line not verified returned); run 3: not_retrieved (definition line not verified returned) |
+| heldout-07: Which implementation deliberately omits a repository count from its output, and what reasoning is documented for that choice? | `SERVER_INSTRUCTIONS`; `aletheia_toolchain/code_intelligence/mcp_server.py:46` | run 1: not_retrieved (definition line not verified returned); run 2: not_retrieved (definition line not verified returned); run 3: not_retrieved (definition line not verified returned) |
+| heldout-10: Which implementation defines the rule identifiers referenced elsewhere in the documentation? | `R001`; `aletheia_toolchain/tool_command_linter.py:32` | run 1: not_retrieved (definition line not verified returned); run 2: not_retrieved (definition line not verified returned); run 3: not_retrieved (definition line not verified returned) |
+| heldout-11: Which function returns everything readable rather than guessed, filtered to the vault's permitted values, leaving a missing axis missing? | `derive_axes`; `src/resource_librarian/facts.py:697` | run 1: not_retrieved (definition line not verified returned); run 2: not_retrieved (definition line not verified returned); run 3: not_retrieved (definition line not verified returned) |
+| heldout-12: Which function enforces that Core-backed extraction stays on its single SQLite owner, and what must a standalone script explicitly choose? | `_with_index`; `src/resource_librarian/extract.py:31` | run 2: not_retrieved (definition line not verified returned) |
+| heldout-13: Which function looks up a note by name and prefers a particular shape when two notes share a name? | `note_row`; `src/resource_librarian/index.py:789` | run 1: not_retrieved (definition line not verified returned) |
+| heldout-16: Which rule identifier flags an automated slicer invocation missing --deterministic as a WARN rather than a BLOCK, and what is the documented justification? | `rule_r005`; `aletheia_toolchain/tool_command_linter.py:486` | run 1: not_retrieved (definition line not verified returned); run 2: not_retrieved (definition line not verified returned); run 3: delivered_not_used (definition line returned) |
+| heldout-18: Which function runs partition_experiments in n fresh processes with distinct PYTHONHASHSEED values and reports the spread, and why is that spread meaningful? | `run_replicates`; `aletheia_toolchain/code_intelligence/audit_graphify_graph.py:755` | run 1: not_retrieved (definition line not verified returned) |
+| heldout-21: Which implementation defines the three short call kinds (lens_document, lens_support, probe_answers) for staging document-level stances across a book's parts? | `_document_pass`; `src/resource_librarian/deep_read.py:764` | run 1: not_retrieved (definition line not verified returned); run 2: not_retrieved (definition line not verified returned); run 3: not_retrieved (definition line not verified returned) |
+| heldout-23: Which implementation applies a person's answer about an outcome-unknown step to a run as its log recorded it, and when is it refused? | `resolve_macro`; `src/resource_librarian/agent_runtime.py:848` | run 1: not_retrieved (definition line not verified returned); run 3: not_retrieved (definition line not verified returned) |
+
+The private seal was created before product changes; its key was first opened after all six raw batches completed. All raw, scored, first failed and cost files remain separate. The invalid development A/B remains disclosed and P3 remains removed. Wave 4 remains closed/passed at **12/15**. No merge or push was performed.
+
+### Closed quality-cycle audit and stop
+
+The quality-cycle FAIL remains **15/15 development, 49/75 held-out** (14, 18, 17); there is no repeat or tuning. `final-audit.json` verifies unchanged registered wheel/runtime/harness/snapshots/sealed artifacts and **541 completed HTTP attempts, all at 0.2**. Nine evaluation guards, 698 full Geo backend tests plus frontend/browser checks, 28 preset calls, five real-store browser checks and 2,196 Librarian tests are retained as recorded above.
+
+The three raw development “withheld” counts are **false positives**, not actual oversized-result refusals: the source returned at `mcp_client.py:490–492` contains the literal `EXTERNAL_RESULT_TOO_LARGE`, which the inherited substring detector counted. The structured per-call records show zero tool errors/withheld errors. `final-withheld-audit.json` preserves that evidence; the raw counts and FAIL are unchanged.
+
+Post-closure semantic inspection also found held-out set defects. Q02 asks for compaction implementation but keys a retention constant; Q10's comment is only separators and “Rule identifiers”, insufficient to identify R001; Q16 asks for rule ID R005 but keys function name `rule_r005` (run 3 gives the correct documented rule/justification). These defects, and the invalid A/B, are fully disclosed in the quality report's measurement-validity audit. No item/key/score is changed or excluded. **49/75 is the frozen-marker result, not a validated general-answer accuracy estimate; reliable unseen quality remains unestablished.**
+
+There were 25 target-not-in-recorded-retrieval misses and one verified-delivery marker miss; all 68 checked target source ranges match immutable bytes, with no invalid hashes. Coverage classes do not establish that the frozen key was semantically appropriate. The sole cycle costs **$2.21822490**; pool commitment is **$7.74739611 / $10**, remaining **$2.25260389**. The registered quality evaluation is closed, the wave-4 gate remains closed/passed at 12/15, and no merge or push follows. Work stops after these reports.
