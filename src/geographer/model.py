@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
-EXTRACTOR_VERSION = "python-ast-symtable-v4-constants"
+EXTRACTOR_VERSION = "python-ast-symtable-v5-constant-comments"
 
 
 def canonical(value: Any) -> str:

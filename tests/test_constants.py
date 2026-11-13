@@ -46,3 +46,23 @@ def test_constant_value_fingerprint_drift_and_v10_compatibility(tmp_path):
         svc=QueryService(store)
         svc.active_snapshot=ids[1];svc.active_version='1.0'
         assert svc._node(svc._context(ids[1]),eid)['kind']=='fragment'
+
+
+def test_full_preceding_comment_block_is_constant_documentation(extract):
+    from geographer.retrieval import LexicalIndex
+    source = '# Used when upload route has no declared window.\n# Values are measured in bytes.\nBUFFER_LIMIT = 4096\n\n# Unrelated preceding statement.\nOTHER = 2 # do not associate with next constant\nNEXT = 3\n'
+    graph, _, _ = extract({'limits.py': source})
+    constants = {e.qualified_name.rsplit('.', 1)[-1]: e for e in graph.entities.values() if e.kind == 'constant'}
+    fragments = {e.entity_id: e for e in graph.entities.values() if e.kind == 'fragment'}
+    def lines(name):
+        return {fragments[i['fragment_id']].start_line for i in graph.incidences
+                if i['entity_id'] == constants[name].entity_id and i['role'] == 'rationale_for'}
+    assert lines('BUFFER_LIMIT') == {1, 2}
+    assert 6 not in lines('NEXT')
+    index = LexicalIndex(graph)
+    try:
+        hits = index.search('upload route window', kinds=['constant'], mode='documentation')
+        assert hits and hits[0]['node_id'] == constants['BUFFER_LIMIT'].entity_id
+        assert hits[0]['fragment_ids']
+    finally:
+        index.close()

@@ -141,7 +141,7 @@ class GraphRouter:
         with self.lock:
             if graph_id in self.deleting:raise ValueError('GRAPH_BUSY: the graph is being deleted')
             if key not in self.services:
-                from .server import persisted_secret
+                from .cursor_secret import persisted_secret
                 path=Path(row['code_database'])
                 if not path.is_file():raise ValueError('Graph store missing')
                 with sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True) as check:

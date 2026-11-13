@@ -692,6 +692,8 @@ class PythonExtractor(StaticDispatch):
                 self.graph.analyses["document:" + fid] = dict(algorithm_version=VERSION, scope={"entity_id": fid}, result={
                     "document_id": fid, "coordinate_space": "ipynb-markdown-cell", "source_fragment_id": fid,
                     "literal_start_line": cell.start_line + 1, "literal_end_line": cell.end_line, **parsed})
+        from .comment_blocks import constant_comment_lines
+        constant_lines=constant_comment_lines(unit.text,((eid,self.graph.entities[eid].start_line,self.graph.entities[eid].end_line) for eid in unit.constants.values()))
         try:
             for token in tokenize.generate_tokens(io.StringIO(unit.text).readline):
                 if token.type != tokenize.COMMENT or token.start[0] in skip_lines:
@@ -700,7 +702,7 @@ class PythonExtractor(StaticDispatch):
                 candidates = [e for e in self.graph.entities.values() if e.repo_id == unit.repo.repo_id and e.rel_path == unit.path and
                               e.kind in {"file", "function", "method", "class"} and e.start_line <= token.start[0] <= e.end_line]
                 owner = min(candidates, key=lambda e: (e.end_line - e.start_line, e.entity_id)).entity_id if candidates else unit.file_id
-                adjacent={eid for eid in unit.constants.values() if self.graph.entities[eid].start_line==token.end[0]+1 or self.graph.entities[eid].start_line<=token.start[0]<=self.graph.entities[eid].end_line}
+                adjacent=constant_lines.get(token.start[0],set())
                 self.fragment(unit.repo, unit.path, owner, token.string, token.start[0], token.end[0], self.mentions(token.string, owner)|adjacent, "rationale_for")
         except tokenize.TokenError:
             pass  # Syntax parsing already records invalid inputs; token streams can end in comments.

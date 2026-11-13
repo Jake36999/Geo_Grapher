@@ -87,7 +87,8 @@ class QueryService:
         omitted={'request_id','budget','cursor','limit','page_size','evidence_page_size','evidence_cursor','alias_scope','identity_mode'}
         values={k:v for k,v in request.items() if k not in omitted}
         if operation=='inspect_relationship_witnesses':values['evidence_mode']=bool(request.get('evidence_cursor'))
-        semantic_version='actor-records-v1/lexical-fusion-v1/typed-bridge-v1/source-context-v1/workspace-views-v1' if request.get('schema_version')=='1.1' else 'wire-1.0'
+        from .retrieval import LexicalIndex
+        semantic_version=f'actor-records-v1/{LexicalIndex.version}/search-rank-tiers-v1/typed-bridge-v1/source-context-v1/workspace-views-v1' if request.get('schema_version')=='1.1' else 'wire-1.0'
         return digest(PACKER_VERSION,semantic_version,operation,values)
 
     def _handle(self,kind,value):
@@ -322,9 +323,11 @@ class QueryService:
         config=q.get('retrieval',{'gamma':.8,'k':60})
         hits=ctx['lexical_index'].search(q['query'],q['repo_ids'],q['kinds'],mode=q['mode'],limit=q['limit'],**config)
         data=self._payload(q['snapshot_id'],ctx,hits=[]);units=[]
-        for h in hits:
+        for rank,h in enumerate(hits,1):
             ids={h['node_id'],*h['fragment_ids']}
-            units.append(Unit('search:'+h['node_id'],1,1000 if h['score']==1. else h['score'],
+            # Relevance precedes byte efficiency for ranked search. A hit with
+            # documentary support must not lose to a cheaper, weaker match.
+            units.append(Unit('search:'+h['node_id'],rank,1000 if h['score']==1. else h['score'],
                 dict(nodes=[self._node(ctx,eid) for eid in sorted(ids)],hits=[h])))
         return self._plan('search_entities',q,data,units)
 
