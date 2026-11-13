@@ -3302,5 +3302,44 @@
     "merged": false,
     "pushed": false,
     "previous_candidate_checks_unchanged": true
+  },
+  "review3_final_wave4": {
+    "authorised": true,
+    "last_wave4_code_cycle": true,
+    "executed": false,
+    "registration": "PHASE67_WAVE4_GATE.md section 17",
+    "geo_commit": "420c06d",
+    "librarian_commit": "68eeb77",
+    "wheel": "output/phase67-gates/wave4/final-wave4-dist3/geo_grapher-0.1.1-py3-none-any.whl",
+    "wheel_sha256": "a390f279cf8f6f7fa41368ff2055bd114c40b283b36c8d5c79d048f4931d5199",
+    "runtime_sha256": "1ec0801acd77997f1d9db9d6079dd225d18a677aae782d2ae279ea18eeb1d5fb",
+    "snapshot": "snapshot:1703964f018a8f5981c139069836a87178098924bd94383d5788c083bb89c9bf",
+    "verification": {
+      "geo_exit": 0,
+      "backend_passed": 680,
+      "frontend_unit_passed": 16,
+      "browser_passed": 17,
+      "librarian_exit": 0,
+      "librarian_passed": 2188,
+      "librarian_skipped": 2,
+      "librarian_deselected": 5,
+      "librarian_seconds": 624.23,
+      "final_preset_passed": 28
+    },
+    "criteria": {
+      "runs": 3,
+      "minimum_each": 3,
+      "minimum_total": 12,
+      "total": 15,
+      "maximum_wrong_graph": 0,
+      "maximum_withheld": 0,
+      "maximum_average_calls_per_question": 8,
+      "ordinary_steps": 12,
+      "additional_tool_free_synthesis": 1
+    },
+    "post_cycle_code_evaluation": "STOP regardless of result",
+    "pool_committed_before_cycle": 4.91347995,
+    "merged": false,
+    "pushed": false
   }
 }
