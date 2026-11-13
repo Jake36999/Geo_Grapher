@@ -47,6 +47,20 @@ from resource_librarian.mcp_client import McpManager  # noqa: E402
 from resource_librarian.registry import REGISTRY, Context  # noqa: E402
 from resource_librarian.vault import Vault  # noqa: E402
 
+
+def call_record(name,arguments,result):
+    """Keep compact diagnostic evidence, including registry and nested wire errors."""
+    body=result
+    if isinstance(result,dict) and isinstance(result.get('content'),str):
+        try:body=json.loads(result['content'])
+        except (ValueError,TypeError):pass
+    error=(body.get('error') or (body.get('result') or {}).get('error')) if isinstance(body,dict) else None
+    code=error.get('code','') if isinstance(error,dict) else str(error or '')
+    message=error.get('message','') if isinstance(error,dict) else str(result.get('detail') or result.get('message') or error or '')
+    failed=bool(error or result.get('is_error') or result.get('refused'))
+    return dict(tool=name,arguments=json.dumps(arguments,ensure_ascii=False,default=str)[:600],
+                error_code=code[:100],error_message=message[:300],success=not failed)
+
 ENV_FILE = Path(r"D:\Resource-Library\.utility\.env")
 WHEEL_PYTHON = ROOT / "output" / "wheel-env" / "Scripts" / "python.exe"
 SERVER = "geo"
@@ -210,8 +224,11 @@ class Harness:
         pending_graph = None
         pinned = self.server_graphs.get(server or next(iter(self.tools)), [])
         ids_by_label = {label:gid for gid,label in self.labels.items()}
+        per_call=[];pending_name='';pending_arguments={}
         for event in events:
             if event["type"] == "tool_call":
+                pending_name=event.get('tool') or event.get('name') or ''
+                pending_arguments=event.get('arguments') or {}
                 ref = (event.get("arguments") or {}).get("graph_id")
                 # Mirror the hub: a label is an alias, and a single-graph connection needs no graph_id.
                 pending_graph = ids_by_label.get(ref, ref) if ref else (pinned[0] if len(pinned) == 1 else None)
@@ -219,6 +236,7 @@ class Harness:
                     graphs_called.append(pending_graph)
             elif event["type"] == "tool_result":
                 result = event.get("result") or {}
+                per_call.append(call_record(event.get('tool') or pending_name,pending_arguments,result))
                 content = str(result.get("content") or "")
                 if "EXTERNAL_RESULT_TOO_LARGE" in content:
                     withheld += 1
@@ -234,7 +252,10 @@ class Harness:
                     ids |= {int(n) for n in re.findall(r'"(?:doc_id|document_id|source_document_id)":\s*(\d+)', content)}
                     retrieved[label] |= ids
                     tool_text.append(content)
+        from collections import Counter
+        reasons=Counter((c['error_code']+': '+c['error_message']) for c in per_call if not c['success'])
         return dict(answer=(turn.reply or "").strip(), steps=turn.steps, stopped=turn.stopped,
+                    per_call=per_call,top_error_reasons=[dict(reason=k,count=v) for k,v in reasons.most_common(5)],
                     failure_category=turn.failure_category, error=turn.error[:300],
                     tool_calls=len(turn.calls), tool_errors=errors, withheld_oversize=withheld, blocked_by_allow_list=blocked,
                     bundle_refused=bundle_refused, outside_tools_offered=offered,
