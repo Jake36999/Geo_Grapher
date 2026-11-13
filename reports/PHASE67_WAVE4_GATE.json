@@ -3178,5 +3178,25 @@
     "merged": false,
     "pushed": false,
     "implementation_commit": "fe75697"
+  },
+  "continuation_cycle_2026_11_13": {
+    "authorised": true,
+    "owner_answer": "Authorize the three-run cycle",
+    "registration": "PHASE67_WAVE4_GATE.md section 16",
+    "executed": false,
+    "runs_expected": 3,
+    "wheel_sha256": "07870422dcc7c758079929379ceb78015d6f8599a5016e13f093d8b1a25b3864",
+    "snapshot": "snapshot:1703964f018a8f5981c139069836a87178098924bd94383d5788c083bb89c9bf",
+    "criteria": {
+      "runs": 3,
+      "minimum_each": 3,
+      "minimum_total": 12,
+      "total": 15,
+      "maximum_wrong_graph": 0,
+      "maximum_withheld": 0,
+      "maximum_average_calls_per_question": 8,
+      "estimated_usd": 0.5
+    },
+    "runner": "scripts/run_wave4_continuation_cycle.py"
   }
 }

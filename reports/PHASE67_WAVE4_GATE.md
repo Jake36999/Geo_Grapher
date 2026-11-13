@@ -451,10 +451,20 @@ The three reviewed constants still rank first for exact-name lookup, return thei
 
 No new paid code benchmark was run. Pool commitment is **$4.47978915 of $10** after this worker and review; remaining approximately $5.5202. Acceptance remains open: changed-product code quality is unmeasured, the earlier cycle failed, Core/role readiness blocks the live pilot, and owner hands-on/firewall decisions remain. Both branches remain unmerged pending owner approval.
 
-## 16. Proposed changed-product code cycle — awaiting owner authorisation
+## 16. Registered changed-product code cycle — owner authorised before execution
+
+The original proposal is retained below. The owner's explicit approval is recorded after it, before execution.
+
+### Original proposal — retained
 
 This is a reviewable proposal, **not permission to execute**. Review 2 §3 required stopping and escalating after the failed cycle. The local continuation changes retrieval, documentary support and packing; testing this changed product needs a separately authorised cycle, rather than a fourth attempt on the old cycle.
 
 Freeze the final candidate wheel/hash and librarian-v2 snapshot from §15, the same five CODE_BENCH questions/markers, Qwen3-Coder-480B, declared 1,048,576-token window, library-scoped lead preset and 12-step limit. Run exactly three independent fresh-library attempts without intervening changes. Preserve all rows in new `code-continuation-cycle-run1.json` through `run3.json`, with per-call logs and separate cost receipts. Pass only if each ≥3/5, total ≥12/15, zero withheld, zero wrong-graph calls and ≤8 average calls/question across all 15 questions. No best-of, changed scoring or fourth attempt. On failure, stop and escalate again.
 
 Planning cost approximately **$0.50**, charged to the existing $10 pool (about $5.52 currently remains). The owner must explicitly approve this proposed cycle before it runs. The six-task pilot independently waits for the Resource-Library roles in §10; approving a benchmark does not qualify or replace those routes and does not approve a merge.
+
+### Owner authorisation and execution seal
+
+The owner explicitly answered **“Authorize the three-run cycle”** to the §16 approval question. This authorises exactly the proposed three attempts, with all frozen settings and pass marks above, paid from the existing pool. No merge or runtime-role qualification is authorised by that answer.
+
+Runner: `scripts/run_wave4_continuation_cycle.py`. Frozen wheel SHA256 `07870422dcc7c758079929379ceb78015d6f8599a5016e13f093d8b1a25b3864`; frozen librarian-v2 snapshot `snapshot:1703964f018a8f5981c139069836a87178098924bd94383d5788c083bb89c9bf`; catalog `D:/Librarian_V2/tmp/geo-grapher-wave4-continuation-stores/catalog.sqlite`. The runner refuses prior outputs, creates an exclusive seal, verifies wheel/snapshot and hashes the unchanged harness files before/after every attempt. The seal records the same five question/marker pairs and settings. Every attempt uses the harness's fresh temporary library and default 12-step limit. No product changes will be made during the cycle. This authorisation and runner are committed before any paid attempt.
