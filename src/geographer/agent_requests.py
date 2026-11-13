@@ -193,7 +193,9 @@ def call_code(router,op,args):
         request=dict(schema_version='1.1',request_id='agent:'+digest(op,gid,args)[:24],snapshot_id=sid,
             budget=dict(limit_tokens=limit,profile=profile,tokenizer='o200k_base',allow_byte_fallback=False),
             cursor=args.get('cursor'),identity_mode='canonical_map')
-        coverage_range=None
+        coverage_range=None;context_ranges=None;context_omitted=0;constant_cards=None;constants_omitted=0;omit_content_summary=False
+        from .agent_scent import scent
+        descriptions=scent(svc._context(sid))
         if op=='search_entities':request.update(query=args['query'],mode='hybrid',repo_ids=[],kinds=args.get('kinds',[]),limit=args.get('limit',8))
         elif op=='get_entity_content':
             eid=entity('entity_id');e=g.entities[eid]
@@ -203,6 +205,12 @@ def call_code(router,op,args):
             request.update(entity_id=eid,content_kind='documentation' if e.kind=='fragment' else 'source',
                 start_line=a,end_line=b,context_mode='range',context_radius=0)
             coverage_range=(a or e.start_line,b or e.end_line)
+            if a is None and b is None:
+                context_ranges=descriptions.context(eid)
+                constant_cards=descriptions.calls_constants(eid)
+                if context_ranges:
+                    request['start_line'],request['end_line']=context_ranges[0][2:4]
+                    context_omitted=max(0,e.end_line-context_ranges[0][3])+max(0,context_ranges[0][2]-descriptions.comment_start(e))
             if e.kind=='fragment':
                 text=g.analyses['text:'+eid]['result']['text']
                 coverage_range=(e.start_line,e.start_line+len(text.splitlines(keepends=True) or [''])-1)
@@ -223,10 +231,17 @@ def call_code(router,op,args):
             evidence_page_size=5,evidence_cursor=None,page_size=20)
         if op in {'get_architecture_context','find_dependants'}:
             return bounded_context(router,gid,op,request,graph,limit,clamped)
-        counter=TokenCounter();working=limit
-        for _ in range(24):
-            request['budget']['limit_tokens']=working
-            out=router.query(gid,op,request)
+        counter=TokenCounter();working=limit;search_count=request.get('limit',0);search_materialized=None;search_total=0
+        for _ in range(64 if op=='search_entities' else 24):
+            request['budget']['limit_tokens']=32768 if op=='search_entities' else working
+            if op=='search_entities':request['budget'].pop('profile',None)
+            if op=='search_entities':
+                if search_materialized is None:
+                    search_materialized=router.query(gid,op,request)
+                    search_total=len(search_materialized.get('result',{}).get('data',{}).get('hits',[]))
+                    search_count=min(search_count,search_total)
+                out=deepcopy(search_materialized)
+            else:out=router.query(gid,op,request)
             inner=out.get('result',{})
             if 'error' in out or 'error' in inner:
                 err=out.get('error') or inner['error'];raise ValueError(f"{err.get('code','ERROR')}: {err.get('message','query failed')}")
@@ -236,6 +251,37 @@ def call_code(router,op,args):
                 qualified_name=nodes[i].get('qualified_name'),source=nodes[i].get('source')) for i in selected if i in nodes]
             if clamped:out['budget_clamped_to']=limit
             out=canonical_flat(router,gid,graph,out,op=='search_entities')
+            data=out['result']['data']
+            if op=='search_entities':
+                # Keep the original candidate pool/ranking while fitting its flat
+                # projection. Ancestor navigation records belong to context tools.
+                data['hits']=data.get('hits',[])[:search_count]
+                hits={h['entity_id']:h for h in data.get('hits',[])}
+                data['nodes']=[{k:v for k,v in node.items() if k in {'entity_id','cite_as','qualified_name','kind','source','summary'}}
+                               for node in data.get('nodes',[]) if node['entity_id'] in hits]
+                for node in data['nodes']:
+                    if node['entity_id'] in hits:
+                        node['summary']=descriptions.card(node['entity_id'],args['query'],node.get('summary',{}),hits[node['entity_id']])
+                data['hits']=[{k:v for k,v in hit.items() if k in {'entity_id','score'}} for hit in data['hits']]
+                data.pop('coverage',None)
+                for key in ('view_id','relationships','witnesses','evidence_handles'):
+                    if not data.get(key):data.pop(key,None)
+                out['result'].pop('query_digest',None)
+                out['entities']=[{k:v for k,v in row.items() if k!='source'} for row in out['entities'] if row['entity_id'] in hits]
+                if search_count<search_total:
+                    data['completeness']['truncated']=True
+                    out['search_hits_omitted']=search_total-search_count
+            elif op=='get_entity_content':
+                if omit_content_summary:
+                    for node in data.get('nodes',[]):
+                        for key in ('summary','group_preview'):node.pop(key,None)
+                if context_ranges:
+                    data['chunks']=[descriptions.chunk(eid,r) for r in context_ranges]
+                    data['usage_context']=True
+                    data['context_complete']=not context_omitted
+                    if context_omitted:out['context_omitted']=context_omitted
+                if constant_cards:data['calls_constants']=constant_cards
+                if constants_omitted:out['constants_omitted']=constants_omitted
             if op in {'search_entities','get_entity_content'}:
                 from .agent_coverage import coverage_metadata
                 out.update(coverage_metadata(op,out['result']['data'],coverage_range))
@@ -250,8 +296,21 @@ def call_code(router,op,args):
                 if op=='search_entities':remember_search(router,gid,sid,out)
                 return out
             ratio=min(limit/max(n,1),cap/size if cap else 1)*.85
-            if op=='search_entities' and request['limit']>1:
-                request['limit']=max(1,min(request['limit']-1,int(request['limit']*ratio)))
+            if context_ranges and len(context_ranges)>1:
+                context_ranges.pop();context_omitted+=1
+                continue
+            if context_ranges and context_ranges[0][2]<e.start_line:
+                r=context_ranges[0];context_omitted+=e.start_line-r[2]
+                context_ranges[0]=(r[0],r[1],e.start_line,r[3],r[4],r[5])
+                continue
+            if constant_cards:
+                constant_cards=constant_cards[:-1];constants_omitted+=1
+                continue
+            if context_ranges and not omit_content_summary:
+                omit_content_summary=True;context_omitted+=1
+                continue
+            if op=='search_entities' and search_count>1:
+                search_count-=1
                 continue
             reduced=max(256,int(working*ratio))
             if reduced>=working:break

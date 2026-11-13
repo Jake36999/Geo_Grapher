@@ -27,7 +27,7 @@ def test_constant_inventory_source_reads_and_search(tmp_path):
         found=call_code(router,'search_entities',dict(graph_id='constants',query='HELPER_TOOLS'))
         assert found['entities'][0]['entity_id']==helper.entity_id
         assert found['result']['data']['hits'][0]['score']==1.0
-        content=call_code(router,'get_entity_content',dict(graph_id='constants',entity_id=helper.entity_id))
+        content=call_code(router,'get_entity_content',dict(graph_id='constants',entity_id=helper.entity_id,start_line=2,end_line=2))
         chunks=content['result']['data']['chunks']
         assert ''.join(c['text'] for c in chunks)==SOURCE.decode().splitlines(keepends=True)[1]
     finally:router.close();cat.close()

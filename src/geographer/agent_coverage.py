@@ -25,6 +25,11 @@ def _content_coverage(
 ) -> Dict[str, Any]:
     """Handle content coverage for get_entity_content."""
     chunks = data.get("chunks", [])
+    if data.get('usage_context'):
+        rows=[dict(entity_id=data['entity_id'],start_line=c['source']['start_line'],end_line=c['source']['end_line'],
+                   source=c['source'],truncated=not data.get('context_complete',False),
+                   sha256=hashlib.sha256(c['text'].encode('utf-8')).hexdigest()) for c in chunks]
+        return dict(coverage=rows[:16],coverage_truncated=len(rows)>16)
     entity_id = data.get("entity_id", "")
     completeness_truncated = data.get("completeness", {}).get("truncated", False)
 
