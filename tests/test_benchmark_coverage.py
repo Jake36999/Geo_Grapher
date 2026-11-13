@@ -43,3 +43,12 @@ def test_context_locations_and_supplemental_constant_cards_are_recorded():
     assert saved['coverage'][0]['source']=={k:source[k] for k in ('repo_id','revision','rel_path')}
     assert saved['supplemental_entities']==['entity:constant']
     assert 'PRIVATE SOURCE' not in json.dumps(saved)
+
+
+def test_withheld_detection_uses_structured_code_never_source_literals():
+    record=recorder()
+    source={'result':{'data':{'chunks':[{'text':'raise EXTERNAL_RESULT_TOO_LARGE'}]}}}
+    assert record('get_entity_content',{}, {'content':json.dumps(source)})['withheld'] is False
+    for body in ({'error':{'code':'EXTERNAL_RESULT_TOO_LARGE'}},
+                 {'result':{'error':{'code':'EXTERNAL_RESULT_TOO_LARGE'}}}):
+        assert record('get_entity_content',{}, {'content':json.dumps(body)})['withheld'] is True

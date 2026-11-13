@@ -1,0 +1,96 @@
+"""Actual registry/MCP dry runs for the funded code-evaluation paths."""
+import argparse
+from copy import deepcopy
+import json
+from pathlib import Path
+import sqlite3
+import tempfile
+import uuid
+from eval_readiness import ticket
+
+
+def objects(value):
+    if isinstance(value,str):
+        try:yield from objects(json.loads(value))
+        except ValueError:pass
+    elif isinstance(value,dict):
+        yield value
+        for key,item in value.items():
+            if key not in {'text','why','doc_gist'}:yield from objects(item)
+    elif isinstance(value,list):
+        for item in value:yield from objects(item)
+
+
+def preflight(args,out):
+    import librarian_harness as h
+    from resource_librarian.providers import Provider,Reply,ToolCall
+    if args.mode!='bench' or args.preset not in {'lead','code'} or args.scoping!='library':
+        raise ValueError('This paid path has no qualified no-model fixture; dispatch blocked')
+    if args.bundles!='off' or args.wheel is None:raise ValueError('Preflight requires the actual pinned wheel and tool preset')
+    config={k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items() if k not in {'dry_run','out','resume'}}
+    labels=[args.graph_label]
+    if args.question_file:
+        questions=json.loads(args.question_file.read_text(encoding='utf-8'))
+        labels=sorted({q['graph'] for q in questions})
+    targets={}
+    with sqlite3.connect(args.catalog.resolve().as_uri()+'?mode=ro',uri=True) as catalog:
+        for label in labels:
+            row=catalog.execute('SELECT graph_id,code_database,snapshot_id FROM graphs WHERE label=?',(label,)).fetchone()
+            if row is None or not row[1]:raise ValueError('Code dry-run graph is unavailable')
+            with sqlite3.connect(Path(row[1]).resolve().as_uri()+'?mode=ro',uri=True) as db:
+                entity=db.execute("SELECT qualified_name FROM entities WHERE snapshot_id=? AND kind='function' AND is_test=0 AND is_external=0 AND end_line-start_line BETWEEN 1 AND 8 ORDER BY qualified_name LIMIT 1",(row[2],)).fetchone()
+            if entity is None:raise ValueError('No small source fixture in graph')
+            targets[label]=entity[0]
+    class Offline(Provider):
+        name='no-model-readiness'
+        def __init__(self):self.temperatures=[]
+        def chat(self,system,messages,tools,max_tokens=4096,temperature=None):
+            self.temperatures.append(temperature)
+            # Each episode is a new Loop; decide from its actual message ledger.
+            user=next(m['content'] for m in messages if m.get('role')=='user')
+            label=next(label for label in labels if f"Graph: '{label}'" in user)
+            returned=[m for m in messages if m.get('role')=='tool']
+            names={spec.name.rsplit('__',1)[-1]:spec.name for spec in tools}
+            if not returned:return Reply(tool_calls=[ToolCall('list',names['list_graphs'],{})])
+            if len(returned)==1:return Reply(tool_calls=[ToolCall('search',names['search_entities'],dict(graph_id=label,query=targets[label]))])
+            records=[item for message in returned for item in objects(message.get('content',''))]
+            found=next(item for item in records if item.get('qualified_name')==targets[label] and item.get('entity_id'))
+            if len(returned)==2:return Reply(tool_calls=[ToolCall('source',names['get_entity_content'],dict(graph_id=label,entity_id=found['entity_id']))])
+            return Reply(text=f"The directly defining implementation is {targets[label]}. {found.get('cite_as','')}")
+    checks={k:False for k in ('profile_registry','real_tool_calls','scope','structured_withheld','batch_path')}
+    provider=Offline();rows=[]
+    with tempfile.TemporaryDirectory(prefix='geo-preflight-') as temp:
+        root=Path(temp)
+        for index,label in enumerate(labels):
+            harness=h.Harness(args.catalog.resolve(),root/f'single-{index}',args.scoping,args.launch,False,args.context_tokens,
+                              args.preset,label,args.wheel,None if args.self_check is None else args.self_check=='on')
+            try:
+                result=harness.run(provider,f"Graph: '{label}'. Inspect this generic code definition.",server='geo_code')
+                assert len(result['per_call'])==3 and all(c['success'] for c in result['per_call'])
+                assert not result['librarian_tools_used'] and not result['withheld_oversize']
+                graphs=json.loads(harness.call('list_graphs',{},'geo_code')['content'])['graphs']
+                assert {g['label'] for g in graphs}=={label}
+                rows.append(dict(graph=label,calls=3,success=True))
+            finally:harness.close()
+        # Exercise the real batch function and graph switching with generic
+        # questions only. No sealed question text or answer key is used here.
+        fixture=root/'fixture.json'
+        fixture.write_text(json.dumps([dict(id=f'preflight-{i}',graph=label,question='Inspect the directly defining implementation.') for i,label in enumerate(labels)]),encoding='utf-8')
+        fixture_args=deepcopy(args);fixture_args.question_file=fixture;fixture_args.resume=False
+        h.question_batch(fixture_args,root/'batch.json',provider_override=provider)
+        batch=json.loads((root/'batch.json').read_text(encoding='utf-8'))
+        assert len(batch)==len(labels) and all(all(c['success'] for c in r['per_call']) for r in batch)
+    literal={'content':json.dumps({'result':{'data':{'chunks':[{'text':'EXTERNAL_RESULT_TOO_LARGE'}]}}})}
+    assert not h.call_record('source',{},literal)['withheld']
+    assert h.call_record('source',{},dict(error=dict(code='EXTERNAL_RESULT_TOO_LARGE')))['withheld']
+    assert provider.temperatures and all(t==0.2 for t in provider.temperatures)
+    checks={k:True for k in checks}
+    paths=[Path(h.__file__),Path(__file__),Path(__file__).with_name('eval_readiness.py'),args.wheel]
+    paths.extend(sorted((h.ROOT/'output/phase67-gates/lib-wave4/src').rglob('*.py')))
+    if args.question_file:paths.append(args.question_file)
+    value=ticket(config,checks,paths)
+    directory=out.parent/'preflights';directory.mkdir(parents=True,exist_ok=True)
+    path=directory/(out.stem+'-'+uuid.uuid4().hex[:10]+'.json')
+    with path.open('x',encoding='utf-8') as f:json.dump(dict(value,exercised=rows),f,indent=2)
+    print(json.dumps(dict(preflight_passed=True,paid_provider_calls=0,receipt=str(path))),flush=True)
+    return value,config

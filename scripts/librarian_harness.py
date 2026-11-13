@@ -84,6 +84,7 @@ def call_record(name,arguments,result):
             if len(supplemental)==16:clipped=True;break
             supplemental.append(eid)
     return dict(tool=name,arguments=json.dumps(arguments,ensure_ascii=False,default=str)[:600],
+                withheld=code=='EXTERNAL_RESULT_TOO_LARGE',
                 error_code=code[:100],error_message=message[:300],success=not failed,
                 coverage=coverage,coverage_truncated=clipped,supplemental_entities=supplemental)
 
@@ -91,6 +92,8 @@ ENV_FILE = Path(r"D:\Resource-Library\.utility\.env")
 WHEEL_PYTHON = ROOT / "output" / "wheel-env" / "Scripts" / "python.exe"
 SERVER = "geo"
 PACKAGE_VERSION = "0.1.1"
+PAID_PREFLIGHT = None
+PAID_CONFIG = None
 CORE = ["list_graphs", *("paper_" + t for t in probes.CORE)]
 
 BENCH = [
@@ -273,7 +276,7 @@ class Harness:
                 result = event.get("result") or {}
                 per_call.append(call_record(event.get('tool') or pending_name,pending_arguments,result))
                 content = str(result.get("content") or "")
-                if "EXTERNAL_RESULT_TOO_LARGE" in content:
+                if per_call[-1]['withheld']:
                     withheld += 1
                 if result.get("is_error") or result.get("error") or result.get("refused"):
                     errors += 1
@@ -304,6 +307,8 @@ class Harness:
 
 
 def provider_for(model: str):
+    from eval_readiness import require
+    require(PAID_PREFLIGHT,PAID_CONFIG)
     return providers.from_settings({"provider": "deepinfra", "model": model, "timeout": 180})
 
 
@@ -360,12 +365,13 @@ def bench(h: Harness, model: str, out: Path, resume: bool = False) -> None:
           f"{sum(r['wrong_graph_calls'] for r in results)}; withheld {sum(r['withheld_oversize'] for r in results)}")
 
 
-def question_batch(args, out: Path) -> None:
+def question_batch(args, out: Path, provider_override=None) -> None:
     """Collect a blind question batch; never read an answer key or print answers."""
     if out.exists() or args.resume:raise SystemExit('Preserve the first blind batch; no replacement or resume')
     questions=json.loads(args.question_file.read_text(encoding='utf-8'))
-    if len(questions)!=25 or len({q['id'] for q in questions})!=25:raise SystemExit('Expected the sealed 25-question set')
-    provider=provider_for(args.model);results=[];current=None;h=None
+    if not 1<=len(questions)<=200 or len({q['id'] for q in questions})!=len(questions):raise SystemExit('Expected unique registered question IDs')
+    provider=provider_override if provider_override is not None else provider_for(args.model)
+    results=[];current=None;h=None
     workflow='Discover list_graphs, then use graph-local search and source content; cite returned handles exactly.'
     with tempfile.TemporaryDirectory(prefix='geo-quality-blind-') as tmp:
         try:
@@ -383,7 +389,7 @@ def question_batch(args, out: Path) -> None:
                               benchmark='sealed-heldout',context_tokens=h.context_tokens,preset=h.preset)
                 results.append(result)
                 out.write_text(json.dumps(results,indent=2,ensure_ascii=False),encoding='utf-8')
-                print(json.dumps(dict(collected=index,total=25,question_id=q['id'])),flush=True)
+                print(json.dumps(dict(collected=index,total=len(questions),question_id=q['id'])),flush=True)
         finally:
             if h is not None:h.close()
 
@@ -431,6 +437,7 @@ def run_probes(h: Harness, model: str, out: Path, only: str | None, resume: bool
 
 
 def main() -> None:
+    global PAID_PREFLIGHT,PAID_CONFIG
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=["smoke", "bench", "probes"])
     parser.add_argument("--catalog", type=Path, default=ROOT / "output" / "phase-b" / "catalog.sqlite")
@@ -442,6 +449,7 @@ def main() -> None:
     parser.add_argument('--resume',action='store_true',help='Keep completed first attempts and continue an interrupted benchmark/probe file')
     parser.add_argument('--question-file',type=Path,help='Sealed blind questions only; no answer key is accepted')
     parser.add_argument('--self-check',choices=['on','off'],help='Diagnostic A/B only; omitted uses production policy')
+    parser.add_argument('--dry-run',action='store_true',help='Execute the mandatory real-tool scripted preflight and stop without loading credentials')
     parser.add_argument("--out", type=Path)
     parser.add_argument("--only", help="comma-separated probe kinds")
     parser.add_argument("--scoping", choices=["open", "library"], default="open",
@@ -451,10 +459,13 @@ def main() -> None:
     parser.add_argument("--bundles", choices=["off", "on"], default="off",
                         help="on: the app's own compact tool bundles inside an explore session (outside tools via bundle policy)")
     args = parser.parse_args()
-    if args.mode != "smoke":
-        load_key()
     out = args.out or ROOT / "output" / "librarian" / f"{args.mode}-{args.scoping}-{args.model.split('/')[-1]}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
+    if args.mode!='smoke':
+        from eval_dryrun import preflight
+        PAID_PREFLIGHT,PAID_CONFIG=preflight(args,out)
+        if args.dry_run:return
+        load_key()
     if args.question_file:
         if args.mode!='bench' or args.preset!='lead' or args.scoping!='library':raise SystemExit('Blind cycle requires the registered library-scoped lead preset')
         question_batch(args,out)
