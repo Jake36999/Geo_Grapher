@@ -58,8 +58,22 @@ def call_record(name,arguments,result):
     code=error.get('code','') if isinstance(error,dict) else str(error or '')
     message=error.get('message','') if isinstance(error,dict) else str(result.get('detail') or result.get('message') or error or '')
     failed=bool(error or result.get('is_error') or result.get('refused'))
+    coverage=[];raw=body.get('coverage',[]) if isinstance(body,dict) else []
+    clipped=bool(body.get('coverage_truncated')) if isinstance(body,dict) else False
+    if not isinstance(raw,list):raw=[];clipped=True
+    for row in raw:
+        if not isinstance(row,dict):clipped=True;continue
+        if not all(k in row for k in ('entity_id','start_line','end_line','truncated','sha256')):clipped=True;continue
+        eid=row.get('entity_id');start=row.get('start_line');end=row.get('end_line');sha=row.get('sha256')
+        if not (isinstance(eid,str) and len(eid)<=200 and isinstance(sha,str) and re.fullmatch('[0-9a-f]{64}',sha)
+                and type(row.get('truncated')) is bool and all(x is None or type(x) is int and x>=1 for x in (start,end))
+                and ((start is None and end is None) or start is not None and end is not None and start<=end)):
+            clipped=True;continue
+        if len(coverage)==16:clipped=True;break
+        coverage.append({k:row[k] for k in ('entity_id','start_line','end_line','truncated','sha256')})
     return dict(tool=name,arguments=json.dumps(arguments,ensure_ascii=False,default=str)[:600],
-                error_code=code[:100],error_message=message[:300],success=not failed)
+                error_code=code[:100],error_message=message[:300],success=not failed,
+                coverage=coverage,coverage_truncated=clipped)
 
 ENV_FILE = Path(r"D:\Resource-Library\.utility\.env")
 WHEEL_PYTHON = ROOT / "output" / "wheel-env" / "Scripts" / "python.exe"
@@ -255,6 +269,7 @@ class Harness:
         from collections import Counter
         reasons=Counter((c['error_code']+': '+c['error_message']) for c in per_call if not c['success'])
         return dict(answer=(turn.reply or "").strip(), steps=turn.steps, stopped=turn.stopped,
+                    completed_at_step_limit=turn.completed_at_step_limit,
                     per_call=per_call,top_error_reasons=[dict(reason=k,count=v) for k,v in reasons.most_common(5)],
                     failure_category=turn.failure_category, error=turn.error[:300],
                     tool_calls=len(turn.calls), tool_errors=errors, withheld_oversize=withheld, blocked_by_allow_list=blocked,

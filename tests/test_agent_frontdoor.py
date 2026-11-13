@@ -73,6 +73,10 @@ def test_clamp_errors_and_strict_form(packet_world):
         assert not strict.isError,strict.structuredContent
         wrong=await s.call_tool('get_entity_content',dict(graph_id=gid,entity_id='entity:nope'))
         assert wrong.isError and wrong.structuredContent['error']['example']
+        recovery=wrong.structuredContent['error']
+        assert recovery['choices'] and recovery['example']['entity_id'] in ids.values()
+        retry=await s.call_tool('get_entity_content',recovery['example'])
+        assert not retry.isError and retry.structuredContent['coverage']
     run_mcp(packet_world,check)
 
 

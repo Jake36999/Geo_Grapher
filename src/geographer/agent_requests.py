@@ -3,6 +3,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from contextvars import ContextVar
 from weakref import WeakKeyDictionary
+from difflib import SequenceMatcher
 import json
 import re
 import jsonschema
@@ -73,6 +74,7 @@ def error(op,exc):
     if op=='list_graphs':ex={}
     text=f'{field}: {reason[:140]}. Example: {op}({json.dumps(ex,separators=(",",":"))})'
     out=dict(error=dict(code='INVALID_GRAPH_REQUEST',field=field,message=text[:400],example=ex))
+    if op in {'search_entities','get_entity_content'}:out.update(coverage=[],coverage_truncated=False)
     if hasattr(exc,'choices'):out['error']['choices']=exc.choices
     return out
 
@@ -87,6 +89,45 @@ def remember_aliases(router,gid,sid,mapping):
         # Retain ambiguity rather than guessing a previous identity.
         values[:]=sorted(values)[:4];cache.move_to_end(key)
         while len(cache)>256:cache.popitem(last=False)
+
+
+def remember_search(router,gid,sid,out):
+    cache=getattr(router,'agent_recent_search',None)
+    if cache is None:cache=router.agent_recent_search=OrderedDict()
+    for row in out.get('entities',[]):
+        key=(ALIAS_CONNECTION.get(),gid,sid,row['entity_id'])
+        cache[key]={k:row[k] for k in ('entity_id','qualified_name','cite_as')}
+        cache.move_to_end(key)
+        while len(cache)>256:cache.popitem(last=False)
+
+
+def unknown_entity(router,gid,graph,g,key,value):
+    scope=(ALIAS_CONNECTION.get(),gid,graph['snapshot_id'])
+    recent=getattr(router,'agent_recent_search',{})
+    choices=[v for k,v in reversed(list(recent.items())) if k[:3]==scope]
+    def priority(row):
+        target=row['entity_id'].removeprefix('entity:');asked=value.removeprefix('entity:')
+        prefix=0
+        for a,b in zip(target,asked):
+            if a!=b:break
+            prefix+=1
+        similarity=SequenceMatcher(None,value.casefold(),row['qualified_name'].casefold()).ratio()
+        return (-prefix,-similarity,row['qualified_name'],row['entity_id'])
+    if choices:choices.sort(key=priority)
+    else:
+        choices=[dict(entity_id=e.entity_id,qualified_name=e.qualified_name,cite_as=graph['label']+'/entity:'+e.entity_id)
+                 for e in sorted(g.entities.values(),key=lambda e:(e.qualified_name,e.entity_id))
+                 if value in (e.qualified_name,e.qualified_name.rsplit('.',1)[-1])]
+    bounded=[]
+    for row in choices:
+        if len(json.dumps(bounded+[row],ensure_ascii=False))<=400:bounded.append(row)
+        if len(bounded)==3:break
+    reason='choose a returned entity_id' if bounded else 'search_entities first'
+    exc=ValueError(f'{key} is not in this graph snapshot; {reason}')
+    if bounded:
+        exc.choices=bounded
+        exc.example={'graph_id':graph['label'],key:bounded[0]['entity_id']}
+    return exc
 
 
 def canonical_flat(router,gid,graph,out,remember=False):
@@ -147,11 +188,12 @@ def call_code(router,op,args):
                         exc.choices=[dict(entity_id=e,cite_as=graph['label']+'/entity:'+e) for e in choices]
                         raise exc
                     else:raise ValueError('Search this graph first and use entity_id or cite_as from its results')
-            if value not in g.entities:raise ValueError(f'{key} is not in this graph snapshot; search_entities first')
+            if value not in g.entities:raise unknown_entity(router,gid,graph,g,key,value)
             return value
         request=dict(schema_version='1.1',request_id='agent:'+digest(op,gid,args)[:24],snapshot_id=sid,
             budget=dict(limit_tokens=limit,profile=profile,tokenizer='o200k_base',allow_byte_fallback=False),
             cursor=args.get('cursor'),identity_mode='canonical_map')
+        coverage_range=None
         if op=='search_entities':request.update(query=args['query'],mode='hybrid',repo_ids=[],kinds=args.get('kinds',[]),limit=args.get('limit',8))
         elif op=='get_entity_content':
             eid=entity('entity_id');e=g.entities[eid]
@@ -160,6 +202,10 @@ def call_code(router,op,args):
             if b is not None and a is None:a=e.start_line or 1
             request.update(entity_id=eid,content_kind='documentation' if e.kind=='fragment' else 'source',
                 start_line=a,end_line=b,context_mode='range',context_radius=0)
+            coverage_range=(a or e.start_line,b or e.end_line)
+            if e.kind=='fragment':
+                text=g.analyses['text:'+eid]['result']['text']
+                coverage_range=(e.start_line,e.start_line+len(text.splitlines(keepends=True) or [''])-1)
         elif op=='get_architecture_context':request.update(focus_id=entity('focus_id'),grouping={'mode':'atomic'},context_radius=args.get('radius',1),
             pins=args.get('pins',[]),filter=deepcopy(DEFAULT_FILTER),qi=dict(enabled=args.get('qi',False),max_diameter=2,
                 algorithm=args.get('algorithm','helper_tree_balls_v1')))
@@ -178,7 +224,7 @@ def call_code(router,op,args):
         if op in {'get_architecture_context','find_dependants'}:
             return bounded_context(router,gid,op,request,graph,limit,clamped)
         counter=TokenCounter();working=limit
-        for _ in range(10):
+        for _ in range(24):
             request['budget']['limit_tokens']=working
             out=router.query(gid,op,request)
             inner=out.get('result',{})
@@ -190,6 +236,9 @@ def call_code(router,op,args):
                 qualified_name=nodes[i].get('qualified_name'),source=nodes[i].get('source')) for i in selected if i in nodes]
             if clamped:out['budget_clamped_to']=limit
             out=canonical_flat(router,gid,graph,out,op=='search_entities')
+            if op in {'search_entities','get_entity_content'}:
+                from .agent_coverage import coverage_metadata
+                out.update(coverage_metadata(op,out['result']['data'],coverage_range))
             out['routing_budget']['limit_tokens']=limit
             for _ in range(12):
                 n=counter.count(out)
@@ -197,10 +246,13 @@ def call_code(router,op,args):
                 out['routing_budget']['used_tokens']=n
             size=len(json.dumps(out,ensure_ascii=False))
             cap=router.max_result_chars
-            if n<=limit and (not cap or size<=cap):return out
-            if op=='search_entities' and request['limit']>1:
-                request['limit']-=1;continue
+            if n<=limit and (not cap or size<=cap):
+                if op=='search_entities':remember_search(router,gid,sid,out)
+                return out
             ratio=min(limit/max(n,1),cap/size if cap else 1)*.85
+            if op=='search_entities' and request['limit']>1:
+                request['limit']=max(1,min(request['limit']-1,int(request['limit']*ratio)))
+                continue
             reduced=max(256,int(working*ratio))
             if reduced>=working:break
             working=reduced
