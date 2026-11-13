@@ -11,6 +11,7 @@ export type EvidenceCategory = 'ast_exact' | 'static_candidate' | 'unresolved' |
   'dynamic_observed' | 'declared' | 'similarity' | 'history';
 export type Direction = 'directed' | 'symmetric';
 export type WeightUnit = 'edge_count' | 'call_count' | 'calls_per_second' | 'similarity_score' | 'cochange_count';
+// v1.1 producers index module/class assignment constants; v1.0 presentation maps them to fragments.
 export type EntityKind = 'workspace' | 'repository' | 'directory' | 'package' | 'file' | 'class' |
   'function' | 'method' | 'attribute' | 'constant' | 'parameter' | 'document' | 'fragment' |
   'external_symbol' | 'scope_atom';

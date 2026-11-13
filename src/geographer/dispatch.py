@@ -90,7 +90,7 @@ class StaticDispatch:
                 unit,scope=self.class_scopes[owner]
                 if parts[0] in unit.bindings[scope]:
                     bids=unit.final.get(scope,{}).get(parts[0],())
-                    hits=[self.bindings[b].target for b in bids if b!=UNBOUND and self.bindings[b].kind=='definition']
+                    hits=[self.bindings[b].target for b in bids if b!=UNBOUND and self.bindings[b].kind in {'definition','constant'}]
                     # A concrete class assignment/deletion masks inherited slots;
                     # do not skip an unknown/noncallable slot to find a base method.
                     if not hits:return []

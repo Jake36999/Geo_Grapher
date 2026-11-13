@@ -47,7 +47,8 @@ class LexicalIndex:
         if not 0<=gamma<=1 or k<=0:raise ValueError('Invalid fusion configuration')
         def eligible(eid):
             e=self.graph.entities[eid];return (not repo_ids or e.repo_id in repo_ids) and (not kinds or e.kind in kinds)
-        exact=sorted(e.entity_id for e in self.graph.entities.values() if eligible(e.entity_id) and (query==e.entity_id or query==e.qualified_name))
+        exact=sorted(e.entity_id for e in self.graph.entities.values() if eligible(e.entity_id) and
+            (query==e.entity_id or query==e.qualified_name or e.kind=='constant' and query==e.qualified_name.rsplit('.',1)[-1]))
         if not self.available:
             if not exact:raise ValueError('FTS5 unavailable; exact symbol lookup remains supported')
             return [dict(node_id=eid,score=1.,matched_fields=['qualified_name'],formal_rank=1,informal_rank=None,fragment_ids=[]) for eid in exact[:limit]]

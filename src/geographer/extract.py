@@ -49,6 +49,7 @@ class Unit:
     global_mutations: set[str] = field(default_factory=set)
     attribute_mutations: set[str] = field(default_factory=set)
     early_functions: dict[str, int] = field(default_factory=dict)
+    constants: dict[tuple[int,str],str] = field(default_factory=dict)
 
 
 class PythonExtractor(StaticDispatch):
@@ -155,7 +156,7 @@ class PythonExtractor(StaticDispatch):
                      'alternatives':[t for t,_ in targets]})
         self.mention_index=defaultdict(set)
         for eid,e in self.graph.entities.items():
-            if e.kind in {'function','method','class'}:
+            if e.kind in {'function','method','class','constant'}:
                 self.mention_index[e.qualified_name].add(eid);self.mention_index[e.qualified_name.rsplit('.',1)[-1]].add(eid)
         for unit in self.units:
             self.extract_relationships(unit)
@@ -273,6 +274,30 @@ class PythonExtractor(StaticDispatch):
             else:
                 # Comprehensions are lexical scopes, not invented source-level functions.
                 unit.owners[scope] = owner
+        # Source assignments are declarations too; never evaluate their values.
+        for scope in scopes.scopes:
+            if not isinstance(scope.node,(ast.Module,ast.ClassDef)):continue
+            owner=unit.owners[scope]
+            for node in sorted(scope.nodes,key=lambda n:(getattr(n,'lineno',0),getattr(n,'col_offset',0))):
+                if not isinstance(node,(ast.Assign,ast.AnnAssign)) or node.value is None:continue
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if not isinstance(target,ast.Name):continue
+                    name=target.id;value=node.value
+                    literal=isinstance(value,(ast.Constant,ast.Tuple,ast.Dict,ast.List,ast.Set)) or (isinstance(value,ast.Call) and isinstance(value.func,ast.Name) and value.func.id=='frozenset')
+                    if not name.isupper() and not literal:
+                        try:ast.literal_eval(value)
+                        except (ValueError,TypeError):continue
+                    key=(owner,name,'constant','');ordinal=duplicate[key];duplicate[key]+=1
+                    qualified=self.graph.entities[owner].qualified_name+'.'+name+(f'#{ordinal}' if ordinal else '')
+                    eid=entity_id(repo.repo_id,path,qualified,'constant','',ordinal)
+                    body=digest('constant-value-v1',ast.dump(value,include_attributes=False))
+                    self.graph.add(Entity(eid,repo.repo_id,'constant',qualified,unit.file_id,rel_path=path,start_line=node.lineno,end_line=node.end_lineno,ast_body_hash=body,**flags))
+                    unit.constants[(id(node),name)]=eid;self.definition_nodes[eid]=node;self.entity_units[eid]=unit
+                    self.graph.analyses['norm:'+eid]=dict(algorithm_version='constant-value-v1',scope={'entity_id':eid},result={'representation':canonical(['constant-value-v1',ast.dump(value,include_attributes=False)])})
+                    annotation=ast.unparse(node.annotation) if isinstance(node,ast.AnnAssign) else ''
+                    self.graph.fingerprints[eid]=dict(signature_hash=signature_hash(name+':'+annotation,[]),ts_guard_hash=ts_guard_hash([]))
+                    self.graph.analyses['declaration:'+eid]=dict(algorithm_version='declaration-v1',scope={'entity_id':eid},result={'signature':name+(':'+annotation if annotation else ''),'docstring':None})
 
     def absolute_module(self, unit, node):
         if not isinstance(node, ast.ImportFrom) or node.level == 0:
@@ -326,7 +351,7 @@ class PythonExtractor(StaticDispatch):
                         names = [node.name]
                     elif isinstance(node, ast.MatchMapping) and node.rest:
                         names = [node.rest]
-                    entries = [(name, "unknown", None, None, None) for name in names]
+                    entries = [(name,'constant' if (id(node),name) in unit.constants else 'unknown',unit.constants.get((id(node),name)),None,None) for name in names]
                 for name, kind, target, module, member in entries:
                     bid = digest(unit.repo.repo_id, unit.path,
                                  [scope.table.get_name(), scope.table.get_lineno(), unit.scopes.scopes.index(scope)],
@@ -404,6 +429,7 @@ class PythonExtractor(StaticDispatch):
             return []
         seen = seen | {bid}
         b = self.bindings[bid]
+        if b.kind=='constant':return [(b.target,'exact')]
         if b.kind == "definition":
             node = self.definition_nodes[b.target]
             return [(b.target, "candidate" if getattr(node, "decorator_list", []) else "exact")]
@@ -509,6 +535,9 @@ class PythonExtractor(StaticDispatch):
             if not targets:
                 targets=self.receiver_targets(unit,scope,expression,parts)
                 if targets:reasons=['POLYMORPHIC_MRO_CANDIDATE',*reasons]
+        # A source value is readable without being a callable declaration.
+        # In particular a constant class slot still masks a base method.
+        targets=[(target,status) for target,status in targets if self.graph.entities[target].kind!='constant']
         label = ast.unparse(node.func)
         source = unit.owners[scope]
         if not targets:
@@ -565,6 +594,10 @@ class PythonExtractor(StaticDispatch):
         # cannot retroactively change an already-loaded callee object.
         def visit(n):
             if unit.scopes.by_node.get(n) is not scope:return
+            if isinstance(n,(ast.Name,ast.Attribute)) and isinstance(n.ctx,ast.Load):
+                for ordinal,(target,status) in enumerate(sorted(set(self.resolve_access(unit,scope,n,state)))):
+                    if self.graph.entities[target].kind=='constant':
+                        self.emit(unit,unit.owners[scope],target,'reads',status,n,ordinal)
             if isinstance(n,ast.NamedExpr):
                 visit(n.value)
                 for name in target_names(n.target):state[name]=frozenset({UNBOUND})
@@ -667,9 +700,17 @@ class PythonExtractor(StaticDispatch):
                 candidates = [e for e in self.graph.entities.values() if e.repo_id == unit.repo.repo_id and e.rel_path == unit.path and
                               e.kind in {"file", "function", "method", "class"} and e.start_line <= token.start[0] <= e.end_line]
                 owner = min(candidates, key=lambda e: (e.end_line - e.start_line, e.entity_id)).entity_id if candidates else unit.file_id
-                self.fragment(unit.repo, unit.path, owner, token.string, token.start[0], token.end[0], self.mentions(token.string, owner), "rationale_for")
+                adjacent={eid for eid in unit.constants.values() if self.graph.entities[eid].start_line==token.end[0]+1 or self.graph.entities[eid].start_line<=token.start[0]<=self.graph.entities[eid].end_line}
+                self.fragment(unit.repo, unit.path, owner, token.string, token.start[0], token.end[0], self.mentions(token.string, owner)|adjacent, "rationale_for")
         except tokenize.TokenError:
             pass  # Syntax parsing already records invalid inputs; token streams can end in comments.
+        for scope in unit.scopes.scopes:
+            body=getattr(scope.node,'body',None)
+            if not isinstance(scope.node,(ast.Module,ast.ClassDef)) or not isinstance(body,list):continue
+            for before,doc in zip(body,body[1:]):
+                members={eid for (nid,_),eid in unit.constants.items() if nid==id(before)}
+                if members and isinstance(doc,ast.Expr) and isinstance(doc.value,ast.Constant) and isinstance(doc.value.value,str) and doc.lineno==before.end_lineno+1:
+                    self.fragment(unit.repo,unit.path,unit.file_id,doc.value.value,doc.lineno,doc.end_lineno,members,'documents')
 
     def extract_text_documents(self):
         from .documents import parse_document,VERSION

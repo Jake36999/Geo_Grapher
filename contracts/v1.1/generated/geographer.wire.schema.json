@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "51d2abed5adac566030a02d14367481522e7d626b844e303381673eb402f8faa",
+  "contract_sha256": "78ea806952d5dd31df9a065cee2f04fd41bb20bcef8be5286be0da835bc6bb76",
   "operations": {
     "search_entities": {
       "request": {

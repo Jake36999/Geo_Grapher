@@ -1,5 +1,8 @@
 """Small MCP front door; strict wire requests remain a separate programmatic API."""
 from copy import deepcopy
+from collections import OrderedDict
+from contextvars import ContextVar
+from weakref import WeakKeyDictionary
 import json
 import re
 import jsonschema
@@ -8,10 +11,28 @@ from .model import digest
 from .task_packets import PROFILE_CEILINGS
 from .tokens import TokenCounter
 
+ALIAS_CONNECTION=ContextVar('geographer_alias_connection',default=None)
+
+def enforce_cap(router,op,result):
+    cap=router.max_result_chars
+    if not cap or len(json.dumps(result,ensure_ascii=False))<=cap:return result
+    out=error(op,ValueError('Result exceeds max_result_chars; request fewer results or a smaller source range'))
+    out['error']['code']='BUDGET_TOO_SMALL'
+    return out
+
+def call_code_connection(router,op,args,connection):
+    with router.catalog.lock:
+        sessions=getattr(router,'agent_sessions',None)
+        if sessions is None:sessions=router.agent_sessions=WeakKeyDictionary()
+        identity=sessions.setdefault(connection,object())
+    token=ALIAS_CONNECTION.set(identity)
+    try:return call_code(router,op,args)
+    finally:ALIAS_CONNECTION.reset(token)
+
 
 def schemas(single=False):
     string={'type':'string'}
-    common={'graph_id':string,'profile':{'enum':list(PROFILE_CEILINGS)},'limit_tokens':{'type':'integer','minimum':256},
+    common={'graph_id':{'type':'string','description':'Prefer the graph label from list_graphs, e.g. librarian-v2.'},'profile':{'enum':list(PROFILE_CEILINGS)},'limit_tokens':{'type':'integer','minimum':256},
             'alias_scope':string,'cursor':string}
     fields={
         'search_entities':({'query':string,'kinds':{'type':'array','items':string},'limit':{'type':'integer','minimum':1,'maximum':50}},['query']),
@@ -48,10 +69,47 @@ def error(op,exc):
     if isinstance(exc,jsonschema.ValidationError):
         field='.'.join(map(str,exc.absolute_path)) or 'arguments';reason=exc.message
     else:reason=str(exc).split('\n',1)[0]
-    ex=example(op)
+    ex=getattr(exc,'example',None) or example(op)
     if op=='list_graphs':ex={}
     text=f'{field}: {reason[:140]}. Example: {op}({json.dumps(ex,separators=(",",":"))})'
-    return dict(error=dict(code='INVALID_GRAPH_REQUEST',field=field,message=text[:400],example=ex))
+    out=dict(error=dict(code='INVALID_GRAPH_REQUEST',field=field,message=text[:400],example=ex))
+    if hasattr(exc,'choices'):out['error']['choices']=exc.choices
+    return out
+
+
+def remember_aliases(router,gid,sid,mapping):
+    cache=getattr(router,'agent_aliases',None)
+    if cache is None:cache=router.agent_aliases=OrderedDict()
+    for alias,canonical in sorted(mapping.items()):
+        if not re.fullmatch(r'[nwe][1-9][0-9]*',alias):continue
+        key=(ALIAS_CONNECTION.get(),gid,sid,alias);values=cache.setdefault(key,[])
+        if canonical not in values:values.append(canonical)
+        # Retain ambiguity rather than guessing a previous identity.
+        values[:]=sorted(values)[:4];cache.move_to_end(key)
+        while len(cache)>256:cache.popitem(last=False)
+
+
+def canonical_flat(router,gid,graph,out,remember=False):
+    """The flat surface is a canonical projection, not the strict wire format."""
+    from .actor import REFS,ARRAY_REFS
+    inner=out.get('result',{});d=inner.get('data',{});ids=d.pop('ids',{})
+    if remember:remember_aliases(router,gid,graph['snapshot_id'],ids)
+    def convert(v,key=None):
+        if isinstance(v,dict):return {k:convert(x,k) for k,x in v.items() if k!='identity_scope'}
+        if isinstance(v,list):return [convert(x,key) for x in v]
+        return ids.get(v,v) if isinstance(v,str) and key in REFS|ARRAY_REFS else v
+    inner['data']=d=convert(d)
+    for n in d.get('nodes',[]):
+        eid=n.pop('id');n['entity_id']=eid;n['cite_as']=graph['label']+'/entity:'+eid
+    for key in ('hits','results','matches'):
+        for record in d.get(key,[]):
+            if 'node_id' in record:record['entity_id']=record.pop('node_id')
+    for key in ('relationships','witnesses'):
+        for record in d.get(key,[]):
+            if 'id' in record:record['relationship_id']=record.pop('id')
+    for key in ('schema_version','request_id','budget'):inner.pop(key,None)
+    out['format']='agent-canonical-v1'
+    return out
 
 
 def profile_budget(router,arguments,default=32768):
@@ -77,9 +135,18 @@ def call_code(router,op,args):
             if value.startswith(prefix):value=value[len(prefix):]
             if value.startswith('entity:entity:'):value=value[7:]
             if re.fullmatch(r'n[1-9][0-9]*',value):
-                if not args.get('alias_scope'):raise ValueError('Use entities[].entity_id from search, or provide alias_scope with an alias')
-                from .actor import resolve_request_aliases
-                value=resolve_request_aliases(svc,svc._context(sid),dict(snapshot_id=sid,alias_scope=args['alias_scope'],entity_id=value))['entity_id']
+                if args.get('alias_scope'):
+                    from .actor import resolve_request_aliases
+                    value=resolve_request_aliases(svc,svc._context(sid),dict(snapshot_id=sid,alias_scope=args['alias_scope'],entity_id=value))['entity_id']
+                else:
+                    choices=getattr(router,'agent_aliases',{}).get((ALIAS_CONNECTION.get(),gid,sid,value),[])
+                    if len(choices)==1:value=choices[0]
+                    elif choices:
+                        exc=ValueError('Ambiguous recent alias; use one of the canonical choices')
+                        exc.example={'graph_id':graph['label'],key:choices[0]}
+                        exc.choices=[dict(entity_id=e,cite_as=graph['label']+'/entity:'+e) for e in choices]
+                        raise exc
+                    else:raise ValueError('Search this graph first and use entity_id or cite_as from its results')
             if value not in g.entities:raise ValueError(f'{key} is not in this graph snapshot; search_entities first')
             return value
         request=dict(schema_version='1.1',request_id='agent:'+digest(op,gid,args)[:24],snapshot_id=sid,
@@ -108,6 +175,8 @@ def call_code(router,op,args):
                 filter=deepcopy(DEFAULT_FILTER),include_satisfied=False,page_size=20)
         else:request.update(relationship_id=args['relationship_id'],view_id=args['view_id'],projection_id=None,
             evidence_page_size=5,evidence_cursor=None,page_size=20)
+        if op in {'get_architecture_context','find_dependants'}:
+            return bounded_context(router,gid,op,request,graph,limit,clamped)
         counter=TokenCounter();working=limit
         for _ in range(10):
             request['budget']['limit_tokens']=working
@@ -120,6 +189,7 @@ def call_code(router,op,args):
             out['entities']=[dict(entity_id=ids.get(i,i),cite_as=graph['label']+'/entity:'+ids.get(i,i),
                 qualified_name=nodes[i].get('qualified_name'),source=nodes[i].get('source')) for i in selected if i in nodes]
             if clamped:out['budget_clamped_to']=limit
+            out=canonical_flat(router,gid,graph,out,op=='search_entities')
             out['routing_budget']['limit_tokens']=limit
             for _ in range(12):
                 n=counter.count(out)
@@ -128,8 +198,75 @@ def call_code(router,op,args):
             size=len(json.dumps(out,ensure_ascii=False))
             cap=router.max_result_chars
             if n<=limit and (not cap or size<=cap):return out
+            if op=='search_entities' and request['limit']>1:
+                request['limit']-=1;continue
             ratio=min(limit/max(n,1),cap/size if cap else 1)*.85
             reduced=max(256,int(working*ratio))
             if reduced>=working:break
             working=reduced
         raise ValueError('RESULT_TOO_LARGE: try fewer results or a smaller source range')
+
+
+def bounded_context(router,gid,op,request,graph,limit,clamped):
+    """Project an internal wire result into a bounded, explicitly degraded flat result.
+
+    Internal materialisation is bounded separately; only the final, recounted
+    envelope crosses the agent's profile boundary. Strict calls never use this.
+    """
+    counter=TokenCounter();degraded=[];focus=request.get('focus_id',request.get('entity_id'));candidate=None
+    internal=deepcopy(request);internal['budget']=dict(limit_tokens=32768,tokenizer='o200k_base',allow_byte_fallback=False)
+    def fetch():
+        out=router.query(gid,op,internal)
+        err=out.get('error') or out.get('result',{}).get('error')
+        if err:raise ValueError(f"{err['code']}: {err['message']}")
+        return out
+    def fit(out,focus_only=False):
+        nonlocal candidate
+        d=out['result']['data'];ids=d.get('ids',{})
+        out['entities']=[dict(entity_id=ids.get(n['id'],n['id']),cite_as=graph['label']+'/entity:'+ids.get(n['id'],n['id']),
+            qualified_name=n.get('qualified_name'),source=n.get('source')) for n in d['nodes']
+            if not focus_only or ids.get(n['id'],n['id'])==focus]
+        if degraded:out['degraded']=list(degraded)
+        if clamped:out['budget_clamped_to']=limit
+        out['routing_budget']['limit_tokens']=limit
+        candidate=canonical_flat(router,gid,graph,deepcopy(out))
+        for _ in range(12):
+            count=counter.count(candidate)
+            if candidate['routing_budget']['used_tokens']==count:break
+            candidate['routing_budget']['used_tokens']=count
+        return count<=limit and (not router.max_result_chars or len(json.dumps(candidate,ensure_ascii=False))<=router.max_result_chars)
+    def summaries(out):
+        for n in out['result']['data']['nodes']:n.pop('summary',None)
+    out=fetch()
+    if fit(out):return candidate
+    degraded.append('optional_node_summaries_omitted');summaries(out)
+    if fit(out):return candidate
+    if op=='get_architecture_context' and internal['context_radius']:
+        internal['context_radius']=0;out=fetch();summaries(out);degraded.append('context_radius_reduced_to_0')
+        if fit(out):return candidate
+    d=out['result']['data'];ids=d.get('ids',{})
+    ancestors=set(d.get('ancestor_ids',[]))
+    for i,n in enumerate(d['nodes']):
+        if n['id'] in ancestors and ids.get(n['id'],n['id'])!=focus:
+            d['nodes'][i]=dict(id=n['id'],qualified_name=n.get('display_label') or n.get('qualified_name','').rsplit('/',1)[-1].rsplit('.',1)[-1])
+    degraded.append('ancestor_nodes_reduced_to_ids_and_labels')
+    if fit(out,True):return candidate
+    keep={n['id'] for n in d['nodes'] if n['id'] in ancestors or ids.get(n['id'],n['id'])==focus}
+    omitted=len(d['nodes'])-len(keep)
+    d['nodes']=[n for n in d['nodes'] if n['id'] in keep]
+    for key in ('relationships','witnesses'):
+        if key in d:d[key]=[r for r in d[key] if r['source'] in keep and r['target'] in keep]
+    for key in ('results','hits'):
+        if key in d:d[key]=[r for r in d[key] if r['node_id'] in keep]
+    d['ids']={k:v for k,v in ids.items() if k in keep}
+    degraded.append(f'optional_context_nodes_omitted:{omitted}')
+    if fit(out,True):return candidate
+    focus_node=next(n for n in d['nodes'] if ids.get(n['id'],n['id'])==focus)
+    # Ancestors are context too: do not refuse a focus that fits by itself.
+    out['result']['data']=dict(nodes=[{k:v for k,v in focus_node.items() if k in {'id','entity_id','qualified_name','kind','source'}}],
+        ancestor_ids=[],relationships=[],witnesses=[],**({'results':[]} if op=='find_dependants' else {}))
+    # Preserve the canonical lookup until projection, including the focus alias.
+    out['result']['data']['ids']={focus_node['id']:focus}
+    degraded.append(f'ancestor_context_omitted:{len(ancestors)};focus_only')
+    if fit(out,True):return candidate
+    raise ValueError('BUDGET_TOO_SMALL: focus node alone does not fit; increase the connection cap')

@@ -268,7 +268,7 @@ class GraphRouter:
             except (ValueError,sqlite3.DatabaseError,OSError) as exc:
                 availability='unavailable';error=str(exc)[:300]
             profile=json.loads(graph['profile_json'])
-            rows.append(dict(graph_id=graph['graph_id'],label=graph['label'],root_path=graph['root_path'],
+            rows.append(dict(label=graph['label'],graph_id=graph['graph_id'],root_path=graph['root_path'],
                 graph_kind=profile.get('graph_kind','project'),repo_ids=profile.get('owner_repo_ids',[graph['graph_id']]),
                 source_graph_ids=[s['graph_id'] for s in profile.get('source_graphs',[])],
                 owned_store=self.catalog.owns_store(graph),bridge_count=self.catalog.bridge_count(graph['graph_id']),copied_from=profile.get('copied_from'),
@@ -453,7 +453,7 @@ class GraphRouter:
         from .task_packets import compile_packet
         return compile_packet(self,graph_id,anchors,instruction,profile=profile,upstream=upstream)
 
-    def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation',profile=None):
+    def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation',profile=None,agent=False):
         from .task_packets import check_profile
         check_profile(profile,limit_tokens)
         if isinstance(graph_ids,list):graph_ids=[self.resolve(gid) for gid in graph_ids]
@@ -481,6 +481,7 @@ class GraphRouter:
                     req=dict(schema_version='1.1',request_id='federated-search',snapshot_id=graph['snapshot_id'],
                         budget=dict(limit_tokens=per_graph,tokenizer='o200k_base',allow_byte_fallback=False),query=query,
                         mode=mode,repo_ids=[],kinds=[],limit=limit,cursor=None)
+                    if agent:req['identity_mode']='canonical_map'
                     envelope=self.query(gid,'search_entities',req)
                     # The router nests a service error under `result`; it is never "no hits".
                     err=self._nested_error(envelope)
@@ -529,8 +530,55 @@ class GraphRouter:
         for _ in range(5):
             response=assemble(select(candidates,budget))
             count=fit(response)
-            if count<=limit_tokens:return response
+            if count<=limit_tokens:return self._fit_federation(response,limit_tokens,counter,query,mode,agent)
             budget-=count-limit_tokens
         response=assemble({})
         if fit(response)>limit_tokens:raise ValueError('Federation metadata exceeds token budget')
-        return response
+        return self._fit_federation(response,limit_tokens,counter,query,mode,agent)
+
+    def _fit_federation(self,response,limit_tokens,counter,query,mode,agent=False):
+        """Shrink whole hit envelopes, then omit graphs, in utility order."""
+        cap=self.max_result_chars
+        if not cap and not agent:return response
+        def present():
+            out=deepcopy(response) if agent else response
+            if agent:
+                from .agent_requests import canonical_flat
+                for env in out['results']:
+                    canonical_flat(self,env['graph_id'],self.catalog.graph(env['graph_id']),env)
+                    for _ in range(12):
+                        count=counter.count(env)
+                        if env['routing_budget']['used_tokens']==count:break
+                        env['routing_budget']['used_tokens']=count
+            for _ in range(12):
+                count=counter.count(out)
+                if count==out['used_tokens']:break
+                out['used_tokens']=count
+            return out
+        while True:
+            projected=present()
+            if (not cap or len(json.dumps(projected,ensure_ascii=False))<=cap) and counter.count(projected)<=limit_tokens:return projected
+            if not response['results']:raise ValueError('Federation metadata exceeds connection cap')
+            envelope=min(response['results'],key=lambda r:(response['selection']['utility'][r['graph_id']],r['graph_id']))
+            gid=envelope['graph_id'];d=envelope['result'].get('data',{});hits=d.get('hits',[])
+            response['omitted']=[r for r in response['omitted'] if r['graph_id']!=gid]
+            response['omitted'].append(dict(graph_id=gid,reason='size_limit'))
+            if len(hits)>1:
+                # Re-pack fewer whole hits so inner wire counts, cursors and
+                # endpoint definitions stay valid as well as the outer budget.
+                graph=self.catalog.graph(gid)
+                req=dict(schema_version='1.1',request_id='federated-size-fit',snapshot_id=graph['snapshot_id'],
+                    budget=dict(limit_tokens=envelope['routing_budget']['limit_tokens'],tokenizer='o200k_base',allow_byte_fallback=False),
+                    query=query,mode=mode,repo_ids=[],kinds=[],limit=len(hits)-1,cursor=None)
+                if agent:req['identity_mode']='canonical_map'
+                smaller=self.query(gid,'search_entities',req)
+                if self._nested_error(smaller):
+                    response['results'].remove(envelope);response['selection']['tiers'][gid]='omit';response['selection']['utility'][gid]=0
+                else:
+                    response['results'][response['results'].index(envelope)]=smaller
+                    response['selection']['tiers'][gid]='compact'
+                    trust,modality=self._stratum(graph);ranks,exact=self._hit_facts(smaller,query)
+                    response['selection']['utility'][gid]=utility(trust,modality,intent(query),os.path.getsize(graph['code_database'])/1_000_000,ranks,exact)
+            else:
+                response['results'].remove(envelope);response['selection']['tiers'][gid]='omit'
+                response['selection']['utility'][gid]=0

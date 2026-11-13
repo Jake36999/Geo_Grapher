@@ -45,7 +45,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
     mcp=FastMCP('Geo Grapher independent graphs',host=host,port=port,streamable_http_path='/mcp',
         transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=True,
             allowed_hosts=['127.0.0.1:*','localhost:*','[::1]:*'],allowed_origins=['http://127.0.0.1:*','http://localhost:*']),
-        instructions='Discover list_graphs first. Code tools accept minimal flat arguments: search_entities(graph_id,query), '
+        instructions='Discover list_graphs first and prefer graph labels such as librarian-v2 instead of copying long IDs. Code tools accept minimal flat arguments: search_entities(graph_id,query), '
             'get_entity_content(graph_id,entity_id), get_architecture_context(graph_id,focus_id). '
             'Use entities[].entity_id and cite_as exactly as returned. Snapshot, budget and protocol defaults are filled server-side. '
             'The strict {graph_id,request} form remains available for programmatic clients; do not mix forms. '
@@ -89,7 +89,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
             ('list_graphs','Discover graph IDs and their latest project snapshots.',dict(type='object',properties={},additionalProperties=False)),
             ('compile_task_packet','Compile a snapshot-bound, cited task packet with structured upstream port contracts. '
              'Anchors use entity:<canonical ID> (prefix entity: even when the ID itself begins entity:). '
-             'Search with request.identity_mode=canonical_map and read data.ids to obtain canonical IDs; scoped aliases alone are not bridge refs.',
+             'Use entities[].entity_id from flat search to obtain canonical IDs; scoped aliases alone are not bridge refs.',
              dict(type='object',properties={'graph_id':graph_schema,'anchors':dict(type='array',items={'type':'string'},minItems=1,maxItems=8),
                 'instruction':{'type':'string'},'profile':dict(enum=['tier3_leaf','tier2_forager','tier1_lead']),
                 'upstream':dict(type='array',items={'type':'object'})},required=['graph_id','anchors','instruction'],additionalProperties=False)),
@@ -123,7 +123,8 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
                     result=await anyio.to_thread.run_sync(router.query,arguments.get('graph_id'),name,arguments['request'])
                 else:
                     jsonschema.validate(arguments,flat_schemas[name])
-                    result=await anyio.to_thread.run_sync(agent_requests.call_code,router,name,arguments)
+                    result=await anyio.to_thread.run_sync(agent_requests.call_code_connection,router,name,arguments,mcp._mcp_server.request_context.session)
+                result=agent_requests.enforce_cap(router,name,result)
                 failed='error' in result or 'error' in result.get('result',{})
                 return types.CallToolResult(content=[],structuredContent=result,isError=failed)
             jsonschema.validate(arguments,schemas[name])
@@ -147,10 +148,11 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
                         result['used_tokens']=count
             elif name=='federated_search':
                 from functools import partial
-                result=await anyio.to_thread.run_sync(partial(router.federated_search,**arguments))
+                result=await anyio.to_thread.run_sync(partial(router.federated_search,**arguments,agent=True))
             else:result=await anyio.to_thread.run_sync(router.query,arguments.get('graph_id'),name,arguments['request'])
         except (ValueError,KeyError,TypeError,jsonschema.ValidationError,ImportError) as exc:
             result=agent_requests.error(name,exc)
+        result=agent_requests.enforce_cap(router,name,result)
         failed='error' in result or 'error' in result.get('result',{})
         return types.CallToolResult(content=[],structuredContent=result,isError=failed)
 

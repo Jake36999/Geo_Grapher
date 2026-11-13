@@ -155,7 +155,7 @@ class QueryService:
                         **(dict(display_label=None,role_badge=None) if labels else {}))
         if eid not in ctx['g'].entities:raise QueryError('NOT_FOUND','Entity is outside snapshot')
         e=ctx['g'].entities[eid]
-        node=dict(id=eid,entity_id=eid,kind=e.kind,sort=e.sort,repo_id=e.repo_id,language=e.language,qualified_name=e.qualified_name,
+        node=dict(id=eid,entity_id=eid,kind='fragment' if e.kind=='constant' and self.active_version=='1.0' else e.kind,sort=e.sort,repo_id=e.repo_id,language=e.language,qualified_name=e.qualified_name,
                   parent_id=e.parent_id,depth=e.depth,source=self._location(ctx,e),
                   flags={key:bool(getattr(e,key)) for key in ('is_test','is_generated','is_vendor','is_external')},
                   member_count=len(part.groups[eid]) if part and eid in part.groups else 1,membership_handle=None,
