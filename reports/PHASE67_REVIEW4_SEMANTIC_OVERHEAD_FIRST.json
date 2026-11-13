@@ -1,0 +1,54 @@
+{
+  "encoder_fingerprint": "c26bc406dbceea32d721871e4420dabad9052aea8366b9e66359a4bf9aae516d",
+  "fixture_declarations": 100,
+  "trials": [
+    {
+      "trial": 0,
+      "plain_seconds": 0.1865,
+      "semantic_seconds": 0.2586,
+      "delta_seconds": 0.0721,
+      "derived": {
+        "entities": 100,
+        "encoded": 100,
+        "zero_vectors": 0,
+        "seconds": 0.06103860000439454,
+        "bytes": 663552,
+        "namespace": "8ba1c14f0b4c001e03fea7e445749317a8f6003928e3a1c1195c4ea915c756da",
+        "texts_truncated": 0
+      }
+    },
+    {
+      "trial": 1,
+      "plain_seconds": 0.1928,
+      "semantic_seconds": 0.2437,
+      "delta_seconds": 0.0509,
+      "derived": {
+        "entities": 100,
+        "encoded": 100,
+        "zero_vectors": 0,
+        "seconds": 0.04702150000957772,
+        "bytes": 663552,
+        "namespace": "8ba1c14f0b4c001e03fea7e445749317a8f6003928e3a1c1195c4ea915c756da",
+        "texts_truncated": 0
+      }
+    },
+    {
+      "trial": 2,
+      "plain_seconds": 0.1741,
+      "semantic_seconds": 0.2331,
+      "delta_seconds": 0.059,
+      "derived": {
+        "entities": 100,
+        "encoded": 100,
+        "zero_vectors": 0,
+        "seconds": 0.04899190001015086,
+        "bytes": 663552,
+        "namespace": "8ba1c14f0b4c001e03fea7e445749317a8f6003928e3a1c1195c4ea915c756da",
+        "texts_truncated": 0
+      }
+    }
+  ],
+  "median_delta_seconds": 0.059,
+  "scope": "Warm loaded encoder, three synthetic 100-declaration ingests. Real frozen-corpus backfill is measured separately. No extrapolation to full ingest latency.",
+  "paid_calls": 0
+}

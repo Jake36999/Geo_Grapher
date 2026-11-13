@@ -90,3 +90,19 @@ def test_natural_language_search_includes_original_documentation(packet_world,tm
     out=call_code(router,'search_entities',dict(graph_id=gid,query='orchard harvest'))
     assert out['entities']
     assert any('calculate' in e['qualified_name'] for e in out['entities'])
+
+
+def test_recovery_context_uses_standard_mcp_metadata_without_larger_tool_schema(packet_world):
+    async def check(s,gid):
+        metadata={'geographer/recovery':dict(episode_id='metadata-fixture',question='f',mode='defer',remaining_steps=3)}
+        out=await s.call_tool('search_entities',dict(graph_id=gid,query='unmatched_xyz'),meta=metadata)
+        assert not out.isError,out.structuredContent
+        assert out.structuredContent['recovery_pending'][0]['pattern']=='FP1'
+        assert out.structuredContent['entities']==[]
+        metadata['geographer/recovery']['mode']='auto'
+        fixed=await s.call_tool('search_entities',dict(graph_id=gid,query='unmatched_xyz'),meta=metadata)
+        assert not fixed.isError,fixed.structuredContent
+        assert fixed.structuredContent['recovery_steps_consumed']==1
+        assert fixed.structuredContent['entities']
+        assert len(json.dumps(fixed.structuredContent,ensure_ascii=False))<=7500
+    run_mcp(packet_world,check)

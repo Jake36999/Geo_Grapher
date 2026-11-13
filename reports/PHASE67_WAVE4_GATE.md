@@ -739,3 +739,21 @@ Before L1/L2 product changes, the committed offline replay reproduced the review
 
 The first L1 full verification passed (722 backend tests, frontend checks, 17 browser tests) and installed-wheel preset smoke passed 28/28. A subsequent failing oracle exposed an FP1 detector mismatch: it used full documentation rather than the delivered preview. Corrected replay uses the actual agent query to build `doc_gist`/`why` and the original question only for overlap. Retained intermediate row: **33** triggers, **39/102** after recovery (`...L1_PREVIEW.json`). Retained corrected row: **32** triggers, **38/102** after recovery, **1/36** false triggers among originally correct queries (`...L1_DELIVERED.json`). Recommended multi-query remains **48/102** and question-text **18/30**. Full checks for the corrected candidate are in progress; the old rows remain untouched.
 
+### Review 4 L2 first offline row
+
+First result `PHASE67_OFFLINE_DEV30_L2_FIRST.json`: local lexical+semantic question recall@8 **27/30 (90%)**, agent-only **69/102 (67.6%)**, recommended verbatim+guess **93/102 (91.2%)**. FP1 simulation: **12/102** triggers, **2/69** false triggers among originally correct cases, **77/102 (75.5%)** after recovery. Separate FP2-from-lexical simulation: **32/102** triggers, **1/36** false triggers, **53/102** after recovery. These are separate candidate-rank simulations, not cumulative episode scores or capped delivery. Runtime recoveries and L2 full checks remain pending.
+
+First backfill: **6,299** declarations, **2.290 s** combined loaded-model population time, **40,726,528 bytes** derived storage. Both canonical SHA-256 values unchanged; no hosted embeddings or source execution. Model revision and assets are pinned in `PHASE67_REVIEW4_SEMANTIC_MODEL.json`. L1 corrected Geo verify passed (723 backend, frontend checks, 17 browser) and preset smoke passed 28/28. The full Librarian run exposed one ZIP-timestamp fixture defect, fixed on its feature branch as `0beed83`; first failure is retained and full recheck is running. No paid agent A/B, pilot or final cycle has started.
+
+### L1 checks closed; L2 verification started
+
+Corrected full Librarian suite: **2,196 passed, 2 skipped, 5 deselected** (`output/review4-l1-librarian-corrected-full.log`). Search-side runtime wiring now has deferred/automatic metadata transport tests and FP6 observation/resolution logs; agent-side accounting remains pending. L2 full Geo verification and the Librarian suite have started. Controlled local-model ingestion overhead: median **0.059 s** per 100-declaration synthetic ingest, three paired trials, **663,552 bytes** derived storage per trial. First and corrected network-guard setup results are retained separately; the corrected local load/inference passed with network methods blocked.
+
+### L2 runtime and delivery results
+
+Actual search-recovery replay: **52/102 → 82/102** recall@8, 38 local extra steps total, maximum one per query. FP1: 38 triggers, 3/52 false triggers; FP2: 32 triggers, 1/52 false triggers. First-page capped delivery was **21/30**. Generic pagination now makes **27/30** targets reachable within two fixed pages, every response ≤7,500 characters; canonical hashes unchanged. First failures and rows are retained. The installed optional-extra wheel smoke passed, default-off preset smoke passed 28/28, and the full Librarian suite passed 2,196 tests. Initial L2 full Geo verify passed (738 backend + frontend + 17 browser); the pagination recheck had one cold directed-latency failure at 3.368 s. Controlled recheck is pending; the 3 s criterion stays unchanged. No paid agent A/B, diagnostic pilot or final cycle has started.
+
+### Step 4 verification closure
+
+The isolated cold check and controlled full verification passed with the original threshold: **739 backend tests**, frontend checks and **17 browser tests**. L2's full Librarian run passed **2,196** (2 skipped, 5 deselected); preset smoke passed **28/28**, and optional-extra installed-wheel smoke passed. Prior latency/setup rows remain retained. Step 5 has seven RED agent-recovery oracles; implementation and its full checks remain pending. No paid agent A/B, pilot or final cycle has started. Workflow commitment remains **$0.26683144** of the approved $6.50 cap, with the pool reserve unchanged.
+

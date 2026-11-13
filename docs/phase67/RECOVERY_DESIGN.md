@@ -14,3 +14,11 @@ This design is registered before product changes. It contains no question, targe
 - First-attempt reporting must distinguish an actual pre-recovery answer from an episode that needed recovery before producing any answer. It must not invent a counterfactual answer from recovered observations.
 
 The two-paid-call bound is a budget requirement. If it cannot be proved, the estimate must be revised and paid work blocked until any required owner approval is obtained. No merge or push is authorised by this design.
+## Search transport and accounting
+
+The agent-facing search schema stays flat. Episode context uses standard MCP request metadata under `geographer/recovery`: `episode_id`, original `question`, `mode` (`auto`, `defer`, `off`) and `remaining_steps` (0–3). The Loop, not the model, supplies it. A first-pass `defer` result exposes deterministic pending triggers and baseline evidence; it consumes no recovery step. A subsequent `auto` action may apply FP1 and FP2 jointly, with one shared step ID. Repeated identical requests reuse the repaired candidate cache rather than executing another remedial search. Pattern records and consumed-step counts are returned before the complete-envelope token/character recount.
+
+Server episode state is scoped to the MCP connection, original-question digest and episode ID. A scoped server admits at most 1,024 named episodes and fails closed at capacity rather than evicting used-pattern records and accidentally permitting a second recovery. Ordinary calls without episode metadata are independent tool-call episodes. This finite-server limit is a known operational bound; it is not an unbounded conversation memory. Cross-server and agent-side accounting must also be enforced by the Loop's shared three-step ledger.
+
+`resolved` on FP1/FP2 means the resulting preview clears the deterministic weak-hit condition; it is not a claim that a benchmark answer is correct. FP6 logs the existing scoped candidate menu as an observation with zero additional executable steps, and marks resolution only after a real offered ID is accepted. A menu is not an automatic source retry. End-to-end recovery rates are separately scored after collection. The agent-side ledger is still required before paid dispatch.
+

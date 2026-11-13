@@ -53,3 +53,46 @@ A sixth RED oracle proved that full documentation outside the delivered card cou
 
 Two additional first result files are retained separately: `PHASE67_OFFLINE_DEV30_L1_PREVIEW.json` is the intermediate original-question-card simulation (**33** triggers, **39/102** after recovery); `PHASE67_OFFLINE_DEV30_L1_DELIVERED.json` uses the actual-query cards (**32** triggers, **38/102** after recovery). Both have **1/36** false triggers among originally correct queries. Raw recommended multi-query recall remains **48/102**, with **18/30** question-text recall. These modest recovery gains are reported as measured; they do not close the offline targets. A full verify and fresh installed-wheel smoke are being repeated for the corrected candidate. Future offline artifacts include product/evaluator source hashes.
 
+## Step 4 — L2 first offline result and overhead
+
+Core RED: five privacy/integrity/semantic oracles fail before `semantic.py` exists. Integration RED: the ingest hook and shared channel ranker fail before implementation. Core/front-door integration now passes nine semantic tests, plus source-card/fusion regression checks. Semantic extras remain off by default. Local model assets were explicitly provisioned once, without source input, at Hugging Face revision `bf8b056651a2c21b8d2565580b8569da283cab23`; file hashes are in `PHASE67_REVIEW4_SEMANTIC_MODEL.json`.
+
+First L2 replay (`PHASE67_OFFLINE_DEV30_L2_FIRST.json`):
+
+| View | Recall@8 |
+| --- | --- |
+| Lexical question text (retained comparator) | 18/30 (60%) |
+| Local semantic + lexical question text | 27/30 (90%) |
+| Lexical recorded agent queries | 36/102 (35.3%) |
+| Local semantic + lexical agent queries | 69/102 (67.6%) |
+| Agent queries plus simulated FP1 | 77/102 (75.5%) |
+| Recommended verbatim question + agent guess, both channels | 93/102 (91.2%) |
+
+FP1, starting from the enabled-channel agent result: **12/102** triggers, **2/69** false triggers conditional on originally correct retrieval (2.90%), **77/102** after recovery. Separately, FP2 simulated from lexical-only results: **32/102** triggers, **1/36** false triggers (2.78%), **53/102** after semantic recovery. These separate simulations are not added together or presented as episode success. Runtime scheduling/shared recovery accounting is still pending. Raw agent retrieval alone remains below 75%; guided retrieval and the FP1 simulation exceed it. Rankings are candidate ranks and do not establish capped delivery or answer quality.
+
+Explicit read-only backfill (`PHASE67_REVIEW4_SEMANTIC_BUILD_FIRST.json`) encoded **3,879** Librarian and **2,420** ToolSet declarations, in **1.419 s** and **0.871 s** respectively (loaded-model population time). Derived storage was **25,075,712 bytes** after Librarian and **40,726,528 bytes** total after ToolSet. Both canonical store hashes were unchanged. Six representations report truncation. Controlled real-model ingestion overhead on a separate 100-declaration synthetic fixture is retained in `PHASE67_REVIEW4_SEMANTIC_OVERHEAD_FIRST.json`; it is not extrapolated to whole-repository ingest latency.
+
+L1 corrected full verify passed **723 backend tests**, frontend checks and **17 browser tests**, with **28/28** installed-wheel preset checks. The first full Librarian run had **1 failed / 2,195 passed**: an existing SBOM test rebuilt its ZIP artifact between hashing and comparison, crossing a ZIP timestamp boundary. The fixture now reuses the same artifact (Librarian feature commit `0beed83`); its four SBOM tests pass, and the full suite is being repeated. First failing evidence is preserved in `output/review4-l1-librarian-full.log`. L2 full checks have not yet run.
+
+### L1 closure and L2 runtime candidate
+
+The corrected full Librarian run passed: **2,196 passed, 2 skipped, 5 deselected**, in 649.25 s (`output/review4-l1-librarian-corrected-full.log`). This closes L1's required verification after preserving the original failing SBOM row.
+
+The L2 candidate now wires FP1/FP2 search remedies through standard MCP metadata, with deferred baseline evidence, connection/episode scope, once-per-pattern records and a shared local step charge for joint fusion. FP6 logs the existing real-candidate menu (zero extra executable steps) and resolves only after an offered ID is accepted. Four search-integration oracles and the FP6 logging oracle were RED before front-door wiring/logging, then passed. A real stdio MCP test verifies metadata transport without adding nested requirements to the model-facing schema. The agent-side shared ledger and receipts are still pending. The full L2 Geo verify and Librarian suite are in progress.
+
+Controlled ingestion overhead first row: median **0.059 s** additional time per synthetic 100-declaration ingest, over three paired trials; derived storage **663,552 bytes** each. This uses a loaded real local model and is not a whole-repository latency claim. A local model load and inference passed with socket connection, send and address-resolution methods blocked. The first network-guard test setup failed because replacing the socket class broke SSL import; that invalid setup is retained separately and is not reported as network access. The encoder fingerprint now also pins Python version and architecture; the first namespace remains retained and a separately measured qualified namespace was explicitly built.
+
+### Runtime replay and capped delivery
+
+`PHASE67_OFFLINE_DEV30_L2_RUNTIME_FIRST.json` invokes the actual front-door recovery function in deferred then automatic mode. Raw recall@8 improves **52/102 → 82/102 (80.4%)**, with **38** extra local steps total and **at most one per query** (FP1/FP2 can share a step). FP1 triggers **38/102**, with **3/52** false triggers conditional on originally correct retrieval; FP2 triggers **32/102**, with **1/52** false triggers. Runtime confidence clears in 35 FP1 and 29 FP2 cases; those signals are not answer-correctness scores. The initial independent simulations remain unchanged.
+
+Actual 7,500-character front-door delivery on disposable backups (`PHASE67_REVIEW4_SEMANTIC_DELIVERY_SECOND.json`) exposes **21/30** targets on the first page, below raw **27/30**. Most envelopes fit only 3–4 rich cards. A new failing oracle demonstrated that omitted candidates lacked actionable pagination. The fix adds bounded `offset` / `next_offset` pagination without changing rank, canonical IDs or source cards. With a fixed two-page bound applied to every question from response metadata, delivery reaches **27/30 (90%)**, every envelope stays within cap, and canonical hashes remain unchanged (`PHASE67_REVIEW4_SEMANTIC_DELIVERY_PAGINATION.json`). Requests never branch on answer keys. The first delivery-script setup failure is preserved separately; it made no search calls.
+
+The exact installed wheel plus its optional semantic extra passed real stdio search/content, minimal-schema, metadata, provenance and cap checks (`PHASE67_REVIEW4_SEMANTIC_INSTALLED_FIRST.json`); default-off installed-wheel preset smoke passed **28/28**. Initial L2 full verification passed **738 backend tests**, frontend checks and **17 browser tests**. The L2 full Librarian run passed **2,196**, with 2 skipped and 5 deselected. After pagination, full backend verification had **738 passed / 1 failed**: the existing real-ToolSet cold directed-latency check measured **3.368 s** against 3.0 s while other local QA was running. That first failure is retained; a controlled isolated recheck and then a full verification are required, without relaxing the threshold.
+
+### Step 4 verification closed
+
+The isolated cold directed check passed without changing the 3 s threshold. The controlled full pagination candidate passed **739 backend tests**, frontend typecheck/build/unit checks and **17 browser tests** (`output/review4-l2-pagination-controlled-full-verify.log`). L2's full Librarian suite passed **2,196 tests**, with 2 skipped and 5 deselected; installed-wheel default-off preset smoke passed **28/28**, and the optional semantic-extra installed-wheel search/content smoke passed. The failed concurrent latency row remains preserved. First-page delivery is still explicitly **21/30**; the bounded two-page result is **27/30**. No answer-quality claim is inferred from either.
+
+Step 5 begins with seven failing generic agent-recovery oracles on the isolated Librarian feature branch (`output/review4-agent-recovery-red.log`). The agent-side shared ledger, source-open/revision workflows, FP7 integration and first-draft reporting are not implemented yet. No paid A/B, pilot or final cycle has been dispatched.
+

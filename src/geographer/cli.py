@@ -98,6 +98,10 @@ def main():
     graphserver.add_argument('--tools',default=os.environ.get('GEOGRAPHER_TOOLS') or None,
         help="Tool surface: 'all' (default), 'papers', 'code', or comma-separated tool names "
              "(default: $GEOGRAPHER_TOOLS). For hosts that offer an agent only a few tools per turn")
+    graphserver.add_argument('--semantic-model',default=os.environ.get('GEOGRAPHER_SEMANTIC_MODEL') or None,
+        help='Opt-in local encoder, model2vec:absolute-directory or fastembed:model-name@absolute-directory')
+    graphserver.add_argument('--semantic-cache',type=Path,default=os.environ.get('GEOGRAPHER_SEMANTIC_CACHE') or None,
+        help='Prebuilt immutable derived-analysis sidecar; default off, never auto-populated on reads')
     env_cap=os.environ.get('GEOGRAPHER_MAX_RESULT_CHARS','').strip()
     graphserver.add_argument('--max-result-chars',type=int,default=int(env_cap) if env_cap.isdigit() else None,
         help="Fit paper results to a client's size cap (e.g. 7500 for Librarian) by paging whole items, never cutting JSON "
@@ -162,7 +166,13 @@ def main():
             else:
                 from .graph_router import GraphRouter
                 from .graph_server import create_graph_http,create_graph_mcp
-                router=GraphRouter(catalog,allowed=args.allow_graph or env_graphs or None,max_result_chars=args.max_result_chars,tools=args.tools)
+                semantic=None
+                if args.semantic_model or args.semantic_cache:
+                    if not args.semantic_model or not args.semantic_cache:raise ValueError('Supply both --semantic-model and --semantic-cache')
+                    from .semantic import load_encoder
+                    semantic=dict(encoder=load_encoder(args.semantic_model),cache=args.semantic_cache)
+                    if not Path(args.semantic_cache).is_file():raise ValueError('Semantic cache missing; explicitly backfill before serving')
+                router=GraphRouter(catalog,allowed=args.allow_graph or env_graphs or None,max_result_chars=args.max_result_chars,tools=args.tools,semantic=semantic)
                 try:
                     if args.transport=='stdio':create_graph_mcp(router,port=args.port).run(transport='stdio')
                     else:

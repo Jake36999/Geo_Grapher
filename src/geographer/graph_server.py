@@ -48,6 +48,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
         instructions='Discover list_graphs first and prefer graph labels such as librarian-v2 instead of copying long IDs. Code tools accept minimal flat arguments: search_entities(graph_id,query), '
             'get_entity_content(graph_id,entity_id), get_architecture_context(graph_id,focus_id). '
             "Pass the user's question (or its key sentence) verbatim as query; add identifier guesses in also (at most two). "
+            'If search returns next_offset, repeat that query with offset=next_offset to reach omitted ranked hits. '
             'Use entities[].entity_id and cite_as exactly as returned. Snapshot, budget and protocol defaults are filled server-side. '
             'The strict {graph_id,request} form remains available for programmatic clients; do not mix forms. '
             'Cite paper documents by their cite_as handle (graph-label/doc:N), never by position or a renumbered ID. '
@@ -72,7 +73,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
         from .server import TOOL_GUIDANCE
         tools=[types.Tool(name=op,description='Minimal flat arguments; protocol defaults are server-owned. '
             'Search returns entities[].entity_id and cite_as for content/context calls. '+
-            ("Pass the user's question (or its key sentence) verbatim as query; add identifier guesses in also (at most two). " if op=='search_entities' else '')+TOOL_GUIDANCE[op],
+            ("Pass the user's question (or its key sentence) verbatim as query; add identifier guesses in also (at most two). Repeat with offset=next_offset to page omitted hits. " if op=='search_entities' else '')+TOOL_GUIDANCE[op],
             inputSchema=flat_schemas[op],outputSchema={'type':'object'},annotations=types.ToolAnnotations(readOnlyHint=True)) for op in sorted(CODE_OPERATIONS-{'viewport_frame'})]
         try:
             from pipeline import mcp_doc_graph as paper
@@ -125,7 +126,9 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
                     result=await anyio.to_thread.run_sync(router.query,arguments.get('graph_id'),name,arguments['request'])
                 else:
                     jsonschema.validate(arguments,flat_schemas[name])
-                    result=await anyio.to_thread.run_sync(agent_requests.call_code_connection,router,name,arguments,mcp._mcp_server.request_context.session)
+                    context=mcp._mcp_server.request_context
+                    metadata=context.meta.model_dump() if context.meta is not None else {}
+                    result=await anyio.to_thread.run_sync(agent_requests.call_code_connection,router,name,arguments,context.session,metadata)
                 result=agent_requests.enforce_cap(router,name,result)
                 failed='error' in result or 'error' in result.get('result',{})
                 return types.CallToolResult(content=[],structuredContent=result,isError=failed)

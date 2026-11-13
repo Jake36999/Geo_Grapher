@@ -21,14 +21,17 @@ def enforce_cap(router,op,result):
     out['error']['code']='BUDGET_TOO_SMALL'
     return out
 
-def call_code_connection(router,op,args,connection):
+def call_code_connection(router,op,args,connection,metadata=None):
     with router.catalog.lock:
         sessions=getattr(router,'agent_sessions',None)
         if sessions is None:sessions=router.agent_sessions=WeakKeyDictionary()
         identity=sessions.setdefault(connection,object())
     token=ALIAS_CONNECTION.set(identity)
+    from .search_recovery import META
+    recovery_token=META.set((metadata or {}).get('geographer/recovery'))
     try:return call_code(router,op,args)
-    finally:ALIAS_CONNECTION.reset(token)
+    finally:
+        ALIAS_CONNECTION.reset(token);META.reset(recovery_token)
 
 
 def schemas(single=False):
@@ -36,7 +39,7 @@ def schemas(single=False):
     common={'graph_id':{'type':'string','description':'Prefer the graph label from list_graphs, e.g. librarian-v2.'},'profile':{'enum':list(PROFILE_CEILINGS)},'limit_tokens':{'type':'integer','minimum':256},
             'alias_scope':string,'cursor':string}
     fields={
-        'search_entities':({'query':string,'also':{'type':'array','items':{'type':'string','minLength':1},'maxItems':2},'kinds':{'type':'array','items':string},'limit':{'type':'integer','minimum':1,'maximum':50}},['query']),
+        'search_entities':({'query':string,'also':{'type':'array','items':{'type':'string','minLength':1},'maxItems':2},'offset':{'type':'integer','minimum':0,'maximum':200},'kinds':{'type':'array','items':string},'limit':{'type':'integer','minimum':1,'maximum':50}},['query']),
         'get_entity_content':({'entity_id':string,'start_line':{'type':'integer','minimum':1},'end_line':{'type':'integer','minimum':1}},['entity_id']),
         'get_architecture_context':({'focus_id':string,'radius':{'type':'integer','minimum':0,'maximum':2},'pins':{'type':'array','items':string},
             'qi':{'type':'boolean'},'algorithm':{'enum':['helper_tree_balls_v1','directed-helper-condensation-v1']}},['focus_id']),
@@ -76,6 +79,7 @@ def error(op,exc):
     out=dict(error=dict(code='INVALID_GRAPH_REQUEST',field=field,message=text[:400],example=ex))
     if op in {'search_entities','get_entity_content'}:out.update(coverage=[],coverage_truncated=False)
     if hasattr(exc,'choices'):out['error']['choices']=exc.choices
+    if hasattr(exc,'recoveries'):out['recoveries']=exc.recoveries
     return out
 
 
@@ -127,7 +131,8 @@ def unknown_entity(router,gid,graph,g,key,value):
     if bounded:
         exc.choices=bounded
         exc.example={'graph_id':graph['label'],key:bounded[0]['entity_id']}
-    return exc
+    from .search_recovery import id_advice
+    return id_advice(router,ALIAS_CONNECTION.get(),gid,graph['snapshot_id'],exc,value)
 
 
 def canonical_flat(router,gid,graph,out,remember=False):
@@ -238,10 +243,20 @@ def call_code(router,op,args):
             if op=='search_entities':
                 if search_materialized is None:
                     search_materialized=router.query(gid,op,request)
-                    from .search_fusion import queries,fuse,observation
+                    from .search_fusion import queries,rank_queries,observation
                     query_texts=queries(args['query'],args.get('also',[]))
                     ctx=svc._context(sid)
-                    if len(query_texts)>1:
+                    semantic_config=getattr(router,'semantic_config',None)
+                    semantic_index=None
+                    if semantic_config is not None:
+                        from .semantic import SemanticCache
+                        cache_key=(str(semantic_config['cache']),semantic_config['encoder'].fingerprint)
+                        cached=ctx.get('semantic_cache')
+                        if cached is None or cached[0]!=cache_key:
+                            ctx['semantic_cache']=(cache_key,SemanticCache.load(semantic_config['cache'],g,sid,semantic_config['encoder']))
+                        semantic_index=ctx['semantic_cache'][1]
+                    from .search_recovery import META
+                    if len(query_texts)>1 or semantic_index is not None or META.get() is not None or 'offset' in args:
                         # The strict engine still validates scope and builds the
                         # envelope. Rank complete bounded pools before packing
                         # the flat canonical projection, never capped wire pages.
@@ -249,15 +264,26 @@ def call_code(router,op,args):
                             raise ValueError('Search materialisation failed')
                         from .retrieval import LexicalIndex
                         if 'lexical_index' not in ctx:ctx['lexical_index']=LexicalIndex(g)
-                        pool=fuse([ctx['lexical_index'].search(text,kinds=args.get('kinds',[]),limit=200) for text in query_texts])
-                        selected=pool[:request['limit']]
+                        from .search_recovery import search
+                        ranked,recovery_receipt=search(router,ALIAS_CONNECTION.get(),ctx['lexical_index'],query_texts,descriptions,
+                            kinds=args.get('kinds',[]),semantic=semantic_index)
+                        search_materialized.update(recovery_receipt)
+                        pool=ranked['hits'][:200]
+                        offset=args.get('offset',0)
+                        selected=pool[offset:offset+request['limit']]
                         d=search_materialized['result']['data']
+                        d['candidate_count']=len(pool);d['offset']=offset
                         d['hits']=selected;d['ids']={}
                         d['nodes']=[]
                         for h in selected:
                             node=svc._node(ctx,h['node_id'])
                             node['summary']=g.analyses.get('declaration:'+h['node_id'],{}).get('result',{})
                             d['nodes'].append(node)
+                        if semantic_index is not None:
+                            lex={h['node_id'] for h in ranked['lexical_hits'][:8]};sem={h['node_id'] for h in ranked['semantic_hits'][:8]}
+                            lexical_observation=observation(ranked['lexical_hits'],args['query'],descriptions)
+                            d['semantic']=dict(namespace=semantic_index.namespace,top8_overlap=len(lex&sem),
+                                top8_disagree=lex!=sem,lexical_confidence=lexical_observation['confidence'],lexical_low_confidence=lexical_observation['low_confidence'])
                     d=search_materialized.get('result',{}).get('data',{})
                     # IDs are aliases on the strict single-query path.
                     canonical_hits=[{**h,'node_id':d.get('ids',{}).get(h['node_id'],h['node_id'])} for h in d.get('hits',[])]
@@ -286,7 +312,7 @@ def call_code(router,op,args):
                 for node in data['nodes']:
                     if node['entity_id'] in hits:
                         node['summary']=descriptions.card(node['entity_id'],args['query'],node.get('summary',{}),hits[node['entity_id']])
-                data['hits']=[{k:v for k,v in hit.items() if k in {'entity_id','score'}} for hit in data['hits']]
+                data['hits']=[{k:v for k,v in hit.items() if k in {'entity_id','score','match'}} for hit in data['hits']]
                 data.pop('coverage',None)
                 for key in ('view_id','relationships','witnesses','evidence_handles'):
                     if not data.get(key):data.pop(key,None)
@@ -295,6 +321,12 @@ def call_code(router,op,args):
                 if search_count<search_total:
                     data['completeness']['truncated']=True
                     out['search_hits_omitted']=search_total-search_count
+                offset=args.get('offset',0)
+                remaining=data.get('candidate_count',offset+search_total)-offset-search_count
+                if remaining>0:
+                    out['next_offset']=offset+search_count
+                    out['search_hits_omitted']=remaining
+                    data['completeness']['truncated']=True
             elif op=='get_entity_content':
                 if omit_content_summary:
                     for node in data.get('nodes',[]):
@@ -309,6 +341,9 @@ def call_code(router,op,args):
             if op in {'search_entities','get_entity_content'}:
                 from .agent_coverage import coverage_metadata
                 out.update(coverage_metadata(op,out['result']['data'],coverage_range))
+            if op=='get_entity_content':
+                from .search_recovery import id_success
+                out.update(id_success(router,ALIAS_CONNECTION.get(),gid,sid,eid))
             out['routing_budget']['limit_tokens']=limit
             for _ in range(12):
                 n=counter.count(out)

@@ -58,10 +58,11 @@ def _add_citation_handles(node,label):
 
 
 class GraphRouter:
-    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None):
+    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None,semantic=None):
         self.catalog=catalog;self.services=OrderedDict();self.lock=threading.RLock();self.cond=threading.Condition(self.lock)
         self.leases=Counter();self.retired=set();self.borrowed=set();self.deleting=set()
         self.offered_tools=offered_tools(tools)
+        self.semantic_config=semantic
         if max_result_chars is not None and (type(max_result_chars) is not int or max_result_chars<1000):
             raise ValueError('max_result_chars must be an integer of at least 1000')
         self.max_result_chars=max_result_chars

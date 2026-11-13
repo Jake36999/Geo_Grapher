@@ -39,6 +39,26 @@ def queries(query,also=()):
     return list(dict.fromkeys([query,*also]))
 
 
+def rank_queries(index,texts,*,semantic=None,kinds=()):
+    """The same bounded product ranking is used by the front door and replay."""
+    lexical=[];vectors=[];channels=[]
+    for text in texts:
+        hits=index.search(text,kinds=kinds,limit=200)
+        lexical.append(hits)
+        if semantic is None:channels.append(hits)
+        else:
+            candidates=semantic.search(text,kinds=kinds,limit=200)
+            vectors.append(candidates);channels.append(fuse([hits,candidates]))
+    ranked=fuse(channels)
+    if semantic is not None:
+        lex_ids={h['node_id'] for hits in lexical for h in hits}
+        sem_ids={h['node_id'] for hits in vectors for h in hits}
+        for h in ranked:
+            eid=h['node_id'];h['match']='both' if eid in lex_ids and eid in sem_ids else 'lexical' if eid in lex_ids else 'semantic'
+    return dict(hits=ranked,lexical_hits=fuse(lexical),semantic_hits=fuse(vectors) if vectors else [],
+        semantic_enabled=semantic is not None,query_count=len(texts))
+
+
 def observation(hits,question,descriptions,*,query=None):
     words=content_words(question)
     top=hits[:3]
