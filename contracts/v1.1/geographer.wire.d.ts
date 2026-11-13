@@ -432,6 +432,7 @@ export type FindSimilarCodeResponse = Response<FindSimilarCodeData>;
 
 export type Vec3 = [number, number, number];
 export interface ViewportFrameRequest extends BaseRequest {
+  qi?: { enabled: boolean; max_diameter: number; algorithm?: 'helper_tree_balls_v1' | 'directed-helper-condensation-v1' };
   model_digest?: Digest | null;
   grouping: Grouping;
   focus_id: Id;
@@ -449,6 +450,7 @@ export interface ViewportFrameRequest extends BaseRequest {
   camera: { eye: Vec3; target: Vec3; up: Vec3; fov_y_degrees: number; near: number; far: number };
 }
 export interface ViewportFrameData extends GraphPayload {
+  qi?: QIReport;
   layout_version: 'sphere-pack-v1' | 'sphere-affinity-v1';
   partition_digest: Digest;
   spheres: { node_id: Id; center: Vec3; radius: number; role: 'representative' | 'context_shell' }[];

@@ -32,18 +32,62 @@ async function menu(page){
  if(!await m.evaluate(e=>e.open))await m.locator(':scope > summary').click();
  return m;
 }
+async function selectGraphs(page,labels){
+ const m=await menu(page),group=page.getByRole('group',{name:'Graphs to display'});
+ for(const label of labels)await group.getByRole('checkbox',{name:label,exact:true}).check();
+ for(const row of await group.locator('.workspace-graph-choice').all()){
+  const label=(await row.locator('label').innerText()).trim();
+  if(!labels.includes(label))await row.getByRole('checkbox').uncheck();
+ }
+ await expect(m.locator(':scope > summary')).toHaveText(`Graphs (${labels.length})`);
+ return m;
+}
+async function only(page,label){
+ const m=await selectGraphs(page,[label]);await m.locator(':scope > summary').click();
+}
 test('real ToolSet spatial view exposes directed QI and renders QI groups',async({page})=>{
  await open(page);
- // An API-only certificate cannot satisfy this visible user workflow.
- const control=page.getByRole('combobox',{name:/QI algorithm|directed QI/i});
- await expect(control).toBeVisible();
+ await only(page,'ToolSet');
+ const control=page.getByRole('combobox',{name:'QI algorithm'});
+ await expect(control).toBeDisabled();
+ await expect(page.getByText('Requires atomic grouping and exact static relationships.')).toBeVisible();
+ const when=predicate=>page.waitForResponse(r=>r.url().endsWith('/viewport/frame')&&r.request().method()==='POST'&&predicate(r.request().postDataJSON()));
+ const atomic=when(q=>q.grouping?.mode==='atomic'&&!q.qi?.enabled);
+ await page.getByLabel('Abstraction grouping').selectOption('atomic');
+ const original=(await(await atomic).json()).data.partition_digest;
+ await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
+ await expect(control).toBeEnabled();
+ const directed=when(q=>q.qi?.enabled&&q.qi.algorithm==='directed-helper-condensation-v1');
  await control.selectOption('directed-helper-condensation-v1');
- await expect(page.locator('[data-qi-group]')).not.toHaveCount(0);
+ const data=(await(await directed).json()).data;
+ expect(data.qi.directed_reachability_preserved).toBe(true);expect(data.qi.group_count).toBeGreaterThan(1);
+ await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
+ await expect(page.getByTestId('qi-certificate')).toContainText('reachability preserved (existential)');
+ await expect.poll(async()=>Number(await page.getByTestId('spatial-scene').getAttribute('data-qi-group-count'))).toBeGreaterThan(1);
+ await page.screenshot({path:process.env.QA_REAL_SCREENSHOT||'output/qa-real/review2-directed-visible.png'});
+ await page.locator('.qi-blocks > summary').click();
+ const button=page.locator('[data-qi-group]').first();await expect(button).toBeVisible();
+ const old=await button.getAttribute('data-qi-group');const expanded=when(q=>q.qi?.enabled&&q.pins.length>0);
+ await button.click();expect((await expanded).ok()).toBe(true);
+ await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
+ expect(await page.locator('[data-qi-group]').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-qi-group')))).not.toContain(old);
+ const off=when(q=>!q.qi?.enabled);await control.selectOption('off');
+ expect((await(await off).json()).data.partition_digest).toBe(original);
+ await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
+ await expect(page.getByTestId('spatial-scene')).toHaveAttribute('data-qi-group-count','0');
+ const helpers=when(q=>q.qi?.enabled&&q.qi.algorithm==='helper_tree_balls_v1');
+ await control.selectOption('helper_tree_balls_v1');expect((await(await helpers).json()).data.qi.mode).toBe('helper_tree_balls_v1');
+ await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
+ await expect(page.getByTestId('qi-certificate')).toContainText('undirected hop bound');
+ await control.selectOption('off');
 });
 test('real ToolSet box selection prunes a copy and preserves source snapshot',async({page,request})=>{
  test.setTimeout(180000);
  const g=await open(page);
+ await only(page,'ToolSet');
+ const wider=page.waitForResponse(r=>r.url().endsWith('/viewport/frame')&&r.request().method()==='POST'&&r.request().postDataJSON().context_radius===2);
  await page.getByRole('button',{name:'Wider',exact:true}).click();
+ expect((await wider).ok()).toBe(true);
  await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false');
  await expect(page.locator('.filter-count')).toHaveText(/[1-9]\d* groups/);
  await page.getByRole('button',{name:'Box select',exact:true}).click();
@@ -53,6 +97,7 @@ test('real ToolSet box selection prunes a copy and preserves source snapshot',as
  await page.mouse.move(box.x+box.width-12,box.y+box.height-48,{steps:12});await page.mouse.up();
  await page.getByRole('button',{name:/Prune selection/}).click();
  await page.getByRole('textbox',{name:'New graph label'}).fill('qa-real-pruned');
+ await expect(page.getByRole('button',{name:'Create pruned graph',exact:true})).toBeEnabled();
  const created=page.waitForResponse(r=>r.url().endsWith('/prune')&&r.request().method()==='POST',{timeout:90000});
  await page.getByRole('button',{name:'Create pruned graph',exact:true}).click();
  const response=await created;expect(response.ok(),await response.text()).toBe(true);
@@ -64,11 +109,9 @@ test('real ToolSet box selection prunes a copy and preserves source snapshot',as
 test('real code pair bridge review decides one candidate',async({page})=>{
  test.setTimeout(180000);
  await open(page,'librarian-v2');
- await menu(page);
- const group=page.getByRole('group',{name:'Graphs to display'});
  // The related real Librarian worktree supplies actual overlapping code;
  // unrelated ToolSet/Librarian snapshots need not yield bridge candidates.
- for(const g of baseline)await group.getByRole('checkbox',{name:g.label,exact:true}).setChecked(['librarian-v2','librarian-survey-worktree'].includes(g.label));
+ await selectGraphs(page,['librarian-v2','librarian-survey-worktree']);
  await expect(page.locator('.workspace-graph-picker > summary')).toHaveText('Graphs (2)');
  const panel=page.locator('.bridge-review');
  if(!await panel.evaluate(e=>e.open))await panel.locator(':scope > summary').click();

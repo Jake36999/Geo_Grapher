@@ -68,6 +68,7 @@ def compose_frame(router, requests):
                     camera=dict(eye=[0,0,100],target=[0,0,0],up=[0,1,0],fov_y_degrees=45,near=.01,far=10000))
                 if request.get('grouping'):
                     q.update(schema_version='1.1',layout_version='sphere-affinity-v1',identity_mode='canonical_map',grouping=request['grouping'],model_digest=request.get('model_digest'))
+                    if request.get('qi'):q['qi']=deepcopy(request['qi'])
                 q['revealed_ids']=request.get('revealed_ids',[]);q['pins']=request.get('pins',[])
                 result=service.query('viewport_frame',q)
             if 'error' in result:raise ValueError(result['error'].get('message','Frame unavailable'))
