@@ -71,6 +71,11 @@ def call_record(name,arguments,result):
             clipped=True;continue
         if len(coverage)==16:clipped=True;break
         coverage.append({k:row[k] for k in ('entity_id','start_line','end_line','truncated','sha256')})
+        source=row.get('source')
+        if isinstance(source,dict):
+            if all(isinstance(source.get(k),str) and len(source[k])<=512 for k in ('repo_id','revision','rel_path')):
+                coverage[-1]['source']={k:source[k] for k in ('repo_id','revision','rel_path')}
+            else:clipped=True
     return dict(tool=name,arguments=json.dumps(arguments,ensure_ascii=False,default=str)[:600],
                 error_code=code[:100],error_message=message[:300],success=not failed,
                 coverage=coverage,coverage_truncated=clipped)
@@ -127,7 +132,7 @@ class Harness:
 
     def __init__(self, catalog: Path, workdir: Path, scoping: str = "open", launch: str = "source",
                  bundles: bool = False, context_tokens: int | None = None, preset: str = 'papers',
-                 graph_label: str = 'librarian-v2', wheel: Path | None = None):
+                 graph_label: str = 'librarian-v2', wheel: Path | None = None, self_check: bool | None = None):
         from resource_librarian.mcp_client import external_result_limit
         if context_tokens is not None and (type(context_tokens) is not int or context_tokens < 1024):
             raise ValueError('context_tokens must be at least 1024')
@@ -135,6 +140,7 @@ class Harness:
         self.route_policy = {} if context_tokens is None else {'context_tokens':context_tokens}
         self.preset = preset
         self.graph_label = graph_label
+        self.self_check = self_check
         self.limit_chars = external_result_limit(context_tokens)
         server_cap = str(self.limit_chars - 500)
         init(workdir / "vault", name="Geo-Grapher harness")
@@ -225,6 +231,13 @@ class Harness:
             loop.only = frozenset(self.tools[server or next(iter(self.tools))][t] for t in selected
                                   if t in self.tools[server or next(iter(self.tools))])
         loop.context_limit = self.route_policy.get('context_tokens',0)
+        if self.preset!='papers':
+            from resource_librarian.agent_runtime import AgentProfile, DEFAULT_PROFILES
+            values=DEFAULT_PROFILES['code-research'].public()
+            values['route_policy']=dict(values['route_policy'])
+            if self.self_check is not None:values['route_policy']['answer_self_check']=self.self_check
+            loop.configure_profile(AgentProfile(**values).validate())
+            loop.ctx.extras['agent_profile']='code-research'
         hidden = self._only_server(server or next(iter(self.tools))) if self.bundles else []
         try:
             offered = sorted(t.name for t in loop.tools() if t.name.startswith("mcp__"))
@@ -269,6 +282,9 @@ class Harness:
         from collections import Counter
         reasons=Counter((c['error_code']+': '+c['error_message']) for c in per_call if not c['success'])
         return dict(answer=(turn.reply or "").strip(), steps=turn.steps, stopped=turn.stopped,
+                    production_profile=loop.profile_id,temperature=loop.profile_temperature,
+                    self_check_rejected=sum(e.get('type')=='answer_self_check' and e.get('reason')=='unsupported_citation' for e in events),
+                    self_check_calls=sum(e.get('type')=='answer_self_check' and e.get('attempted',False) for e in events),
                     completed_at_step_limit=turn.completed_at_step_limit,
                     per_call=per_call,top_error_reasons=[dict(reason=k,count=v) for k,v in reasons.most_common(5)],
                     failure_category=turn.failure_category, error=turn.error[:300],
@@ -336,6 +352,34 @@ def bench(h: Harness, model: str, out: Path, resume: bool = False) -> None:
           f"{sum(r['wrong_graph_calls'] for r in results)}; withheld {sum(r['withheld_oversize'] for r in results)}")
 
 
+def question_batch(args, out: Path) -> None:
+    """Collect a blind question batch; never read an answer key or print answers."""
+    if out.exists() or args.resume:raise SystemExit('Preserve the first blind batch; no replacement or resume')
+    questions=json.loads(args.question_file.read_text(encoding='utf-8'))
+    if len(questions)!=25 or len({q['id'] for q in questions})!=25:raise SystemExit('Expected the sealed 25-question set')
+    provider=provider_for(args.model);results=[];current=None;h=None
+    workflow='Discover list_graphs, then use graph-local search and source content; cite returned handles exactly.'
+    with tempfile.TemporaryDirectory(prefix='geo-quality-blind-') as tmp:
+        try:
+            for index,q in enumerate(questions,1):
+                if q['graph']!=current:
+                    if h is not None:h.close();h=None
+                    h=Harness(args.catalog.resolve(),Path(tmp)/f'block-{index}',args.scoping,args.launch,
+                              args.bundles=='on',args.context_tokens,args.preset,q['graph'],args.wheel)
+                    current=q['graph']
+                target_id=next(gid for gid,label in h.labels.items() if label==current)
+                result=h.run(provider,f"Graph: '{current}'. {workflow}\n\nQuestion: {q['question']}",server=h.server_for(None))
+                result.pop('tool_text')
+                result.update(question_id=q['id'],question=q['question'],graph=current,model=args.model,
+                              wrong_graph_calls=sum(g!=target_id for g in result['graphs_called']),
+                              benchmark='sealed-heldout',context_tokens=h.context_tokens,preset=h.preset)
+                results.append(result)
+                out.write_text(json.dumps(results,indent=2,ensure_ascii=False),encoding='utf-8')
+                print(json.dumps(dict(collected=index,total=25,question_id=q['id'])),flush=True)
+        finally:
+            if h is not None:h.close()
+
+
 def run_probes(h: Harness, model: str, out: Path, only: str | None, resume: bool = False) -> None:
     provider = provider_for(model)
     chosen = [p for p in probes.PROBES if not only or p["kind"] in only.split(",")]
@@ -388,6 +432,8 @@ def main() -> None:
     parser.add_argument('--graph-label',default='librarian-v2',help='Code benchmark graph; code facts have their own denominator')
     parser.add_argument('--wheel',type=Path,help='Exact local wheel for uvx verification, avoiding a stale same-version cached build')
     parser.add_argument('--resume',action='store_true',help='Keep completed first attempts and continue an interrupted benchmark/probe file')
+    parser.add_argument('--question-file',type=Path,help='Sealed blind questions only; no answer key is accepted')
+    parser.add_argument('--self-check',choices=['on','off'],help='Diagnostic A/B only; omitted uses production policy')
     parser.add_argument("--out", type=Path)
     parser.add_argument("--only", help="comma-separated probe kinds")
     parser.add_argument("--scoping", choices=["open", "library"], default="open",
@@ -401,8 +447,13 @@ def main() -> None:
         load_key()
     out = args.out or ROOT / "output" / "librarian" / f"{args.mode}-{args.scoping}-{args.model.split('/')[-1]}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
+    if args.question_file:
+        if args.mode!='bench' or args.preset!='lead' or args.scoping!='library':raise SystemExit('Blind cycle requires the registered library-scoped lead preset')
+        question_batch(args,out)
+        return
     with tempfile.TemporaryDirectory(prefix="geo-librarian-") as tmp:
-        h = Harness(args.catalog.resolve(), Path(tmp), args.scoping, args.launch, args.bundles == "on",args.context_tokens,args.preset,args.graph_label,args.wheel)
+        h = Harness(args.catalog.resolve(), Path(tmp), args.scoping, args.launch, args.bundles == "on",args.context_tokens,args.preset,args.graph_label,args.wheel,
+                    None if args.self_check is None else args.self_check=='on')
         try:
             if args.mode == "smoke":
                 smoke(h)
