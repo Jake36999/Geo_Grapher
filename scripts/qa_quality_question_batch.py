@@ -12,8 +12,9 @@ import librarian_harness as h
 def main():
     opened=[];closed=[];seen=[]
     class FakeHarness:
-        def __init__(self,catalog,workdir,scoping,launch,bundles,context,preset,label,wheel):
+        def __init__(self,catalog,workdir,scoping,launch,bundles,context,preset,label,wheel,self_check=None):
             assert scoping=='library' and preset=='lead' and context==1048576
+            assert self_check is True  # The batch A/B ON arm must reach every Loop.
             self.label=label;self.labels={'fixture-'+label:label};self.context_tokens=context;self.preset=preset
             opened.append((str(workdir),label))
         def close(self):closed.append(self.label)
@@ -28,7 +29,7 @@ def main():
         questions.write_text(json.dumps([dict(id=f'fixture-{i}',graph='librarian-v2' if i%2==0 else 'ToolSet',
             question=f'Which fixture implementation defines operation number {i}? Cite the source.') for i in range(25)]))
         args=argparse.Namespace(question_file=questions,resume=False,model='offline',catalog=root/'catalog.sqlite',
-            scoping='library',launch='uvx',bundles='off',context_tokens=1048576,preset='lead',wheel=root/'wheel.whl')
+            scoping='library',launch='uvx',bundles='off',context_tokens=1048576,preset='lead',wheel=root/'wheel.whl',self_check='on')
         h.question_batch(args,out)
         rows=json.loads(out.read_text())
         assert len(rows)==len(seen)==len(opened)==len(closed)==25

@@ -19,3 +19,13 @@ Order remains: free measurement fixes; blind reviewed v2 seal; offline tooling a
 - `review4-preflight-single-first.log` and `review4-preflight-batch-first.log`: actual installed-wheel list/search/source calls through Loop/Registry and the batch path pass, including graph switching across librarian-v2 and ToolSet. All scripted provider calls use 0.2; zero paid calls.
 
 Preflight receipts remain under `output/phase67-gates/review4/preflights/`. Source/schema/runtime/wheel and question-file hashes invalidate tickets when changed. Each future paid candidate must run again through this free gate. No product source has changed at this point.
+
+## Step 2 — held-out v2 sealed before product work
+
+`PHASE67_HELDOUT_V2_SEAL.json`, SHA256 **`ccb0e6c0ea8380a68e94e9f8571339143572243f7a2b872289e020e33145f02d`**, seals **25** reviewed items. The audit confirms **25/25** two-reviewer approvals, meaningful own documentation, validated question wording and baseline top-20 identifiability; **zero overlap** with v1 entities/support and zero overlap with nine checked original-development/application entities. The lead has not opened v2 questions, keys or selected identities. The rules retain 10 constants, 10 functions, five behaviours; graph balance is 14 Librarian / 11 ToolSet after the disclosed pre-generation quota adjustment.
+
+`PHASE67_HELDOUT_V2_CONSTRUCTION.md` records all rejected and regenerated attempts, output-budget and format failures, key-rule repairs, provenance and construction allocation. JSON container recovery preserves exact id/question strings, rather than discarding repeated keys or rewriting wording. Every accepted item must still pass both reviewers. Static adjacency alone and incidental rule-ID mentions are not sufficient equivalence evidence.
+
+The accepted set passed `audit_heldout_v2.py`: all private artifact hashes match and both product source trees retain SHA256 **`60596057669e6f80bc6534116a5aea3ab0f849d431e906c245891293dca7ee99`** from before construction. No product source changed. Twelve measurement/eligibility/container/dispatch fixtures pass (`review4-measurement-seal-tests.log`). All raw construction attempts and rejected-item decisions remain under the private `review4/heldout-v2` directory.
+
+The refined cost design is `RECOVERY_DESIGN.md`: shared deterministic search/source remedies, at most three executable recovery steps, and at most two additional paid calls (one shared revision and one step-limit synthesis). The revised estimate with a $0.35 construction allowance is **$6.26253291**, inside the owner-approved $6.50 cap. Proving that model-call bound is a precondition for agent paid dispatch; the $2 reserve and lifetime spendable ledger ceiling are unchanged.

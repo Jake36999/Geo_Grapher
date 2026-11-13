@@ -3,7 +3,8 @@ from collections import Counter
 import re
 
 SEED=20261114
-QUOTAS={('constants','librarian-v2'):5,('constants','ToolSet'):5,
+REVISION=2
+QUOTAS={('constants','librarian-v2'):6,('constants','ToolSet'):4,
         ('functions','librarian-v2'):5,('functions','ToolSet'):5,
         ('behaviors','librarian-v2'):3,('behaviors','ToolSet'):2}
 
@@ -37,3 +38,15 @@ def validate_question(item,question):
 def review_approved(review):
     return (isinstance(review,dict) and review.get('accept') is True and
             all(review.get(k) is True for k in ('grammatical','own_documentation','unambiguous_top20','equivalence_correct')))
+
+def partner_documented(documentation,qualified_name):
+    short=qualified_name.rsplit('.',1)[-1]
+    return bool(re.search(r'(?:alias(?:es)?|delegates?\s+to|implemented\s+by|applied\s+(?:by|in)|used\s+(?:by|in))[^.\n]{0,120}(?<!\w)'+re.escape(short)+r'(?!\w)',documentation,re.I))
+
+def supported_equivalence(item):
+    return all(partner_documented(item['documentation'],m['qualified_name']) for m in item['equivalence_members'] if m['entity_id']!=item['entity_id'])
+
+def defined_rule_id(documentation,category):
+    if category=='constants':return None
+    match=re.match(r'\s*(R\d{3,4})\s*[:\u2013-]',documentation)
+    return match.group(1) if match else None

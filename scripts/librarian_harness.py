@@ -294,6 +294,7 @@ class Harness:
         reasons=Counter((c['error_code']+': '+c['error_message']) for c in per_call if not c['success'])
         return dict(answer=(turn.reply or "").strip(), steps=turn.steps, stopped=turn.stopped,
                     production_profile=loop.profile_id,temperature=loop.profile_temperature,
+                    requested_self_check=self.self_check,
                     self_check_rejected=sum(e.get('type')=='answer_self_check' and e.get('reason')=='unsupported_citation' for e in events),
                     self_check_calls=sum(e.get('type')=='answer_self_check' and e.get('attempted',False) for e in events),
                     completed_at_step_limit=turn.completed_at_step_limit,
@@ -379,7 +380,8 @@ def question_batch(args, out: Path, provider_override=None) -> None:
                 if q['graph']!=current:
                     if h is not None:h.close();h=None
                     h=Harness(args.catalog.resolve(),Path(tmp)/f'block-{index}',args.scoping,args.launch,
-                              args.bundles=='on',args.context_tokens,args.preset,q['graph'],args.wheel)
+                              args.bundles=='on',args.context_tokens,args.preset,q['graph'],args.wheel,
+                              None if args.self_check is None else args.self_check=='on')
                     current=q['graph']
                 target_id=next(gid for gid,label in h.labels.items() if label==current)
                 result=h.run(provider,f"Graph: '{current}'. {workflow}\n\nQuestion: {q['question']}",server=h.server_for(None))

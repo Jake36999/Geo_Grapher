@@ -19,3 +19,12 @@ def test_both_reviewers_must_confirm_all_semantic_properties():
     assert r.review_approved(good)
     assert not r.review_approved({**good,'equivalence_correct':False})
     assert not r.review_approved({'accept':True})
+
+def test_static_adjacency_is_not_inseparability_evidence():
+    assert not r.partner_documented('Controls the upload capacity.','upload.py.send_upload')
+    assert r.partner_documented('This capacity is applied by send_upload before a job is queued.','upload.py.send_upload')
+
+def test_rule_alias_must_be_the_defined_subject_not_an_incidental_reference():
+    assert r.defined_rule_id('R123: validates the deterministic flag.','functions')=='R123'
+    assert r.defined_rule_id('Used when rule R123 needs a default.','functions') is None
+    assert r.defined_rule_id('R123: external policy used here.','constants') is None

@@ -1,0 +1,51 @@
+{
+  "seed": 20261114,
+  "baseline_product_commit": "b6ecf7439c2dbc9a10a3353a988a5a2b2c148acf",
+  "snapshots": {
+    "librarian-v2": "snapshot:1703964f018a8f5981c139069836a87178098924bd94383d5788c083bb89c9bf",
+    "ToolSet": "snapshot:f5029b6bf601fcb2896a3c494e30dc306ced8624436d9334a9f9000931e1abee"
+  },
+  "equivalence_rule": "defining identifier and canonical name; a unique explicitly documented rule ID; application/implementation partners only when an explicit relationship is named in own documentation AND both reviewers accept inseparability; static adjacency alone is insufficient",
+  "eligibility": ">=20 alphabetic words and >=12 distinct words, original doc >=100 chars; no tests/generated/vendor/external; exclude all v1 entities/support/markers and original dev markers",
+  "quotas": {
+    "constants:librarian-v2": 6,
+    "constants:ToolSet": 4,
+    "functions:librarian-v2": 5,
+    "functions:ToolSet": 5,
+    "behaviors:librarian-v2": 3,
+    "behaviors:ToolSet": 2
+  },
+  "count": 25,
+  "files": {
+    "output\\phase67-gates\\review4\\heldout-v2\\questions.sealed.json": "01ca64531f6b6a56ddc8e98c1bcfeb902afa10d242f5f44ac8e4c31b2cfc0ee3",
+    "output\\phase67-gates\\review4\\heldout-v2\\answers.sealed.json": "fd9609562a9c874136e1ef628e005692516879aa7a2b7d233710444da2e56ddd",
+    "output\\phase67-gates\\review4\\heldout-v2\\accepted.private.json": "e0e24535464284d7217f943d46f553f60b12c9663068a0b66bf61e45e52b05eb"
+  },
+  "reviewers": {
+    "A": "XiaomiMiMo/MiMo-V2.6-Pro",
+    "B": "deepseek-ai/DeepSeek-V4.1-Flash"
+  },
+  "receipts": [
+    {
+      "run_id": "20261113T183428-945f66d2",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00036372,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183428-945f66d2-review4-v2-r11-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183435-6cfaae0d",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00217353,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183435-6cfaae0d-review4-v2-r11-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183439-31300ff5",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0004892,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183439-31300ff5-review4-v2-r11-review-b-pending-batch1.receipt.json"
+    }
+  ],
+  "product_changes_before_seal": false,
+  "blindness": "Implementing lead never opens v2 questions/keys/selected entities until final collection completes; author/reviewers alone see their prescribed packets",
+  "sealed_at": "2026-11-13T18:34:41.370914+00:00"
+}
