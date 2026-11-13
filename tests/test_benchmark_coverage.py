@@ -52,3 +52,11 @@ def test_withheld_detection_uses_structured_code_never_source_literals():
     for body in ({'error':{'code':'EXTERNAL_RESULT_TOO_LARGE'}},
                  {'result':{'error':{'code':'EXTERNAL_RESULT_TOO_LARGE'}}}):
         assert record('get_entity_content',{}, {'content':json.dumps(body)})['withheld'] is True
+
+
+def test_per_call_retains_structured_recovery_records_and_argument_truncation():
+    row=dict(pattern='FP1',trigger_value={'top_score':0},action='verbatim_multiquery',outcome='resolved',step_id='search:1')
+    body=dict(recoveries=[row],recovery_pending=[],recovery_steps_consumed=1)
+    saved=recorder()('search_entities',{'query':'x'*5000},{'content':json.dumps(body)})
+    assert saved['recoveries']==[row] and saved['recovery_steps_consumed']==1
+    assert saved['arguments_truncated'] is True

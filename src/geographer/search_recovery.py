@@ -15,6 +15,9 @@ def state_for(router,connection,question):
     if mode not in {'auto','defer','off'} or type(remaining) is not int or not 0<=remaining<=3:
         raise ValueError('Recovery mode/remaining_steps invalid')
     original=meta.get('question',question)
+    used=meta.get('used_patterns',[])
+    if not isinstance(used,list) or len(used)>8 or any(not isinstance(p,str) or p not in {'FP'+str(n) for n in range(1,9)} for p in used):
+        raise ValueError('Invalid recovery used_patterns')
     if not isinstance(original,str) or not original.strip() or len(original)>10000:raise ValueError('Recovery question must contain 1..10000 characters')
     episode=meta.get('episode_id')
     if episode is not None and (not isinstance(episode,str) or not 1<=len(episode)<=100):raise ValueError('Invalid recovery episode_id')
@@ -44,8 +47,9 @@ def search(router,connection,index,texts,descriptions,*,semantic=None,kinds=()):
     triggers={}
     if texts[0].strip()!=question.strip() and obs['low_confidence']:triggers['FP1']=obs['confidence']
     if fp2:triggers['FP2']=dict(lexical_confidence=lexical_obs['confidence'],top8_disagree=True)
+    used=(META.get() or {}).get('used_patterns',[])
     pending=[dict(pattern=p,trigger_value=v,action='verbatim_multiquery' if p=='FP1' else 'local_semantic_fusion')
-        for p,v in triggers.items() if p not in state['records']]
+        for p,v in triggers.items() if p not in state['records'] and p not in used]
     receipt=dict(recoveries=deepcopy(list(state['records'].values())),recovery_steps_consumed=0,recovery_pending=[])
     if mode=='defer':
         ranked['hits']=baseline;receipt['recovery_pending']=pending
@@ -73,6 +77,8 @@ def id_advice(router,connection,gid,sid,exc,value):
     """A candidate menu is an observation, not an extra executable step."""
     state,_,mode,_=state_for(router,connection,value)
     if mode=='off' or not getattr(exc,'choices',None):return exc
+    if 'FP6' in (META.get() or {}).get('used_patterns',[]) and 'FP6' not in state['records']:
+        exc.choices=[];return exc
     if 'FP6' not in state['records']:
         state['records']['FP6']=dict(pattern='FP6',trigger_value={'error_code':'INVALID_GRAPH_REQUEST','candidate_count':len(exc.choices)},
             action='scoped_candidates',outcome='unresolved',step_id='observation:FP6',extra_steps=0)

@@ -83,7 +83,15 @@ def call_record(name,arguments,result):
         if isinstance(eid,str) and eid.startswith('entity:') and len(eid)<=200 and eid not in supplemental:
             if len(supplemental)==16:clipped=True;break
             supplemental.append(eid)
-    return dict(tool=name,arguments=json.dumps(arguments,ensure_ascii=False,default=str)[:600],
+    recoveries=[];raw_recoveries=body.get('recoveries',[]) if isinstance(body,dict) else []
+    for row in raw_recoveries[:8] if isinstance(raw_recoveries,list) else []:
+        if not isinstance(row,dict) or not isinstance(row.get('pattern'),str) or row.get('pattern') not in {'FP'+str(n) for n in range(1,9)}:continue
+        if row.get('outcome') not in {'resolved','unresolved'} or not isinstance(row.get('action'),str) or not isinstance(row.get('trigger_value'),dict):continue
+        if len(json.dumps(row,ensure_ascii=False,default=str))<=2500:recoveries.append(row)
+    encoded_arguments=json.dumps(arguments,ensure_ascii=False,default=str)
+    consumed=body.get('recovery_steps_consumed',0) if isinstance(body,dict) else 0
+    return dict(tool=name,arguments=encoded_arguments[:4096],arguments_truncated=len(encoded_arguments)>4096,
+                recoveries=recoveries,recovery_steps_consumed=consumed if type(consumed) is int and 0<=consumed<=3 else 0,
                 withheld=code=='EXTERNAL_RESULT_TOO_LARGE',
                 error_code=code[:100],error_message=message[:300],success=not failed,
                 coverage=coverage,coverage_truncated=clipped,supplemental_entities=supplemental)
@@ -135,6 +143,13 @@ def load_key() -> None:
     sys.exit(f"DEEPINFRA_API_KEY not found in {ENV_FILE}")
 
 
+def requested_graphs(arguments,labels,pinned):
+    refs=[arguments[key] for key in ('graph_id','paper_graph','code_graph') if isinstance(arguments.get(key),str)]
+    if isinstance(arguments.get('graph_ids'),list):refs.extend(ref for ref in arguments['graph_ids'] if isinstance(ref,str))
+    if not refs and len(pinned)==1:refs=list(pinned)
+    return list(dict.fromkeys(labels.get(ref,ref) for ref in refs))
+
+
 class Harness:
     """`scoping="open"`: one connection that can reach every graph in the catalog.
     `scoping="library"`: one connection per library, pinned with --graph-id to that
@@ -142,7 +157,8 @@ class Harness:
 
     def __init__(self, catalog: Path, workdir: Path, scoping: str = "open", launch: str = "source",
                  bundles: bool = False, context_tokens: int | None = None, preset: str = 'papers',
-                 graph_label: str = 'librarian-v2', wheel: Path | None = None, self_check: bool | None = None):
+                 graph_label: str = 'librarian-v2', wheel: Path | None = None, self_check: bool | None = None,
+                 semantic_model: str | None = None, semantic_cache: Path | None = None, semantic_python: Path | None = None):
         from resource_librarian.mcp_client import external_result_limit
         if context_tokens is not None and (type(context_tokens) is not int or context_tokens < 1024):
             raise ValueError('context_tokens must be at least 1024')
@@ -151,6 +167,7 @@ class Harness:
         self.preset = preset
         self.graph_label = graph_label
         self.self_check = self_check
+        if bool(semantic_model)!=bool(semantic_cache):raise ValueError('Semantic model and cache must be configured together')
         self.limit_chars = external_result_limit(context_tokens)
         server_cap = str(self.limit_chars - 500)
         init(workdir / "vault", name="Geo-Grapher harness")
@@ -171,6 +188,7 @@ class Harness:
             if launch == "uvx":
                 # Exactly the Librarian curated entry: a pinned package, configured by env.
                 source = str(wheel.resolve()) if wheel is not None else f'geo-grapher=={PACKAGE_VERSION}'
+                if semantic_model:source=(str(wheel.resolve())+'[semantic]') if wheel is not None else f'geo-grapher[semantic]=={PACKAGE_VERSION}'
                 definition = {"command": "uvx", "args": ["--from", source, "geographer",
                                                          "serve-graphs", "--transport", "stdio"],
                               "env": {"GEOGRAPHER_CATALOG": str(catalog), "GEOGRAPHER_GRAPHS": ",".join(allowed),
@@ -179,6 +197,9 @@ class Harness:
                                       **({"UV_CACHE_DIR": os.environ["UV_CACHE_DIR"]} if os.environ.get("UV_CACHE_DIR") else {})}}
                 if wheel is not None:
                     definition['args']=['--refresh-package','geo-grapher',*definition['args']]
+                if semantic_model:
+                    definition['args']=['--python',str(semantic_python or Path(sys.executable)),*definition['args']]
+                    definition['env'].update(GEOGRAPHER_SEMANTIC_MODEL=semantic_model,GEOGRAPHER_SEMANTIC_CACHE=str(semantic_cache.resolve()))
                 if not allowed:
                     definition["env"].pop("GEOGRAPHER_GRAPHS")
             else:
@@ -189,6 +210,9 @@ class Harness:
                     args += ["--graph-id", gid]
                 definition = {"command": str(WHEEL_PYTHON), "args": args,
                               "env": {"PYTHONPATH": f"{ROOT / 'src'};{ROOT}"}, "cwd": str(ROOT)}
+                if semantic_model:
+                    definition['command']=str(semantic_python or WHEEL_PYTHON)
+                    definition['env'].update(GEOGRAPHER_SEMANTIC_MODEL=semantic_model,GEOGRAPHER_SEMANTIC_CACHE=str(semantic_cache.resolve()))
             self.manager.set_server(name, definition)
             self.manager.accept(name)
         self.server_graphs = {name: list(allowed) for name, allowed in servers.items()}
@@ -224,7 +248,7 @@ class Harness:
         return REGISTRY.call(self.tools[server or next(iter(self.tools))][tool], arguments,
                              Context(tier="contribute",extras={'external_result_limit':self.limit_chars}))
 
-    def run(self, provider, prompt: str, max_steps: int = 12, server: str | None = None) -> dict:
+    def run(self, provider, prompt: str, max_steps: int = 12, server: str | None = None, research_question: str | None = None) -> dict:
         events: list[dict] = []
         if self.bundles:
             # The app's own path: compact task bundles, inside an explore research
@@ -241,6 +265,7 @@ class Harness:
             loop.only = frozenset(self.tools[server or next(iter(self.tools))][t] for t in selected
                                   if t in self.tools[server or next(iter(self.tools))])
         loop.context_limit = self.route_policy.get('context_tokens',0)
+        if research_question is not None:loop.ctx.extras['research_question']=research_question
         if self.preset!='papers':
             from resource_librarian.agent_runtime import AgentProfile, DEFAULT_PROFILES, ProfileStore
             values=DEFAULT_PROFILES['code-research'].public()
@@ -250,6 +275,7 @@ class Harness:
             loop.ctx.extras['agent_profile']='code-research'
             loop.ctx.extras['profile_store']=ProfileStore(self.vault)
         hidden = self._only_server(server or next(iter(self.tools))) if self.bundles else []
+        self.current_loop=loop
         try:
             offered = sorted(t.name for t in loop.tools() if t.name.startswith("mcp__"))
             start = time.monotonic()
@@ -267,11 +293,9 @@ class Harness:
             if event["type"] == "tool_call":
                 pending_name=event.get('tool') or event.get('name') or ''
                 pending_arguments=event.get('arguments') or {}
-                ref = (event.get("arguments") or {}).get("graph_id")
-                # Mirror the hub: a label is an alias, and a single-graph connection needs no graph_id.
-                pending_graph = ids_by_label.get(ref, ref) if ref else (pinned[0] if len(pinned) == 1 else None)
-                if pending_graph:
-                    graphs_called.append(pending_graph)
+                refs=requested_graphs(event.get('arguments') or {},ids_by_label,pinned)
+                graphs_called.extend(refs)
+                pending_graph=refs[0] if len(refs)==1 else None
             elif event["type"] == "tool_result":
                 result = event.get("result") or {}
                 per_call.append(call_record(event.get('tool') or pending_name,pending_arguments,result))
@@ -295,9 +319,13 @@ class Harness:
         return dict(answer=(turn.reply or "").strip(), steps=turn.steps, stopped=turn.stopped,
                     production_profile=loop.profile_id,temperature=loop.profile_temperature,
                     requested_self_check=self.self_check,
+                    self_check_enabled=loop.profile_answer_self_check,
                     self_check_rejected=sum(e.get('type')=='answer_self_check' and e.get('reason')=='unsupported_citation' for e in events),
                     self_check_calls=sum(e.get('type')=='answer_self_check' and e.get('attempted',False) for e in events),
                     completed_at_step_limit=turn.completed_at_step_limit,
+                    recoveries=turn.recoveries,first_attempt=turn.first_attempt,
+                    recovery_episode_id=turn.recovery_episode_id,
+                    recovery_steps=turn.recovery_steps,recovery_model_calls=turn.recovery_model_calls,
                     per_call=per_call,top_error_reasons=[dict(reason=k,count=v) for k,v in reasons.most_common(5)],
                     failure_category=turn.failure_category, error=turn.error[:300],
                     tool_calls=len(turn.calls), tool_errors=errors, withheld_oversize=withheld, blocked_by_allow_list=blocked,
@@ -332,7 +360,7 @@ def smoke(h: Harness) -> None:
             print(f"{server} -> other graph: {json.loads(refused['content']).get('error', {}).get('message')}")
         body = json.loads(out["content"])
         print(f"{label}: untrusted={out['untrusted']} error={out['is_error']} chars={len(out['content'])} "
-              f"hits={len(body.get('result', {}).get('results', []))} withheld={'EXTERNAL_RESULT_TOO_LARGE' in out['content']}")
+              f"hits={len(body.get('result', {}).get('results', []))} withheld={call_record('paper_search_documents',{},out)['withheld']}")
     print("tools offered:", sorted(h.tools))
 
 
@@ -347,7 +375,7 @@ def bench(h: Harness, model: str, out: Path, resume: bool = False) -> None:
     for question, markers in CODE_BENCH if code else BENCH:
         if any(r['question']==question for r in results):continue
         prompt = f"Graph: '{target}'. {workflow}\n\nQuestion: {question}"
-        r = h.run(provider, prompt, server=h.server_for(None if code else probes.AI))
+        r = h.run(provider, prompt, server=h.server_for(None if code else probes.AI),research_question=question if code else None)
         r.update(question=question, model=model, markers=markers,
                  markers_found=[m for m in markers if m in r["answer"]],
                  wrong_graph_calls=sum(g != target_id for g in r["graphs_called"]),
@@ -381,10 +409,11 @@ def question_batch(args, out: Path, provider_override=None) -> None:
                     if h is not None:h.close();h=None
                     h=Harness(args.catalog.resolve(),Path(tmp)/f'block-{index}',args.scoping,args.launch,
                               args.bundles=='on',args.context_tokens,args.preset,q['graph'],args.wheel,
-                              None if args.self_check is None else args.self_check=='on')
+                              None if args.self_check is None else args.self_check=='on',
+                              **semantic_options(args))
                     current=q['graph']
                 target_id=next(gid for gid,label in h.labels.items() if label==current)
-                result=h.run(provider,f"Graph: '{current}'. {workflow}\n\nQuestion: {q['question']}",server=h.server_for(None))
+                result=h.run(provider,f"Graph: '{current}'. {workflow}\n\nQuestion: {q['question']}",server=h.server_for(None),research_question=q['question'])
                 result.pop('tool_text')
                 result.update(question_id=q['id'],question=q['question'],graph=current,model=args.model,
                               wrong_graph_calls=sum(g!=target_id for g in result['graphs_called']),
@@ -438,6 +467,10 @@ def run_probes(h: Harness, model: str, out: Path, only: str | None, resume: bool
     print(f"  avg tool calls         {sum(r['tool_calls'] for r in results)/n:.1f}")
 
 
+def semantic_options(args):
+    return {key:getattr(args,key) for key in ('semantic_model','semantic_cache','semantic_python') if getattr(args,key,None) is not None}
+
+
 def main() -> None:
     global PAID_PREFLIGHT,PAID_CONFIG
     parser = argparse.ArgumentParser()
@@ -451,6 +484,9 @@ def main() -> None:
     parser.add_argument('--resume',action='store_true',help='Keep completed first attempts and continue an interrupted benchmark/probe file')
     parser.add_argument('--question-file',type=Path,help='Sealed blind questions only; no answer key is accepted')
     parser.add_argument('--self-check',choices=['on','off'],help='Diagnostic A/B only; omitted uses production policy')
+    parser.add_argument('--semantic-model',help='Explicit local-only optional encoder, identical to production server configuration')
+    parser.add_argument('--semantic-cache',type=Path,help='Prebuilt immutable derived-analysis sidecar')
+    parser.add_argument('--semantic-python',type=Path,help='Pin the interpreter used to build the semantic namespace')
     parser.add_argument('--dry-run',action='store_true',help='Execute the mandatory real-tool scripted preflight and stop without loading credentials')
     parser.add_argument("--out", type=Path)
     parser.add_argument("--only", help="comma-separated probe kinds")
@@ -474,7 +510,7 @@ def main() -> None:
         return
     with tempfile.TemporaryDirectory(prefix="geo-librarian-") as tmp:
         h = Harness(args.catalog.resolve(), Path(tmp), args.scoping, args.launch, args.bundles == "on",args.context_tokens,args.preset,args.graph_label,args.wheel,
-                    None if args.self_check is None else args.self_check=='on')
+                    None if args.self_check is None else args.self_check=='on',**semantic_options(args))
         try:
             if args.mode == "smoke":
                 smoke(h)

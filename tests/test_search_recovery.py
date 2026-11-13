@@ -55,3 +55,24 @@ def test_scoped_id_advice_is_logged_and_resolution_uses_a_real_candidate(world):
         assert next(r for r in out['recoveries'] if r['pattern']=='FP6')['outcome']=='resolved'
         assert out['coverage']
     finally:META.reset(token)
+
+
+def test_pattern_used_on_another_server_is_not_run_again(world):
+    token=META.set(dict(episode_id='cross-server',question='upload fallback capacity',mode='auto',remaining_steps=2,used_patterns=['FP1']))
+    try:
+        out=call_code(world[0],'search_entities',dict(graph_id='scent',query='unmatched_xyz'))
+        assert out['recovery_steps_consumed']==0 and out['entities']==[]
+    finally:META.reset(token)
+
+
+def test_recovery_is_still_accounted_when_the_requested_response_budget_cannot_fit(world):
+    import pytest
+    from geographer.agent_requests import call_code_connection,error
+    class Connection:pass
+    connection=Connection()
+    metadata={'geographer/recovery':dict(episode_id='tiny-budget',question='upload fallback capacity',mode='auto',remaining_steps=3)}
+    with pytest.raises(ValueError) as caught:
+        call_code_connection(world[0],'search_entities',dict(graph_id='scent',query='unmatched_xyz',limit_tokens=256),connection,metadata)
+    out=error('search_entities',caught.value)
+    assert out['recoveries'][0]['pattern']=='FP1'
+    assert out['recovery_steps_consumed']==1

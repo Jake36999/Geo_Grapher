@@ -29,7 +29,17 @@ def call_code_connection(router,op,args,connection,metadata=None):
     token=ALIAS_CONNECTION.set(identity)
     from .search_recovery import META
     recovery_token=META.set((metadata or {}).get('geographer/recovery'))
+    recovery_meta=META.get()
+    episode=recovery_meta.get('episode_id') if isinstance(recovery_meta,dict) else None
+    if not isinstance(episode,str):episode=None
+    before=getattr(router,'search_recovery_episodes',{}).get((identity,episode),{}).get('steps',0)
     try:return call_code(router,op,args)
+    except ValueError as exc:
+        state=getattr(router,'search_recovery_episodes',{}).get((identity,episode)) if episode else None
+        if state:
+            exc.recoveries=deepcopy(list(state['records'].values()))
+            exc.recovery_steps_consumed=max(0,state['steps']-before)
+        raise
     finally:
         ALIAS_CONNECTION.reset(token);META.reset(recovery_token)
 
@@ -80,6 +90,7 @@ def error(op,exc):
     if op in {'search_entities','get_entity_content'}:out.update(coverage=[],coverage_truncated=False)
     if hasattr(exc,'choices'):out['error']['choices']=exc.choices
     if hasattr(exc,'recoveries'):out['recoveries']=exc.recoveries
+    if hasattr(exc,'recovery_steps_consumed'):out['recovery_steps_consumed']=exc.recovery_steps_consumed
     return out
 
 

@@ -19,8 +19,9 @@ def main():
             opened.append((str(workdir),label))
         def close(self):closed.append(self.label)
         def server_for(self,label):return 'fixture'
-        def run(self,provider,prompt,server):
+        def run(self,provider,prompt,server,research_question=None):
             assert 'SEALED-KEY-DO-NOT-READ' not in prompt
+            assert research_question and research_question.startswith('Which fixture implementation')
             seen.append((self.label,prompt))
             return dict(answer='Offline collection fixture.',tool_text='',graphs_called=[],tool_calls=0,per_call=[],withheld_oversize=0)
     h.Harness=FakeHarness;h.provider_for=lambda model:object()
