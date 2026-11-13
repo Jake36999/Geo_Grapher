@@ -29,3 +29,13 @@ Preflight receipts remain under `output/phase67-gates/review4/preflights/`. Sour
 The accepted set passed `audit_heldout_v2.py`: all private artifact hashes match and both product source trees retain SHA256 **`60596057669e6f80bc6534116a5aea3ab0f849d431e906c245891293dca7ee99`** from before construction. No product source changed. Twelve measurement/eligibility/container/dispatch fixtures pass (`review4-measurement-seal-tests.log`). All raw construction attempts and rejected-item decisions remain under the private `review4/heldout-v2` directory.
 
 The refined cost design is `RECOVERY_DESIGN.md`: shared deterministic search/source remedies, at most three executable recovery steps, and at most two additional paid calls (one shared revision and one step-limit synthesis). The revised estimate with a $0.35 construction allowance is **$6.26253291**, inside the owner-approved $6.50 cap. Proving that model-call bound is a precondition for agent paid dispatch; the $2 reserve and lifetime spendable ledger ceiling are unchanged.
+# Step 3 — frozen development baseline (2026-11-13)
+
+The committed read-only evaluator reproduces the review exactly on the unchanged v1 reference: question-text recall@8 **13/25**, recorded-agent recall@8 **33/102**, and any-agent-query hit **18/25**. This validates the replay before product changes. Rankings are raw candidates, not a claim that eight cards survive the wire-size cap.
+
+The repaired 30-item development set scores **18/30** for question text and **36/102** for recorded queries at rank 8. The pre-product equal-weight RRF comparator (verbatim question plus each recorded guess) reaches **48/102**. These remain below the offline targets (90% question text; 75% agent queries). No model calls occurred.
+
+Four disclosed repairs are recorded in `data/eval/code-research/repair-record.json`; original frozen keys, raw rows and prior scores are retained. The original Clerk target is the module function `clerk.py.run_one`, as recorded in the snapshot. The offline tool blocks sealed v2 by path and content hashes, validates snapshot IDs, opens canonical databases read-only, and refuses result-file replacement. Three evaluator tests pass.
+
+First baseline files: `PHASE67_OFFLINE_V1_BASELINE.json` and `PHASE67_OFFLINE_DEV30_BASELINE.json`. The proposed RRF comparator is explicitly labelled as a proposal; it is not yet the product recommended strategy.
+
