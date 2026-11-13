@@ -76,9 +76,16 @@ def call_record(name,arguments,result):
             if all(isinstance(source.get(k),str) and len(source[k])<=512 for k in ('repo_id','revision','rel_path')):
                 coverage[-1]['source']={k:source[k] for k in ('repo_id','revision','rel_path')}
             else:clipped=True
+    data=(body.get('result') or {}).get('data',{}) if isinstance(body,dict) else {}
+    supplemental=[]
+    for card in data.get('calls_constants',[]):
+        eid=card.get('entity_id') if isinstance(card,dict) else None
+        if isinstance(eid,str) and eid.startswith('entity:') and len(eid)<=200 and eid not in supplemental:
+            if len(supplemental)==16:clipped=True;break
+            supplemental.append(eid)
     return dict(tool=name,arguments=json.dumps(arguments,ensure_ascii=False,default=str)[:600],
                 error_code=code[:100],error_message=message[:300],success=not failed,
-                coverage=coverage,coverage_truncated=clipped)
+                coverage=coverage,coverage_truncated=clipped,supplemental_entities=supplemental)
 
 ENV_FILE = Path(r"D:\Resource-Library\.utility\.env")
 WHEEL_PYTHON = ROOT / "output" / "wheel-env" / "Scripts" / "python.exe"
@@ -232,12 +239,13 @@ class Harness:
                                   if t in self.tools[server or next(iter(self.tools))])
         loop.context_limit = self.route_policy.get('context_tokens',0)
         if self.preset!='papers':
-            from resource_librarian.agent_runtime import AgentProfile, DEFAULT_PROFILES
+            from resource_librarian.agent_runtime import AgentProfile, DEFAULT_PROFILES, ProfileStore
             values=DEFAULT_PROFILES['code-research'].public()
             values['route_policy']=dict(values['route_policy'])
             if self.self_check is not None:values['route_policy']['answer_self_check']=self.self_check
             loop.configure_profile(AgentProfile(**values).validate())
             loop.ctx.extras['agent_profile']='code-research'
+            loop.ctx.extras['profile_store']=ProfileStore(self.vault)
         hidden = self._only_server(server or next(iter(self.tools))) if self.bundles else []
         try:
             offered = sorted(t.name for t in loop.tools() if t.name.startswith("mcp__"))

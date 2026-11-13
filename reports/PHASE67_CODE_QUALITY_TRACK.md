@@ -52,3 +52,27 @@ Exactly one final quality-track cycle: original five and sealed held-out 25, eac
 Development requires **15/15**. Held-out requires **at least 68/75**, with **at least 22/25 in each run** (integer equivalents of >=90% aggregate and >=85% per run). Both require zero withheld, zero wrong-graph calls and mean tool calls <=8. Defining-identifier markers are the registered answer criterion; source/citation delivery remains separate evidence. Misses will be classified from coverage as `not_retrieved`, `retrieved_not_opened`, or `delivered_not_used`, with unknown/clipped evidence explicitly disclosed.
 
 Stop after this cycle whatever the outcome. No extra run, question replacement, ranking tuning, merge or push follows without a new user request. The passed wave-4 release result remains unchanged.
+
+Diagnostic P3 A/B OFF: `{"calls": 14, "correct": 0, "cost_usd": 0.028890999999999993, "enabled": false, "self_check_rejected": 0, "tool_errors": 14, "total": 5, "withheld": 0, "wrong_graph": 0}`.
+
+Diagnostic P3 A/B ON: `{"calls": 10, "correct": 0, "cost_usd": 0.026502999999999992, "enabled": true, "self_check_rejected": 0, "tool_errors": 10, "total": 5, "withheld": 0, "wrong_graph": 0}`.
+
+Diagnostic A/B decision: **do not retain P3** under the predeclared criterion. No repeat A/B.
+
+### Diagnostic validity and corrective action
+
+The two rows above are **invalid for comparing P3 effectiveness**, not product/model answer-quality measurements. All **24 tool calls were refused**: the harness selected `agent_profile=code-research` without supplying its `ProfileStore`, so Registry correctly reduced the caller to consult. The implementing lead introduced this setup error. No graph evidence reached either arm. The costs, raw attempts and numerical rows remain unchanged; neither 0/5 is presented as a valid model score.
+
+There is no repeat A/B under the one-run-per-arm instruction. P3 therefore has **no valid demonstrated benefit** and was reverted in Librarian commit `7b47c68`; P4 remains in `d98cbbe`. This is an inconclusive diagnostic, not evidence that self-checking is ineffective.
+
+The harness now supplies the same vault-backed `ProfileStore` as the application. `profile-access-smoke.json` proves actual installed-wheel list/search/content calls through `Harness.run` and Registry: **3/3 successful**, four scripted provider calls all at **0.2**, **zero paid calls**, with actual source coverage. The first smoke invocation's isolated-import error and corrected smoke log are both retained. An independent **25-question synthetic offline batch** also passes graph switching, fresh workspaces, unscored collection and refusal to overwrite the first output, without opening any held-out artifact. Seven coverage/one-shot tests pass. Supplemental constant-card IDs are logged separately from source delivery to avoid claiming they were absent merely because their source was not opened.
+
+Pool commitment after set building, review and the invalid A/B: **$5.52917121 / $10**, **$4.47082879** remaining. The uncertain first GLM author call retains its conservative reserved charge; it is not recorded as a successful accepted output. The repaired MiMo author output is marked partial, and the unsupported independent review findings are rejected in the delegation ledger.
+
+### Final candidate validation before registration
+
+The P4-only Librarian runtime passes its **full suite: 2,196 passed, 2 skipped, 5 deselected**, in 605.98 seconds (`output/code-quality-librarian-full.log`). No product source changed during that suite. P3 is absent from the resulting source. The existing guarded step-limit synthesis remains; no extra self-check call is enabled.
+
+Geo Grapher retains the exact P1/P2 wheel and its complete 698-test/frontend/browser verification above. Later evaluation-harness changes have **9/9 focused tests** for bounded source provenance, supplemental cards, exact range hashes, one-shot execution, delayed key reads and partial-run closure. The synthetic blind batch passes 25/25 without a model. A delivery-verifier smoke independently reconstructs the already captured development constant's two returned ranges from immutable SQLite source bytes: **2 verified, 0 invalid**, including its definition line. The actual HTTP A/B receipts all recorded temperature 0.2; the final runner will reject any batch with a different observed temperature.
+
+Final scope is **P1 + P2 + P4**, no P3 and no P5. The final cycle is the one authorised cycle, not a retry of wave 4 or of the invalid diagnostic. Its six raw batches remain separate; scored held-out files are additional artifacts, never replacements. Coverage-based miss classifications describe canonical-entity/card retrieval and hash-verified returned source separately, and explicitly mark clipped/invalid evidence as unknown.

@@ -54,3 +54,21 @@ def test_partial_cycle_closes_without_reading_the_key(runner,monkeypatch):
     assert runner.read(runner.OUT/'final-cycle-state.json')==dict(status='closed',complete=False,no_repeat=True)
     with pytest.raises(FileExistsError):runner.cycle()
     assert len(calls)==1
+
+
+def test_delivery_requires_exact_hash_and_keeps_source_file_identity(runner,monkeypatch):
+    import hashlib
+    monkeypatch.setattr(runner,'source_lines',lambda *a,**k:('m.py',['# comment\n','LIMIT = 1\r\n','return LIMIT\n']))
+    key=dict(graph='fixture',entity_id='entity:constant',source='m.py',span=[2,2])
+    row=dict(entity_id='entity:constant',start_line=1,end_line=2,sha256=hashlib.sha256(b'# comment\nLIMIT = 1\r\n').hexdigest())
+    valid,bad=runner.verify_delivery([row],key)
+    assert len(valid)==1 and valid[0]['definition_line_returned'] and not bad
+    valid,bad=runner.verify_delivery([dict(row,sha256='0'*64)],key)
+    assert not valid and len(bad)==1
+
+
+def test_supplemental_card_counts_as_retrieval_without_source_delivery(runner):
+    key=dict(id='q',marker='LIMIT',graph='fixture',entity_id='entity:constant',source='m.py',span=[1,1])
+    row=dict(question_id='q',answer='No definition found.',per_call=[dict(coverage=[],supplemental_entities=['entity:constant'])])
+    scored=runner.score_heldout([row],{'q':key})[0]
+    assert scored['coverage_classification']=='retrieved_not_opened' and not scored['verified_target_source']

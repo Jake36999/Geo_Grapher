@@ -32,3 +32,14 @@ def test_untrusted_metadata_is_bounded_and_never_misreported_as_complete():
     missing = recorder()('search_entities', {}, {'coverage': [
         {'entity_id': 'entity:a', 'sha256': 'a' * 64, 'truncated': False}]})
     assert missing['coverage'] == [] and missing['coverage_truncated']
+
+
+def test_context_locations_and_supplemental_constant_cards_are_recorded():
+    source=dict(repo_id='r',revision='frozen',rel_path='other.py',start_line=2,end_line=3)
+    row=dict(entity_id='entity:abc',start_line=2,end_line=3,truncated=False,sha256='c'*64,source=source)
+    body=dict(coverage=[row],result=dict(data=dict(calls_constants=[dict(entity_id='entity:constant',signature='LIMIT = 1')],
+              chunks=[dict(text='PRIVATE SOURCE')])))
+    saved=recorder()('get_entity_content',{},body)
+    assert saved['coverage'][0]['source']=={k:source[k] for k in ('repo_id','revision','rel_path')}
+    assert saved['supplemental_entities']==['entity:constant']
+    assert 'PRIVATE SOURCE' not in json.dumps(saved)

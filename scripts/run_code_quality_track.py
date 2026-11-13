@@ -1,11 +1,14 @@
 """One diagnostic A/B and one sealed quality cycle; no automatic repeat path."""
 import argparse
 import ast
+import base64
 import hashlib
+import io
 import json
 from pathlib import Path
 import sqlite3
 import subprocess
+import tokenize
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'output/phase67-gates/code-quality-track'
@@ -97,17 +100,53 @@ def register():
         '90 episodes, three runs each, at the registered production profile. No product changes, replacement questions or extra cycle; stop whatever the result.')
     print(json.dumps(dict(registered=True,sha256=sha(REGISTRATION),production_route_policy=candidate['production_route_policy'])))
 
+SOURCE_CACHE={}
+
+def source_lines(graph,entity_id,source=None):
+    """Read original frozen source, never a working tree or regenerated index."""
+    source=source or {};key=(graph,entity_id,source.get('repo_id'),source.get('rel_path'))
+    if key not in SOURCE_CACHE:
+        with sqlite3.connect(CATALOG.resolve().as_uri()+'?mode=ro',uri=True) as catalog:
+            path,sid=catalog.execute('SELECT code_database,snapshot_id FROM graphs WHERE label=?',(graph,)).fetchone()
+        with sqlite3.connect(Path(path).resolve().as_uri()+'?mode=ro',uri=True) as db:
+            repo,relpath=db.execute('SELECT repo_id,rel_path FROM entities WHERE snapshot_id=? AND entity_id=?',(sid,entity_id)).fetchone()
+            repo=source.get('repo_id',repo);relpath=source.get('rel_path',relpath)
+            rows=db.execute("SELECT a.result_json FROM analysis_results a JOIN entities e ON e.snapshot_id=a.snapshot_id AND e.entity_id=json_extract(a.scope_json,'$.entity_id') WHERE a.snapshot_id=? AND a.algorithm_version='source-bytes-v1' AND e.repo_id=? AND json_extract(a.result_json,'$.rel_path')=?",(sid,repo,relpath)).fetchall()
+            if len(rows)!=1:raise ValueError('Source provenance is not unique in the frozen snapshot')
+            raw=base64.b64decode(json.loads(rows[0][0])['bytes_base64'])
+            encoding,_=tokenize.detect_encoding(io.BytesIO(raw).readline)
+            SOURCE_CACHE[key]=(relpath,raw.decode(encoding).splitlines(keepends=True))
+    return SOURCE_CACHE[key]
+
+def verify_delivery(coverage,key):
+    verified=[];invalid=[]
+    for row in coverage:
+        if row['start_line'] is None:continue
+        try:
+            path,lines=source_lines(key['graph'],key['entity_id'],row.get('source'))
+            a,b=row['start_line'],row['end_line']
+            matches=1<=a<=b<=len(lines) and hashlib.sha256(''.join(lines[a-1:b]).encode('utf-8')).hexdigest()==row['sha256']
+            if not matches:raise ValueError('Returned range hash does not match snapshot bytes')
+            verified.append(dict(row,source_path=path,definition_line_returned=path==key['source'] and a<=key['span'][0]<=b))
+        except (ValueError,TypeError,IndexError,sqlite3.Error) as exc:
+            invalid.append(dict(row,verification_error=str(exc)[:200]))
+    return verified,invalid
+
 def score_heldout(rows,keys):
     import re
     scored=[]
     for row in rows:
         key=keys[row['question_id']];marker=key['marker'];found=bool(re.search(r'(?<!\w)'+re.escape(marker)+r'(?!\w)',row['answer']))
         coverage=[c for call in row['per_call'] for c in call.get('coverage',[]) if c['entity_id']==key['entity_id']]
-        delivered=any(c['start_line'] is not None for c in coverage)
+        supplemental=any(key['entity_id'] in call.get('supplemental_entities',[]) for call in row['per_call'])
+        verified,invalid=verify_delivery(coverage,key)
+        delivered=bool(verified)
         limited=any(c.get('coverage_truncated') for c in row['per_call'])
-        classification=None if found else 'delivered_not_used' if delivered else 'retrieved_not_opened' if coverage else 'unknown_clipped_evidence' if limited else 'not_retrieved'
+        classification=None if found else 'delivered_not_used' if delivered else 'unknown_invalid_coverage' if invalid else 'retrieved_not_opened' if coverage or supplemental else 'unknown_clipped_evidence' if limited else 'not_retrieved'
         scored.append(dict(row,markers=[marker],markers_found=[marker] if found else [],coverage_classification=classification,
-                           target_entity_id=key['entity_id'],target_source=key['source'],target_span=key['span'],target_coverage=coverage))
+                           target_entity_id=key['entity_id'],target_source=key['source'],target_span=key['span'],target_coverage=coverage,
+                           verified_target_source=verified,invalid_target_source=invalid,
+                           definition_line_returned=any(c['definition_line_returned'] for c in verified)))
     return scored
 
 def cycle():
