@@ -731,3 +731,11 @@ All output-budget failures, invalid/incomplete author containers, rejected equiv
 
 Before L1/L2 product changes, the committed offline replay reproduced the review's frozen-v1 recall@8 exactly: **13/25** question text, **33/102** recorded queries, **18/25** any-agent-query hit. Repaired development keys: **18/30** question text, **36/102** agent queries. Proposed verbatim-plus-guess RRF comparator: **48/102**. No paid calls. Full per-query first results are retained in `PHASE67_OFFLINE_{V1,DEV30}_BASELINE.json`; equivalence repairs are recorded separately, without revising any historical row. These are candidate ranks, not capped MCP delivery. L1/L2 targets have not yet been met.
 
+## Review 4 L1 first measurement (preserved)
+
+`PHASE67_OFFLINE_DEV30_L1_FIRST.json`: question-text recall@8 **18/30**, recommended multi-query **48/102** (agent-only baseline **36/102**). FP1 preliminary documentation-overlap simulation: **47/102** triggers, **45/102** after recovery, false triggers **3/36** originally correct. This first row is retained; the delivered-preview detector alignment and full checks remain pending. The 90%/75% offline targets are not met; no agent A/B, pilot or final cycle has been dispatched.
+
+### L1 delivered-preview correction
+
+The first L1 full verification passed (722 backend tests, frontend checks, 17 browser tests) and installed-wheel preset smoke passed 28/28. A subsequent failing oracle exposed an FP1 detector mismatch: it used full documentation rather than the delivered preview. Corrected replay uses the actual agent query to build `doc_gist`/`why` and the original question only for overlap. Retained intermediate row: **33** triggers, **39/102** after recovery (`...L1_PREVIEW.json`). Retained corrected row: **32** triggers, **38/102** after recovery, **1/36** false triggers among originally correct queries (`...L1_DELIVERED.json`). Recommended multi-query remains **48/102** and question-text **18/30**. Full checks for the corrected candidate are in progress; the old rows remain untouched.
+

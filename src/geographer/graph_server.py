@@ -47,6 +47,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
             allowed_hosts=['127.0.0.1:*','localhost:*','[::1]:*'],allowed_origins=['http://127.0.0.1:*','http://localhost:*']),
         instructions='Discover list_graphs first and prefer graph labels such as librarian-v2 instead of copying long IDs. Code tools accept minimal flat arguments: search_entities(graph_id,query), '
             'get_entity_content(graph_id,entity_id), get_architecture_context(graph_id,focus_id). '
+            "Pass the user's question (or its key sentence) verbatim as query; add identifier guesses in also (at most two). "
             'Use entities[].entity_id and cite_as exactly as returned. Snapshot, budget and protocol defaults are filled server-side. '
             'The strict {graph_id,request} form remains available for programmatic clients; do not mix forms. '
             'Cite paper documents by their cite_as handle (graph-label/doc:N), never by position or a renumbered ID. '
@@ -70,7 +71,8 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
     async def list_tools():
         from .server import TOOL_GUIDANCE
         tools=[types.Tool(name=op,description='Minimal flat arguments; protocol defaults are server-owned. '
-            'Search returns entities[].entity_id and cite_as for content/context calls. '+TOOL_GUIDANCE[op],
+            'Search returns entities[].entity_id and cite_as for content/context calls. '+
+            ("Pass the user's question (or its key sentence) verbatim as query; add identifier guesses in also (at most two). " if op=='search_entities' else '')+TOOL_GUIDANCE[op],
             inputSchema=flat_schemas[op],outputSchema={'type':'object'},annotations=types.ToolAnnotations(readOnlyHint=True)) for op in sorted(CODE_OPERATIONS-{'viewport_frame'})]
         try:
             from pipeline import mcp_doc_graph as paper

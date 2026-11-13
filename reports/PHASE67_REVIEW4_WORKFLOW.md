@@ -39,3 +39,17 @@ Four disclosed repairs are recorded in `data/eval/code-research/repair-record.js
 
 First baseline files: `PHASE67_OFFLINE_V1_BASELINE.json` and `PHASE67_OFFLINE_DEV30_BASELINE.json`. The proposed RRF comparator is explicitly labelled as a proposal; it is not yet the product recommended strategy.
 
+## Step 4 — L1 first offline result
+
+RED evidence: `output/review4-l1-red.log`, all five new oracles fail on the sealed baseline. First GREEN: 17 source-card/front-door/fusion tests pass. Product multi-query RRF uses bounded 200-candidate pools, exact matches retain priority, duplicate queries are ignored, and single-query ranks are unchanged. Guidance requests the verbatim question and up to two guesses. Weak observations contain confidence metadata and two bounded deterministic hints from snapshot documentation.
+
+First offline L1 row (`PHASE67_OFFLINE_DEV30_L1_FIRST.json`): question recall@8 **18/30**, unchanged; recommended verbatim-plus-guess **48/102**, up from the agent-only **36/102**. FP1 simulation fires **47/102**, recovers to **45/102**; **3/36** originally correct searches trigger (8.33% false-trigger rate conditional on originally correct; 3/47 of triggers). The first simulation uses documentation overlap; this must be aligned to the precise delivered `doc_gist`/`why` detector before enabling recovery. It is explicitly a simulation, not a claim of live episode recovery. FP2 awaits L2. Both offline targets remain unmet. Full verification, installed-wheel preset smoke and the Librarian suite are in progress; no paid agent dispatch is authorised by this result alone.
+
+### L1 detector corrections and retained rows
+
+The first full verify passed: **722 backend tests**, frontend typecheck/build/unit checks and **17 browser tests**. The first installed-wheel preset smoke passed **28/28**. The unchanged Librarian suite is still running.
+
+A sixth RED oracle proved that full documentation outside the delivered card could suppress a legitimate weak-hit signal. The detector now computes overlap from the same bounded `doc_gist` and `why` fields as the client sees, across the top eight hits. In offline replay, those cards use the actual agent query for their match explanation, while overlap is assessed against the original question. This avoids granting the simulation a better observation than the real client.
+
+Two additional first result files are retained separately: `PHASE67_OFFLINE_DEV30_L1_PREVIEW.json` is the intermediate original-question-card simulation (**33** triggers, **39/102** after recovery); `PHASE67_OFFLINE_DEV30_L1_DELIVERED.json` uses the actual-query cards (**32** triggers, **38/102** after recovery). Both have **1/36** false triggers among originally correct queries. Raw recommended multi-query recall remains **48/102**, with **18/30** question-text recall. These modest recovery gains are reported as measured; they do not close the offline targets. A full verify and fresh installed-wheel smoke are being repeated for the corrected candidate. Future offline artifacts include product/evaluator source hashes.
+

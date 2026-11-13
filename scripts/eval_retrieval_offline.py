@@ -50,8 +50,8 @@ def metrics(rows):
         total=n,rate=sum(r['rank'] is not None and r['rank']<=k for r in rows)/n if n else None) for k in (1,3,8)})
 
 
-def replay(questions,frozen):
-    indices={};records=[]
+def replay(questions,frozen,product=False):
+    indices={};records=[];recoveries=[];scents={}
     try:
         for q in questions:
             label=q['graph'];graph=frozen.graph(label)
@@ -62,6 +62,11 @@ def replay(questions,frozen):
                 if text not in cache:cache[text]=indices[label].search(text,limit=200)
                 return cache[text]
             primary=search(q['question'])
+            if product and label not in scents:
+                from geographer.agent_scent import SourceScent
+                sources={(graph.entities[v['scope']['entity_id']].repo_id,v['result']['rel_path']):v['result'] for v in graph.analyses.values()
+                    if v['algorithm_version']=='source-bytes-v1' and v['scope'].get('entity_id') in graph.entities}
+                scents[label]=SourceScent(dict(g=graph,sources=sources,evidence={}))
             def record(view,query,hits):
                 ids=[h['node_id'] for h in hits] if hits and isinstance(hits[0],dict) else hits
                 records.append(dict(id=q['id'],graph=label,view=view,query=query,rank=target_rank(ids,set(q['targets'])),top8=ids[:8]))
@@ -71,11 +76,33 @@ def replay(questions,frozen):
                 hits=search(query);record('agent_queries',query,hits)
                 # Equal query weights, fixed candidate depth, no knowledge of targets.
                 record('proposed_verbatim_plus_guess',query,proposed_rrf([primary,hits]) if query!=q['question'] else hits)
+                if product:
+                    from geographer.search_fusion import fuse,observation
+                    fused=fuse([primary,hits]) if query!=q['question'] else hits
+                    record('product_recommended',query,fused)
+                    obs=observation(hits,q['question'],scents[label],query=query)
+                    trigger=obs['low_confidence']
+                    before=target_rank([h['node_id'] for h in hits],set(q['targets']))
+                    after=target_rank([h['node_id'] for h in (fused if trigger else hits)],set(q['targets']))
+                    recoveries.append(dict(id=q['id'],query=query,pattern='FP1',trigger=trigger,trigger_value=obs['confidence'],
+                        original_correct=before is not None and before<=8,rank_before=before,rank_after=after))
         summary={view:metrics([r for r in records if r['view']==view]) for view in ('question_text','agent_queries','proposed_verbatim_plus_guess')}
+        if product:
+            summary['product_recommended']=metrics([r for r in records if r['view']=='product_recommended'])
+            original_right=sum(r['original_correct'] for r in recoveries)
+            triggers=sum(r['trigger'] for r in recoveries)
+            false=sum(r['trigger'] and r['original_correct'] for r in recoveries)
+            summary['FP1_simulation']=dict(episodes=len(recoveries),triggers=triggers,
+                trigger_rate=triggers/len(recoveries) if recoveries else None,false_triggers=false,
+                false_trigger_rate_given_original_correct=false/original_right if original_right else None,
+                false_trigger_fraction_of_triggers=false/triggers if triggers else None,
+                before=metrics([dict(rank=r['rank_before']) for r in recoveries]),
+                after=metrics([dict(rank=r['rank_after']) for r in recoveries]),
+                simulation='Product confidence detector and fusion; episode scheduling/shared recovery ledger not yet enabled in front door.')
         agent=[r for r in records if r['view']=='agent_queries']
         ids={r['id'] for r in agent}
         summary['any_agent_hit_per_question']=dict(hits=sum(any(r['id']==qid and r['rank'] is not None and r['rank']<=8 for r in agent) for qid in ids),total=len(ids))
-        return dict(summary=summary,records=records,snapshots=dict(frozen.snapshots),
+        return dict(summary=summary,records=records,recovery_simulation=recoveries,snapshots=dict(frozen.snapshots),
             interpretation='Raw candidate ranks, not capped wire delivery. Proposed RRF is a pre-product comparator, not yet the product recommended strategy.',
             configuration=dict(lexical_version=LexicalIndex.version,mode='hybrid',gamma=.8,lexical_k=60,multiquery_k=60,candidate_depth=200,paid_calls=0))
     finally:
@@ -85,13 +112,16 @@ def replay(questions,frozen):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--questions',type=Path,required=True);p.add_argument('--catalog',type=Path,required=True);p.add_argument('--out',type=Path,required=True)
+    p.add_argument('--product-l1',action='store_true')
     args=p.parse_args()
     if args.out.exists():raise SystemExit('Preserve first offline result: output already exists')
     questions,manifest=read_development(args.questions)
     with FrozenGraphs(args.catalog) as frozen:
-        result=replay(questions,frozen)
+        result=replay(questions,frozen,args.product_l1)
         if manifest.get('snapshots') and manifest['snapshots']!=frozen.snapshots:raise ValueError('Frozen snapshot mismatch')
     result['input_sha256']=hashlib.sha256(args.questions.read_bytes()).hexdigest()
+    sources=[ROOT/'scripts/eval_retrieval_offline.py',ROOT/'scripts/offline_graphs.py',*sorted((ROOT/'src/geographer').glob('*.py'))]
+    result['implementation_sha256']={str(path.relative_to(ROOT)):hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}
     with args.out.open('x',encoding='utf-8') as f:json.dump(result,f,indent=2,ensure_ascii=False)
     print(json.dumps(result['summary']))
 

@@ -36,7 +36,7 @@ def schemas(single=False):
     common={'graph_id':{'type':'string','description':'Prefer the graph label from list_graphs, e.g. librarian-v2.'},'profile':{'enum':list(PROFILE_CEILINGS)},'limit_tokens':{'type':'integer','minimum':256},
             'alias_scope':string,'cursor':string}
     fields={
-        'search_entities':({'query':string,'kinds':{'type':'array','items':string},'limit':{'type':'integer','minimum':1,'maximum':50}},['query']),
+        'search_entities':({'query':string,'also':{'type':'array','items':{'type':'string','minLength':1},'maxItems':2},'kinds':{'type':'array','items':string},'limit':{'type':'integer','minimum':1,'maximum':50}},['query']),
         'get_entity_content':({'entity_id':string,'start_line':{'type':'integer','minimum':1},'end_line':{'type':'integer','minimum':1}},['entity_id']),
         'get_architecture_context':({'focus_id':string,'radius':{'type':'integer','minimum':0,'maximum':2},'pins':{'type':'array','items':string},
             'qi':{'type':'boolean'},'algorithm':{'enum':['helper_tree_balls_v1','directed-helper-condensation-v1']}},['focus_id']),
@@ -238,6 +238,30 @@ def call_code(router,op,args):
             if op=='search_entities':
                 if search_materialized is None:
                     search_materialized=router.query(gid,op,request)
+                    from .search_fusion import queries,fuse,observation
+                    query_texts=queries(args['query'],args.get('also',[]))
+                    ctx=svc._context(sid)
+                    if len(query_texts)>1:
+                        # The strict engine still validates scope and builds the
+                        # envelope. Rank complete bounded pools before packing
+                        # the flat canonical projection, never capped wire pages.
+                        if 'error' in search_materialized or 'error' in search_materialized.get('result',{}):
+                            raise ValueError('Search materialisation failed')
+                        from .retrieval import LexicalIndex
+                        if 'lexical_index' not in ctx:ctx['lexical_index']=LexicalIndex(g)
+                        pool=fuse([ctx['lexical_index'].search(text,kinds=args.get('kinds',[]),limit=200) for text in query_texts])
+                        selected=pool[:request['limit']]
+                        d=search_materialized['result']['data']
+                        d['hits']=selected;d['ids']={}
+                        d['nodes']=[]
+                        for h in selected:
+                            node=svc._node(ctx,h['node_id'])
+                            node['summary']=g.analyses.get('declaration:'+h['node_id'],{}).get('result',{})
+                            d['nodes'].append(node)
+                    d=search_materialized.get('result',{}).get('data',{})
+                    # IDs are aliases on the strict single-query path.
+                    canonical_hits=[{**h,'node_id':d.get('ids',{}).get(h['node_id'],h['node_id'])} for h in d.get('hits',[])]
+                    d.update(observation(canonical_hits,args['query'],descriptions),query_count=len(query_texts))
                     search_total=len(search_materialized.get('result',{}).get('data',{}).get('hits',[]))
                     search_count=min(search_count,search_total)
                 out=deepcopy(search_materialized)
