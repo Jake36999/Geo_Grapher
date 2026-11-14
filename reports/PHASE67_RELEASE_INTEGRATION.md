@@ -73,3 +73,21 @@ The first wave-4 suite was launched inside a worktree beneath the Geo-Grapher re
 `PHASE67_F2_LIBRARIAN_CANDIDATES.json` records exact commit/tree hashes, backup refs, log hashes, absence of excluded branch ancestry, master cleanliness and the committed code-research policy. Delegation remains separately tested at **9f3a0d8** (88 focused module tests; full 2,149 passed), not silently included in the survey/wave-4 suite results.
 
 **STOP — explicit owner decisions required before any merge.** Requested actions and their order are in `PHASE67_F2_MERGE_APPROVAL.md`. No merge, push, tag or paid evaluation was performed. Geo scratch integration, its full verify/preset/browser/wheel checks, merged-mains cross-repository smoke and F3/F4 remain pending the staged owner approvals. The six-task live pilot remains deferred and unvalidated.
+
+## Owner-approved Librarian merges — 2026-11-14
+
+The owner approved A, B, C conditionally on a throwaway merge/test first. `codex/phase67-librarian-premerge-20261114` was created from **c4eb76f** and merged all three approved hashes in order with `--no-ff`. Its full suite ran from neutral **F:/uv-data**, outside `.librarian` ancestry: **2,235 passed / 2 skipped / 5 deselected**, `output/f2-librarian-combined-premerge-full.log`. No master mutation preceded this pass.
+
+Tested integration commit **baac8307efe3373abe30b5cf1a70e60de911072c**, tree **f6479caaf040da4dcfb066befd22e8ca3ba974c7**. Master then received the approved `--no-ff` merges:
+
+| Approval | Source | Master merge commit |
+|---|---|---|
+| A | survey 70ffe38 | **5499993c49e9792a4def9c56a260ca91c21cf6db** |
+| B | wave 4 db55b89 | **7c5391996d075792fffa10107ab95852b5e9e87e** |
+| C | delegation controls 9f3a0d8 | **8ea7c45ae814fed35a1f71ecaac6ec307ad9b31f** |
+
+Master is clean at **8ea7c45…**, and its tree is **identical** to the tested integration tree. The throwaway worktree and branch were removed only after that proof. Its Git log, test log, tested hashes and merge evidence remain in `PHASE67_F2_LIBRARIAN_THROWAWAY_LOG.txt`, `PHASE67_F2_LIBRARIAN_PREMERGE.json`, `PHASE67_F2_LIBRARIAN_MERGED.json` and `PHASE67_F2_LIBRARIAN_THROWAWAY_CLEANUP.json`. No push or tag.
+
+The parked WIP remains frozen at **610b4496…**. It overlaps wave 4 in `agent_runtime.py`, `loop.py`, `mcp_client.py` (including line-ending churn in the latter); un-parking requires an owner-performed manual merge. Both pre-rebase backup refs remain in place until after release. The two cwd-sensitive CLI tests remain unchanged; the Known Limitations/follow-ups record requires a later self-containment fix.
+
+Geo-Grapher scratch integration now proceeds. Its merge to main still requires the next explicit OWNER approval.

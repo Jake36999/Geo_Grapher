@@ -27,6 +27,8 @@ See [migration notes](MIGRATION_0_2.md) before opening a catalog or regenerating
 | Area | Evidence / follow-up |
 |---|---|
 | Live six-task pilot | **DEFERRED by owner decision, 2026-11-14.** Resource-Library role qualification remains outstanding. Live coordination, verification and timing are **unvalidated**; no passing pilot is claimed. |
+| Parked Librarian WIP | `wip/pre-phase67-release-2026-11-14` remains frozen and unreviewed. It overlaps wave 4 in `agent_runtime.py`, `loop.py` and `mcp_client.py`; the last also contains line-ending churn. Un-parking requires a **manual merge by the owner**, not an automatic replay. |
+| CLI test isolation | `test_rules_and_capabilities` and `test_doctor_never_shows_key_values` discover a parent `.librarian` folder. Run release tests from a neutral directory; make these tests self-contained in a later change. |
 | Answer discipline | Prior-knowledge slip 1/29 remains; missing-corpus abstention needs the wave-5 answer contract |
 | Code-agent quality | Final cycle 12/15 meets its registered gate, not perfect accuracy; further ranking/completion work uses the new delivery metadata |
 | Performance | Librarian-v2 QI remains roughly 6–11 seconds cold; current C14 has little worst-sample headroom |
