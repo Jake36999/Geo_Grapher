@@ -1,9 +1,9 @@
 # Operator guide
 
-Use the reviewed wheel and a disposable catalog while reviewing these feature branches. No 0.2.0 release has been built from merged main yet.
+Use the reviewed 0.2.0 wheel and a fresh disposable catalog for owner acceptance. Publication still requires F4 sign-off; no tag or push is implied.
 
 ```powershell
-uvx --from C:/QA/geo_grapher-0.1.1-py3-none-any.whl geographer serve-graphs `
+uvx --from C:/QA/geo_grapher-0.2.0-py3-none-any.whl geographer serve-graphs `
   --catalog C:/QA/catalog.sqlite --transport http --port 8790 `
   --browse-root C:/QA/browse
 ```
@@ -58,6 +58,8 @@ Run cleanup before every browser cycle. Plans are rechecked before deletion; sta
 
 ## Verification and evaluation limits
 
-Run `scripts/verify.ps1`, the installed-wheel preset smoke and the relevant real-store browser/security configuration. Keep each attempt under a new result path. Run cold latency only on a quiet machine and retain every sample. Wave-4 C14 still requires all ToolSet samples below three seconds; the proposed median/max rule has not replaced it.
+Run `scripts/verify.ps1` for the full backend, frontend/browser suite, wheel build, and installed-wheel preset/size-cap checks. The default preset catalog is a self-contained no-model fixture; use `-PresetCatalog <copy/catalog.sqlite>` for real stores. Each run requires a new `-GateOutput` (or uses a timestamped default). Real-store browser/security checks remain separate.
 
-Wave-4 code evaluation is closed after its final registered cycle. Preserve `wave4-code-evaluation-final.json`, all seals, raw results and cost receipts. No cleanup or operator retry should reopen that cycle. Merging, versioning, tagging and pushing require the owner’s separate approval.
+Use `scripts/verify.ps1 -QuietMachine -LatencyCatalog <catalog.sqlite> -GateOutput <new-directory>` after other QA jobs stop. Prospectively, C14 requires the median of **three fresh processes <3.0 s** and their **maximum <3.5 s**, on the same snapshot and installed wheel. All first samples are retained. Without `-QuietMachine`, verification explicitly reports latency as not run. Historical scores are unchanged. The isolated CLI is `python scripts/qa_c14.py --quiet-machine --wheel <wheel> --catalog <catalog> --out <new-result.json>`.
+
+Wave-4 code evaluation is closed after its final registered cycle. Preserve `wave4-code-evaluation-final.json`, all seals, raw results and cost receipts. No cleanup or operator retry should reopen that cycle. F2 merges and F3 version preparation are owner-authorised and completed locally. F4 sign-off remains required. Tagging and pushing require separate explicit owner instruction.

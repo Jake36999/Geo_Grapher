@@ -1,47 +1,71 @@
-# Geo Grapher 0.2.0 — draft release notes
+# Geo-Grapher 0.2.0 — release notes for owner sign-off
 
-Status: feature-branch preparation. Version remains 0.1.1; no merge, stable-contract declaration, release tag or push is implied. The final wave-4 code cycle passed **3/5, 5/5, 4/5 = 12/15**. On 2026-11-14 the owner approved the F1 decisions and accepted the live pilot as a deferred, unvalidated release limitation. Integration, hardening and F4 owner acceptance remain pending. The later quality measurements and changed FP4 default must be recorded separately in the final notes (Review 5); the earlier wave-4 row is unchanged.
+Status: integrated on both mains and prepared locally for F4 acceptance. No tag or push. Geo merge 990f127 follows approved candidate 6c41756; Librarian master 8ea7c45 matches its tested integration tree. Release hardening begins at Geo 5c385b9; packaging completion is 82ff0aa. See the final release report for the exact wheel SHA256 and latest documentation commit.
 
-## Features prepared across waves 1–4
+## Features
 
-- Readable labels, role badges, edge styling, affinity layout, discovery cards and calibrated federation.
-- Snapshot fingerprints and drift reports, notebook ingestion, folder onboarding, independent-graph diffs and clone candidates.
-- Directed helper contraction, reviewed bridge proposals and lineage, prune by derivation and guarded Add folder workflows.
-- Tiered task packets, route-aware external-result bounds, Clerk/dispatch contracts, bridge impact and theory conformance.
-- Constant indexing, full comment-block support, stemmed lexical retrieval and preservation of ranked hits during packing.
-- Agent-friendly flat calls, canonical citation identities, bounded recovery choices, response-delivery hashes/ranges and final-at-step-limit answers.
+Waves 1–4 add readable graph labels/roles and affinity layout; calibrated federation and discovery cards; snapshot fingerprints/drift, notebooks and folder onboarding; independent-graph diffs and clones; directed helper contraction and UI controls; reviewed snapshot-bound bridges and lineage; prune by derivation; six-tool presets and cited tiered packets; bounded cross-graph impact/conformance reports. The [changelog](../../CHANGELOG.md) separates the waves.
 
-## Current contract digests
+The quality track adds constant definitions/comments/usage, multi-query lexical search, optional local semantics, flat calls with server defaults and clamping, canonical IDs with valid error examples, whole-envelope caps, delivery coverage and bounded recovery. The merged Librarian runtime supplies route-aware bounds and best-effort answers at the step limit.
 
-These are feature-branch digests, not the final release freeze. Recompute and verify them after approved integration:
+Shipped code-research defaults: **temperature 0.2; FP4 answer self-check off**. Existing customised profiles are not rewritten. Semantic search is **off by default**, separately installed as `geo-grapher[semantic]` (Model2Vec); FastEmbed is a separate optional local adapter. **Never send source to hosted embeddings.** No semantic model/cache is loaded without explicit configuration.
 
-| File | SHA256 |
+The prospective bridge firewall is **Ψ = 0.25 unless shared_citation == 1 or neighbour_jaccard >= 0.2**, weights unchanged. C14 prospectively requires **median(3 cold) <3.0 s and maximum <3.5 s**, same snapshot/wheel and fresh processes, behind `-QuietMachine`. No historical result was rescored.
+
+## Measurements, exactly as registered
+
+| Measurement | Result / interpretation |
 |---|---|
-| `contracts/v1.1/geographer.wire.d.ts` | `cd167603c6165e4cb1d353f1bb963d9a2cb4f3e7e4cd042c108a1bd5abffa16e` |
-| `contracts/v1.1/generated/geographer.wire.schema.json` | `cad2774ae4f2a7dc3a7f08ac541590a5dbc1c294c40876a3b2082591c4907183` |
+| Wave-4 code gate | **3/5, 5/5, 4/5 = 12/15; PASS** |
+| Later held-out v2 | **70/75 = 93%; 95% CI 85–97%** |
+| Later development | **13/15 = 87%; 5/5, 5/5, 3/5** |
+| Registered final quality-cycle gate | **FAIL**, on the under-powered development-perfection condition; verdict unchanged |
+| Shipped default change after measurement | FP4 changed from on to **off**; no paid accuracy rerun |
+| Real-usage questions | **Untested**; F4's three questions are owner acceptance, not a statistically powered evaluation |
 
-See [migration notes](MIGRATION_0_2.md) before opening a catalog or regenerating snapshots. See the [security report](../../reports/PHASE67_F3_SECURITY.md) for live-server evidence and the limits of that pass.
+The 93% configuration used optional local Model2Vec and FP4 on. It is not an accuracy claim for the default lexical-only, FP4-off release. Review 5 records FP4's **0 rescued / 2 degraded** drafts and representativeness/scoring limits. Free offline retrieval and original-five source/packet checks passed after the switch; those checks verify retrieval/contracts and scripted behaviour, not new autonomous answers. Every earlier first result remains in the gate/review reports.
 
-## Known limitations and wave-5 work
+## Stable contracts and migration
 
-| Area | Evidence / follow-up |
+`contracts/v1.1` is **stable** for 0.2.0. Future wire/normative changes go to v1.2; v1.0 is unchanged. SHA256 values below hash exact LF bytes; the complete manifest ships in the wheel.
+
+| Contract | SHA256 |
 |---|---|
-| Live six-task pilot | **DEFERRED by owner decision, 2026-11-14.** Resource-Library role qualification remains outstanding. Live coordination, verification and timing are **unvalidated**; no passing pilot is claimed. |
-| Parked Librarian WIP | `wip/pre-phase67-release-2026-11-14` remains frozen and unreviewed. It overlaps wave 4 in `agent_runtime.py`, `loop.py` and `mcp_client.py`; the last also contains line-ending churn. Un-parking requires a **manual merge by the owner**, not an automatic replay. |
-| CLI test isolation | `test_rules_and_capabilities` and `test_doctor_never_shows_key_values` discover a parent `.librarian` folder. Run release tests from a neutral directory; make these tests self-contained in a later change. |
-| Answer discipline | Prior-knowledge slip 1/29 remains; missing-corpus abstention needs the wave-5 answer contract |
-| Code-agent quality | Final cycle 12/15 meets its registered gate, not perfect accuracy; further ranking/completion work uses the new delivery metadata |
-| Performance | Librarian-v2 QI remains roughly 6–11 seconds cold; current C14 has little worst-sample headroom |
-| C14 proposal | Future median-of-three <3.0 s and maximum <3.5 s is a proposal only; no retroactive rescore |
-| Bridges | W3-5 firewall threshold remains an owner decision; candidate recall is limited by documentary/code naming overlap |
-| Contraction and clones | W3-2 parallel-twin restriction; clone size floor/lambda exclusion remain carried work |
-| Workspace initialization | Git-ignored tool/vault exclusions and a `reports` role remain carried work |
-| Lineage | External Librarian artifact registration remains constrained by read-only integration |
-| Large cross-graph results | Use counts, filters and paging; large evolution diffs do not fit one small envelope |
-| Parsing / compatibility | Optional JavaScript failure on `ui/app.js` and nonfatal `server/discover` startup warnings remain recorded |
+| `ACTOR_SCHEMA.md` | `c34839f8f789eac147ae64909a1ce16c32a522521059d316623a8c175f96b326` |
+| `baseline-digests.json` | `a5218e0e90a53ce017b085240dc2bb6cad9c17dd48f06c2afcf827b9869c387a` |
+| `FINGERPRINT_ADDENDUM.sql` | `ced7895361ab1ab1926ed2b016e16cdb88c243d392c28ddf7eb96f1e6ec04137` |
+| `generated/geographer.wire.schema.json` | `cad2774ae4f2a7dc3a7f08ac541590a5dbc1c294c40876a3b2082591c4907183` |
+| `geographer.trace.schema.json` | `45273ccceeb8b4ef9fc19d6b14067c4536f20f544dba273ab040028e05f292b8` |
+| `geographer.wire.d.ts` | `cd167603c6165e4cb1d353f1bb963d9a2cb4f3e7e4cd042c108a1bd5abffa16e` |
+| `PACKING_ADDENDUM.md` | `beac4359b74a13bd49db4e87016b45d339d869fcda2631ad5a6747e75ef90c9e` |
+| `PROJECT_ISOLATION_ADDENDUM.md` | `b76752cb218e2fc29508fb9e01856e02f5a1d844a8eef2696346d29ea39bd966` |
+| `RUNTIME_ADDENDUM.md` | `37fa271d26669b86401775fead9bf1738b4264e42ecf0d09ae5d174cb6c2fa8a` |
+| `STABILITY.md` | `ddd8ccba39ce356e956233eeaf370ad4835986640db8462ceb9c93ff3ff4e970` |
+| `WORKSPACE_ADDENDUM.md` | `6251c36a8d652d21f88823a1baf3078c061065fbf75649a3bc705505e6940a07` |
 
-Rulings and evidence indexes: [master plan](../superpowers/plans/2026-11-11-phase6-7-00-master.md), [wave-4 gate](../../reports/PHASE67_WAVE4_GATE.md), [finalisation roadmap](../../reports/PHASE67_REVIEW_3_AND_FINALISATION_ROADMAP.md). No open ruling is changed by these notes.
+Manifest SHA256: `43f4f9201ccfe695e8e6b97f8a54dadaac01c22959ae166c0661541a3f3ca92e`.
 
-## Release prerequisites
+Catalog tables auto-create on open, including bridge bindings/proposals and artifact lineage/ledger; legacy bridges are bound. Back up first. Re-ingest to obtain constants, comment mappings and stage-3 source facts, then rebuild/verify lexical and optional semantic indexes for those new snapshots. FTS rebuilds query-time; optional semantics require explicit local cache population, not a hosted service. Old published snapshots remain readable and keep their original facts. [Migration details](MIGRATION_0_2.md) distinguish source re-ingestion from derived-cache rebuilding and explain rollback.
 
-The owner has accepted deferral of the six-task pilot; it is no longer a release blocker, and it remains unvalidated. Role qualification and a running Core are still prerequisites for any later execution of it. Complete the F4 hands-on/real-question acceptance, obtain each F2 merge approval and review the final documents. Build 0.2.0 from the approved merged code, verify both repositories and the installed-wheel cross-repo path, freeze v1.1 and obtain release sign-off. Tagging and any push require separate owner instruction. Those release actions have not been performed.
+## Known Limitations
+
+| Area | Limitation / follow-up |
+|---|---|
+| Six-task live pilot | **Owner-DEFERRED.** Resource-Library role qualification remains outstanding. Live coordination, verification and timing are **unvalidated**. No pilot-passed claim. |
+| Accuracy scope | Registered final-cycle FAIL stands; FP4 changed after measurement. No real-usage population evidence; scoring brittleness and adjacent-mechanism confusion remain. |
+| Answer discipline | Prior-knowledge slip 1/29 is outside the zero-cross-graph-leak criterion; missing-corpus abstention is wave-5 work. |
+| Performance | Librarian-v2 QI historically 6–11 s cold; ToolSet prospective C14 does not certify every graph or target machine. |
+| Parked Librarian WIP | Frozen at 610b4496, unreviewed. Overlaps `agent_runtime.py`, `loop.py`, `mcp_client.py`; the latter includes line-ending churn. Un-parking requires **owner manual merge**. Pre-rebase backups remain until after release. |
+| CLI test isolation | `test_rules_and_capabilities` and `test_doctor_never_shows_key_values` discover a parent `.librarian`; use neutral test cwd and make them self-contained in a later change. |
+| Bridges | Proposal recall limited by documentary/code name overlap; stronger firewall is now applied, not an open decision. |
+| Contraction / clones | W3-2 parallel-twin restriction; clone size floor and lambda exclusion carried forward. |
+| Workspace / lineage | Git-ignored tool/vault exclusions and reports role; read-only external Librarian artifact registration remain carried work. |
+| Large results | Use header counts, filters and pagination for large evolution diffs; one envelope is not a complete report. |
+| Parsing / compatibility | Optional JavaScript parser failure on `ui/app.js` and nonfatal `server/discover` warning remain recorded. |
+| Recovery / semantics | Episode state bounded to 1,024 named episodes per connection; cache fingerprints must match and fail closed. Local Model2Vec measured; FastEmbed adapter not equivalently evaluated. |
+
+See [rulings](RULINGS_INDEX.md), [Review 5](../../reports/PHASE67_REVIEW_5_SCIENTIFIC_ASSESSMENT.md), [integration evidence](../../reports/PHASE67_RELEASE_INTEGRATION.md) and [live security report](../../reports/PHASE67_F3_SECURITY.md). Local HTTP is single-user loopback, not a remotely authenticated multi-user service.
+
+## Owner acceptance
+
+Review the [20-minute 0.2.0 checklist and three production-route questions](../../reports/PHASE67_F4_OWNER_ACCEPTANCE.md). Sign off these notes and the known limitations. The six-task pilot remains deferred; it is not replaced by the three questions. **A v0.2.0 tag and every push require separate explicit owner instruction.**

@@ -2,7 +2,7 @@
 
 Semantic search is **off by default**. The `semantic` extra uses Model2Vec static embeddings. `semantic-fastembed` provides an optional local ONNX backend. Neither backend has a hosted embedding adapter. Source is represented and encoded on the local machine; ingestion does not import or execute source files.
 
-Build this feature branch's candidate wheel, then install its extra in the environment that will serve Geo Grapher:
+Use the reviewed 0.2.0 wheel, then install its extra in the environment that will serve Geo Grapher:
 
 ```powershell
 uv pip install 'C:/path/to/geo_grapher-<version>-py3-none-any.whl[semantic]'

@@ -1,6 +1,8 @@
 # F2: merge approvals and outcomes
 
-## Current OWNER STOP — Geo-Grapher integration
+Current status, 2026-11-14: **all F2 merges approved and completed**. Geo main merged candidate 6c41756 at **990f127**, with identical tested tree; Librarian master is **8ea7c45**. Both-merged-mains no-model search→packet passed. The next owner stop is [F4 acceptance](PHASE67_F4_OWNER_ACCEPTANCE.md). Historical requests below remain for audit. No push or tag.
+
+## Historical OWNER STOP — Geo-Grapher integration (completed)
 
 2026-11-14: A, B and C below were approved and completed after the required combined throwaway test. Librarian master is clean at **8ea7c45**; its tree equals the tested integration tree. Combined suite: **2,235 passed / 2 skipped / 5 deselected**. The throwaway branch was deleted; its log remains. Parked WIP and both pre-rebase backup branches remain preserved.
 

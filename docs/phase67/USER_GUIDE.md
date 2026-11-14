@@ -14,7 +14,7 @@ Open the visible block list and expand a block to expose its members. Expansion 
 
 Select the intended graph pair, open **Bridge review**, and find candidates. A candidate is a scored suggestion, not an established relationship. Accept or reject it with a rationale. Only acceptance creates a bridge; rejected proposals remain decisions rather than edges. Repeating an already decided proposal is refused.
 
-Inspect the bridge's current lineage state when its source snapshots change. An accepted historical declaration is not a guarantee that its supporting premises are still current. The proposed stricter homonym firewall is still an owner decision; it has not been silently enabled.
+Inspect the bridge's current lineage state when its source snapshots change. An accepted historical declaration is not a guarantee that its supporting premises are still current. The prospective homonym firewall applies Ψ = 0.25 unless shared citation is exactly 1 or neighbour Jaccard is at least 0.2; weights are unchanged. This reduces unsupported name-only suggestions; it does not certify accepted bridges.
 
 ## Prune by derivation
 
@@ -32,4 +32,4 @@ Drift compares immutable snapshots using stored fingerprints and explicit eviden
 
 Cross-graph analysis requires explicit graph selection. Evolution diffs and clone candidates help locate changes and similarities; bridge impact and theory conformance use their own declared premises and models. Start large reports with counts and filters, then page the evidence. Separate rankings from different graphs are not a universal relevance score, and an accepted bridge is not proof of semantic identity.
 
-The owner’s [20-minute checklist](../../reports/PHASE67_WAVE4_GATE.md) remains the hands-on acceptance step. Automated browser evidence does not substitute for that sign-off.
+The owner's [0.2.0 20-minute checklist](../../reports/PHASE67_F4_OWNER_ACCEPTANCE.md) remains the hands-on acceptance step. Automated browser evidence does not substitute for that sign-off.

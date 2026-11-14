@@ -1,6 +1,6 @@
-# Migration preparation for 0.2.0
+# Migrating to Geo-Grapher 0.2.0
 
-This is a feature-branch migration guide, not notice that 0.2.0 is released. Back up and test a copy first. F2 integration and owner approval must precede the release build.
+The owner-approved code is integrated on both mains. Back up and test a copy before upgrading; publication still awaits F4 acceptance.
 
 ## Additive catalog initialization
 
@@ -19,10 +19,10 @@ Creating a legacy binding does not establish current validity or equivalence; in
 | Persisted stage-3 export/protection analysis | Stage-3 ingestion writes it for the new snapshot; older snapshots use the service’s bounded lazy fallback |
 | Porter FTS and query-word handling | Restart/use the new service so its query-time lexical index rebuilds; this alone does **not** require re-ingestion |
 | Flat IDs, real error choices and coverage metadata | Use the new server/adapter; old readable snapshots retain their facts |
-| Librarian final-at-step-limit behavior | Use the feature-worktree runtime after its approved integration; this is separate from indexing |
+| Librarian final-at-step-limit behavior | Use merged Librarian master; this is separate from indexing |
 | Multi-query ranking and bounded search pagination | Restart the server; existing canonical snapshots remain readable; follow `next_offset` when present |
-| Optional local semantic retrieval | Install the candidate wheel with `[semantic]`, provision local model assets and explicitly build a derived cache for each snapshot; leave configuration unset to retain lexical-only behavior |
-| Episode recovery accounting | Integrate the matching Librarian feature runtime and Geo server together; request metadata carries the ledger without adding nested model-facing arguments |
+| Optional local semantic retrieval | Install the 0.2.0 wheel with `[semantic]`, provision local model assets and explicitly build a derived cache for each snapshot; leave configuration unset to retain lexical-only behavior |
+| Episode recovery accounting | Use the matching merged Librarian runtime and Geo server together; request metadata carries the ledger without adding nested model-facing arguments |
 
 The roadmap grouped FTS with re-ingestion changes. The implementation builds the lexical index per service context, so re-ingestion is required for the new source/documentary facts, not merely for the tokenizer. Neither query ranking nor a new adapter silently adds constants to an old snapshot.
 
@@ -36,4 +36,4 @@ Re-ingest only an approved source revision/profile and preserve the original sna
 4. Exercise directed QI, Off restoration, prune, Add folder and bridge review against real-store copies.
 5. Check lineage and bridge states after head changes; retain old cursors/results as historical evidence, not active continuations.
 
-The frozen v1.0 contracts remain unchanged; legacy presentation maps emitted constants to `fragment`. Stable v1.1 declaration, 0.2.0 version bump and release digests are pending the approved merged-main release process. Future post-freeze wire changes belong in v1.2.
+The frozen v1.0 contracts remain unchanged; legacy presentation maps emitted constants to `fragment`. Contracts v1.1 are stable for 0.2.0; exact LF-byte digests are in `contracts/v1.1/RELEASE_MANIFEST.json`. Existing customised Librarian profiles are not rewritten: inspect their settings explicitly. Shipped code-research defaults are temperature 0.2 and FP4 answer self-check off; no paid measurement was repeated after that change. Future post-freeze wire changes belong in v1.2.
