@@ -299,6 +299,19 @@ def _convert_md(md_path: Path) -> dict:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
+def _convert_catalogue(md_path):
+    """A catalogue note describes a paper; it is never the paper's original text.
+
+    Full conversion artifacts come from Librarian's native batch. Retain the
+    legacy parser above for reading old artifacts, not the default CLI import.
+    """
+    data=_convert_md(md_path)
+    data.update(sections=[],source='catalogue_note',producer='catalogue-note-parser-v4',
+                coverage={'status':'catalogue_only','page_verification':False,
+                          'limitations':['Catalogue note only; original PDF and full page-anchored conversion not supplied']})
+    return data
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Stage 2b — .md notes → nodes JSON")
     ap.add_argument("--notes-dir", default=NOTES_DIR_DEFAULT)
@@ -329,13 +342,13 @@ def main() -> None:
         if out.exists():
             old=json.loads(out.read_text(encoding='utf-8'))
             if old.get('file_path')!=str(md).replace('\\','/'):raise ValueError('Artifact stem collision with another source')
-            if old.get('source_sha256')==digest_file(md) and old.get('producer')=='research-note-parser-v3':
+            if old.get('source_sha256')==digest_file(md) and old.get('producer')=='catalogue-note-parser-v4':
                 skipped += 1
                 continue
 
         try:
-            result = _convert_md(md)
-            if not result["sections"]:
+            result = _convert_catalogue(md)
+            if not result["sections"] and result.get('coverage',{}).get('status')!='catalogue_only':
                 print(f"  [skip] {md.name}  (no parseable content)")
                 skipped += 1
                 continue

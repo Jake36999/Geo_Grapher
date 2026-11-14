@@ -72,8 +72,8 @@ def tool(read_only=True):
                 # The standalone legacy corpus has no accepted own-graph
                 # classification. Scoped calls inherit their graph projection.
                 if DATABASE_SCOPE.get() is None:
-                    result.update(authorship='third_party', provenance='third_party',
-                                  authorship_scope='original_source')
+                    result.update(authorship='third_party', authorship_scope='original_source')
+                    result.setdefault('provenance', 'third_party')
                 return result
             finally:QUERY_CONTEXT.reset(token)
         _TOOLS[fn.__name__]=safe
@@ -102,6 +102,8 @@ def _provenance(conn,doc_id):
         manifest=conn.execute('SELECT * FROM import_manifests WHERE doc_id=?',(doc_id,)).fetchone()
         if manifest:result.update(artifact_sha256=manifest['artifact_sha256'],source_sha256=manifest['source_sha256'],
             producer=manifest['producer'],source_kind=manifest['source_kind'],coverage=json.loads(manifest['coverage_json']))
+    representation=result['coverage'].get('representation')
+    if representation:result['representation']=representation
     return result
 
 
@@ -172,8 +174,11 @@ def _page(rows,offset,limit):
 
 
 def _card(d):
-    return dict(id='doc:'+str(d['id']),title=d['title'],year=d['year'],venue=d['venue'],
+    card = dict(id='doc:'+str(d['id']),title=d['title'],year=d['year'],venue=d['venue'],
         abstract=(d['abstract_summary'] or '')[:600] or None,abstract_truncated=len(d['abstract_summary'] or '')>600)
+    if 'metadata_json' in d.keys() and json.loads(d['metadata_json']).get('catalogue_only'):
+        card.update(coverage_status='catalogue_only',original_page_verification=False)
+    return card
 
 
 def _work_provenance(conn,doc_id):
