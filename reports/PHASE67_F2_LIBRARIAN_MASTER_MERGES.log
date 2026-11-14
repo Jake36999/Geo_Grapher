@@ -1,0 +1,54 @@
+Merge made by the 'ort' strategy.
+ src/resource_librarian/deploy_survey.py | 53 ++++++++++++++++++++++-
+ tests/test_deploy_survey_geo_grapher.py | 75 +++++++++++++++++++++++++++++++++
+ 2 files changed, 127 insertions(+), 1 deletion(-)
+ create mode 100644 tests/test_deploy_survey_geo_grapher.py
+Merge made by the 'ort' strategy.
+ docs/geo-grapher-phase67-preparation.md            |   35 +
+ .../PHASE67_CODE_QUALITY_FINAL_REGISTRATION.json   |   43 +
+ reports/PHASE67_CODE_QUALITY_HELDOUT_SEAL.json     |   33 +
+ reports/PHASE67_CODE_QUALITY_TRACK.md              |  168 +
+ reports/PHASE67_F3_SECURITY.md                     |   54 +
+ reports/PHASE67_WAVE4_GATE.json                    | 3529 ++++++++++++++++++++
+ reports/PHASE67_WAVE4_GATE.md                      |  623 ++++
+ src/resource_librarian/agent_runtime.py            |   13 +-
+ src/resource_librarian/clerk.py                    |   30 +
+ src/resource_librarian/closure.py                  |    3 +
+ src/resource_librarian/code_recovery.py            |  198 ++
+ src/resource_librarian/loop.py                     |  205 +-
+ src/resource_librarian/mcp_client.py               |   64 +-
+ src/resource_librarian/packet_checks.py            |   99 +
+ src/resource_librarian/registry.py                 |   25 +-
+ src/resource_librarian/research_grains.py          |   17 +
+ src/resource_librarian/tools/__init__.py           |    1 +
+ src/resource_librarian/tools/plan_dispatch.py      |  149 +
+ tests/test_clerk_code_block_contract.py            |   63 +
+ tests/test_code_recovery.py                        |  294 ++
+ tests/test_code_research_policy.py                 |   31 +
+ tests/test_external_result_limit.py                |   66 +
+ tests/test_mcp_schema_refs.py                      |   29 +
+ tests/test_plan_dispatch.py                        |  184 +
+ tests/test_sbom.py                                 |   10 +-
+ tests/test_step_limit_answer.py                    |  107 +
+ 26 files changed, 6028 insertions(+), 45 deletions(-)
+ create mode 100644 docs/geo-grapher-phase67-preparation.md
+ create mode 100644 reports/PHASE67_CODE_QUALITY_FINAL_REGISTRATION.json
+ create mode 100644 reports/PHASE67_CODE_QUALITY_HELDOUT_SEAL.json
+ create mode 100644 reports/PHASE67_CODE_QUALITY_TRACK.md
+ create mode 100644 reports/PHASE67_F3_SECURITY.md
+ create mode 100644 reports/PHASE67_WAVE4_GATE.json
+ create mode 100644 reports/PHASE67_WAVE4_GATE.md
+ create mode 100644 src/resource_librarian/code_recovery.py
+ create mode 100644 src/resource_librarian/packet_checks.py
+ create mode 100644 src/resource_librarian/tools/plan_dispatch.py
+ create mode 100644 tests/test_clerk_code_block_contract.py
+ create mode 100644 tests/test_code_recovery.py
+ create mode 100644 tests/test_code_research_policy.py
+ create mode 100644 tests/test_external_result_limit.py
+ create mode 100644 tests/test_mcp_schema_refs.py
+ create mode 100644 tests/test_plan_dispatch.py
+ create mode 100644 tests/test_step_limit_answer.py
+Merge made by the 'ort' strategy.
+ scripts/delegate_deepinfra.py      | 18 ++++++++++++++++
+ tests/test_deepinfra_delegation.py | 42 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+)

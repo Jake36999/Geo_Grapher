@@ -1,8 +1,8 @@
 *   baac8307efe3373abe30b5cf1a70e60de911072c 8c80e39cca2fced7bc4dcd4c4614c530c4d6eb60 9f3a0d826f6078524f4da5aae8d2489e4f55cb8b Test integration C: delegation reasoning controls
-|\  
+|\
 | * 9f3a0d826f6078524f4da5aae8d2489e4f55cb8b c4eb76ff1c2b78346fd7743dadda5d6b170427b5 Add opt-in delegation reasoning controls with free regression tests
 *   8c80e39cca2fced7bc4dcd4c4614c530c4d6eb60 6a51b01015d420056d2ac90f9fad9225bf3d6d51 db55b891daddad0d6bf8a5ef2444c5a1f3125e3a Test integration B: Geo-Grapher wave 4
-|\  
+|\
 | * db55b891daddad0d6bf8a5ef2444c5a1f3125e3a dcc7770808fbb4828a19f1afd3d62a2f451e4c19 fix(code-research): turn the FP4 answer self-check off by default
 | * dcc7770808fbb4828a19f1afd3d62a2f451e4c19 b814bd2d77f7e4c956bb4e41c6e1350ce509abed Reject tool-request text during bounded answer recovery
 | * b814bd2d77f7e4c956bb4e41c6e1350ce509abed 4b0385758f1f928d7b68548a3d75c10bb2e109e1 feat: bound code-research recoveries and retain honest first drafts
@@ -26,5 +26,5 @@
 | * 59593d2da4dca80a7e08dd02774911fbd6033b0c bfbf74d334075e6a951d88f099007fe3de99d532 feat(clerk): unframed code contracts and bound citation checks
 | * bfbf74d334075e6a951d88f099007fe3de99d532 70ffe386d75d787861bc1067fb840c9fd0651964 feat(mcp): route-aware atomic result limits and scope rechecks
 * | 6a51b01015d420056d2ac90f9fad9225bf3d6d51 c4eb76ff1c2b78346fd7743dadda5d6b170427b5 70ffe386d75d787861bc1067fb840c9fd0651964 Test integration A: Geo-Grapher survey
-|/  
+|/
 * 70ffe386d75d787861bc1067fb840c9fd0651964 c4eb76ff1c2b78346fd7743dadda5d6b170427b5 feat(deploy): optional Geo-Grapher partition preview in the survey
