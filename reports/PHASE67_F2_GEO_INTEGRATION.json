@@ -1,0 +1,129 @@
+{
+  "status": "OWNER_STOP_before_Geo_main_merge",
+  "candidate_branch": "codex/phase67-geo-integration-20261114",
+  "tested_code_head": "5250e8f59bfc5c9ca97d0cc5182d420361000a5a",
+  "scratch_merge": "7ec2c4b1cb2146ea4a72f694a312444d1c58cef5",
+  "main_unchanged": "0f12dfa394ab28f99e87e18bba4e34fbf2b3b8e9",
+  "product_changes_after_scratch_merge": false,
+  "test_only_fixture_repair": "5250e8f",
+  "backend_first": {
+    "passed": 761,
+    "failed": 1,
+    "deselected": 1
+  },
+  "backend_corrected": {
+    "passed": 764,
+    "failed": 0,
+    "deselected": 1
+  },
+  "legacy_deselection": "tests/test_contraction_directed_service.py::test_cold_latency_within_c14; replaced prospectively by three-process C14",
+  "frontend": {
+    "typecheck": "PASS",
+    "build": "PASS",
+    "unit_passed": 16,
+    "browser_passed": 17
+  },
+  "presets": {
+    "calls": 28,
+    "failed": 0,
+    "max_characters": 7326,
+    "limit": 7500
+  },
+  "real_store_browser": {
+    "passed": 5,
+    "root": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\integration\\20261114-f2-geo",
+    "cleanup": {
+      "extra_graphs": [],
+      "baseline_preserved": true
+    },
+    "junction_removed": true
+  },
+  "c14": {
+    "samples": [
+      2.4957775000075344,
+      2.6027052999997977,
+      2.6373524999944493
+    ],
+    "median_seconds": 2.6027052999997977,
+    "max_seconds": 2.6373524999944493,
+    "passed": true
+  },
+  "wheel": {
+    "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\f2-geo\\dist\\geo_grapher-0.1.1-py3-none-any.whl",
+    "sha256": "e1b31be4a5258c050c526ae3d3bd54a1dc8a8248f200176465a326c700316373",
+    "version": "0.1.1",
+    "purpose": "F2 integration candidate; not the future 0.2.0 release"
+  },
+  "librarian": {
+    "master": "8ea7c45ae814fed35a1f71ecaac6ec307ad9b31f",
+    "tree": "f6479caaf040da4dcfb066befd22e8ca3ba974c7",
+    "clean": true,
+    "premerge_full_suite_passed": 2235,
+    "skipped": 2,
+    "deselected": 5,
+    "parked_wip": "610b4496a6af314d660da7fe936e1f087bf2dc5b",
+    "backup_refs": {
+      "codex/phase67-survey-pre-rebase-20261114": "70ffe386d75d787861bc1067fb840c9fd0651964",
+      "codex/phase67-wave4-pre-rebase-20261114": "737ea28095936c4847db0c62aa299d44376d7085"
+    }
+  },
+  "paid_calls": 0,
+  "pushed": false,
+  "tagged": false,
+  "remaining": [
+    "Owner approval for Geo main merge",
+    "Both merged mains installed-wheel through-Librarian no-model search to packet",
+    "F3 release hardening and 0.2.0 build",
+    "F4 owner acceptance"
+  ],
+  "artifacts": [
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-geo-scratch-verify-first.log",
+      "sha256": "7b66343b1a559ced1509b825193b9e6ce41c89b18d17ac0c9505639c0c784aa7"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-geo-scratch-verify-corrected.log",
+      "sha256": "a0f95245825307eee2096ea69909dffcb65c4305efa47c0061258b4315a07955"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-packet-fixtures-focused.log",
+      "sha256": "75d1385663d533d0d126b22d32a753c53fc4199c4de40fc63c932f2ead5a0d2a"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-geo-wheel-build-first.log",
+      "sha256": "e3be40e9a03e9637db03bbc11d4b6508bfc2abfa690ae4a624afcb12371bf17e"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-geo-presets-first.log",
+      "sha256": "0bd06fadf6e73de316c53c97bfaa0da9fa44f72e4fe90a840c7a6909d96a4fc4"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-geo-real-browser-first.log",
+      "sha256": "53ee32a1c3c203c2e99e2402b6125296dcc958ab2535cc48e381a6fd87bfea0f"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\qa-real\\f2-geo-results.json",
+      "sha256": "3b695093fb140d2622473158018f6a3531eca033f28495517f51787c2f33b84f"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-geo-c14-first.log",
+      "sha256": "47a4f10525cb6f0dfecb45a96122f93f760a95fa4a13cb4787b0d712329b9ead"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-c14-machine-idle.json",
+      "sha256": "3a8158465f76ededd17b4940c4b2a561a4df29cc5c8f4954efc7f75cb449c4e4"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2_c14_measure.py",
+      "sha256": "8659f07a413e238e01644c12124c6cc2e00bba1e4c0a25c073fc5c57032d99c0"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-real-store-prepare.log",
+      "sha256": "7900a3047bf79ae88400729d5e05c381bec553d63a389e19aca7994f83a0ce36"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f2-qa-cleanup-before-browser.log",
+      "sha256": "eb4cd2a7080dbb63a2c7f87f4087c8bbbc33f0f3496907227d6dc65146d393e1"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+"""One-off owner-approved prospective C14 measurement; not the legacy gate."""
+import argparse, contextlib, hashlib, json, os, sqlite3, statistics, subprocess
+from datetime import datetime, timezone
+from pathlib import Path
+
+p=argparse.ArgumentParser();p.add_argument('--quiet-machine',action='store_true',required=True)
+p.add_argument('--wheel',type=Path,required=True);p.add_argument('--out',type=Path,required=True)
+a=p.parse_args();root=Path(__file__).resolve().parents[1];wheel=a.wheel.resolve()
+assert not a.out.exists(), 'Preserve first samples'
+base=Path('D:/Librarian_V2/tmp/geo-grapher-qa-workspaces/latency/20261114-f2-geo')
+assert not base.exists();base.mkdir(parents=True)
+marker=dict(schema_version=1,disposable=True,scenario='latency',state='active',created_at=datetime.now(timezone.utc).isoformat())
+(base/'qa-copy.json').write_text(json.dumps(marker,indent=2))
+with contextlib.closing(sqlite3.connect((root/'output/phase67-gates/wave2/catalog.sqlite').as_uri()+'?mode=ro',uri=True)) as c:
+    c.row_factory=sqlite3.Row;g=dict(c.execute("SELECT * FROM graphs WHERE label='ToolSet'").fetchone())
+copies=[]
+for i in range(3):
+    dest=base/f'sample-{i+1}.sqlite'
+    with contextlib.closing(sqlite3.connect(Path(g['code_database']).resolve().as_uri()+'?mode=ro',uri=True)) as src, contextlib.closing(sqlite3.connect(dest)) as dst:
+        src.backup(dst)
+    copies.append(dest)
+worker='''
+import copy, importlib.metadata, json, os, sys, time, geographer
+from geographer.store import SnapshotStore
+from geographer.service import QueryService
+from geographer.analysis import DEFAULT_FILTER
+store=SnapshotStore(sys.argv[1]);sid=sys.argv[2];svc=QueryService(store,secret=b'x'*32)
+g=store.graph(sid)
+focus=next(e.entity_id for e in sorted(g.entities.values(),key=lambda e:e.entity_id) if e.kind=='function' and not(e.is_external or e.is_test or e.is_generated or e.is_vendor))
+req=dict(schema_version='1.1',request_id='directed',snapshot_id=sid,budget=dict(limit_tokens=8192,tokenizer='o200k_base',allow_byte_fallback=False),focus_id=focus,grouping={'mode':'atomic'},context_radius=2,filter=copy.deepcopy(DEFAULT_FILTER),pins=[],qi=dict(enabled=True,max_diameter=2,algorithm='directed-helper-condensation-v1'),cursor=None)
+start=time.perf_counter();result=svc.query('get_architecture_context',req)
+assert 'error' not in result,result
+svc.wire11.validate('get_architecture_context','response',result)
+seconds=time.perf_counter()-start
+store.close()
+print(json.dumps(dict(seconds=seconds,pid=os.getpid(),snapshot_id=sid,focus_id=focus,success=True,package_file=geographer.__file__,package_version=importlib.metadata.version('geo-grapher'))))
+'''
+report=dict(quiet_machine=True,rule='median of 3 cold <3.0s AND maximum <3.5s; prospective only',timing_scope='Fresh QueryService process, graph/focus lookup before clock, query plus response validation; identical legacy C14 workload',wheel=str(wheel),wheel_sha256=hashlib.sha256(wheel.read_bytes()).hexdigest(),source_database=g['code_database'],snapshot_id=g['snapshot_id'],samples=[])
+env={k:v for k,v in os.environ.items() if k.upper()!='PYTHONPATH'}
+for i,db in enumerate(copies,1):
+    cmd=['uvx','--python',str(root/'output/wheel-env/Scripts/python.exe'),'--refresh-package','geo-grapher','--from',str(wheel),'python','-c',worker,str(db),g['snapshot_id']]
+    r=subprocess.run(cmd,cwd=base,env=env,capture_output=True,text=True)
+    try:row=json.loads(r.stdout)
+    except ValueError:row=dict(success=False,stdout=r.stdout,stderr=r.stderr)
+    row.update(sample=i,returncode=r.returncode,database=str(db));report['samples'].append(row)
+    a.out.write_text(json.dumps(report,indent=2));print(json.dumps(row),flush=True)
+rows=report['samples'];ok=all(r['success'] and r['returncode']==0 and '/src/' not in r['package_file'].replace('\\','/') for r in rows)
+if ok:
+    assert len({r['pid'] for r in rows})==3
+    assert len({(r['snapshot_id'],r['focus_id']) for r in rows})==1
+    report['median_seconds']=statistics.median(r['seconds'] for r in rows)
+    report['max_seconds']=max(r['seconds'] for r in rows)
+report['passed']=ok and report['median_seconds']<3.0 and report['max_seconds']<3.5
+a.out.write_text(json.dumps(report,indent=2));marker['state']='complete' if report['passed'] else 'failed'
+(base/'qa-copy.json').write_text(json.dumps(marker,indent=2));print(json.dumps(dict(passed=report['passed'])))
+raise SystemExit(not report['passed'])
