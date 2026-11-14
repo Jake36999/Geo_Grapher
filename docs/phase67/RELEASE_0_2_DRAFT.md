@@ -1,6 +1,6 @@
 # Geo Grapher 0.2.0 — draft release notes
 
-Status: feature-branch preparation. Version remains 0.1.1; no merge, stable-contract declaration, release tag or push is implied. The final wave-4 code cycle passed **3/5, 5/5, 4/5 = 12/15**. The live pilot, owner checklist, F1 decisions and F2 integration still gate release.
+Status: feature-branch preparation. Version remains 0.1.1; no merge, stable-contract declaration, release tag or push is implied. The final wave-4 code cycle passed **3/5, 5/5, 4/5 = 12/15**. On 2026-11-14 the owner approved the F1 decisions and accepted the live pilot as a deferred, unvalidated release limitation. Integration, hardening and F4 owner acceptance remain pending. The later quality measurements and changed FP4 default must be recorded separately in the final notes (Review 5); the earlier wave-4 row is unchanged.
 
 ## Features prepared across waves 1–4
 
@@ -26,6 +26,7 @@ See [migration notes](MIGRATION_0_2.md) before opening a catalog or regenerating
 
 | Area | Evidence / follow-up |
 |---|---|
+| Live six-task pilot | **DEFERRED by owner decision, 2026-11-14.** Resource-Library role qualification remains outstanding. Live coordination, verification and timing are **unvalidated**; no passing pilot is claimed. |
 | Answer discipline | Prior-knowledge slip 1/29 remains; missing-corpus abstention needs the wave-5 answer contract |
 | Code-agent quality | Final cycle 12/15 meets its registered gate, not perfect accuracy; further ranking/completion work uses the new delivery metadata |
 | Performance | Librarian-v2 QI remains roughly 6–11 seconds cold; current C14 has little worst-sample headroom |
@@ -41,4 +42,4 @@ Rulings and evidence indexes: [master plan](../superpowers/plans/2026-11-11-phas
 
 ## Release prerequisites
 
-The owner must qualify Resource-Library routes and leave Core running for the six-task pilot and production-lead question, complete the hands-on checklist, resolve F1 decisions, approve each F2 merge and review these docs. Only then build 0.2.0 from merged main, verify both repositories and the installed-wheel cross-repo path, freeze v1.1 and sign off the release/tag/push. Those actions have not been performed.
+The owner has accepted deferral of the six-task pilot; it is no longer a release blocker, and it remains unvalidated. Role qualification and a running Core are still prerequisites for any later execution of it. Complete the F4 hands-on/real-question acceptance, obtain each F2 merge approval and review the final documents. Build 0.2.0 from the approved merged code, verify both repositories and the installed-wheel cross-repo path, freeze v1.1 and obtain release sign-off. Tagging and any push require separate owner instruction. Those release actions have not been performed.

@@ -5,6 +5,19 @@ import sqlite3
 import pytest
 
 from geographer.bridges import normalise, parse_ref, score_candidate
+
+
+@pytest.mark.parametrize('citation,neighbours,expected',[
+    (0,0.0,0.1125),
+    (0,1/32,0.1140625),
+    (0,0.199999,0.1225),
+    (0,0.2,0.49),
+    (0,0.200001,0.49),
+    (1,0.0,0.8),
+])
+def test_owner_firewall_requires_citation_or_threshold_neighbourhood(citation,neighbours,expected):
+    score=score_candidate(dict(alias_overlap=1.0,shared_citation=citation,neighbour_jaccard=neighbours))
+    assert score==pytest.approx(expected,abs=0.00000051)
 from geographer.graph_catalog import GraphCatalog
 from geographer.source import Repository
 
