@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import hashlib
-import io
 import subprocess
-import tarfile
 import re
 import os
 from fnmatch import fnmatchcase
@@ -12,8 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 from .model import digest
+from .credentials import credential_path, refuse_credentials
 
-EXCLUDED = {".git", ".venv", "venv", "__pycache__", "node_modules", ".cache", "graphifyy"}
+EXCLUDED = {".git", ".venv", "venv", "__pycache__", "node_modules", ".cache", "graphifyy", "graphify-out"}
 SUPPORTED = {".py", ".md", ".txt", ".js", ".ts", ".tsx", ".jsx", ".ipynb"}
 
 
@@ -38,6 +37,7 @@ class Repository:
         if self.resolution_group is not None and (not isinstance(self.resolution_group,str) or not self.resolution_group.strip()):
             raise ValueError('resolution_group must be a nonempty explicit name')
         for name in self.files:
+            refuse_credentials(name)
             if not valid_path(name):
                 raise ValueError(f"Unsafe repository-relative path: {name}")
         for root in self.source_roots:
@@ -50,31 +50,53 @@ class Repository:
 
     @classmethod
     def from_git(cls, path: Path, repo_id: str, revision: str, source_roots=("",)) -> "Repository":
+        refuse_credentials(Path(path).resolve())
         if not re.fullmatch(r"[0-9a-fA-F]{40,64}", revision):
             raise ValueError("Specify a full immutable Git commit hash")
         actual = subprocess.run(["git", "-C", str(path), "rev-parse", "--verify", revision + "^{commit}"],
                                 check=True, capture_output=True, text=True).stdout.strip()
-        args = ["git", "-C", str(path), "archive", "--format=tar", actual]
+        args = ["git", "-C", str(path), "ls-tree", "-rz", "-l", actual]
         if all(source_roots):
             args.extend(["--", *source_roots])
-        data = subprocess.run(args, check=True, capture_output=True).stdout
-        files = {}
-        with tarfile.open(fileobj=io.BytesIO(data)) as archive:
-            for member in archive:
-                name = member.name
-                p = PurePosixPath(name)
-                if member.isfile() and valid_path(name) and not EXCLUDED.intersection(p.parts) and p.suffix in SUPPORTED:
-                    if member.size > 4 * 1024 * 1024:
-                        raise ValueError(f"Input file exceeds 4 MiB: {name}")
-                    stream = archive.extractfile(member)
-                    assert stream is not None
-                    files[name] = stream.read()
+        listing = subprocess.run(args, check=True, capture_output=True).stdout
+        selected = []; total = 0
+        for record in listing.split(b'\0'):
+            if not record:
+                continue
+            meta, raw_name = record.split(b'\t', 1)
+            mode, kind, object_id, raw_size = meta.split()
+            name = raw_name.decode('utf-8', 'surrogateescape'); p = PurePosixPath(name)
+            if (mode not in (b'100644', b'100755') or kind != b'blob'
+                    or not valid_path(name) or credential_path(name)
+                    or EXCLUDED.intersection(p.parts) or p.suffix not in SUPPORTED):
+                continue
+            size = int(raw_size)
+            if size > 4 * 1024 * 1024:
+                raise ValueError(f'Input file exceeds 4 MiB: {name}')
+            total += size
+            if len(selected) >= 10000 or total > 128 * 1024 * 1024:
+                raise ValueError('Repository input exceeds selected file/byte budget')
+            selected.append((name, object_id))
+        # Filter names BEFORE fetching blobs: a whole-tree archive would copy credentials.
+        payload = b''.join(object_id + b'\n' for _, object_id in selected)
+        data = subprocess.run(['git', '-C', str(path), 'cat-file', '--batch'],
+                              input=payload, check=True, capture_output=True).stdout if selected else b''
+        files = {}; offset = 0
+        for name, expected in selected:
+            end = data.index(b'\n', offset)
+            object_id, kind, raw_size = data[offset:end].split()
+            if object_id != expected or kind != b'blob':
+                raise ValueError('Unexpected Git blob response')
+            offset = end + 1; size = int(raw_size)
+            files[name] = data[offset:offset + size]
+            offset += size + 1
         return cls(repo_id, actual, files, tuple(source_roots))
 
     @classmethod
     def from_directory(cls, path: Path, repo_id: str, source_roots=("",), *, resolution_group=None,
                        include_globs=("*",), exclude_globs=(), max_files=10000, max_total_bytes=128*1024*1024) -> "Repository":
         root = path.resolve()
+        refuse_credentials(root)
         if not root.is_dir():raise ValueError(f"Repository directory not found: {root}")
         cls(repo_id,"working-tree",{},tuple(source_roots),resolution_group,tuple(include_globs),tuple(exclude_globs))
         files = {}
@@ -94,7 +116,7 @@ class Repository:
             rel = p.relative_to(root)
             if all(source_roots) and not any(rel.as_posix()==r or rel.as_posix().startswith(r.rstrip('/')+'/') for r in source_roots):
                 continue
-            if EXCLUDED.intersection(rel.parts) or p.suffix not in SUPPORTED:
+            if credential_path(rel) or EXCLUDED.intersection(rel.parts) or p.suffix not in SUPPORTED:
                 continue
             if not any(fnmatchcase(rel.as_posix(),g) for g in include_globs) or any(fnmatchcase(rel.as_posix(),g) for g in exclude_globs):continue
             if not p.resolve().is_relative_to(root):

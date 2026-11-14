@@ -7,22 +7,30 @@ from typing import Any
 
 from geographer import source
 from geographer.model import digest
+from .credentials import credential_path, refuse_credentials
+from . import folder_inventory
 
 
 PLAN_VERSION = "workspace-init-v1"
 HYGIENE_DIRS = source.EXCLUDED | {
     ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", "dist", "build",
-    "target", ".idea", ".vscode", "wheel-env", "site-packages", "output", "tmp"
+    "target", ".idea", ".vscode", "wheel-env", "site-packages", "output", "tmp",
+    "test-results", "librarian-app", "ghostunnel_static_build"
 }
 
 
-def scan(root, catalog=None) -> dict:
+def scan(root, catalog=None, *, inventory=None) -> dict:
     """Scan a directory and return a plan."""
     root = Path(root).resolve()
+    refuse_credentials(root)
     if not root.is_dir():
         raise ValueError(f"Not a directory: {root}")
 
-    excluded = []
+    inventory = folder_inventory.validate(root, inventory) if inventory is not None else folder_inventory.collect(root, HYGIENE_DIRS)
+    metadata = {r[0]: r[1:] for r in inventory['entries']}
+    excluded = [{'rel': name.rstrip('/'), 'reason': 'survey_exclusion' if size == -2 else 'symlink'}
+                for name, size, _ in inventory['entries'] if size in (-1, -2)]
+    credential_refusals = list(inventory.get('credential_refusals', {}).get('paths', []))
     unsupported_by_suffix = {}
     manual_steps = []
     partitions = {}
@@ -39,11 +47,14 @@ def scan(root, catalog=None) -> dict:
     }
 
     # First pass: identify partitions
-    for dirpath, dirnames, filenames in os.walk(root, topdown=True):
+    for dirpath, dirnames, filenames in folder_inventory.walk(root, inventory):
         dir_path = Path(dirpath)
         dir_rel = dir_path.relative_to(root).as_posix()
         if dir_rel == ".":
             dir_rel = ""
+        if dir_rel and not dirnames and not filenames and metadata.get(dir_rel + '/', [0])[0] == 0:
+            excluded.append({'rel': dir_rel, 'reason': 'empty folder'})
+            continue
 
         # Check for exclusions
         excluded_reason = None
@@ -76,6 +87,21 @@ def scan(root, catalog=None) -> dict:
             if dir_name_lower in names:
                 role = r
                 break
+        reasons = []
+        if (dir_name_lower.startswith(('third_party', 'vendor', 'external'))
+                or dir_name_lower in {'repos', 'refs'} or dir_name_lower.endswith(('-master', '-main'))):
+            role = 'third_party'; reasons.append('third-party folder-name signal')
+        if dir_rel and (dir_rel + '/.git/' in metadata or dir_rel + '/.git' in metadata):
+            role = 'third_party'; reasons.append('nested Git repository; ownership unconfirmed (remote credentials are not read)')
+        if dir_rel and any(name.lower().startswith(('license', 'licence', 'copying')) for name in filenames):
+            reasons.append('licence file; review upstream ownership')
+            if role == 'current': role = 'third_party'
+        suffixes = [Path(name).suffix.lower() for name in filenames if not credential_path(name)]
+        if dir_rel and suffixes and role == 'current':
+            if suffixes.count('.pdf') > len(suffixes) / 2:
+                role = 'research_docs'; reasons.append('PDF-dominant folder')
+            elif sum(s in {'.csv', '.pcap', '.pcapng', '.parquet', '.h5', '.npy'} for s in suffixes) > len(suffixes) / 2:
+                role = 'data'; reasons.append('bulk data files')
 
         # Check if this directory should start a partition
         ancestors = []
@@ -98,6 +124,7 @@ def scan(root, catalog=None) -> dict:
                 "key": partition_key,
                 "subtrees": [dir_rel],
                 "role": role,
+                "suggestion_reasons": reasons or [f'folder-name signal: {role}'],
                 "file_counts": {},
                 "bytes": 0,
                 "exclude_globs": [],
@@ -112,7 +139,13 @@ def scan(root, catalog=None) -> dict:
         # Process files in this directory
         for fname in filenames:
             fpath = dir_path / fname
+            if credential_path(fpath.relative_to(root)):
+                credential_refusals.append(fpath.relative_to(root).as_posix())
+                continue
             suffix = fpath.suffix.lower()
+            if suffix in {'.blend', '.blend1', '.blend2', '.log', '.bak', '.exe', '.dll', '.so', '.bin'}:
+                excluded.append({'rel': fpath.relative_to(root).as_posix(), 'reason': 'binary, backup or log'})
+                continue
             
             # Count unsupported files
             if suffix not in source.SUPPORTED and suffix not in {".pdf", ".tex", ".bib"}:
@@ -157,13 +190,13 @@ def scan(root, catalog=None) -> dict:
             
             if target_partition:
                 # Count supported and paper files
-                if suffix in source.SUPPORTED or suffix in {".pdf", ".tex", ".bib"}:
+                if suffix:
                     target_partition["file_counts"][suffix] = target_partition["file_counts"].get(suffix, 0) + 1
                 
                 # Count bytes for supported files
-                if suffix in source.SUPPORTED:
+                if suffix:
                     try:
-                        target_partition["bytes"] += fpath.stat().st_size
+                        target_partition["bytes"] += metadata[fpath.relative_to(root).as_posix()][0]
                     except OSError:
                         pass
 
@@ -173,6 +206,13 @@ def scan(root, catalog=None) -> dict:
             dpath = dir_path / dname
             drel = (Path(dir_rel) / dname).as_posix() if dir_rel else dname
             dname_lower = dname.lower()
+            if metadata.get(drel + '/', [0])[0] == -2:
+                dirnames.remove(dname)
+                continue
+            if credential_path(drel):
+                credential_refusals.append(drel)
+                dirnames.remove(dname)
+                continue
 
             # Skip excluded dirs
             skip = False
@@ -284,6 +324,9 @@ def scan(root, catalog=None) -> dict:
         "external_reference": {"trust_tier": "silver", "modality": default_modality},
         "transcripts": {"trust_tier": "bronze_transcript", "modality": "transcript"},
         "docs": {"trust_tier": "silver", "modality": "doc"},
+        "third_party": {"trust_tier": "bronze", "modality": default_modality},
+        "research_docs": {"trust_tier": "bronze", "modality": "paper"},
+        "data": {"trust_tier": "bronze", "modality": "doc"},
     }
 
     for part in partitions.values():
@@ -294,6 +337,15 @@ def scan(root, catalog=None) -> dict:
             "trust_tier": rules.get("trust_tier", default_trust_tier),
             "modality": rules.get("modality", default_modality),
         }
+
+        if role == 'third_party' and part['file_counts'].get('.pdf', 0) > sum(part['file_counts'].values()) / 2:
+            part['stratum']['modality'] = 'paper'
+        elif role == 'third_party' and not any(part['file_counts'].get(s, 0) for s in ('.py','.js','.ts','.tsx','.jsx','.ipynb')):
+            part['stratum']['modality'] = 'doc'
+        purposes = {'current': 'own-current', 'legacy': 'own-legacy', 'docs': 'own-docs',
+                    'third_party': 'third-party', 'research_docs': 'research-docs', 'data': 'data',
+                    'transcripts': 'logs/transcripts', 'external_reference': 'third-party'}
+        part['suggestion'] = dict(purpose=purposes[role], reasons=part.pop('suggestion_reasons', ['residual content; ownership requires review']), accepted=False)
 
     # Finalize partitions list
     partitions_list = sorted(partitions.values(), key=lambda x: x["key"])
@@ -313,10 +365,14 @@ def scan(root, catalog=None) -> dict:
         "root": str(root),
         "archetype": archetype,
         "partitions": partitions_list,
-        "excluded": sorted(excluded, key=lambda x: x["rel"]),
+        "excluded": sorted({e['rel']:e for e in excluded}.values(), key=lambda x: x["rel"]),
         "unsupported_by_suffix": dict(sorted(unsupported_by_suffix.items())),
         "manual_steps": sorted(manual_steps, key=lambda x: x["dir"]),
         "existing_graph_id": existing_graph_id,
+        "geographer_version": "0.2.0",
+        "shared_survey_fingerprint": inventory['fingerprint'],
+        "inventory_fingerprint": digest(inventory['entries']),
+        "credential_refusals": {"count": len(credential_refusals), "paths": sorted(credential_refusals)},
     }
 
     # Add plan_id
@@ -325,10 +381,11 @@ def scan(root, catalog=None) -> dict:
     return plan_dict
 
 
-def apply(catalog, plan: dict, *, approved_keys: set[str]) -> list[dict]:
+def apply(catalog, plan: dict, *, approved_keys: set[str], inventory=None) -> list[dict]:
     """Apply an approved plan to ingest partitions."""
     # Rescan and check staleness
-    new_plan = scan(plan["root"])
+    if inventory is not None:folder_inventory.check_current(Path(plan['root']).resolve(), inventory)
+    new_plan = scan(plan["root"], inventory=inventory)
     if plan["plan_id"] != new_plan["plan_id"]:
         raise ValueError("PLAN_STALE: the folder changed since the plan was made; scan again")
 

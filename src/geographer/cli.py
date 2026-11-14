@@ -70,7 +70,13 @@ def main():
     init=sub.add_parser('init-workspace',help='Plan disjoint graph partitions for any folder (workspace-init-v1); applies only with --apply or --yes')
     init.add_argument('--root',type=Path,required=True);init.add_argument('--catalog',type=Path,required=True)
     init.add_argument('--plan-out',default='-',help='Plan JSON file, or - for stdout');init.add_argument('--apply',type=Path,help='Apply every partition of this saved plan')
+    init.add_argument('--survey-in',help='folder-inventory-v1 JSON file, or - for stdin; uses the Librarian survey without walking twice')
     init.add_argument('--yes',action='store_true',help='Scan and apply every proposed partition')
+    folder_review=sub.add_parser('apply-folder-review',help='Apply person-accepted folder groups from JSON on stdin')
+    folder_review.add_argument('--catalog',type=Path,required=True)
+    folder_mcp=sub.add_parser('review-mcp-config',help='Print scoped MCP entry suggestions; never launch or accept servers')
+    folder_mcp.add_argument('--catalog',type=Path,required=True)
+    folder_mcp.add_argument('--command-json',required=True,help='Pinned installed-wheel command as a JSON array')
     diffg=sub.add_parser('diff-graphs',help='Fingerprint diff and quotient-cycle delta between two catalog graphs, as JSON')
     diffg.add_argument('--catalog',type=Path,required=True);diffg.add_argument('--graph-a',required=True);diffg.add_argument('--graph-b',required=True)
     diffg.add_argument('--out',type=Path,required=True)
@@ -98,6 +104,8 @@ def main():
     graphserver.add_argument('--tools',default=os.environ.get('GEOGRAPHER_TOOLS') or None,
         help="Tool surface: 'all' (default), 'papers', 'code', or comma-separated tool names "
              "(default: $GEOGRAPHER_TOOLS). For hosts that offer an agent only a few tools per turn")
+    graphserver.add_argument('--consumer-role',choices=['lead','research_helper','clerk','scribe'],default='lead',
+        help='Connection principal; Clerk and Scribe connections cannot include third-party graphs')
     graphserver.add_argument('--semantic-model',default=os.environ.get('GEOGRAPHER_SEMANTIC_MODEL') or None,
         help='Opt-in local encoder, model2vec:absolute-directory or fastembed:model-name@absolute-directory')
     graphserver.add_argument('--semantic-cache',type=Path,default=os.environ.get('GEOGRAPHER_SEMANTIC_CACHE') or None,
@@ -172,7 +180,7 @@ def main():
                     from .semantic import load_encoder
                     semantic=dict(encoder=load_encoder(args.semantic_model),cache=args.semantic_cache)
                     if not Path(args.semantic_cache).is_file():raise ValueError('Semantic cache missing; explicitly backfill before serving')
-                router=GraphRouter(catalog,allowed=args.allow_graph or env_graphs or None,max_result_chars=args.max_result_chars,tools=args.tools,semantic=semantic)
+                router=GraphRouter(catalog,allowed=args.allow_graph or env_graphs or None,max_result_chars=args.max_result_chars,tools=args.tools,semantic=semantic,consumer_role=args.consumer_role)
                 try:
                     if args.transport=='stdio':create_graph_mcp(router,port=args.port).run(transport='stdio')
                     else:
@@ -198,18 +206,35 @@ def main():
         output=json.dumps(report,indent=2,ensure_ascii=False)
         if args.report:args.report.parent.mkdir(parents=True,exist_ok=True);args.report.write_text(output+'\n',encoding='utf-8')
         print(output);return
+    if args.command=='review-mcp-config':
+        from .graph_catalog import GraphCatalog
+        from .provenance import mcp_entries
+        catalog=GraphCatalog(args.catalog)
+        try:print(json.dumps(dict(mcpServers=mcp_entries(catalog,json.loads(args.command_json))),indent=2))
+        finally:catalog.close()
+        return
+    if args.command=='apply-folder-review':
+        from .folder_review import apply_review
+        from .graph_catalog import GraphCatalog
+        request=json.loads(sys.stdin.read())
+        catalog=GraphCatalog(args.catalog)
+        try:print(json.dumps(apply_review(catalog,request),ensure_ascii=False))
+        finally:catalog.close()
+        return
     if args.command=='init-workspace':
         from .graph_catalog import GraphCatalog
         from .model import canonical
         from .workspace_init import apply,scan
+        inventory = (json.loads(sys.stdin.read()) if args.survey_in == '-' else
+                     json.loads(Path(args.survey_in).read_text(encoding='utf-8'))) if args.survey_in else None
         if args.apply or args.yes:
             catalog=GraphCatalog(args.catalog)
             try:
-                plan=json.loads(args.apply.read_text(encoding='utf-8')) if args.apply else scan(args.root,catalog)
-                print(canonical(apply(catalog,plan,approved_keys={p['key'] for p in plan['partitions']})))
+                plan=json.loads(args.apply.read_text(encoding='utf-8')) if args.apply else scan(args.root,catalog,inventory=inventory)
+                print(canonical(apply(catalog,plan,approved_keys={p['key'] for p in plan['partitions']},inventory=inventory)))
             finally:catalog.close()
             return
-        plan=scan(args.root)
+        plan=scan(args.root, inventory=inventory)
         if args.plan_out=='-':sys.stdout.buffer.write((canonical(plan)+'\n').encode('utf-8'))
         else:Path(args.plan_out).parent.mkdir(parents=True,exist_ok=True);Path(args.plan_out).write_text(canonical(plan)+'\n',encoding='utf-8')
         return

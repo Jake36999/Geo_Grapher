@@ -191,6 +191,8 @@ def _extract_concepts(fm: dict, claim_text: str) -> list[dict]:
 # ── Main conversion ───────────────────────────────────────────────────────────
 
 def _convert_md(md_path: Path) -> dict:
+    from geographer.credentials import refuse_credentials
+    refuse_credentials(md_path)
     """Parse a .md file and return a nodes.json-compatible dict."""
     text = md_path.read_text(encoding="utf-8-sig")
     fm, body = _parse_frontmatter(text)

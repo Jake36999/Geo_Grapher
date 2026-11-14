@@ -11,7 +11,8 @@ from .store import SnapshotStore
 
 
 def ingest(store: SnapshotStore, repositories: list[Repository], *, snapshot_id: str | None = None,
-           publish: bool = True, stage: int = 1, previous_snapshot_id: str | None = None, semantic: dict | None = None) -> dict:
+           publish: bool = True, stage: int = 1, previous_snapshot_id: str | None = None, semantic: dict | None = None,
+           reuse_complete: bool = False) -> dict:
     if stage not in (1,2,3):
         raise ValueError("Only Stage 1, Stage 2 or Stage 3 pipelines are available")
     if not repositories or len({r.repo_id for r in repositories})!=len(repositories):raise ValueError('Unique repository namespaces required')
@@ -30,6 +31,13 @@ def ingest(store: SnapshotStore, repositories: list[Repository], *, snapshot_id:
     if previous_snapshot_id:
         from .incremental import previous_normal_forms
         normal_forms,incremental=previous_normal_forms(store,previous_snapshot_id,repositories)
+    if reuse_complete:
+        existing_sid, manifest_digest = store.snapshot_identity(repositories, config, snapshot_id)
+        found = store.connection.execute("SELECT 1 FROM snapshot_sets WHERE snapshot_id=? AND manifest_digest=? AND status='complete'",
+                                         (existing_sid, manifest_digest)).fetchone()
+        if found:
+            return dict(snapshot_id=existing_sid, status='reused', stage=stage,
+                        repositories=[dict(repo_id=r.repo_id, digest=r.content_digest) for r in repositories])
     sid = store.begin(repositories, config, snapshot_id)
     extractor = PythonExtractor(repositories,normal_forms=normal_forms)
     graph = extractor.extract()

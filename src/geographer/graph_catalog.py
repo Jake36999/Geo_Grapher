@@ -399,7 +399,12 @@ class GraphCatalog:
             profile=json.loads(row[0]);profile['stratum']=dict(role=role,trust_tier=trust_tier,modality=modality)
             self.connection.execute('UPDATE graphs SET profile_json=? WHERE graph_id=?',(canonical(profile),graph_id))
 
-    def add_bridge(self,source_graph,source_ref,target_graph,target_ref,kind,rationale,evidence):
+    def add_bridge(self,source_graph,source_ref,target_graph,target_ref,kind,rationale,evidence,*,owner_decision=False):
+        from .provenance import bridge_boundary
+        if bridge_boundary(self,source_graph,target_graph):
+            if kind != 'reference':raise ValueError('THIRD_PARTY_BRIDGE: only reference bridges may cross this boundary')
+            if not owner_decision and not any(isinstance(e,dict) and e.get('owner_decision') is True for e in evidence or []):
+                raise ValueError('OWNER_DECISION_REQUIRED: third-party reference bridge')
         if source_graph==target_graph:raise ValueError('Bridge endpoints must be different graphs')
         if kind not in {'child_module','reference','concept_equivalence','document_identity'}:raise ValueError('Unknown bridge kind')
         if not isinstance(rationale,str) or not rationale.strip() or len(rationale)>2000:raise ValueError('Bounded rationale required')
@@ -446,6 +451,8 @@ class GraphCatalog:
         from .bridges import alias_policy,code_candidates,paper_candidates,score_pairs
         if graph_a==graph_b:raise ValueError('Bridge endpoints must be different graphs')
         if kind not in {'reference','concept_equivalence','document_identity'}:raise ValueError('Unknown bridge kind')
+        from .provenance import bridge_boundary
+        if kind != 'reference' and bridge_boundary(self,graph_a,graph_b):return []
         if not isinstance(limit,int) or isinstance(limit,bool) or not 1<=limit<=500:raise ValueError('limit must be 1..500')
         policy=alias_policy();sides=[]
         for gid in (graph_a,graph_b):
@@ -485,7 +492,7 @@ class GraphCatalog:
             bid=None
             if decision=='accept':
                 bid=self.add_bridge(p['source_graph'],p['source_ref'],p['target_graph'],p['target_ref'],p['kind'],rationale,
-                                    [{'proposal_id':proposal_id,'features':p['features'],'score':p['score']}])
+                                    [{'proposal_id':proposal_id,'features':p['features'],'score':p['score']}], owner_decision=True)
             self.connection.execute('UPDATE bridge_proposals SET status=?,decided_at=?,decision_rationale=? WHERE proposal_id=?',
                 ('accepted' if decision=='accept' else 'rejected',datetime.now(timezone.utc).isoformat(),rationale,proposal_id))
         return {**self.proposal(proposal_id),'bridge_id':bid}

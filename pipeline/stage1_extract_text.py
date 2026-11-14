@@ -96,6 +96,8 @@ def _body_font_size(blocks: list[dict]) -> float:
 
 
 def extract_pdf(pdf_path: Path) -> dict:
+    from geographer.credentials import refuse_credentials
+    refuse_credentials(pdf_path)
     if fitz is None:raise RuntimeError('PDF extraction requires PyMuPDF in the selected Python environment')
     with fitz.open(str(pdf_path)) as doc:return _extract_document(pdf_path,doc)
 
@@ -227,13 +229,16 @@ def _extract_document(pdf_path,doc):
 
 
 def process_library(library: Path, work_dir: Path, single_file: str | None = None) -> dict:
+    from geographer.credentials import refuse_credentials, credential_path
+    refuse_credentials(library)
+    if single_file: refuse_credentials(single_file)
     work_dir.mkdir(parents=True, exist_ok=True)
     if not library.is_dir():raise ValueError('PDF library directory not found')
 
     if single_file:
         pdfs = [library / single_file]
     else:
-        pdfs = sorted(library.glob("*.pdf"))
+        pdfs = sorted(p for p in library.glob('*.pdf') if not credential_path(p))
 
     total = len(pdfs)
     skipped = done = failed = 0

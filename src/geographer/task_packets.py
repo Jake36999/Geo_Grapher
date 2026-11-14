@@ -101,6 +101,8 @@ def compile_packet(router, graph_id, anchors, instruction, *, profile='tier3_lea
     if not isinstance(upstream, (list, tuple)):
         raise ValueError('PACKET_SHAPE')
     gid = router.resolve(graph_id); router.permit(gid)
+    from .provenance import enforce_reader, metadata, third_party
+    enforce_reader(router.catalog.graph(gid), consumer_role=router.consumer_role, profile=profile)
     counter = TokenCounter(); limit = PROFILE_CEILINGS[profile]
     if counter.count(instruction) > limit // 4:
         raise ValueError('INSTRUCTION_TOO_LONG')
@@ -152,10 +154,12 @@ def compile_packet(router, graph_id, anchors, instruction, *, profile='tier3_lea
                     clean[port].append(dict(name=item['name'][:80], cite=item['cite']))
             records.append(clean)
         records.sort(key=lambda r: (r['task_id'], r['ref']))
+        if third_party(row):
+            for item in candidates + list(boundary.values()):item['provenance']='third_party'
         out = dict(packet_version='task-packet-v1', graph_id=gid, graph_label=row['label'],
             snapshot_id=row['snapshot_id'], profile=profile, limit_tokens=limit, used_tokens=0,
             instruction=instruction, upstream=[], upstream_dropped=dropped, upstream_omitted=len(records),
-            anchors=[], boundary=[], handles=[])
+            anchors=[], boundary=[], handles=[], **metadata(row))
 
         def recount():
             handles = {item['cite_as'] for key in ('anchors', 'boundary') for item in out[key]}

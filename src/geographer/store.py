@@ -95,12 +95,17 @@ class SnapshotStore:
                 yield tuple(row[k] for k in fields)
         self.connection.executemany(f"INSERT INTO {table}({','.join(fields)}) VALUES({','.join('?' for _ in fields)})",values())
 
-    def begin(self, repositories: list[Repository], config: dict, snapshot_id: str | None = None) -> str:
+    @staticmethod
+    def snapshot_identity(repositories: list[Repository], config: dict, snapshot_id: str | None = None):
         if len({r.repo_id for r in repositories}) != len(repositories):
             raise ValueError("Duplicate repository namespace")
         manifest = sorted((r.repo_id, r.revision, r.content_digest, list(r.source_roots)) for r in repositories)
         mh = digest(manifest, config)
         sid = snapshot_id or "snapshot:" + mh
+        return sid, mh
+
+    def begin(self, repositories: list[Repository], config: dict, snapshot_id: str | None = None) -> str:
+        sid, mh = self.snapshot_identity(repositories, config, snapshot_id)
         if self.connection.execute("SELECT 1 FROM snapshot_sets WHERE snapshot_id=?", (sid,)).fetchone():
             raise ValueError("Snapshot already exists; read it or choose a new build ID")
         with self.connection:

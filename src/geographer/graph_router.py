@@ -15,6 +15,7 @@ from .service import QueryService
 from .store import SnapshotStore
 from .tokens import TokenCounter
 from copy import deepcopy
+from .provenance import enforce_reader, metadata, stratum, third_party
 
 CODE_OPERATIONS={'search_entities','get_architecture_context','inspect_relationship_witnesses','get_entity_content','find_dependants','check_architecture','find_similar_code','viewport_frame'}
 PAPER_OPERATIONS={'search_documents','get_outline','get_section','get_document','get_concept','find_by_concept','get_related','get_claim','get_annotations','get_corpus_status'}
@@ -58,11 +59,15 @@ def _add_citation_handles(node,label):
 
 
 class GraphRouter:
-    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None,semantic=None):
+    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None,semantic=None,consumer_role='lead'):
         self.catalog=catalog;self.services=OrderedDict();self.lock=threading.RLock();self.cond=threading.Condition(self.lock)
         self.leases=Counter();self.retired=set();self.borrowed=set();self.deleting=set()
         self.offered_tools=offered_tools(tools)
         self.semantic_config=semantic
+        if consumer_role not in {'lead', 'research_helper', 'clerk', 'scribe'}:raise ValueError('Unknown consumer_role')
+        self.consumer_role=consumer_role
+        if consumer_role in {'clerk','scribe'} and allowed is None:
+            raise ValueError('THIRD_PARTY_SCOPE: Clerk/Scribe require an explicit own-graph allow-list')
         if max_result_chars is not None and (type(max_result_chars) is not int or max_result_chars<1000):
             raise ValueError('max_result_chars must be an integer of at least 1000')
         self.max_result_chars=max_result_chars
@@ -71,11 +76,12 @@ class GraphRouter:
         self.allowed=None if allowed is None else frozenset(allowed)
         if self.allowed is not None:
             if not self.allowed:raise ValueError('An allow-list must name at least one graph')
-            for gid in self.allowed:catalog.graph(gid)
+            for gid in self.allowed:enforce_reader(catalog.graph(gid), consumer_role=consumer_role)
 
     def permit(self,graph_id):
         if self.allowed is not None and graph_id not in self.allowed:
             raise ValueError('graph_id is not available on this connection')
+        enforce_reader(self.catalog.graph(graph_id), consumer_role=self.consumer_role)
 
     def label(self,graph_id):
         return self.catalog.graph(graph_id)['label']
@@ -89,7 +95,8 @@ class GraphRouter:
             return next(iter(self.allowed))  # A single-graph connection is unambiguous.
         if not isinstance(graph_ref,str) or not graph_ref:raise ValueError('graph_id is required; no all-graph fallback')
         graphs=self.catalog.graphs()
-        visible=[g for g in graphs if self.allowed is None or g['graph_id'] in self.allowed]
+        visible=[g for g in graphs if (self.allowed is None or g['graph_id'] in self.allowed)
+                 and not json.loads(g['profile_json']).get('disabled')]
         if any(g['graph_id']==graph_ref for g in visible):return graph_ref
         named=[g for g in visible if g['label'].casefold()==graph_ref.casefold()]
         if len(named)==1:return named[0]['graph_id']
@@ -207,6 +214,7 @@ class GraphRouter:
         check_profile(request.get('budget',{}).get('profile'),request.get('budget',{}).get('limit_tokens'))
         self.permit(graph_id)
         graph=self.catalog.graph(graph_id);label=graph['label']
+        enforce_reader(graph, consumer_role=self.consumer_role, profile=request.get('budget',{}).get('profile'))
         if operation in CODE_OPERATIONS:
             counter=TokenCounter(request.get('budget',{}).get('tokenizer','o200k_base'),request.get('budget',{}).get('allow_byte_fallback',False))
             limit=request.get('budget',{}).get('limit_tokens')
@@ -214,7 +222,7 @@ class GraphRouter:
             inner=deepcopy(request);inner['budget']['limit_tokens']=max(256,limit-160)
             for _ in range(4):
                 with self.lease(graph_id) as service:result=service.query(operation,inner)
-                envelope=dict(graph_id=graph_id,graph_label=label,result=result,routing_budget=dict(limit_tokens=limit,used_tokens=0))
+                envelope=dict(graph_id=graph_id,graph_label=label,result=result,routing_budget=dict(limit_tokens=limit,used_tokens=0), **metadata(graph))
                 for _ in range(12):
                     count=counter.count(envelope)
                     if count==envelope['routing_budget']['used_tokens']:break
@@ -230,8 +238,16 @@ class GraphRouter:
             try:result=paper._TOOLS[operation[6:]](**request)
             finally:DATABASE_SCOPE.reset(token)
             _add_citation_handles(result,label)
+            if third_party(graph):
+                def mark(value):
+                    if isinstance(value,dict):
+                        if 'cite_as' in value:value['provenance']='third_party'
+                        for child in list(value.values()):mark(child)
+                    elif isinstance(value,list):
+                        for child in value:mark(child)
+                mark(result)
         else:raise ValueError('Unknown graph operation')
-        return self._fit(dict(graph_id=graph_id,graph_label=label,result=result))
+        return self._fit(dict(graph_id=graph_id,graph_label=label,result=result, **metadata(graph)))
 
     # Top-level paged lists in paper results, and the pagination object each one owns.
     PAGED={'results':'pagination','documents':'pagination','related':'pagination','claims':'claim_pagination','matches':'concept_pagination'}
@@ -260,6 +276,7 @@ class GraphRouter:
     def summary(self):
         rows=[]
         for graph in self.catalog.graphs():
+            if json.loads(graph['profile_json']).get('disabled'):continue
             if self.allowed is not None and graph['graph_id'] not in self.allowed:continue
             availability='available';error=None;count=None
             try:
@@ -273,7 +290,8 @@ class GraphRouter:
                 graph_kind=profile.get('graph_kind','project'),repo_ids=profile.get('owner_repo_ids',[graph['graph_id']]),
                 source_graph_ids=[s['graph_id'] for s in profile.get('source_graphs',[])],
                 owned_store=self.catalog.owns_store(graph),bridge_count=self.catalog.bridge_count(graph['graph_id']),copied_from=profile.get('copied_from'),
-                snapshot_id=graph['snapshot_id'],entity_count=count,papers_available=bool(graph['paper_database']),availability=availability,error=error))
+                snapshot_id=graph['snapshot_id'],entity_count=count,papers_available=bool(graph['paper_database']),availability=availability,error=error,
+                stratum=stratum(graph), **metadata(graph)))
         return dict(graphs=rows,scope_policy='one_graph_per_call; explicit federation only',composition='display_only')
 
     def _stratum(self,graph):
@@ -464,6 +482,7 @@ class GraphRouter:
         if mode not in {'lexical','documentation','hybrid'} or not isinstance(query,str) or not 1<=len(query)<=500:raise ValueError('Invalid search mode or query')
         for gid in graph_ids:self.permit(gid)
         graphs=sorted((self.catalog.graph(gid) for gid in graph_ids),key=lambda g:g['graph_id'])
+        for graph in graphs:enforce_reader(graph, consumer_role=self.consumer_role, profile=profile)
         counter=TokenCounter();kind=intent(query)
         # No pre-split (F21): every graph is queried against the whole budget less the response
         # skeleton (graph ids, omission rows, selection maps). pc-mckp-v1 then selects whole

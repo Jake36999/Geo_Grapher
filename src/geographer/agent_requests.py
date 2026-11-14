@@ -165,6 +165,8 @@ def canonical_flat(router,gid,graph,out,remember=False):
         for record in d.get(key,[]):
             if 'id' in record:record['relationship_id']=record.pop('id')
     for key in ('schema_version','request_id','budget'):inner.pop(key,None)
+    from .provenance import annotate_flat
+    annotate_flat(graph, out)
     out['format']='agent-canonical-v1'
     return out
 
@@ -183,6 +185,8 @@ def profile_budget(router,arguments,default=32768):
 def call_code(router,op,args):
     gid=router.resolve(args.get('graph_id'));router.permit(gid)
     profile,limit,clamped=profile_budget(router,args)
+    from .provenance import enforce_reader
+    enforce_reader(router.catalog.graph(gid), consumer_role=router.consumer_role, profile=profile)
     with router.catalog.lock,router.lease(gid) as svc,svc.lock:
         graph=router.catalog.graph(gid);sid=graph['snapshot_id'];g=svc.store.graph(sid)
         roots=sorted(e.entity_id for e in g.entities.values() if e.kind=='repository')
@@ -349,6 +353,8 @@ def call_code(router,op,args):
                     if context_omitted:out['context_omitted']=context_omitted
                 if constant_cards:data['calls_constants']=constant_cards
                 if constants_omitted:out['constants_omitted']=constants_omitted
+            from .provenance import annotate_flat
+            annotate_flat(graph, out)
             if op in {'search_entities','get_entity_content'}:
                 from .agent_coverage import coverage_metadata
                 out.update(coverage_metadata(op,out['result']['data'],coverage_range))

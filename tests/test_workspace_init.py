@@ -42,7 +42,7 @@ def test_scan_proposes_disjoint_partitions_and_excludes_noise(tree):
     plan = scan(tree)
     assert plan["plan_version"] == PLAN_VERSION == "workspace-init-v1"
     parts = keyed(plan)
-    assert set(parts) == {"residual", "docs", "legacy", "src__old"}
+    assert set(parts) == {"residual", "docs", "legacy", "src__old", "papers"}
     assert parts["legacy"]["subtrees"] == ["legacy"] and parts["legacy"]["role"] == "legacy"
     assert parts["legacy"]["stratum"] == {"role": "legacy", "trust_tier": "bronze", "modality": "code"}
     assert parts["docs"]["stratum"] == {"role": "docs", "trust_tier": "silver", "modality": "doc"}
@@ -70,7 +70,7 @@ def test_counts_unsupported_and_manual_paper_step(tree):
     step = plan["manual_steps"][0]
     assert step["kind"] == "paper_corpus" and step["dir"] == "papers" and step["pdf_count"] == 1
     assert "--dry-run" in step["command"] and "run_pipeline.py" in step["command"]
-    assert keyed(plan)["residual"]["file_counts"].get(".pdf") == 1
+    assert keyed(plan)["papers"]["file_counts"].get(".pdf") == 1
 
 
 @pytest.mark.parametrize("files,archetype", [
@@ -104,7 +104,7 @@ def test_plain_init_writes_plan_and_ingests_nothing(tree, tmp_path, monkeypatch)
 def test_apply_creates_one_graph_per_partition_with_strata(tree, tmp_path):
     catalog = GraphCatalog(tmp_path / "c.sqlite"); plan = scan(tree)
     reports = apply(catalog, plan, approved_keys={p["key"] for p in plan["partitions"]})
-    assert len(reports) == 4 and len(catalog.graphs()) == 4
+    assert len(reports) == 5 and len(catalog.graphs()) == 5
     residual = next(g for g in catalog.graphs() if Path(g["root_path"]) == tree.resolve())
     profile = json.loads(residual["profile_json"])
     assert "legacy" in profile["exclude_globs"] and profile["stratum"]["trust_tier"] == "gold"
