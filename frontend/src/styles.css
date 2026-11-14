@@ -1,4 +1,6 @@
 @import "@fontsource/inter/400.css";
+.qi-control { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .85rem; }
+.qi-blocks ul { max-height: 10rem; overflow: auto; list-style: none; padding: .3rem; }
 :root {
   font-family: Inter, system-ui, sans-serif;
   color-scheme: dark;

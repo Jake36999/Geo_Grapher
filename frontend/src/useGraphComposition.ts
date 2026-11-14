@@ -11,6 +11,7 @@ import {
   type GraphFrame,
 } from "./composition";
 import type { WorkspaceControls } from "./workspaceTypes";
+import type { QiMode } from "./QiControl";
 
 export function useGraphComposition(
   workspace: WorkspaceControls | undefined,
@@ -20,6 +21,7 @@ export function useGraphComposition(
   mode: GroupMode,
   radius: 0 | 1 | 2,
   model: string,
+  qiMode: QiMode = "off",
 ) {
   const [remote, setRemote] = useState<Composition>({
       version: "graph-composition-v1",
@@ -77,6 +79,7 @@ export function useGraphComposition(
           filter: { ...filter, repo_ids: [] },
           grouping,
           model_digest: model || null,
+          qi: { enabled: qiMode !== "off", max_diameter: 2, algorithm: qiMode === "off" ? "helper_tree_balls_v1" : qiMode },
         };
       }) ?? [];
   const requestKey = JSON.stringify(requests);

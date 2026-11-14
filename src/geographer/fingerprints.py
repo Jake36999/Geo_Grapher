@@ -11,7 +11,7 @@ from collections import defaultdict
 from .model import Graph, canonical
 
 ALGORITHM_VERSION = "entity-fingerprint-v1"
-FINGERPRINT_KINDS = frozenset({"function", "method", "class"})
+FINGERPRINT_KINDS = frozenset({"function", "method", "class", "constant"})
 FIELDS = ("span_sha256", "ast_body_hash", "signature_hash", "ts_guard_hash", "exact_out_edges_hash", "wl_3hop_hash")
 _NESTED = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)
 

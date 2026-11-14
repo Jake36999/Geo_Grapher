@@ -1,0 +1,16 @@
+[
+  {
+    "attempt": 1,
+    "status": "invalid_test_setup",
+    "reason": "GraphCatalog does not implement a context manager; no search was dispatched.",
+    "log": "output/review4-semantic-delivery-first.log",
+    "disposable_backups_preserved": "D:/Librarian_V2/tmp/geo-grapher-review4-delivery-first",
+    "paid_calls": 0
+  },
+  {
+    "attempt": 2,
+    "status": "registered_local_qa",
+    "result": "reports/PHASE67_REVIEW4_SEMANTIC_DELIVERY_SECOND.json",
+    "paid_calls": 0
+  }
+]

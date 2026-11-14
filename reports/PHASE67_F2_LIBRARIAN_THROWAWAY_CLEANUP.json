@@ -1,0 +1,19 @@
+{
+  "throwaway_branch": "codex/phase67-librarian-premerge-20261114",
+  "throwaway_head": "baac8307efe3373abe30b5cf1a70e60de911072c",
+  "throwaway_worktree": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\combined-test-worktree",
+  "branch_deleted": true,
+  "worktree_removed": true,
+  "git_log": "reports/PHASE67_F2_LIBRARIAN_THROWAWAY_LOG.txt",
+  "test_log": "output/f2-librarian-combined-premerge-full.log",
+  "master_head": "8ea7c45ae814fed35a1f71ecaac6ec307ad9b31f",
+  "master_tree": "f6479caaf040da4dcfb066befd22e8ca3ba974c7",
+  "tested_tree": "f6479caaf040da4dcfb066befd22e8ca3ba974c7",
+  "tree_identical": true,
+  "preserved_refs": {
+    "wip/pre-phase67-release-2026-11-14": "610b4496a6af314d660da7fe936e1f087bf2dc5b",
+    "codex/phase67-survey-pre-rebase-20261114": "70ffe386d75d787861bc1067fb840c9fd0651964",
+    "codex/phase67-wave4-pre-rebase-20261114": "737ea28095936c4847db0c62aa299d44376d7085"
+  },
+  "pushed": false
+}

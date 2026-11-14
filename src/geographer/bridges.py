@@ -123,12 +123,12 @@ def resolve_ref(catalog, graph_id: str, ref: str) -> dict:
 
 
 def score_candidate(features: dict) -> float:
-    """0.45·alias_overlap + 0.35·shared_citation + 0.20·neighbour_jaccard, ×Ψ when only names agree."""
+    """Weighted evidence score; owner W3-5 applies Ψ without citation or >=0.2 neighbour support."""
     a, c, n = (float(features.get(k, 0)) for k in ("alias_overlap", "shared_citation", "neighbour_jaccard"))
     if not all(0 <= x <= 1 for x in (a, c, n)):
         raise ValueError("features must lie in [0,1]")
     score = 0.45 * a + 0.35 * c + 0.20 * n
-    if c == 0 and n == 0:
+    if c != 1 and n < 0.2:
         score *= PSI
     return round(score, 6)
 

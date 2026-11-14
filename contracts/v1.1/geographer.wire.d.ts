@@ -11,6 +11,7 @@ export type EvidenceCategory = 'ast_exact' | 'static_candidate' | 'unresolved' |
   'dynamic_observed' | 'declared' | 'similarity' | 'history';
 export type Direction = 'directed' | 'symmetric';
 export type WeightUnit = 'edge_count' | 'call_count' | 'calls_per_second' | 'similarity_score' | 'cochange_count';
+// v1.1 producers index module/class assignment constants; v1.0 presentation maps them to fragments.
 export type EntityKind = 'workspace' | 'repository' | 'directory' | 'package' | 'file' | 'class' |
   'function' | 'method' | 'attribute' | 'constant' | 'parameter' | 'document' | 'fragment' |
   'external_symbol' | 'scope_atom';
@@ -131,6 +132,7 @@ export type Grouping =
   { mode: 'conceptual'; model_digest: Digest } |
   { mode: 'mixed'; revealed_ids: Id[] };
 export interface BudgetRequest {
+  profile?: 'tier3_leaf' | 'tier2_forager' | 'tier1_lead';
   limit_tokens: number;
   tokenizer: 'o200k_base' | 'cl100k_base';
   allow_byte_fallback: boolean;
@@ -430,6 +432,7 @@ export type FindSimilarCodeResponse = Response<FindSimilarCodeData>;
 
 export type Vec3 = [number, number, number];
 export interface ViewportFrameRequest extends BaseRequest {
+  qi?: { enabled: boolean; max_diameter: number; algorithm?: 'helper_tree_balls_v1' | 'directed-helper-condensation-v1' };
   model_digest?: Digest | null;
   grouping: Grouping;
   focus_id: Id;
@@ -447,6 +450,7 @@ export interface ViewportFrameRequest extends BaseRequest {
   camera: { eye: Vec3; target: Vec3; up: Vec3; fov_y_degrees: number; near: number; far: number };
 }
 export interface ViewportFrameData extends GraphPayload {
+  qi?: QIReport;
   layout_version: 'sphere-pack-v1' | 'sphere-affinity-v1';
   partition_digest: Digest;
   spheres: { node_id: Id; center: Vec3; radius: number; role: 'representative' | 'context_shell' }[];

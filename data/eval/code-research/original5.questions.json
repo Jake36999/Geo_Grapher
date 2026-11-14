@@ -1,0 +1,27 @@
+[
+  {
+    "id": "dev-01",
+    "graph": "librarian-v2",
+    "question": "What tool set may research helpers use? Cite the defining code."
+  },
+  {
+    "id": "dev-02",
+    "graph": "librarian-v2",
+    "question": "What does delegate use to cap concurrent tier 1 helpers? Cite the code."
+  },
+  {
+    "id": "dev-03",
+    "graph": "librarian-v2",
+    "question": "How does the Clerk run and check one task? Cite the code."
+  },
+  {
+    "id": "dev-04",
+    "graph": "librarian-v2",
+    "question": "How are external MCP structured results bounded? Cite the code."
+  },
+  {
+    "id": "dev-05",
+    "graph": "librarian-v2",
+    "question": "How does the loop choose its fallback context window? Cite the code."
+  }
+]

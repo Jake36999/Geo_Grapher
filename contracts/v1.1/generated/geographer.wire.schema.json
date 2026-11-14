@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "contract_sha256": "aac5ec71892f934b3e8d80ad4b1c14a9980622830e66ef76d487dcc8166f88ff",
+  "contract_sha256": "cd167603c6165e4cb1d353f1bb963d9a2cb4f3e7e4cd042c108a1bd5abffa16e",
   "operations": {
     "search_entities": {
       "request": {
@@ -227,6 +227,19 @@
     "BudgetRequest": {
       "type": "object",
       "properties": {
+        "profile": {
+          "anyOf": [
+            {
+              "const": "tier3_leaf"
+            },
+            {
+              "const": "tier2_forager"
+            },
+            {
+              "const": "tier1_lead"
+            }
+          ]
+        },
         "limit_tokens": {
           "type": "integer",
           "minimum": 256,
@@ -4447,6 +4460,34 @@
         "budget": {
           "$ref": "#/$defs/BudgetRequest"
         },
+        "qi": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "max_diameter": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8
+            },
+            "algorithm": {
+              "anyOf": [
+                {
+                  "const": "helper_tree_balls_v1"
+                },
+                {
+                  "const": "directed-helper-condensation-v1"
+                }
+              ]
+            }
+          },
+          "required": [
+            "enabled",
+            "max_diameter"
+          ],
+          "additionalProperties": false
+        },
         "model_digest": {
           "anyOf": [
             {
@@ -4702,6 +4743,9 @@
         },
         "completeness": {
           "$ref": "#/$defs/Completeness"
+        },
+        "qi": {
+          "$ref": "#/$defs/QIReport"
         },
         "layout_version": {
           "anyOf": [

@@ -1,0 +1,57 @@
+{
+  "status": "master_merged_tree_verified",
+  "master_head": "8ea7c45ae814fed35a1f71ecaac6ec307ad9b31f",
+  "master_tree": "f6479caaf040da4dcfb066befd22e8ca3ba974c7",
+  "tested_head": "baac8307efe3373abe30b5cf1a70e60de911072c",
+  "tested_tree": "f6479caaf040da4dcfb066befd22e8ca3ba974c7",
+  "tree_identical": true,
+  "master_clean": true,
+  "merges": [
+    {
+      "approval": "A",
+      "branch": "geo-grapher-survey",
+      "source_commit": "70ffe386d75d787861bc1067fb840c9fd0651964",
+      "merge_commit": "5499993c49e9792a4def9c56a260ca91c21cf6db",
+      "parents": [
+        "c4eb76ff1c2b78346fd7743dadda5d6b170427b5",
+        "70ffe386d75d787861bc1067fb840c9fd0651964"
+      ]
+    },
+    {
+      "approval": "B",
+      "branch": "geo-grapher-wave4",
+      "source_commit": "db55b891daddad0d6bf8a5ef2444c5a1f3125e3a",
+      "merge_commit": "7c5391996d075792fffa10107ab95852b5e9e87e",
+      "parents": [
+        "5499993c49e9792a4def9c56a260ca91c21cf6db",
+        "db55b891daddad0d6bf8a5ef2444c5a1f3125e3a"
+      ]
+    },
+    {
+      "approval": "C",
+      "branch": "codex/phase67-delegation-controls",
+      "source_commit": "9f3a0d826f6078524f4da5aae8d2489e4f55cb8b",
+      "merge_commit": "8ea7c45ae814fed35a1f71ecaac6ec307ad9b31f",
+      "parents": [
+        "7c5391996d075792fffa10107ab95852b5e9e87e",
+        "9f3a0d826f6078524f4da5aae8d2489e4f55cb8b"
+      ]
+    }
+  ],
+  "premerge_tests": {
+    "passed": 2235,
+    "skipped": 2,
+    "deselected": 5,
+    "log": "F:\\uv-data\\Geo_Grapher\\output\\f2-librarian-combined-premerge-full.log",
+    "sha256": "3e565f607f20e7660a8b097a91b290f6ff6dd0e09813b1f10fe9caec482ae15e"
+  },
+  "preserved_refs": {
+    "wip/pre-phase67-release-2026-11-14": "610b4496a6af314d660da7fe936e1f087bf2dc5b",
+    "codex/phase67-survey-pre-rebase-20261114": "70ffe386d75d787861bc1067fb840c9fd0651964",
+    "codex/phase67-wave4-pre-rebase-20261114": "737ea28095936c4847db0c62aa299d44376d7085"
+  },
+  "throwaway_branch": "codex/phase67-librarian-premerge-20261114",
+  "throwaway_removal_pending": true,
+  "paid_calls": 0,
+  "pushed": false
+}

@@ -321,6 +321,16 @@ def clone_pairs(catalog, graph_ids: list[str], limit: int = 200) -> dict:
 
 
 
+def bridge_impact(catalog, start, *, max_hops=6, pinned_graphs=frozenset(), graph_ids=None):
+    from .cross_graph_modes import bridge_impact as run
+    return run(catalog,start,max_hops=max_hops,pinned_graphs=pinned_graphs,graph_ids=graph_ids)
+
+
+def conformance(catalog, theory_graph, code_graph):
+    from .cross_graph_modes import conformance as run
+    return run(catalog,theory_graph,code_graph)
+
+
 def pack_items(header: dict, bundles: list[dict], limit_tokens: int, counter) -> dict:
     """Admit whole ``{item, nodes}`` bundles in order under an exact complete-envelope token cap.
 

@@ -1,0 +1,31 @@
+{
+  "status": "17_parked_paths_restored",
+  "parked_head": "610b4496a6af314d660da7fe936e1f087bf2dc5b",
+  "restored_tracked": [
+    "reports/2026-11-05-ui-wave/STATUS.md",
+    "src/resource_librarian/agent_runtime.py",
+    "src/resource_librarian/loop.py",
+    "src/resource_librarian/mcp_client.py",
+    "src/resource_librarian/standard/profiles/history.yaml",
+    "src/resource_librarian/standard/profiles/software-systems.yaml",
+    "src/resource_librarian/starter/About/Recommended MCP Servers.md",
+    "src/resource_librarian/ui/app.js",
+    "tests/test_capabilities.py",
+    "tests/test_loop.py",
+    "tests/test_profiles.py",
+    "ui/src/settings.ts"
+  ],
+  "removed_verified_untracked": [
+    "Theorising_transcription.md",
+    "reports/2026-11-05-ui-wave/HOST-QUALIFICATION.md",
+    "reports/2026-11-05-ui-wave/native-sandbox-policy.png",
+    "tests/test_external_bundles.py",
+    "tests/test_mcp_structured_bounds.py"
+  ],
+  "remaining_dirty": [
+    " M scripts/delegate_deepinfra.py"
+  ],
+  "master_head": "c4eb76ff1c2b78346fd7743dadda5d6b170427b5",
+  "index_has_no_staged_changes": true,
+  "restore_note": "Raw HEAD content verified; Git reported empty-diff modified statuses for restored paths. Re-adding only independently verified HEAD-equivalent content refreshed the stat cache; index remains identical to HEAD."
+}

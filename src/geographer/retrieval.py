@@ -4,13 +4,17 @@ import re,sqlite3,unicodedata
 from collections import defaultdict,deque
 from .analysis import selected_relationships,eligible_entity
 
+# Function words are ignored only in multi-term prose queries. If they are the
+# whole query, retain them so symbols such as ``using`` remain discoverable.
+QUERY_STOP_WORDS=frozenset('a an and are as at be been being by can could did do does for from had has have how i if in into is it its may of on or our should that the their there these this those to was we were what when where which who why will with would you your'.split())
+
 def terms(text):
     original=unicodedata.normalize('NFC',text)
     split=re.sub(r'(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|[_./]+',' ',original)
     return ' '.join(dict.fromkeys(re.findall(r'\w+',original.casefold())+re.findall(r'\w+',split.casefold())))
 
 class LexicalIndex:
-    version='lexical-fusion-v1'
+    version='lexical-fusion-v2-porter'
     def __init__(self,graph):
         self.graph=graph;self.db=sqlite3.connect(':memory:',check_same_thread=False);self.available=True
         self.fragments={};self.associations=defaultdict(list)
@@ -29,8 +33,8 @@ class LexicalIndex:
                 value=graph.analyses.get('text:'+e.entity_id,{}).get('result',{})
                 self.fragments[e.entity_id]=value
         try:
-            self.db.execute('CREATE VIRTUAL TABLE formal USING fts5(entity_id UNINDEXED,name,path,signature)')
-            self.db.execute('CREATE VIRTUAL TABLE informal USING fts5(fragment_id UNINDEXED,text,heading)')
+            self.db.execute("CREATE VIRTUAL TABLE formal USING fts5(entity_id UNINDEXED,name,path,signature,tokenize='porter unicode61')")
+            self.db.execute("CREATE VIRTUAL TABLE informal USING fts5(fragment_id UNINDEXED,text,heading,tokenize='porter unicode61')")
             with self.db:
                 self.db.executemany('INSERT INTO formal VALUES(?,?,?,?)',((e.entity_id,terms(e.qualified_name),terms(e.rel_path or ''),
                     terms(graph.analyses.get('declaration:'+e.entity_id,{}).get('result',{}).get('signature') or '')) for e in graph.entities.values() if e.sort!='text'))
@@ -47,20 +51,24 @@ class LexicalIndex:
         if not 0<=gamma<=1 or k<=0:raise ValueError('Invalid fusion configuration')
         def eligible(eid):
             e=self.graph.entities[eid];return (not repo_ids or e.repo_id in repo_ids) and (not kinds or e.kind in kinds)
-        exact=sorted(e.entity_id for e in self.graph.entities.values() if eligible(e.entity_id) and (query==e.entity_id or query==e.qualified_name))
+        exact=sorted(e.entity_id for e in self.graph.entities.values() if eligible(e.entity_id) and
+            (query==e.entity_id or query==e.qualified_name or e.kind=='constant' and query==e.qualified_name.rsplit('.',1)[-1]))
         if not self.available:
             if not exact:raise ValueError('FTS5 unavailable; exact symbol lookup remains supported')
             return [dict(node_id=eid,score=1.,matched_fields=['qualified_name'],formal_rank=1,informal_rank=None,fragment_ids=[]) for eid in exact[:limit]]
         tokens=terms(query).split()
         if not tokens:raise ValueError('Search requires at least one term')
         if len(tokens)>64:raise ValueError('At most 64 distinct lexical terms are supported')
+        tokens=[t for t in tokens if t not in QUERY_STOP_WORDS] or tokens
         match=' OR '.join('"'+t.replace('"','""')+'"' for t in tokens)
-        formal={};informal={};support=defaultdict(list)
+        formal={};informal={};support=defaultdict(list);formal_fields={}
         # Explicit candidate bound; no hidden unbounded scan/learned retrieval.
         if mode!='documentation':
-            rows=self.db.execute('SELECT entity_id FROM formal WHERE formal MATCH ? ORDER BY bm25(formal),entity_id LIMIT 2000',(match,))
-            for (eid,) in rows:
-                if eligible(eid):formal[eid]=len(formal)+1
+            rows=self.db.execute("SELECT entity_id,highlight(formal,1,'[',']')!=name,highlight(formal,2,'[',']')!=path,highlight(formal,3,'[',']')!=signature FROM formal WHERE formal MATCH ? ORDER BY bm25(formal),entity_id LIMIT 2000",(match,))
+            for eid,name,path,signature in rows:
+                if eligible(eid):
+                    formal[eid]=len(formal)+1
+                    formal_fields[eid]=[field for field,matched in zip(('qualified_name','rel_path','signature'),(name,path,signature)) if matched]
         if mode!='lexical':
             rows=self.db.execute('SELECT fragment_id FROM informal WHERE informal MATCH ? ORDER BY bm25(informal),fragment_id LIMIT 2000',(match,))
             for rank,(fid,) in enumerate(rows,1):
@@ -73,11 +81,8 @@ class LexicalIndex:
         for eid in set(exact)|set(formal)|set(informal):
             f=formal.get(eid);i=informal.get(eid)
             score=1. if eid in exact else (gamma/(k+f) if f else 0)+( (1-gamma)/(k+i) if i else 0)
-            entity=self.graph.entities[eid];fields=[]
-            if eid in exact or set(tokens)&set(terms(entity.qualified_name).split()):fields.append('qualified_name')
-            if f and set(tokens)&set(terms(entity.rel_path or '').split()):fields.append('rel_path')
-            signature=self.graph.analyses.get('declaration:'+eid,{}).get('result',{}).get('signature') or ''
-            if f and set(tokens)&set(terms(signature).split()):fields.append('signature')
+            fields=list(formal_fields.get(eid,()))
+            if eid in exact and 'qualified_name' not in fields:fields.insert(0,'qualified_name')
             if i:fields.append('doc_text')
             hits.append(dict(node_id=eid,score=score,matched_fields=fields,
                 formal_rank=f,informal_rank=i,fragment_ids=support[eid]))

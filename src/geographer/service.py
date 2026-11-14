@@ -87,7 +87,8 @@ class QueryService:
         omitted={'request_id','budget','cursor','limit','page_size','evidence_page_size','evidence_cursor','alias_scope','identity_mode'}
         values={k:v for k,v in request.items() if k not in omitted}
         if operation=='inspect_relationship_witnesses':values['evidence_mode']=bool(request.get('evidence_cursor'))
-        semantic_version='actor-records-v1/lexical-fusion-v1/typed-bridge-v1/source-context-v1/workspace-views-v1' if request.get('schema_version')=='1.1' else 'wire-1.0'
+        from .retrieval import LexicalIndex
+        semantic_version=f'actor-records-v1/{LexicalIndex.version}/search-rank-tiers-v1/typed-bridge-v1/source-context-v1/workspace-views-v1' if request.get('schema_version')=='1.1' else 'wire-1.0'
         return digest(PACKER_VERSION,semantic_version,operation,values)
 
     def _handle(self,kind,value):
@@ -155,7 +156,7 @@ class QueryService:
                         **(dict(display_label=None,role_badge=None) if labels else {}))
         if eid not in ctx['g'].entities:raise QueryError('NOT_FOUND','Entity is outside snapshot')
         e=ctx['g'].entities[eid]
-        node=dict(id=eid,entity_id=eid,kind=e.kind,sort=e.sort,repo_id=e.repo_id,language=e.language,qualified_name=e.qualified_name,
+        node=dict(id=eid,entity_id=eid,kind='fragment' if e.kind=='constant' and self.active_version=='1.0' else e.kind,sort=e.sort,repo_id=e.repo_id,language=e.language,qualified_name=e.qualified_name,
                   parent_id=e.parent_id,depth=e.depth,source=self._location(ctx,e),
                   flags={key:bool(getattr(e,key)) for key in ('is_test','is_generated','is_vendor','is_external')},
                   member_count=len(part.groups[eid]) if part and eid in part.groups else 1,membership_handle=None,
@@ -322,9 +323,11 @@ class QueryService:
         config=q.get('retrieval',{'gamma':.8,'k':60})
         hits=ctx['lexical_index'].search(q['query'],q['repo_ids'],q['kinds'],mode=q['mode'],limit=q['limit'],**config)
         data=self._payload(q['snapshot_id'],ctx,hits=[]);units=[]
-        for h in hits:
+        for rank,h in enumerate(hits,1):
             ids={h['node_id'],*h['fragment_ids']}
-            units.append(Unit('search:'+h['node_id'],1,1000 if h['score']==1. else h['score'],
+            # Relevance precedes byte efficiency for ranked search. A hit with
+            # documentary support must not lose to a cheaper, weaker match.
+            units.append(Unit('search:'+h['node_id'],rank,1000 if h['score']==1. else h['score'],
                 dict(nodes=[self._node(ctx,eid) for eid in sorted(ids)],hits=[h])))
         return self._plan('search_entities',q,data,units)
 

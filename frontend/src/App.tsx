@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import QiControl, { type QiMode } from "./QiControl";
+import { frameQI, type QiOptions } from "./api";
 import type {
   Filter,
   ViewportFrameData,
@@ -124,6 +126,9 @@ export default function App({
       }[];
     }>();
   const [violations, setViolations] = useState<string[]>([]);
+  const [qiMode, setQiMode] = useState<QiMode>("off");
+  const [qiExpanded, setQiExpanded] = useState<string[]>([]);
+  useEffect(() => setQiExpanded([]), [snapshotId]);
   const [pins, setPins] = useState<string[]>([]),
     [panelSizes, setPanelSizes] = useState<[number, number]>(
       workspace?.settings?.panelSizes ?? [235, 330],
@@ -174,6 +179,9 @@ export default function App({
   const [saveOpen, setSaveOpen] = useState(false),
     [saveName, setSaveName] = useState(""),
     [initialCamera, setInitialCamera] = useState<CameraState>();
+  const qiEligible = grouping === "atomic" && filter.families.join() === "static" && filter.resolution_statuses.join() === "exact";
+  const activeQi: QiMode = qiEligible ? qiMode : "off";
+  const viewportPins = activeQi === "off" ? pins : [...new Set([...pins, ...qiExpanded])];
   const scope = JSON.stringify([
     snapshotId,
     focus,
@@ -182,6 +190,8 @@ export default function App({
     pins,
     contextRadius,
     grouping,
+    activeQi,
+    qiExpanded,
     modelDigest,
     navigation,
   ]);
@@ -225,6 +235,7 @@ export default function App({
     grouping,
     contextRadius,
     modelDigest,
+    activeQi,
   );
   useEffect(() => {
     workspace?.settingsChanged({
@@ -278,6 +289,11 @@ export default function App({
     }
     if (pending.enter) {
       const node = pending.frame.nodes.find((n) => n.id === pending.local_id);
+      if (node?.kind === "qi") {
+        void expandQi(pending.local_id, pending.frame);
+        workspace.consume();
+        return;
+      }
       const id = node?.entity_id ?? node?.parent_id;
       if (id) {
         setFocus(id);
@@ -441,13 +457,14 @@ export default function App({
     setViewFailed(false);
     setError("");
     cursor.current = null;
-    const q: ViewportFrameRequest = {
+    const q: ViewportFrameRequest & { qi: QiOptions } = {
       ...base(snapshot.snapshot_id, 32768),
       focus_id: focus,
       revealed_ids: revealed,
-      pins,
+      pins: viewportPins,
       context_radius: contextRadius,
       filter,
+      qi: { enabled: activeQi !== "off", max_diameter: 2, algorithm: activeQi === "off" ? "helper_tree_balls_v1" : activeQi },
       // Older servers answer sphere-pack-v1; the frame echoes what was used.
       layout_version: "sphere-affinity-v1" as unknown as ViewportFrameRequest["layout_version"],
       seed: "geographer-workspace-v1",
@@ -520,8 +537,10 @@ export default function App({
     JSON.stringify(revealed),
     JSON.stringify(filter),
     JSON.stringify(pins),
+    JSON.stringify(qiExpanded),
     contextRadius,
     grouping,
+    activeQi,
     modelDigest,
     navigation,
   ]);
@@ -711,12 +730,27 @@ export default function App({
       setError((e as Error).message);
     }
   }
+  async function expandQi(id: string, data = frame?.data) {
+    const node = data?.nodes.find(n => n.id === id);
+    if (!node?.membership_handle) return;
+    try {
+      const result = await json<{ members: string[] }>("/api/v1/handles/" + encodeURIComponent(node.membership_handle));
+      setInspectionFrame(undefined);
+      setQiExpanded(old => [...new Set([...old, ...result.members])]);
+      setNavigation(n => n + 1);
+      setStatus(`Expanded ${result.members.length} QI members.`);
+    } catch (e) { setError((e as Error).message); }
+  }
   function enter(id: string) {
     const origin = composition?.origins.get(id);
     if (origin && workspace) {
       const source = composition?.frames.find(
         (f) => f.graph_id === origin.graph_id,
       );
+      if (origin.graph_id === workspace.active && source?.frame?.nodes.find(n => n.id === origin.local_id)?.kind === "qi") {
+        void expandQi(origin.local_id, source.frame);
+        return;
+      }
       if (source?.frame && source.snapshot_id)
         workspace.pick({
           graph_id: origin.graph_id,
@@ -731,6 +765,7 @@ export default function App({
     }
     setInspectionFrame(undefined);
     const n = frame?.data.nodes.find((x) => x.id === id) ?? nodes[id];
+    if (n?.kind === "qi") { void expandQi(id); return; }
     if (n?.entity_id === null) {
       void select(id);
       setStatus(
@@ -1344,6 +1379,11 @@ export default function App({
                 ))}
               </select>
             </label>
+            {view === "spatial" && <QiControl mode={qiMode} enabled={qiEligible}
+              report={frameCurrent ? frameQI(frame?.data) : undefined}
+              groups={frameCurrent ? frame?.data.nodes.filter(n => n.kind === "qi") ?? [] : []}
+              onChange={value => { captureCamera(); setQiMode(value); setQiExpanded([]); setNavigation(n => n + 1); }}
+              onExpand={id => { void expandQi(id); }} />}
             <div role="group" aria-label="Context breadth">
               {(["Path", "Nearby", "Wider"] as const).map((label, i) => (
                 <button

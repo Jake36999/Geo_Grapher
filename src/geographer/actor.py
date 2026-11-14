@@ -32,7 +32,7 @@ class ActorEncoder:
         self.docs=defaultdict(list)
         for eid,e in self.g.entities.items():
             if e.kind=='fragment':self.docs[e.parent_id].append(eid)
-        self.files={}
+        self.files={};self.full_files=set()
 
     def register(self,canonical,alias):
         if alias in self.canonical and self.canonical[alias]!=canonical:raise ValueError('Actor alias collision')
@@ -59,20 +59,31 @@ class ActorEncoder:
         # Immutable legacy snapshots can be described from their stored bytes;
         # deriving a descriptor never writes new canonical facts.
         key=(e.repo_id,e.rel_path)
-        if key not in self.files:
+        if key not in self.files or e.kind!='file' and key not in self.full_files:
             found={}
             source=self.ctx.get('sources',{}).get(key)
             if source:
                 try:
                     tree=ast.parse(base64.b64decode(source['bytes_base64']))
                     found[('file',1)]={'signature':None,'docstring':ast.get_docstring(tree,clean=False)}
-                    for node in ast.walk(tree):
+                    # A module docstring needs no traversal of function bodies.
+                    # Legacy declarations are filled lazily if one is requested.
+                    pending=[] if e.kind=='file' else [tree]
+                    while pending:
+                        node=pending.pop()
+                        # Definitions only occur in statement suites. Walking
+                        # expressions visits every call, literal and operator
+                        # although none can contain a def/class statement.
+                        for field in ('body','orelse','finalbody','handlers','cases'):
+                            suite=getattr(node,field,())
+                            if isinstance(suite,list):pending.extend(suite)
                         if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)):
                             sig=('class '+node.name+('('+', '.join(ast.unparse(b) for b in node.bases)+')' if node.bases else '') if isinstance(node,ast.ClassDef) else
                                  ('async def ' if isinstance(node,ast.AsyncFunctionDef) else 'def ')+node.name+'('+ast.unparse(node.args)+')'+(' -> '+ast.unparse(node.returns) if node.returns else ''))
                             found[('class' if isinstance(node,ast.ClassDef) else 'function',node.lineno)]={'signature':sig,'docstring':ast.get_docstring(node,clean=False)}
                 except (SyntaxError,ValueError,UnicodeError):pass
             self.files[key]=found
+            if e.kind!='file':self.full_files.add(key)
         return self.files[key].get(('function' if e.kind=='method' else e.kind,e.start_line),{})
 
     def summary(self,eid):

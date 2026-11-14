@@ -19,6 +19,8 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=8,<9"]
 papers = ["PyMuPDF>=1.24,<2"]
+semantic = ["model2vec>=0.6,<1", "numpy>=1.26,<3"]
+semantic-fastembed = ["fastembed>=0.7,<1", "numpy>=1.26,<3"]
 treesitter = [
     "tree-sitter>=0.23,<0.26",
     "tree-sitter-javascript>=0.23,<0.26",

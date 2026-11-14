@@ -147,7 +147,7 @@ def documentary_links(service,sid,part,tree,centres,visible,budget):
     return links[:max(0,min(200,budget))]
 
 
-def affinity_maps(service,sid,baseline,g,hierarchy):
+def affinity_maps(service,sid,baseline,g,hierarchy,filters=None):
     """Per display parent: (sibling pair weights, external degree) for sphere-affinity-v1 (master G14)."""
     parent_of={c:p for p,cs in hierarchy.items() for c in cs}
     nodes=set(hierarchy)|set(parent_of)
@@ -163,7 +163,7 @@ def affinity_maps(service,sid,baseline,g,hierarchy):
         u,v=ca[k],cb[k];pairs[ca[k-1]][(min(u,v),max(u,v))]+=weight
     # Projections of the unfiltered baseline partition (the one the geometry cache is keyed on),
     # so the cached layout never depends on which query filter was requested first.
-    rows=sorted(project(g,baseline,'affinity-baseline',ALL_ENTITIES),key=lambda r:r['projection_id'])
+    rows=sorted(project(g,baseline,'affinity-baseline',filters or ALL_ENTITIES),key=lambda r:r['projection_id'])
     for a,b,weight in ((r['source_rep_id'],r['target_rep_id'],r['witness_count']) for r in rows):
         if a not in nodes or b not in nodes or a==b:continue
         couple(a,b,weight)
@@ -193,6 +193,14 @@ def build_frame(service,q,ctx):
     else:
         baseline=partition(g,sid,grouping,ALL_ENTITIES,tree=tree)
         part=partition(g,sid,grouping,q['filter'],tree=tree)
+    qi=None
+    if q.get('qi',{}).get('enabled'):
+        if grouping['mode']!='atomic':raise QueryError('INVALID_REQUEST','QI requires atomic grouping')
+        pins={g.entities[p].parent_id if g.entities[p].kind=='scope_atom' else p for p in q['pins']}
+        part,_,qi=service._architecture({**q,'grouping':grouping,'pins':sorted(pins|{q['focus_id']})},ctx)
+        # A QI certificate is filter-specific. Its complete partition is the
+        # geometry universe too; never substitute an unrelated all-flags quotient.
+        baseline=part
     if grouping['mode']!='mixed':
         # T_display is a view-local tree. Canonical ownership remains unchanged.
         # Bound geometry independently of the full, persisted partition.
@@ -216,7 +224,7 @@ def build_frame(service,q,ctx):
         # uses a fixed static universe, so toggling query filters preserves layout.
         for rep in sorted(baseline.groups,key=lambda r:(r not in relevant,g.entities[r].is_external if r in g.entities else False,-incident[r],tree.distance(anchor(r),q['focus_id']),r)):
             if focused_repo!='@workspace' and not in_scope(rep) and rep not in protected:continue
-            branch=set(tree.ancestors(anchor(rep)))|{rep}
+            branch=set(tree.ancestors(anchor(rep)))|{anchor(rep),rep}
             if len(admitted|branch)<=q['node_budget']:admitted.update(branch)
         lod_omitted=len(set(baseline.groups)-admitted)
         revealed={eid for eid in admitted if eid in g.entities}
@@ -225,6 +233,7 @@ def build_frame(service,q,ctx):
     vid=service._persist_partition(sid,ctx,part,q['filter'],'viewport-partition-v1')
     partition_digest=digest({rep:sorted(members) for rep,members in sorted(part.groups.items())})
     geometry_key='layout:'+digest(sid,grouping,q['seed'],'content-orbits-v3',sorted(admitted) if admitted is not None else None)
+    if qi:geometry_key='layout:'+digest(geometry_key,q['qi'])
     layout_version=q.get('layout_version','sphere-pack-v1')
     if layout_version!='sphere-pack-v1':geometry_key='layout:'+digest(geometry_key,layout_version)
     # Cache is per expansion state, not filter/camera/beta. Filters therefore fade
@@ -236,7 +245,7 @@ def build_frame(service,q,ctx):
             hierarchy={p:[c for c in children if c in admitted] for p,children in hierarchy.items() if p in admitted}
             counts={p:n for p,n in counts.items() if p in admitted}
             aggregate&=admitted
-        affinity=affinity_maps(service,sid,baseline,g,hierarchy) if layout_version=='sphere-affinity-v1' else None
+        affinity=affinity_maps(service,sid,baseline,g,hierarchy,q['filter'] if qi else None) if layout_version=='sphere-affinity-v1' else None
         try:layout=pack_tree(hierarchy,tree.root,counts,q['seed'],aggregate,display_radii(ctx,counts),affinity)
         except ValueError as exc:raise QueryError('LAYOUT_FAILED',str(exc)) from exc
         ctx['layouts'][geometry_key]=layout
@@ -269,6 +278,7 @@ def build_frame(service,q,ctx):
         packing=dict(tolerance=EPS,fallback_parent_ids=[eid for eid in layout.fallback if eid in visible],max_violation=layout.max_violation),
         scene_completeness=dict(omitted_spheres=lod_omitted,omitted_curves=0))
     data['view_id']=vid
+    if qi:data['qi']=qi
     required=set(protected)&visible
     for eid in sorted(required):data['nodes'].append(nodes[eid]);data['spheres'].append(spheres[eid])
     units=[]

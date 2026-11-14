@@ -6,7 +6,7 @@ from .resources import resource_root
 import json
 import logging
 from pathlib import Path
-import secrets
+from .cursor_secret import persisted_secret
 import jsonschema
 from contextlib import asynccontextmanager,AsyncExitStack
 from urllib.parse import unquote
@@ -39,17 +39,6 @@ TOOL_GUIDANCE={
     'check_architecture':'Compare a versioned rules model with exact static facts. Recover violating witnesses and rationale; incomplete coverage makes absence inconclusive. A rule declaration is not evidence of execution or automatically relevant to another question.',
     'find_similar_code':'Compare declared AST/WL diagnostics, not semantic equivalence or runtime behavior. Retrieve original source to verify matches and preserve algorithm/filter scope.'
 }
-
-
-def persisted_secret(database:Path):
-    path=database.with_suffix(database.suffix+'.cursor-secret')
-    if not path.exists():
-        try:
-            with path.open('xb') as stream:stream.write(secrets.token_bytes(32))
-        except FileExistsError:pass
-    secret=path.read_bytes()
-    if len(secret)!=32:raise ValueError('Invalid cursor-secret file')
-    return secret
 
 
 def create_server(service,host='127.0.0.1',port=8765,wire_version='1.0'):
