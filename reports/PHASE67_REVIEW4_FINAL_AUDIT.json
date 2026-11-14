@@ -1,0 +1,126 @@
+{
+  "registered_verdict": false,
+  "complete_episodes": 90,
+  "heldout_correct": 70,
+  "heldout_total": 75,
+  "development_correct": 13,
+  "development_total": 15,
+  "first_attempt_correct": 83,
+  "first_attempt_eligible": 88,
+  "early_recovered_without_unrecovered_draft": 2,
+  "eligible_wrong_to_right": 0,
+  "eligible_correct_to_wrong": 2,
+  "max_recovery_steps": 3,
+  "max_extra_logical_model_invocations": 2,
+  "unique_patterns_per_episode": true,
+  "http_attempts": 489,
+  "uncertain_http_attempts": 0,
+  "recovery_http_attempts": 21,
+  "maximum_observed_prompt_tokens": 38068,
+  "final_cost_usd": 1.899854,
+  "workflow_ledger_charge_usd": 4.506264739999999,
+  "pool_committed_usd": 12.25366085,
+  "uncommitted_funded_pool_usd": 3.9963391500000007,
+  "protected_reserve_usd": 2.00260389,
+  "fp9_episodes": 7,
+  "fp9_eligible_correct_drafts_retained": 5,
+  "misses": [
+    {
+      "phase": "final-heldout-1",
+      "question_id": "heldout-v2-25",
+      "markers": [
+        "SessionStore._lines_through",
+        "src/resource_librarian/session.py.SessionStore._lines_through"
+      ],
+      "first_attempt_correct": false,
+      "target_metadata_seen": true,
+      "target_content_recorded": true,
+      "patterns": []
+    },
+    {
+      "phase": "final-heldout-2",
+      "question_id": "heldout-v2-02",
+      "markers": [
+        "aletheia_toolchain/code_intelligence/tag_nodes.py.compute_flags",
+        "compute_flags"
+      ],
+      "first_attempt_correct": true,
+      "target_metadata_seen": true,
+      "target_content_recorded": true,
+      "patterns": [
+        "FP4"
+      ]
+    },
+    {
+      "phase": "final-heldout-2",
+      "question_id": "heldout-v2-17",
+      "markers": [
+        "ASTSliceExtractor._extract_side_effects",
+        "_extract_side_effects",
+        "aletheia_toolchain/semantic_slicer_v7.0.py.ASTSliceExtractor._extract_side_effects"
+      ],
+      "first_attempt_correct": true,
+      "target_metadata_seen": true,
+      "target_content_recorded": true,
+      "patterns": [
+        "FP4"
+      ]
+    },
+    {
+      "phase": "final-heldout-2",
+      "question_id": "heldout-v2-25",
+      "markers": [
+        "SessionStore._lines_through",
+        "src/resource_librarian/session.py.SessionStore._lines_through"
+      ],
+      "first_attempt_correct": false,
+      "target_metadata_seen": true,
+      "target_content_recorded": true,
+      "patterns": []
+    },
+    {
+      "phase": "final-heldout-3",
+      "question_id": "heldout-v2-25",
+      "markers": [
+        "SessionStore._lines_through",
+        "src/resource_librarian/session.py.SessionStore._lines_through"
+      ],
+      "first_attempt_correct": false,
+      "target_metadata_seen": true,
+      "target_content_recorded": true,
+      "patterns": []
+    },
+    {
+      "phase": "final-dev-3",
+      "question_id": "dev-02",
+      "markers": [
+        "lead_agents"
+      ],
+      "first_attempt_correct": false,
+      "target_metadata_seen": true,
+      "target_content_recorded": true,
+      "patterns": [
+        "FP1",
+        "FP2"
+      ]
+    },
+    {
+      "phase": "final-dev-3",
+      "question_id": "dev-03",
+      "markers": [
+        "run_one"
+      ],
+      "first_attempt_correct": false,
+      "target_metadata_seen": true,
+      "target_content_recorded": false,
+      "patterns": [
+        "FP1",
+        "FP2",
+        "FP3",
+        "FP9"
+      ]
+    }
+  ],
+  "cost_basis": "Registered public rates applied to recorded API usage; uncertain attempts retain reservation, not an invoice claim.",
+  "scope": "Diagnostic target_content_recorded means a target-ID line range was recorded, not independent claim entailment or proof the defining line was read."
+}
