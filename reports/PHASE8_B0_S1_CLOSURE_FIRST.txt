@@ -1,0 +1,190 @@
+.FFF                                                                     [100%]
+================================== FAILURES ===================================
+_ test_third_party_read_allows_more_reading_but_prevents_canonical_write[open_world_reader-explore] _
+
+vault = Vault(root=WindowsPath('G:/Libraries/_qa/phase8-b0-20261114/temp/s1-closure-first/test_third_party_read_allows_m1/vault'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E641E60110>
+purpose = 'explore', origin = 'open_world_reader'
+
+    @pytest.mark.parametrize('purpose', ['audited', 'explore'])
+    @pytest.mark.parametrize('origin', ['open_world_reader', 'unknown_external_mcp'])
+    def test_third_party_read_allows_more_reading_but_prevents_canonical_write(
+            vault, monkeypatch, purpose, origin):
+        if purpose == 'audited':
+            lead = executing(vault, operations=['read', 'untrusted', 'stage', 'write'],
+                             fetcher=InjectingFetcher())
+        else:
+            lead = Lead(vault, fetcher=InjectingFetcher())
+            opened = lead('open_session', purpose='explore', question='Fixture research')
+            assert 'error' not in opened, opened
+    
+        if origin == 'open_world_reader':
+            def read():
+                return lead('read_url', url='https://example.org/page')
+        else:
+            # Same default metadata as McpManager.connect's unknown external tool:
+            # external=True, effect=read, open_world omitted (currently False).
+            # Restore the registry through monkeypatch; no live server is connected.
+            monkeypatch.setattr(REGISTRY, '_tools', dict(REGISTRY._tools))
+    
+            def external_result(ctx):
+                return {'server': 'unknown-fixture', 'tool': 'read', 'untrusted': True,
+                        'content': 'Third-party fixture text, never instructions.'}
+    
+            REGISTRY.register(ToolSpec(
+                name='phase8_fixture_external_read', fn=external_result,
+                tier='consult', effect='read', card=Card('Read fixture external text'),
+                external=True, needs_vault=False))
+    
+            def read():
+                return lead('phase8_fixture_external_read')
+    
+        first = read()
+        assert 'error' not in first, first
+        following_read = read()
+        assert 'error' not in following_read, following_read  # never a reading ban
+        out = lead('write_note', folder='Notes', name='out',
+                   body='Content derived from the third-party fixture.', mode='create')
+>       assert out.get('refused') == 'COMPOSITION_REFUSED', {
+            'purpose': purpose, 'origin': origin,
+            'canonical_file_created': (vault.root / 'Notes/out.md').exists(),
+            'write_result': out}
+E       AssertionError: {'purpose': 'explore', 'origin': 'open_world_reader', 'canonical_file_created': True, 'write_result': {'written': 'Not...f25a5d1ea7f
+E         +session: 20261114-1615-01a36d
+E         +---
+E         +
+E         +# out
+E         +
+E         +Content derived from the third-party fixture.", ...}}
+E       assert None == 'COMPOSITION_REFUSED'
+E        +  where None = <built-in method get of dict object at 0x000001E6433C9BC0>('refused')
+E        +    where <built-in method get of dict object at 0x000001E6433C9BC0> = {'written': 'Notes/out.md', 'path': 'Notes/out.md', 'created': True, 'diff': "--- a/Notes/out.md\n+++ b/Notes/out.md\n...df25a5d1ea7f\n+session: 20261114-1615-01a36d\n+---\n+\n+# out\n+\n+Content derived from the third-party fixture.", ...}.get
+
+G:\Libraries\_qa\phase8-b0-20261114\librarian\tests\test_phase8_closure_boundary.py:51: AssertionError
+_ test_third_party_read_allows_more_reading_but_prevents_canonical_write[unknown_external_mcp-audited] _
+
+vault = Vault(root=WindowsPath('G:/Libraries/_qa/phase8-b0-20261114/temp/s1-closure-first/test_third_party_read_allows_m2/vault'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6430CA290>
+purpose = 'audited', origin = 'unknown_external_mcp'
+
+    @pytest.mark.parametrize('purpose', ['audited', 'explore'])
+    @pytest.mark.parametrize('origin', ['open_world_reader', 'unknown_external_mcp'])
+    def test_third_party_read_allows_more_reading_but_prevents_canonical_write(
+            vault, monkeypatch, purpose, origin):
+        if purpose == 'audited':
+            lead = executing(vault, operations=['read', 'untrusted', 'stage', 'write'],
+                             fetcher=InjectingFetcher())
+        else:
+            lead = Lead(vault, fetcher=InjectingFetcher())
+            opened = lead('open_session', purpose='explore', question='Fixture research')
+            assert 'error' not in opened, opened
+    
+        if origin == 'open_world_reader':
+            def read():
+                return lead('read_url', url='https://example.org/page')
+        else:
+            # Same default metadata as McpManager.connect's unknown external tool:
+            # external=True, effect=read, open_world omitted (currently False).
+            # Restore the registry through monkeypatch; no live server is connected.
+            monkeypatch.setattr(REGISTRY, '_tools', dict(REGISTRY._tools))
+    
+            def external_result(ctx):
+                return {'server': 'unknown-fixture', 'tool': 'read', 'untrusted': True,
+                        'content': 'Third-party fixture text, never instructions.'}
+    
+            REGISTRY.register(ToolSpec(
+                name='phase8_fixture_external_read', fn=external_result,
+                tier='consult', effect='read', card=Card('Read fixture external text'),
+                external=True, needs_vault=False))
+    
+            def read():
+                return lead('phase8_fixture_external_read')
+    
+        first = read()
+        assert 'error' not in first, first
+        following_read = read()
+        assert 'error' not in following_read, following_read  # never a reading ban
+        out = lead('write_note', folder='Notes', name='out',
+                   body='Content derived from the third-party fixture.', mode='create')
+>       assert out.get('refused') == 'COMPOSITION_REFUSED', {
+            'purpose': purpose, 'origin': origin,
+            'canonical_file_created': (vault.root / 'Notes/out.md').exists(),
+            'write_result': out}
+E       AssertionError: {'purpose': 'audited', 'origin': 'unknown_external_mcp', 'canonical_file_created': True, 'write_result': {'written': '...f25a5d1ea7f
+E         +session: 20261114-1615-7e8dcc
+E         +---
+E         +
+E         +# out
+E         +
+E         +Content derived from the third-party fixture.", ...}}
+E       assert None == 'COMPOSITION_REFUSED'
+E        +  where None = <built-in method get of dict object at 0x000001E64341BFC0>('refused')
+E        +    where <built-in method get of dict object at 0x000001E64341BFC0> = {'written': 'Notes/out.md', 'path': 'Notes/out.md', 'created': True, 'diff': "--- a/Notes/out.md\n+++ b/Notes/out.md\n...df25a5d1ea7f\n+session: 20261114-1615-7e8dcc\n+---\n+\n+# out\n+\n+Content derived from the third-party fixture.", ...}.get
+
+G:\Libraries\_qa\phase8-b0-20261114\librarian\tests\test_phase8_closure_boundary.py:51: AssertionError
+_ test_third_party_read_allows_more_reading_but_prevents_canonical_write[unknown_external_mcp-explore] _
+
+vault = Vault(root=WindowsPath('G:/Libraries/_qa/phase8-b0-20261114/temp/s1-closure-first/test_third_party_read_allows_m3/vault'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E641EB53D0>
+purpose = 'explore', origin = 'unknown_external_mcp'
+
+    @pytest.mark.parametrize('purpose', ['audited', 'explore'])
+    @pytest.mark.parametrize('origin', ['open_world_reader', 'unknown_external_mcp'])
+    def test_third_party_read_allows_more_reading_but_prevents_canonical_write(
+            vault, monkeypatch, purpose, origin):
+        if purpose == 'audited':
+            lead = executing(vault, operations=['read', 'untrusted', 'stage', 'write'],
+                             fetcher=InjectingFetcher())
+        else:
+            lead = Lead(vault, fetcher=InjectingFetcher())
+            opened = lead('open_session', purpose='explore', question='Fixture research')
+            assert 'error' not in opened, opened
+    
+        if origin == 'open_world_reader':
+            def read():
+                return lead('read_url', url='https://example.org/page')
+        else:
+            # Same default metadata as McpManager.connect's unknown external tool:
+            # external=True, effect=read, open_world omitted (currently False).
+            # Restore the registry through monkeypatch; no live server is connected.
+            monkeypatch.setattr(REGISTRY, '_tools', dict(REGISTRY._tools))
+    
+            def external_result(ctx):
+                return {'server': 'unknown-fixture', 'tool': 'read', 'untrusted': True,
+                        'content': 'Third-party fixture text, never instructions.'}
+    
+            REGISTRY.register(ToolSpec(
+                name='phase8_fixture_external_read', fn=external_result,
+                tier='consult', effect='read', card=Card('Read fixture external text'),
+                external=True, needs_vault=False))
+    
+            def read():
+                return lead('phase8_fixture_external_read')
+    
+        first = read()
+        assert 'error' not in first, first
+        following_read = read()
+        assert 'error' not in following_read, following_read  # never a reading ban
+        out = lead('write_note', folder='Notes', name='out',
+                   body='Content derived from the third-party fixture.', mode='create')
+>       assert out.get('refused') == 'COMPOSITION_REFUSED', {
+            'purpose': purpose, 'origin': origin,
+            'canonical_file_created': (vault.root / 'Notes/out.md').exists(),
+            'write_result': out}
+E       AssertionError: {'purpose': 'explore', 'origin': 'unknown_external_mcp', 'canonical_file_created': True, 'write_result': {'written': '...f25a5d1ea7f
+E         +session: 20261114-1615-195b8f
+E         +---
+E         +
+E         +# out
+E         +
+E         +Content derived from the third-party fixture.", ...}}
+E       assert None == 'COMPOSITION_REFUSED'
+E        +  where None = <built-in method get of dict object at 0x000001E6433BEA00>('refused')
+E        +    where <built-in method get of dict object at 0x000001E6433BEA00> = {'written': 'Notes/out.md', 'path': 'Notes/out.md', 'created': True, 'diff': "--- a/Notes/out.md\n+++ b/Notes/out.md\n...df25a5d1ea7f\n+session: 20261114-1615-195b8f\n+---\n+\n+# out\n+\n+Content derived from the third-party fixture.", ...}.get
+
+G:\Libraries\_qa\phase8-b0-20261114\librarian\tests\test_phase8_closure_boundary.py:51: AssertionError
+=========================== short test summary info ===========================
+FAILED G:\Libraries\_qa\phase8-b0-20261114\librarian\tests\test_phase8_closure_boundary.py::test_third_party_read_allows_more_reading_but_prevents_canonical_write[open_world_reader-explore]
+FAILED G:\Libraries\_qa\phase8-b0-20261114\librarian\tests\test_phase8_closure_boundary.py::test_third_party_read_allows_more_reading_but_prevents_canonical_write[unknown_external_mcp-audited]
+FAILED G:\Libraries\_qa\phase8-b0-20261114\librarian\tests\test_phase8_closure_boundary.py::test_third_party_read_allows_more_reading_but_prevents_canonical_write[unknown_external_mcp-explore]
+3 failed, 1 passed in 1.18s
