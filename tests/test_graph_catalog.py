@@ -145,7 +145,9 @@ def test_mcp_preset_hides_and_refuses_other_tools_and_graph_id_is_optional(hub):
                 names={t.name for t in (await session.list_tools()).tools}
                 assert names=={'list_graphs','search_entities','get_architecture_context','find_dependants','get_entity_content','check_architecture'}
                 schema=next(t for t in (await session.list_tools()).tools if t.name=='search_entities').inputSchema
-                assert schema['required']==['request']
+                assert schema['required']==['query']
+                assert 'query' in schema['properties'] and 'request' not in schema['properties']
+                assert len(json.dumps(schema))<=1200
                 found=await session.call_tool('search_entities',{'request':request(first)})
                 assert not found.isError and found.structuredContent['graph_id']==first['graph_id']
                 refused=await session.call_tool('find_similar_code',{'request':{}})

@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import deque
 from .analysis import subject_graph,tarjan,DEFAULT_FILTER,TreeIndex,Partition
 from .model import digest
+from .export_protection import export_protection
 
 
 def distances(adjacency,start,max_depth=None):
@@ -27,28 +28,9 @@ def contract_helpers(graph,snapshot_id,protected=(),diameter=2,filters=None):
     cyclic={v for c in scc if len(c)>1 for v in c}
     cyclic|={r.source_subject_id for r in rels if r.source_subject_id==r.target_subject_id}
     unresolved={x for r in graph.relationships.values() if r.resolution_status in {"candidate","unresolved"} for x in (r.source_subject_id,r.target_subject_id)}
-    exported=set()
-    # Explicit __all__ assignments are conservatively retained as export protection.
-    for record in graph.analyses.values():
-        if record["algorithm_version"]=="source-bytes-v1":
-            source_entity=graph.entities[record['scope']['entity_id']]
-            if source_entity.kind!='file' or source_entity.language!='python':continue
-            import ast,base64
-            try:tree=ast.parse(base64.b64decode(record["result"]["bytes_base64"]))
-            except (SyntaxError,UnicodeError):continue
-            for node in ast.walk(tree):
-                writes=(isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='__all__' for t in node.targets) or
-                        isinstance(node,(ast.AnnAssign,ast.AugAssign)) and isinstance(node.target,ast.Name) and node.target.id=='__all__')
-                mutates=isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and isinstance(node.func.value,ast.Name) and node.func.value.id=='__all__'
-                if writes or mutates:
-                    try:
-                        values=ast.literal_eval(node.value) if writes else None
-                        if not isinstance(values,(list,tuple)) or any(not isinstance(v,str) for v in values):raise ValueError('Unknown exports')
-                        exported.update(values)
-                    except (ValueError,TypeError):
-                        # Unknown exports protect all private helpers in this source file.
-                        path=record["result"]["rel_path"]
-                        protected.update(v for v in vertices if graph.entities[v].rel_path==path)
+    scan=export_protection(graph)
+    exported=set(scan['exported_names']);paths=set(scan['protected_paths'])
+    protected.update(v for v in vertices if graph.entities[v].rel_path in paths)
     candidates=set()
     for v in vertices:
         e=graph.entities[v];name=e.qualified_name.rsplit(".",1)[-1]

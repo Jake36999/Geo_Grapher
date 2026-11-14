@@ -53,9 +53,9 @@ def test_evolution_diff_fits_budget_and_is_endpoint_closed(router_two_graphs_man
 
 def test_unavailable_modes_and_wrong_counts_rejected(router_two_graphs_many_entities):
     router, a, b = router_two_graphs_many_entities
-    with pytest.raises(ValueError, match="MODE_NOT_AVAILABLE"):
+    with pytest.raises(ValueError, match="IMPACT_START_REQUIRED"):
         router.analyze_cross_graphs([a, b], "bridge_impact")
-    with pytest.raises(ValueError, match="MODE_NOT_AVAILABLE"):
+    with pytest.raises(ValueError, match="CONFORMANCE_ROLES_REQUIRED"):
         router.analyze_cross_graphs([a, b], "theory_conformance")
     with pytest.raises(ValueError):
         router.analyze_cross_graphs([a], "clone_candidates")

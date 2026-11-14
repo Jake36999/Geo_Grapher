@@ -1,0 +1,17 @@
+{
+  "phases_usd": {
+    "generation_and_two_reviewers": 0.3,
+    "ab_30_off_other_recoveries_on": 0.9854221521256933,
+    "ab_30_on": 0.9854221521256933,
+    "pilot_30_all_on": 0.9854221521256933,
+    "final_90_all_on": 2.95626645637708
+  },
+  "estimate_usd": 6.21253291275416,
+  "approved_workflow_cap_usd": 6.5,
+  "maximum_extra_paid_calls_per_episode": 2,
+  "maximum_extra_executable_steps_per_episode": 3,
+  "bound_must_pass_tests_before_dispatch": true,
+  "reason": "FP3 opens deterministically; one revision shared by FP3/FP4/FP5 plus at most one FP7 synthesis; both AB arms conservatively budget all other recovery",
+  "construction_allocation_usd": 0.3,
+  "reserve_unchanged": true
+}

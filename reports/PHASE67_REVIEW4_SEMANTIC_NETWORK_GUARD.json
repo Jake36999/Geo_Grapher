@@ -1,0 +1,7 @@
+{
+  "load_and_inference_with_network_methods_blocked": true,
+  "rows": 1,
+  "dimensions": 256,
+  "encoder_fingerprint": "c26bc406dbceea32d721871e4420dabad9052aea8366b9e66359a4bf9aae516d",
+  "hosted_embedding_calls": 0
+}

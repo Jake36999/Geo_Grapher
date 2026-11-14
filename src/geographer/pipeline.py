@@ -11,7 +11,7 @@ from .store import SnapshotStore
 
 
 def ingest(store: SnapshotStore, repositories: list[Repository], *, snapshot_id: str | None = None,
-           publish: bool = True, stage: int = 1, previous_snapshot_id: str | None = None) -> dict:
+           publish: bool = True, stage: int = 1, previous_snapshot_id: str | None = None, semantic: dict | None = None) -> dict:
     if stage not in (1,2,3):
         raise ValueError("Only Stage 1, Stage 2 or Stage 3 pipelines are available")
     if not repositories or len({r.repo_id for r in repositories})!=len(repositories):raise ValueError('Unique repository namespaces required')
@@ -54,12 +54,17 @@ def ingest(store: SnapshotStore, repositories: list[Repository], *, snapshot_id:
         from .analysis import materialize_view
         for grouping in ({"mode":"atomic"},{"mode":"kind","kind":"file"},{"mode":"kind","kind":"repository"}):
             materialize_view(store,sid,graph,grouping)
+    semantic_report=None
+    if semantic is not None:
+        from .semantic import SemanticCache
+        semantic_report=SemanticCache.build(semantic['cache'],graph,sid,semantic['encoder'])
     if publish:
         store.publish(sid)
     counts = {table: store.connection.execute(f"SELECT count(*) FROM {table} WHERE snapshot_id=?", (sid,)).fetchone()[0]
               for table in ("entities", "relationships", "evidence", "documentary_incidences")}
     statuses = dict(store.connection.execute("SELECT resolution_status,count(*) FROM relationships WHERE snapshot_id=? GROUP BY resolution_status", (sid,)))
     return {"snapshot_id": sid, "stage": stage, "status": "complete" if publish else "building",
+            **({'semantic':semantic_report} if semantic_report is not None else {}),
             "counts": counts, "relationship_statuses": statuses, "parse_failures": extractor.failures,
             "elapsed_seconds": round(time.perf_counter() - started, 4), "incremental": incremental,
             "repositories": [{"repo_id": r.repo_id, "revision": r.revision, "digest": r.content_digest} for r in repositories]}

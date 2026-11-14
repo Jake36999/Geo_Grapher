@@ -1,0 +1,11 @@
+{
+  "owner_approval": "Approve $6.50 cap and $0.25 top-up.",
+  "approved_at": "2026-11-13T17:32:18.265795+00:00",
+  "pool": "geo-grapher",
+  "funded_budget_usd": 16.25,
+  "starting_committed_usd": 7.74739611,
+  "workflow_cap_usd": 6.5,
+  "spendable_ledger_ceiling_usd": 14.24739611,
+  "nonspendable_reserve_usd": 2.00260389,
+  "minimum_reserve_usd": 2.0
+}

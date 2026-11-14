@@ -1,0 +1,696 @@
+{
+  "records": [
+    {
+      "id": "dev-01",
+      "graph": "librarian-v2",
+      "characters": 7488,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:e063e9de1a4e1f9717f35a1d31af7826236d39be9e0382c47d340315dabfbaa8",
+        "entity:1e7fb0069e90dec191b5174ccb2d410ae5d74d5d14800c183260346a4496a7bd",
+        "entity:aca2213aabf03a243490796cfcfaebc08e249426b1f80598c8f7f5a6ba6e4650",
+        "entity:ca3cc071635d4213818a4916f605fc43cfff5110a291c7b6bda3b22f09505fe5",
+        "entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600",
+        "entity:82c2cd8667f51269715236873217e3a33fe67ff81898d9194c933858e2860700",
+        "entity:ac8a9bc73ee3b2365b0c3eb1ee2aa557d8fcd6c1c3017a6a964b30f8a5f08bcf",
+        "entity:97e33edbbdfcba8c969fab6c626294cab8f4488c698081bec785d95fffd3e2de"
+      ],
+      "omissions": 192,
+      "recoveries": [
+        {
+          "pattern": "FP2",
+          "trigger_value": {
+            "lexical_confidence": {
+              "algorithm": "preview-confidence-v1",
+              "top_score": 0.01607782898105479,
+              "threshold": 0.012,
+              "max_doc_overlap": 1
+            },
+            "top8_disagree": true
+          },
+          "action": "local_semantic_fusion",
+          "outcome": "resolved",
+          "step_id": "search:1"
+        }
+      ]
+    },
+    {
+      "id": "dev-02",
+      "graph": "librarian-v2",
+      "characters": 6153,
+      "pages": 2,
+      "delivered": 6,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:9551466b8e6eb027a4271f362b617b6ef945cddfcf185301621fd60a75e1d339",
+        "entity:1e7fb0069e90dec191b5174ccb2d410ae5d74d5d14800c183260346a4496a7bd",
+        "entity:37c9b33cd963735401b5dd3af6231e96793b45ad5e69ce206838a1129acf93f4",
+        "entity:5610a646841e8fa51b66116ff8247be887bf2e53f222e63718f2019ee0908b08",
+        "entity:dfe0d994631217c777d18ffaaf163c2041361963f49596c11e6d40c77c7342c5",
+        "entity:5f03016b961ed60f5aaebe9f74d0586fdf116b89848c22310a1885384257a3d9"
+      ],
+      "omissions": 194,
+      "recoveries": [
+        {
+          "pattern": "FP2",
+          "trigger_value": {
+            "lexical_confidence": {
+              "algorithm": "preview-confidence-v1",
+              "top_score": 0.015569892473118279,
+              "threshold": 0.012,
+              "max_doc_overlap": 1
+            },
+            "top8_disagree": true
+          },
+          "action": "local_semantic_fusion",
+          "outcome": "resolved",
+          "step_id": "search:1"
+        }
+      ]
+    },
+    {
+      "id": "dev-03",
+      "graph": "librarian-v2",
+      "characters": 7032,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:7173779a62d5b6a478e511ffe1a95bb5c20a0b76edbe1cfac9937455a5e0f582",
+        "entity:77f8a2f3029ced4b533e736e78793023700cd3e6922efe6215d86fbe6aebccd7",
+        "entity:4977f9b9da104ef7e0a79301d5c9568f749bf760a82b136401550427a490c05e",
+        "entity:d4d8caa20ee830b51445ffa7f7d70890807792b7d2c4eaefe8ae532fba1683d3",
+        "entity:9aef6503abf71402332d31cf02bc3fa241da2a3d6609af852f7696b9abaa4b85",
+        "entity:a88ee6f19f79a2eb04bd7cde97267b8f06235cb8d72a4c4486b44c73d50168bb",
+        "entity:828ecdb9dca14439224596c968362a73c0d1cd4d177e8bb135ddd14817a3d372",
+        "entity:731e986e81bd9b0311d1a8ce0f64c6969c209d2c990feb1081cc7abd76d223fa"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "dev-04",
+      "graph": "librarian-v2",
+      "characters": 6151,
+      "pages": 2,
+      "delivered": 6,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e",
+        "entity:96c6d5b2c45b46dc5ff1e2a0526e9530ad2d5a83255c39070645192836374d6c",
+        "entity:7bcf11421bde3d00f94c44be3645b18456cfc441f60918671728f771d3a5d4d0",
+        "entity:b4c5308112cdd7c9a93509623c1ce8bd0f6d860cc868ca7877455feac7fbfdce",
+        "entity:06a4030c7c0e91dad16603a73fef37f0aaf8dd0af0257ab61c50cef68a5a6d57",
+        "entity:ffadabb2799daaf137a1a0f408414d8e490cf8d8e3b161f773d9fc67dcc1c0b1"
+      ],
+      "omissions": 194,
+      "recoveries": [
+        {
+          "pattern": "FP2",
+          "trigger_value": {
+            "lexical_confidence": {
+              "algorithm": "preview-confidence-v1",
+              "top_score": 0.013155231734466706,
+              "threshold": 0.012,
+              "max_doc_overlap": 1
+            },
+            "top8_disagree": true
+          },
+          "action": "local_semantic_fusion",
+          "outcome": "unresolved",
+          "step_id": "search:1"
+        }
+      ]
+    },
+    {
+      "id": "dev-05",
+      "graph": "librarian-v2",
+      "characters": 7375,
+      "pages": 2,
+      "delivered": 7,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec",
+        "entity:4e3e79f9d66cc3e9626033cb3c0be69d77d5f39cc9cd991d30131d8d2cea6ec6",
+        "entity:6aa746365841e8f0ebf3fcdb956a7260a68190244ce3633df7cdcce8cc46f74a",
+        "entity:57ae76a395138e09f9f7b45a0c4bdc9998850545bd2a4a353403fddd50c0ea55",
+        "entity:7b3c63913b7b79b76233906f72df03d345c3551ee66969fb3aa93db1b5368ec4",
+        "entity:674962854a9bb9a4f35a40b1e61205b5cf3ed4f60de3b1ee7190746dc006417d",
+        "entity:f2781a4d6c28bb74bb55673098ca0da0a6bfc92140995b5be45e2dc0091517d9"
+      ],
+      "omissions": 193,
+      "recoveries": [
+        {
+          "pattern": "FP2",
+          "trigger_value": {
+            "lexical_confidence": {
+              "algorithm": "preview-confidence-v1",
+              "top_score": 0.014184710561201944,
+              "threshold": 0.012,
+              "max_doc_overlap": 1
+            },
+            "top8_disagree": true
+          },
+          "action": "local_semantic_fusion",
+          "outcome": "resolved",
+          "step_id": "search:1"
+        }
+      ]
+    },
+    {
+      "id": "heldout-01",
+      "graph": "librarian-v2",
+      "characters": 7386,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:c24e5c12ebc7f9a2b9d4552ee44a36031a2d53d5f0a85f67d2e93334855b4bc3",
+        "entity:a476168a985e5dd097bf8e1b18e89f153a223174f61cbe40328959ad40b0117c",
+        "entity:252a1b9ca9458fa30e076e025371edd99b33dd42ef39e41626b08afb3254d61d",
+        "entity:217751be36772c904742aa430a643e6675dd5f5786993f5411e3efd32f8a62fa",
+        "entity:11c37c5e7d6d7b0bd2a24f7ae63d81e50368cbdd75c13cb730a2fe6755367514",
+        "entity:e7718254f99ead9d9e0d8a973c2842b8536b671e92bc74c6e6411d1a062a4bf0",
+        "entity:c5478b6cba6810451cba2e951830b2c356c96d54b442a03daa1973ea245ea162",
+        "entity:8840a0a444caf4de7abb5ff832480a6f5aab31b2e519126200818648c341d2fe"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-02",
+      "graph": "librarian-v2",
+      "characters": 7367,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:4de27b0d5a80aaf2a3072dba771be72521deb29fa5151f704a48c36d38ba246e",
+        "entity:b079bc8a5fd6bb52457c417a69b22d744347e986c754bc7dd9110d46d1ba0dbe",
+        "entity:bb1cc27ccdfc54d68f0395072631bbaa557d2cab047a188347485094e4141243",
+        "entity:9b4926d5bf35f322a063c4651d330a46c245fbe71455937c75a7c2ca8cfea4bb",
+        "entity:82c2cd8667f51269715236873217e3a33fe67ff81898d9194c933858e2860700",
+        "entity:beffc6ec836e7bacd930e8559e3b99c56b7a130dec63e78b19552bbb7fa1588d",
+        "entity:f1992f841e007b66e91ab5ad9ce0e9ee20221f75b2a47af607d5fb8761db591e",
+        "entity:47417ad9130ae5f616f793e0a9c2bf567759f294e8ee8b5ed871088ff991cd02"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-03",
+      "graph": "librarian-v2",
+      "characters": 7204,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:96a974d53e17ec60ab7f6173b39d5ee623c50795d1bc6102077ac546e32d293d",
+        "entity:5c52b9fc00218ad5ff00ea840bf65ddfddea6d61eab280817f2a348db78fbd79",
+        "entity:b7fe9750691dedc2ed81a1a299623a484c5dd442c288f28b5aede707bae6fc14",
+        "entity:954448bf7eaadf731681a6703a1a3bf0f45fa9051c36c421646579a47b33c74f",
+        "entity:c163fd59d61a0d4fd37a397b1831a5b371ed5ff3bc03d6da3d539120550a8c8b",
+        "entity:de068edbf0a73b1a8e8e0a41baadb05618eed1d10bcaf17b58923d45a7969ffc",
+        "entity:c7e0210e1dc96400f3686c65fbb624b46c85d57bde1c10e6326e8c1a523e47a0",
+        "entity:cb8448bf54d55237c1743e288f5a0e20205b9d2584e827801662c7db169619fd"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-04",
+      "graph": "librarian-v2",
+      "characters": 7429,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:af6090bacaf14b2bdff1d66ebf85ea464408585c92d50a243dc1f155f0bb5f22",
+        "entity:a6220fecbe071c7a4288e109bb34c6959d4f95d0fae6aabe5704716c0f3e0859",
+        "entity:01f58015393bacc631d6e3edd41e7fe16355061ed4f363cec3d57faa79a94248",
+        "entity:4df24ee372a5ab12629e13647b6bbd2926e86cc834222033dc25be6da7799ff7",
+        "entity:5641c898e71586756ed9b6b4ec291d09681495715cfd8675011930001998f40b",
+        "entity:5871338d830198e1f16d593e0f0d70f83fb57898499c7733a5186290fb6dfe3f",
+        "entity:51b4aa980f128804d19608db451dbf2f277ae22c487741928f3428c2e97094a9",
+        "entity:bf98cfc47bee931eaaeb8dffba5581cdf5dc459d2e60f439df3da80f44e1696c"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-05",
+      "graph": "librarian-v2",
+      "characters": 7289,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:b1440104b8a622b49c0446779f411447bba4f6a1b9bcecf62f33a8ba86885731",
+        "entity:9f5d093b895a074de114171604c15926774a52c64cb636684d33d70cc4437aac",
+        "entity:cf90043457bc2243cbf7867304377125b50bbfce75cb57923d033c479f22ce8e",
+        "entity:57551c6d51572cf562352b769185cc964ef30d8603f90db5fb5b3746ac50ee58",
+        "entity:90a729615fbd9a165eb7dce62cbfa12d50ed581a7957725e5239abe7848a56db",
+        "entity:99b8e1c8e219cf39066e54838337ad6d720d4b9ceded586ae04950e4987d9999",
+        "entity:e05ebc0155ade9f4fa7ada46afaf70672d1621d5b6f24355105a5c89ef68a47f",
+        "entity:3612557f2c8c0a9f019b3794d001644a700c04fa58907477feb9a5efd701d05e"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-06",
+      "graph": "ToolSet",
+      "characters": 7250,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:b6c86eefbfaf7a81c84b2850e3f2693652453a09e94275319150cd6ffe692ddc",
+        "entity:744d1753e3fa7e2b34419b2164d11592640a7e7b88ddbe6a9fa659b2d49b7bc6",
+        "entity:7c6f1bff4d6fc638ca174a0159760a522888302b247bb1799683b996a2c6c0d3",
+        "entity:4578265edc8d09fcce7b28d38cd265e13bb3f9363c45da9973bc8c5b658cc306",
+        "entity:b800d331997aa47141f6661d4fc348caccd972c5ab05e006b695ffab5d56b25b",
+        "entity:46ad7c0049029d97a5eb5f607a52a63ec616d0cff7ea0e90716815b8075fa754",
+        "entity:19e2153e72734a04271224490e9bded3dfbef1a0291dfeaf8b43acab0546d43f",
+        "entity:42e09b0718be0067e3c72fde41c72e92adaf9024f8c0fe9f3936e404e7453b12"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-07",
+      "graph": "ToolSet",
+      "characters": 6449,
+      "pages": 2,
+      "delivered": 6,
+      "target_delivered": false,
+      "entity_ids": [
+        "entity:3029eaad3d64ce49203f51cf4b6b9fe45384590ff9d484b3b752b393aeeb0a1e",
+        "entity:0171d95b7a5165cc52d38bbee8b78304afcc39cc90ee75e187e1142d2c09324d",
+        "entity:13f60313e542a4965c3a0347ca03df17b807900481cb6290034ebde90836fdb4",
+        "entity:44c224992dd9115443099828c962cf165ed72f072b089c482d4b49037bafe107",
+        "entity:90a204bb9b117451c2ef98b10827576a61389db71fec4baa5b6b76b8f480496d",
+        "entity:dd42fe7ff910e31f92933a50745882ad9066c883c47c22503da0da2a05fef4d4"
+      ],
+      "omissions": 194,
+      "recoveries": [
+        {
+          "pattern": "FP2",
+          "trigger_value": {
+            "lexical_confidence": {
+              "algorithm": "preview-confidence-v1",
+              "top_score": 0.014270823462522505,
+              "threshold": 0.012,
+              "max_doc_overlap": 1
+            },
+            "top8_disagree": true
+          },
+          "action": "local_semantic_fusion",
+          "outcome": "unresolved",
+          "step_id": "search:1"
+        }
+      ]
+    },
+    {
+      "id": "heldout-08",
+      "graph": "ToolSet",
+      "characters": 7424,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:af7f35d5994a80e1bb5b0962e4824b7e2eab60cce2e6153f08f9248f1e9f24e7",
+        "entity:ab5a82fa4a79e23f7afda26a49ca68b3515c459d85963c2aec3a46e98b6fc1c4",
+        "entity:8e1386bc85001371d070c1e46ce0a1bb43240f373ea0eb05387b441d55a6b43d",
+        "entity:1ab43e0b556db43df96355449f7302a3ea02614477d762b8a37ecbe69f6b628e",
+        "entity:f07de2d6dbc0d65f3e933ee355d97f46c26d1ee70607a821ecc886afa73d4ab3",
+        "entity:4572061794ea121ea993ee8684af15f7681b17c984a0b8daa68678f92528f337",
+        "entity:e5e43219adf944ff5aea609ddf39435710e77dabe26072f98e84b27d1188530f",
+        "entity:8ba14f02900593ef09de2e26eb50bab18bcea037e20249c7fc349d0f1203d2fb"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-09",
+      "graph": "ToolSet",
+      "characters": 7471,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:96c803d3ef8bc1ebde44c139a6b9977a6f80394a8a6d0e40e90d25a67b423dc3",
+        "entity:aa4b8909c27dc2231661f664f341dc9142cbb76f78fcc71d3eaf35c3cdce9e8f",
+        "entity:fd329eac102fca48f375822aa138c6c53a393465db07830faae1ca17b19e3171",
+        "entity:a4736717155960b2c5dd0e382120d8b941b8dce4dbcd7db691eb6c0cee831e85",
+        "entity:cdf573840b637730a0935e2df810a7d0692a904063f1a87f37c2a69d640a870b",
+        "entity:f1c6ac9d8b1e14ee7bb3b0047b8d99ef45827440e03e2190a9b7e711ce9bb69e",
+        "entity:24425d613564b6849647aee306bb479c31a498fda02fb01a4aa886fec544895f",
+        "entity:381c5aaf74d6d7c7e93f9e3e7e9a9eece86a1da7ef19b38968ae81ade7945596"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-10",
+      "graph": "ToolSet",
+      "characters": 7229,
+      "pages": 2,
+      "delivered": 7,
+      "target_delivered": false,
+      "entity_ids": [
+        "entity:5a0a8b465f5b9cfc3f2dcc8a9661ae9e31153f005322042514983fcc3a29db6a",
+        "entity:1ed3dcc06220a11a8b2b76c8b3a0046fd876d469359bda41137c16be57f0a6f6",
+        "entity:2f3b9951e1dc22c09ba6faa848c927af77dbb19432b7b37e9eafe43fadfd0b00",
+        "entity:f4fe1f665f0ffb6a99421e28ac00cce8c486ec25f5059e00439d778157508163",
+        "entity:6f9d41e2ab8e7cf832f558b4f89ff6264f93d7022cb6ecea171bea59a3590585",
+        "entity:8f1023f4b84194098b4618ebe082cc0eb86961f15610e427318da9c43c5ae2a7",
+        "entity:46ad7c0049029d97a5eb5f607a52a63ec616d0cff7ea0e90716815b8075fa754"
+      ],
+      "omissions": 193,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-11",
+      "graph": "librarian-v2",
+      "characters": 7346,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:17212cbbd98e59fefb997b41d7078e6fbfd4f7721c1a77f01023987cb7867857",
+        "entity:80dcee88e1ff707a2945cf62fbfdbc7c79c4c578a0a62d2dec5796734d5cdc1b",
+        "entity:1ce8d726f44587ebc275c04d7cf04acaf866a0af5752b2616fbf5fb15f2cc591",
+        "entity:f649ebfe2b83303a034c538edfae4c4ab28e014e4925ea477c924f0b38a1cc58",
+        "entity:66a49313cb617f86687b9210cf3ae0a6149458105401b147e34db52644786e9a",
+        "entity:08bd449188a1b200dc7edce19f7bb0a6cfd1562d7b56201a6dd25fa2f0bc864f",
+        "entity:dea5af7d600971e1de0983453f858daae95cd5c235293efbb5cb2286ca791ce5",
+        "entity:26f8a7ea6a15a293b2b822a28ab803f0278a021ebdf34b0e3eaa2cdc9b3d2f75"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-12",
+      "graph": "librarian-v2",
+      "characters": 6219,
+      "pages": 2,
+      "delivered": 6,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:0a0164c4ca1d6d212409f77c54ece04dbc39a20aa2438157d72aff6168757a04",
+        "entity:9cb4b26bf3c1afbaa77c13e7469133e201315d858eb74268bf6be81265e9f0ee",
+        "entity:bc55a3e56c90110fd5420f5d6eec4ae27cdfede9c58b29bbf6c6196445999e67",
+        "entity:b1168542aa9c456b687ab9bfb2ee3fba7e16eaf73631e6146e91ae17ee6f5f06",
+        "entity:32e692cd2a72d3af112714525079aca27488e0eff75be96a0be1edd08f451616",
+        "entity:b2d9174a1758aa43fe4c9950804550e92c5f6954333675d45fff4d6185c61931"
+      ],
+      "omissions": 194,
+      "recoveries": [
+        {
+          "pattern": "FP2",
+          "trigger_value": {
+            "lexical_confidence": {
+              "algorithm": "preview-confidence-v1",
+              "top_score": 0.013668298914200553,
+              "threshold": 0.012,
+              "max_doc_overlap": 1
+            },
+            "top8_disagree": true
+          },
+          "action": "local_semantic_fusion",
+          "outcome": "resolved",
+          "step_id": "search:1"
+        }
+      ]
+    },
+    {
+      "id": "heldout-13",
+      "graph": "librarian-v2",
+      "characters": 7004,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:d68a2dfaa97454a6df052d4acf922f9dad249496ab56cf2075a5b521e9601820",
+        "entity:1319dc78f6be1476c639e2fe80b53a22f91b987ea70be2bf14f9ce43cc8a7df0",
+        "entity:da8b0ab34876f7f9635d610da2f5f1ba95f5139a391a8080a3e1da239ef30445",
+        "entity:7fa1e3efc09b094edf1d9fdead936e6a4ee827a697cb47dc5792fcd9277e918e",
+        "entity:6b1cc1facf3defc691396a775a4f133d1aca6711d8cb48c96d992596d93d02a9",
+        "entity:79b44b0badc1fc90a80acb1f1b506bf1624da08ed6d72c04c819b50183d82f95",
+        "entity:3bb1b5f41be6144a464c4caf9adc88d1018a2d181aa79a8d6289b111d3a33fab",
+        "entity:2775eb74c583b8fabe86507fd0e39355e8ad5f6b9ec8be5ae676f9e23a999454"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-14",
+      "graph": "librarian-v2",
+      "characters": 7244,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:7cce2fe51d5c30aff9fb52ea4a007719b4a9aaba6a7c577c76962e895801cea4",
+        "entity:0fe01c0e64ce6f771b347073ac690378b5c15d5964c188926b120e7a35d708cc",
+        "entity:e4e596f096c7d30a7e1f399c0d363001f5b7d548d38698aa2600ca1dc2f6918e",
+        "entity:c9a64e522f585384aa7c1d94ef8108a90178592082a7fb5e6393c79bc66ff307",
+        "entity:207529f972a2b683ab979825647608dbc2e74c824bd5c50a0fd837227874960c",
+        "entity:688d80d3a8d1bff266fa67b806a41374d2915e6faf8b902c00d0edae767f68a1",
+        "entity:c7e0210e1dc96400f3686c65fbb624b46c85d57bde1c10e6326e8c1a523e47a0",
+        "entity:954448bf7eaadf731681a6703a1a3bf0f45fa9051c36c421646579a47b33c74f"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-15",
+      "graph": "librarian-v2",
+      "characters": 7438,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:3bd6c7e8fd7fffeb9342c1ebfe1e73a6ca8e4b2e8fdfdeb74ff26977ffee5118",
+        "entity:79fe58a1015cc63f05d1040412781f7edd6333c43d8c2bbee19d64e1a24046cb",
+        "entity:6f6d626b7d083d264d1f76efb0eacbc1a6d2084e9d21e104e954879e0401a720",
+        "entity:cd2cccdd28cc168e5f62fd3dee4a9e2c0c2d802ce6a7ed4d10c739cf89071fe5",
+        "entity:53577f1b1a528740e508405697687f9ea2ebc3712648b57a6c0c600f355b69d1",
+        "entity:324dd1413a72cf2376ad95ce25c31a28e4165aa40b69e6ab91f6c6c990799498",
+        "entity:9cb4b26bf3c1afbaa77c13e7469133e201315d858eb74268bf6be81265e9f0ee",
+        "entity:bc55a3e56c90110fd5420f5d6eec4ae27cdfede9c58b29bbf6c6196445999e67"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-16",
+      "graph": "ToolSet",
+      "characters": 7464,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:9b8eaa43017b857ca64e973848387a1c6a19ee93b026cf143f7edf6df3842404",
+        "entity:c9a4fe27c582d585624c61173274324af103c9997942659e689fc31a6eb82f65",
+        "entity:22798ded3a8ad6366e89c7cd09c33ea404ff2ff2b55badc8173587850ececb88",
+        "entity:00df3ac6af073873a1fe47dd2b26c39f8a49713b5608983be26136096e6b5e3b",
+        "entity:8f70cdf8d272fdaeb9e91e8ed2ee0fe5205888f2369ff97de38e4a0cc7bfd3f4",
+        "entity:9bae73f617e624d5e30d7c66e524b2c4992848f531d1e0d6f8719ddcbe2363e9",
+        "entity:7aee0692664be4c4e9b1db98ea3307dc5f2abbe5c7733a99851422ce7bab1b0d",
+        "entity:473fd5d4a04d9cbd452ab9977d6954b20a975c6051e52155f599abaad70c1d9d"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-17",
+      "graph": "ToolSet",
+      "characters": 7313,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:d5d49190281c0ba9b3338d2aedc633168687ad54986d0cf42be6fb4b20bf58f8",
+        "entity:47286added370d79d744b23d1eb0022e298c5685b82f9a0efd2ec61ee505c8af",
+        "entity:dd42fe7ff910e31f92933a50745882ad9066c883c47c22503da0da2a05fef4d4",
+        "entity:9ca4459ec5c45d05ef3e09328a22e8c4ee062243912a794a7165ba8624d07f94",
+        "entity:38bd7c123d99cf212964952c7f3dbe40af27a8b64866d5d51e5a2d84c1053c38",
+        "entity:b702dba913e16995bcaf9b5ae58bdd136ece686cf6f18f692d72b1794063a70f",
+        "entity:23bc2e6a3fe90f9387c158e5f76fe251fe46f65e2081bda8f8c42fbe0472920b",
+        "entity:0688c5dcf4367462df922018dcb6af19535683f69a24511bd81e64007f2fe36a"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-18",
+      "graph": "ToolSet",
+      "characters": 7498,
+      "pages": 2,
+      "delivered": 7,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:83048f1a4dfd2bcbf8077e8205d632e7b1d836e14ca1b6fd27416354787fcf5e",
+        "entity:db50f075917608b9306e5432077511d7705040958a856020b6cbe213f0c1021d",
+        "entity:5a1112b45015dde1a7a25f95196bfecdb481ec523875174648ee95615112f5f8",
+        "entity:b6906d9baf7c028909f7e4d45f27ed3a821a000dac19c132bd5818d107ddf57e",
+        "entity:093b84e274ba02d89521e6edde0d2307c15e5cd6b69b13383e8bff32e0089e02",
+        "entity:b5c203f82427169ee1dc83aeab7abd567772e388f4d492984b89c4a28e734a31",
+        "entity:7f8be9d19c9f8950d617fac87d2ee8f2b12eea45b9c95301d212f0ff2ca6fb1c"
+      ],
+      "omissions": 193,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-19",
+      "graph": "ToolSet",
+      "characters": 7401,
+      "pages": 2,
+      "delivered": 7,
+      "target_delivered": false,
+      "entity_ids": [
+        "entity:9934556435c281af63f47370eac53d457b00aae65a8483a3938f29b00a13f217",
+        "entity:5c61003bd31cbcf168b71eb9fb45fac2c19c29b4fa3ba4ee785ad4bf8d38aead",
+        "entity:402efd902fbefc5eac0370183c2d467cc32b483c8754247154583d25f2c4ca16",
+        "entity:ca11eedf71143ba772b217572ab6ed8552d2bb8fc3a733e0a2ad891086f028f9",
+        "entity:0dd392fd4a2d0597de5ab71e5670e62cd00ef4cf2f62148bfa03cbb327beb1f4",
+        "entity:f282e0ffe19e9fe880be8298ec1d18224cfe99afe23aba05fbd40df52dbd10f1",
+        "entity:5fb1781c4f8e83d323c4a4c48e32f9295dd0e9d0c31d48b83a82baed1bcb57ee"
+      ],
+      "omissions": 193,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-20",
+      "graph": "ToolSet",
+      "characters": 7440,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:37808e9ccfcd389ab869807f10fc54b25cf7beed95293bff601f5b63f2806ba6",
+        "entity:ee4d0bb468523f5b1a41bc7dcd61cbba7412e84ec57dde74abd21f6e357d1d01",
+        "entity:34f14e34c0322f5e958a689860bdf63235b82d1a982c93cc0725ab51857455be",
+        "entity:ccd8d599960a39443725262541fd941801db0a16e59fdda5065a0e6fb8594723",
+        "entity:f07de2d6dbc0d65f3e933ee355d97f46c26d1ee70607a821ecc886afa73d4ab3",
+        "entity:c9145ce2cbd79bc4cd30728ae9c790a26f36085e932d8b3be4ea71ebcc76eae2",
+        "entity:be01dd22788831d1f0e6ddb2d8df10d767e163ec8932f4059838271e1217a4ab",
+        "entity:6eb4ebefe20620d0c9bcafbd55a91305687e1d997bce4a93646faab4e7077c4e"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-21",
+      "graph": "librarian-v2",
+      "characters": 7103,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:484443efa3874115ee21539f5d68e50f951aa0f8cbb662b638d77e087d53b29a",
+        "entity:02eb3d274da6b2184beeeecafb3b12917aa2c4f569f6c7b31107c3f2b54b0627",
+        "entity:a6fd6550bee5f8f20dbff2ba6206260f6b13820ac127cd27bf98a0deddef4b2f",
+        "entity:45ddefce2ce358ffb2b97f2e015572f2782a90725cae76ab4611fd07df0a894b",
+        "entity:e79c3f0527c1c2d76ee6598088a2fbe7912862321bb0c8bfb2f98cf3795b08c7",
+        "entity:0f14af12f791de4012f2c5af7d2a1d142c7a6f385170083290c61a75661b4b03",
+        "entity:270fc6f0b8dd75bc18abdb221042aebb7efb1a5d3244f8bdf9a7a94f076efdcb",
+        "entity:f0186216e2f05fd16e9af1a222f8a4609a1de1395e9207066c249a43b757d2ed"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-22",
+      "graph": "librarian-v2",
+      "characters": 7283,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:f30ed9c2967476ec8995bfe841954788537b21aa0c3e7d5d89d8f43a7b43c7a0",
+        "entity:e2fa368c27f60c747b36a5981c793cfdb0af92b507a905ad993063b4c541fd88",
+        "entity:04348cbc76efdea7c0273215ef4ba9bb724b6243ca04132c747fc40fa8033be1",
+        "entity:7b39a2c3474b7f85dcc2e53fc0d948dc5e54981c6167b18cc9596f19ce511b02",
+        "entity:bf4779757a0bdd0cdc325ab9af38d1b189fb2d0b34629de7f6f4067478edd5e6",
+        "entity:2301a1fe4f07bb8f796a0420e7c248091f160962a7775736b04d28c137f9e053",
+        "entity:410fa02b1415369ad8fcdd75b961bea0007f0421959228ce932b6536f01511cf",
+        "entity:704fa7cb7b88eff8c8d1a66f0d0a0deafa5ff3ba957d99998332434c496c4bc3"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-23",
+      "graph": "librarian-v2",
+      "characters": 7455,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:15396f5ae506915114d9b5c9b72fde309e1e7b7959f3f7119ba3d989d83e72f4",
+        "entity:2b6c6c3206e49d888a75a7a7ac4f8c10fe32308bc8eb9f6cc7c5708b2ff50006",
+        "entity:f1992f841e007b66e91ab5ad9ce0e9ee20221f75b2a47af607d5fb8761db591e",
+        "entity:c1d7769a9db1fa88154aa5fd30170ab9697e8a322a2a9e577a73b4700e27b16c",
+        "entity:bf0091a648eb216772a38e2b931ab8b7fe8f0c14e1ff75565a99bcdc07f9f34b",
+        "entity:53577f1b1a528740e508405697687f9ea2ebc3712648b57a6c0c600f355b69d1",
+        "entity:86b48b29c9bce1e0115a73512f98175ce5b98277afe45bfe22b11ae028471c58",
+        "entity:5c0fd306e365e5df50b3f0e8fe5706425f54eafcc7849315e7e19c5877eb81f1"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-24",
+      "graph": "ToolSet",
+      "characters": 7376,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:83048f1a4dfd2bcbf8077e8205d632e7b1d836e14ca1b6fd27416354787fcf5e",
+        "entity:a79ee18d8f7d6efe4cbaec11709515dfeb767c3e478dd8e558627c7aaac591eb",
+        "entity:2266ff0ace92022d9b22e0ee0b932352b42eb8faf6f73084c2b49baf70943bb9",
+        "entity:625398b6818dc1af5d68dc035c3bb013a699b905def4417132e3d4ee3b3da507",
+        "entity:5a1112b45015dde1a7a25f95196bfecdb481ec523875174648ee95615112f5f8",
+        "entity:5e5ff98c065b117a7100bb5105a7ffc7ff81d9af223669e2c2a10d366a0bde2e",
+        "entity:1748f366b4d9bd9acf1cdee7bb6aa2c0611f899b3094c4ad99fb626a83342bdf",
+        "entity:51a8da90e2a92eeef483fe7ada99433fb7d5631c75743cece16ef22d7f8cb9af"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    },
+    {
+      "id": "heldout-25",
+      "graph": "ToolSet",
+      "characters": 7477,
+      "pages": 2,
+      "delivered": 8,
+      "target_delivered": true,
+      "entity_ids": [
+        "entity:af9111ef94acf9a589090b0e6185544a9bc2d1951181230a5c2503497085e41e",
+        "entity:deb8b48445837489492d5afdeb8c6023caf95470d97e9349680a3b1bb3fcbddc",
+        "entity:f57aec783943b155a513105b733142f9f2fd72da055f5c7fe6b0772ed66bcda7",
+        "entity:c1c37b94413ff65ce75b711c10b27e344ab89086f34f6ad90b636706f9c9ab34",
+        "entity:65903e6dd3b0a971c4bfc773a6f98ce9574bae3c7cd4deffa2cadc9d8abc22a9",
+        "entity:157f889cf6cc486cc47da02ee54109360da2b069e136a7d81fa2f08af3c5f905",
+        "entity:ddb20426423705e949eb39176b580377e2dcb7931d801679b1d60b793c51bd7b",
+        "entity:5cb7683236dd81f8e2ac512184633e32739eafe056db22551eb33ae1ee2e39e2"
+      ],
+      "omissions": 192,
+      "recoveries": []
+    }
+  ],
+  "target_delivered": 27,
+  "questions": 30,
+  "all_within_cap": true,
+  "canonical_unchanged": true,
+  "encoder_fingerprint": "345ed8b945f0a81cb19e810ebd3cdedca5a8d9008dc4ac2a2600968276cf3826",
+  "max_pages": 2,
+  "scope": "Actual capped front door on disposable SQLite backups, verbatim question only, fixed page bound, no key-directed requests; not end-to-end agent answers.",
+  "paid_calls": 0
+}

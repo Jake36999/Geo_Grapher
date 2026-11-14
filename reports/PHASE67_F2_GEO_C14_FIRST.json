@@ -1,0 +1,50 @@
+{
+  "quiet_machine": true,
+  "rule": "median of 3 cold <3.0s AND maximum <3.5s; prospective only",
+  "timing_scope": "Fresh QueryService process, graph/focus lookup before clock, query plus response validation; identical legacy C14 workload",
+  "wheel": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\f2-geo\\dist\\geo_grapher-0.1.1-py3-none-any.whl",
+  "wheel_sha256": "e1b31be4a5258c050c526ae3d3bd54a1dc8a8248f200176465a326c700316373",
+  "source_database": "F:\\uv-data\\Geo_Grapher\\output\\phase67-gates\\wave2\\graphs\\g_850b52af2916ae87854c9ada\\code.sqlite",
+  "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+  "samples": [
+    {
+      "seconds": 2.4957775000075344,
+      "pid": 25844,
+      "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+      "focus_id": "entity:0002131fb0c8352bf56ffbeb04485642c94aca7ee49737446a58a5cf53e463b6",
+      "success": true,
+      "package_file": "C:\\Users\\jakem\\AppData\\Local\\uv\\cache\\archive-v0\\aglMvH9Tq-V22LHZ\\Lib\\site-packages\\geographer\\__init__.py",
+      "package_version": "0.1.1",
+      "sample": 1,
+      "returncode": 0,
+      "database": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\latency\\20261114-f2-geo\\sample-1.sqlite"
+    },
+    {
+      "seconds": 2.6027052999997977,
+      "pid": 6396,
+      "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+      "focus_id": "entity:0002131fb0c8352bf56ffbeb04485642c94aca7ee49737446a58a5cf53e463b6",
+      "success": true,
+      "package_file": "C:\\Users\\jakem\\AppData\\Local\\uv\\cache\\archive-v0\\aglMvH9Tq-V22LHZ\\Lib\\site-packages\\geographer\\__init__.py",
+      "package_version": "0.1.1",
+      "sample": 2,
+      "returncode": 0,
+      "database": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\latency\\20261114-f2-geo\\sample-2.sqlite"
+    },
+    {
+      "seconds": 2.6373524999944493,
+      "pid": 31108,
+      "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+      "focus_id": "entity:0002131fb0c8352bf56ffbeb04485642c94aca7ee49737446a58a5cf53e463b6",
+      "success": true,
+      "package_file": "C:\\Users\\jakem\\AppData\\Local\\uv\\cache\\archive-v0\\aglMvH9Tq-V22LHZ\\Lib\\site-packages\\geographer\\__init__.py",
+      "package_version": "0.1.1",
+      "sample": 3,
+      "returncode": 0,
+      "database": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\latency\\20261114-f2-geo\\sample-3.sqlite"
+    }
+  ],
+  "median_seconds": 2.6027052999997977,
+  "max_seconds": 2.6373524999944493,
+  "passed": true
+}

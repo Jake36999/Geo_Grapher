@@ -1,0 +1,221 @@
+# Review 4: recovery-based code research
+
+The owner approved local-only semantic search, a paired FP4 A/B over all 30 development questions, a **$6.50 hard workflow spending cap**, and an additional **$0.25** to retain at least **$2**. No merge or push is authorised. Prior scores and first attempts remain untouched. Wave 4 stays closed at 12/15 and the v1 quality cycle stays closed at its original frozen results.
+
+## Budget and order
+
+`PHASE67_REVIEW4_BUDGET_ESTIMATE.json` records the $6.48155369 estimate based on the prior 90 episodes / 541 completed HTTP attempts, with three additional recovery calls on each enabled episode. It includes generation/two-reviewer provision, 60 A/B episodes, 30 pilot episodes and the 90-episode final cycle. This is an estimate, not an invoice bound.
+
+`PHASE67_REVIEW4_BUDGET_APPROVAL.json` records the owner's subsequent explicit approval. The ledger's spendable lifetime ceiling is **$14.24739611** (starting commitment $7.74739611 plus $6.50), against **$16.25** funded. **$2.00260389** is explicitly reserved outside that spendable ceiling. No fictional API/reservation call was added. The original ledger was backed up before the explicit ceiling update. An estimate above $6.50 requires another owner decision.
+
+Order remains: free measurement fixes; blind reviewed v2 seal; offline tooling and repaired development baseline; L1 then L2 with RED tests/offline/full checks; agent recovery and valid A/B; one registered diagnostic pilot; one registered final cycle and stop. Release preparation may proceed in parallel but no integration approval is inferred.
+
+## Step 1 — measurement and dispatch readiness
+
+- `review4-measurement-red.log`: structured withheld fixture failed before the fix.
+- `review4-measurement-green.log`: 4 coverage/structured-code fixtures pass. The detector uses the parsed error code and does not inspect source literals; historical rows are unchanged.
+- `review4-readiness-tests.log`: missing, failed, mismatched and stale readiness evidence blocks dispatch.
+- Paid `provider_for` now requires an in-process no-model ticket tied to actual evaluator inputs. Main executes the preflight before loading credentials. Unqualified legacy modes fail closed instead of making paid calls.
+- `review4-preflight-single-first.log` and `review4-preflight-batch-first.log`: actual installed-wheel list/search/source calls through Loop/Registry and the batch path pass, including graph switching across librarian-v2 and ToolSet. All scripted provider calls use 0.2; zero paid calls.
+
+Preflight receipts remain under `output/phase67-gates/review4/preflights/`. Source/schema/runtime/wheel and question-file hashes invalidate tickets when changed. Each future paid candidate must run again through this free gate. No product source has changed at this point.
+
+## Step 2 — held-out v2 sealed before product work
+
+`PHASE67_HELDOUT_V2_SEAL.json`, SHA256 **`ccb0e6c0ea8380a68e94e9f8571339143572243f7a2b872289e020e33145f02d`**, seals **25** reviewed items. The audit confirms **25/25** two-reviewer approvals, meaningful own documentation, validated question wording and baseline top-20 identifiability; **zero overlap** with v1 entities/support and zero overlap with nine checked original-development/application entities. The lead has not opened v2 questions, keys or selected identities. The rules retain 10 constants, 10 functions, five behaviours; graph balance is 14 Librarian / 11 ToolSet after the disclosed pre-generation quota adjustment.
+
+`PHASE67_HELDOUT_V2_CONSTRUCTION.md` records all rejected and regenerated attempts, output-budget and format failures, key-rule repairs, provenance and construction allocation. JSON container recovery preserves exact id/question strings, rather than discarding repeated keys or rewriting wording. Every accepted item must still pass both reviewers. Static adjacency alone and incidental rule-ID mentions are not sufficient equivalence evidence.
+
+The accepted set passed `audit_heldout_v2.py`: all private artifact hashes match and both product source trees retain SHA256 **`60596057669e6f80bc6534116a5aea3ab0f849d431e906c245891293dca7ee99`** from before construction. No product source changed. Twelve measurement/eligibility/container/dispatch fixtures pass (`review4-measurement-seal-tests.log`). All raw construction attempts and rejected-item decisions remain under the private `review4/heldout-v2` directory.
+
+The refined cost design is `RECOVERY_DESIGN.md`: shared deterministic search/source remedies, at most three executable recovery steps, and at most two additional paid calls (one shared revision and one step-limit synthesis). The revised estimate with a $0.35 construction allowance is **$6.26253291**, inside the owner-approved $6.50 cap. Proving that model-call bound is a precondition for agent paid dispatch; the $2 reserve and lifetime spendable ledger ceiling are unchanged.
+# Step 3 — frozen development baseline (2026-11-13)
+
+The committed read-only evaluator reproduces the review exactly on the unchanged v1 reference: question-text recall@8 **13/25**, recorded-agent recall@8 **33/102**, and any-agent-query hit **18/25**. This validates the replay before product changes. Rankings are raw candidates, not a claim that eight cards survive the wire-size cap.
+
+The repaired 30-item development set scores **18/30** for question text and **36/102** for recorded queries at rank 8. The pre-product equal-weight RRF comparator (verbatim question plus each recorded guess) reaches **48/102**. These remain below the offline targets (90% question text; 75% agent queries). No model calls occurred.
+
+Four disclosed repairs are recorded in `data/eval/code-research/repair-record.json`; original frozen keys, raw rows and prior scores are retained. The original Clerk target is the module function `clerk.py.run_one`, as recorded in the snapshot. The offline tool blocks sealed v2 by path and content hashes, validates snapshot IDs, opens canonical databases read-only, and refuses result-file replacement. Three evaluator tests pass.
+
+First baseline files: `PHASE67_OFFLINE_V1_BASELINE.json` and `PHASE67_OFFLINE_DEV30_BASELINE.json`. The proposed RRF comparator is explicitly labelled as a proposal; it is not yet the product recommended strategy.
+
+## Step 4 — L1 first offline result
+
+RED evidence: `output/review4-l1-red.log`, all five new oracles fail on the sealed baseline. First GREEN: 17 source-card/front-door/fusion tests pass. Product multi-query RRF uses bounded 200-candidate pools, exact matches retain priority, duplicate queries are ignored, and single-query ranks are unchanged. Guidance requests the verbatim question and up to two guesses. Weak observations contain confidence metadata and two bounded deterministic hints from snapshot documentation.
+
+First offline L1 row (`PHASE67_OFFLINE_DEV30_L1_FIRST.json`): question recall@8 **18/30**, unchanged; recommended verbatim-plus-guess **48/102**, up from the agent-only **36/102**. FP1 simulation fires **47/102**, recovers to **45/102**; **3/36** originally correct searches trigger (8.33% false-trigger rate conditional on originally correct; 3/47 of triggers). The first simulation uses documentation overlap; this must be aligned to the precise delivered `doc_gist`/`why` detector before enabling recovery. It is explicitly a simulation, not a claim of live episode recovery. FP2 awaits L2. Both offline targets remain unmet. Full verification, installed-wheel preset smoke and the Librarian suite are in progress; no paid agent dispatch is authorised by this result alone.
+
+### L1 detector corrections and retained rows
+
+The first full verify passed: **722 backend tests**, frontend typecheck/build/unit checks and **17 browser tests**. The first installed-wheel preset smoke passed **28/28**. The unchanged Librarian suite is still running.
+
+A sixth RED oracle proved that full documentation outside the delivered card could suppress a legitimate weak-hit signal. The detector now computes overlap from the same bounded `doc_gist` and `why` fields as the client sees, across the top eight hits. In offline replay, those cards use the actual agent query for their match explanation, while overlap is assessed against the original question. This avoids granting the simulation a better observation than the real client.
+
+Two additional first result files are retained separately: `PHASE67_OFFLINE_DEV30_L1_PREVIEW.json` is the intermediate original-question-card simulation (**33** triggers, **39/102** after recovery); `PHASE67_OFFLINE_DEV30_L1_DELIVERED.json` uses the actual-query cards (**32** triggers, **38/102** after recovery). Both have **1/36** false triggers among originally correct queries. Raw recommended multi-query recall remains **48/102**, with **18/30** question-text recall. These modest recovery gains are reported as measured; they do not close the offline targets. A full verify and fresh installed-wheel smoke are being repeated for the corrected candidate. Future offline artifacts include product/evaluator source hashes.
+
+## Step 4 — L2 first offline result and overhead
+
+Core RED: five privacy/integrity/semantic oracles fail before `semantic.py` exists. Integration RED: the ingest hook and shared channel ranker fail before implementation. Core/front-door integration now passes nine semantic tests, plus source-card/fusion regression checks. Semantic extras remain off by default. Local model assets were explicitly provisioned once, without source input, at Hugging Face revision `bf8b056651a2c21b8d2565580b8569da283cab23`; file hashes are in `PHASE67_REVIEW4_SEMANTIC_MODEL.json`.
+
+First L2 replay (`PHASE67_OFFLINE_DEV30_L2_FIRST.json`):
+
+| View | Recall@8 |
+| --- | --- |
+| Lexical question text (retained comparator) | 18/30 (60%) |
+| Local semantic + lexical question text | 27/30 (90%) |
+| Lexical recorded agent queries | 36/102 (35.3%) |
+| Local semantic + lexical agent queries | 69/102 (67.6%) |
+| Agent queries plus simulated FP1 | 77/102 (75.5%) |
+| Recommended verbatim question + agent guess, both channels | 93/102 (91.2%) |
+
+FP1, starting from the enabled-channel agent result: **12/102** triggers, **2/69** false triggers conditional on originally correct retrieval (2.90%), **77/102** after recovery. Separately, FP2 simulated from lexical-only results: **32/102** triggers, **1/36** false triggers (2.78%), **53/102** after semantic recovery. These separate simulations are not added together or presented as episode success. Runtime scheduling/shared recovery accounting is still pending. Raw agent retrieval alone remains below 75%; guided retrieval and the FP1 simulation exceed it. Rankings are candidate ranks and do not establish capped delivery or answer quality.
+
+Explicit read-only backfill (`PHASE67_REVIEW4_SEMANTIC_BUILD_FIRST.json`) encoded **3,879** Librarian and **2,420** ToolSet declarations, in **1.419 s** and **0.871 s** respectively (loaded-model population time). Derived storage was **25,075,712 bytes** after Librarian and **40,726,528 bytes** total after ToolSet. Both canonical store hashes were unchanged. Six representations report truncation. Controlled real-model ingestion overhead on a separate 100-declaration synthetic fixture is retained in `PHASE67_REVIEW4_SEMANTIC_OVERHEAD_FIRST.json`; it is not extrapolated to whole-repository ingest latency.
+
+L1 corrected full verify passed **723 backend tests**, frontend checks and **17 browser tests**, with **28/28** installed-wheel preset checks. The first full Librarian run had **1 failed / 2,195 passed**: an existing SBOM test rebuilt its ZIP artifact between hashing and comparison, crossing a ZIP timestamp boundary. The fixture now reuses the same artifact (Librarian feature commit `0beed83`); its four SBOM tests pass, and the full suite is being repeated. First failing evidence is preserved in `output/review4-l1-librarian-full.log`. L2 full checks have not yet run.
+
+### L1 closure and L2 runtime candidate
+
+The corrected full Librarian run passed: **2,196 passed, 2 skipped, 5 deselected**, in 649.25 s (`output/review4-l1-librarian-corrected-full.log`). This closes L1's required verification after preserving the original failing SBOM row.
+
+The L2 candidate now wires FP1/FP2 search remedies through standard MCP metadata, with deferred baseline evidence, connection/episode scope, once-per-pattern records and a shared local step charge for joint fusion. FP6 logs the existing real-candidate menu (zero extra executable steps) and resolves only after an offered ID is accepted. Four search-integration oracles and the FP6 logging oracle were RED before front-door wiring/logging, then passed. A real stdio MCP test verifies metadata transport without adding nested requirements to the model-facing schema. The agent-side shared ledger and receipts are still pending. The full L2 Geo verify and Librarian suite are in progress.
+
+Controlled ingestion overhead first row: median **0.059 s** additional time per synthetic 100-declaration ingest, over three paired trials; derived storage **663,552 bytes** each. This uses a loaded real local model and is not a whole-repository latency claim. A local model load and inference passed with socket connection, send and address-resolution methods blocked. The first network-guard test setup failed because replacing the socket class broke SSL import; that invalid setup is retained separately and is not reported as network access. The encoder fingerprint now also pins Python version and architecture; the first namespace remains retained and a separately measured qualified namespace was explicitly built.
+
+### Runtime replay and capped delivery
+
+`PHASE67_OFFLINE_DEV30_L2_RUNTIME_FIRST.json` invokes the actual front-door recovery function in deferred then automatic mode. Raw recall@8 improves **52/102 → 82/102 (80.4%)**, with **38** extra local steps total and **at most one per query** (FP1/FP2 can share a step). FP1 triggers **38/102**, with **3/52** false triggers conditional on originally correct retrieval; FP2 triggers **32/102**, with **1/52** false triggers. Runtime confidence clears in 35 FP1 and 29 FP2 cases; those signals are not answer-correctness scores. The initial independent simulations remain unchanged.
+
+Actual 7,500-character front-door delivery on disposable backups (`PHASE67_REVIEW4_SEMANTIC_DELIVERY_SECOND.json`) exposes **21/30** targets on the first page, below raw **27/30**. Most envelopes fit only 3–4 rich cards. A new failing oracle demonstrated that omitted candidates lacked actionable pagination. The fix adds bounded `offset` / `next_offset` pagination without changing rank, canonical IDs or source cards. With a fixed two-page bound applied to every question from response metadata, delivery reaches **27/30 (90%)**, every envelope stays within cap, and canonical hashes remain unchanged (`PHASE67_REVIEW4_SEMANTIC_DELIVERY_PAGINATION.json`). Requests never branch on answer keys. The first delivery-script setup failure is preserved separately; it made no search calls.
+
+The exact installed wheel plus its optional semantic extra passed real stdio search/content, minimal-schema, metadata, provenance and cap checks (`PHASE67_REVIEW4_SEMANTIC_INSTALLED_FIRST.json`); default-off installed-wheel preset smoke passed **28/28**. Initial L2 full verification passed **738 backend tests**, frontend checks and **17 browser tests**. The L2 full Librarian run passed **2,196**, with 2 skipped and 5 deselected. After pagination, full backend verification had **738 passed / 1 failed**: the existing real-ToolSet cold directed-latency check measured **3.368 s** against 3.0 s while other local QA was running. That first failure is retained; a controlled isolated recheck and then a full verification are required, without relaxing the threshold.
+
+### Step 4 verification closed
+
+The isolated cold directed check passed without changing the 3 s threshold. The controlled full pagination candidate passed **739 backend tests**, frontend typecheck/build/unit checks and **17 browser tests** (`output/review4-l2-pagination-controlled-full-verify.log`). L2's full Librarian suite passed **2,196 tests**, with 2 skipped and 5 deselected; installed-wheel default-off preset smoke passed **28/28**, and the optional semantic-extra installed-wheel search/content smoke passed. The failed concurrent latency row remains preserved. First-page delivery is still explicitly **21/30**; the bounded two-page result is **27/30**. No answer-quality claim is inferred from either.
+
+Step 5 begins with seven failing generic agent-recovery oracles on the isolated Librarian feature branch (`output/review4-agent-recovery-red.log`). The agent-side shared ledger, source-open/revision workflows, FP7 integration and first-draft reporting are not implemented yet. No paid A/B, pilot or final cycle has been dispatched.
+
+### Step 5 implementation and pre-dispatch verification
+
+The RED-first recovery candidate is now implemented on the isolated Librarian feature branch (`b66a4d6`). FP3 directly opens the highest-ranked relevant unopened source; FP4 detects a delivered defining identifier missing from the answer; FP7 supplies bounded tool-free synthesis at the ordinary limit. A shared episode ledger enforces at most three extra executable steps, at most two additional logical model invocations and once per pattern, including front-door receipts across connections. Joint FP3/FP4/FP5 revision consumes one invocation. Detector inputs are runtime metadata and question words, never answer keys. Revisions with unprovided entity citations or source lines are rejected. The actual initial draft and its availability status remain separate from the chosen final answer. Early recovery does not create a fictional no-recovery answer.
+
+Seven initial RED oracles and subsequent rank, scope, failed-open, display and citation oracles preceded their fixes. The focused Librarian recovery/step-limit checks passed **27 tests**; its full suite passed **2,216**, with 2 skipped and 5 deselected (`output/review4-agent-librarian-full.log`). Geo full verification passed **747 backend tests**, frontend typecheck/build/unit checks and **17 browser tests** (`output/review4-agent-full-verify.log`). Another **15** focused measurement/protocol checks passed after adding the registration/scoring boundary fixtures. First unsuccessful real-wheel dry runs remain separate: they exposed rank selection and an already-opened top candidate, both repaired with failing tests first. Fresh OFF and ON actual installed-wheel dry runs now pass (`output/review4-readiness-final-ab-{off,on}.log`), with zero paid calls. Every paid phase must repeat the dry run against its frozen inputs before credentials are loaded.
+
+The owner approved a **$6.50** workflow cap and **$0.25** top-up. The lifetime spendable ceiling is **$14.24739611**, preserving **$2.00260389** outside that ceiling. Actual workflow spending so far is **$0.26683144**, including construction and two engineering reviews; no paid A/B, pilot or final episode has run. The refined remaining planning estimate is **$5.91253291** (total actual-plus-estimate **$6.17936435**, below the cap). `review4_budgeted_harness.py` reserves and settles every HTTP attempt under this ceiling and records episode/HTTP receipts; the third no-network meter fixture passed with zero real ledger mutations. Interrupted/uncertain attempts retain their full reserve. Registration prevents phase redispatch, output replacement and candidate/snapshot drift.
+
+The A/B uses the complete 30-question development set OFF then ON, unchanged questions/model/temperature/window/tools. Retain FP4 as the default recommendation only for at least one net additional correct answer and no additional wrong-graph or withheld event. The owner-requested pilot and final explicitly run all recoveries ON regardless of that default recommendation, with both facts reported. Scoring is frozen before dispatch: original five require all legacy markers; repaired development and sealed v2 require any registered equivalence marker. No post-run key edits, citation-based score overrides or replacement runs. Pattern resolution signals and answer correctness are reported separately.
+
+Clarification on delivery experiments: 7,500 characters was the capped/default-window delivery QA configuration. The frozen paid protocol declares a 1,048,576-token loop window and retains its existing dynamic external result allowance (125,829 characters, with server packing below that). The public provider advertises a 262,144-token native window; retaining the frozen declaration is not a claim that hosted million-token requests were tested. Model/rates are recorded in `PHASE67_REVIEW4_MODEL_CARD.json`.
+
+The same recovery candidate wheel also passed **5/5 real-store browser scenarios** (`output/qa-real/review4-agent-final-results.json`): directed ToolSet QI, prune preserving the source snapshot, actual code-pair bridge review, add-folder ingestion, and picker containment. Managed QA cleanup ran before preparing a fresh copy under `D:/Librarian_V2/tmp/geo-grapher-qa-workspaces/recovery/20261113-agent-final`. Browser teardown reports no extra graphs and all baseline graphs preserved. After the server stopped, the explicitly verified fixture junction was removed as a link entry and the copy marked complete. Original stores and benchmark inputs were not modified by browser QA. Migration/recovery documentation and the bounded F3 security delta are prepared on feature branches; no merge or push.
+
+
+## Review 4 step 5 — closed 60-episode paired A/B
+
+Both registered batches closed complete without replacement or resume. Registration SHA-256: `072a7da26431e261dba8e31576fd5212628aa9ec830ee76759bf15e23eefe2db`. Raw and scored first rows remain separate under `output/phase67-gates/review4/`.
+
+| FP4 | Final correct | Actual eligible initial drafts correct | Tool calls | Errors | Wrong graph | Structured withheld | Cost |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OFF | 23/30 | 27/30 | 158 | 0 | 0 | 0 | $0.8167936 |
+| ON | 25/30 | 23/28 | 156 | 2 | 0 | 0 | $0.7806601 |
+
+The two ON episodes with early recovery have no invented pre-recovery draft. Mean tool calls: **5.23/question**. FP4 meets the registered keep-default rule (+2 final correct, no additional wrong-graph/withheld); the difference is diagnostic evidence from one paired comparison, not a statistical reliability guarantee.
+
+A material regression is preserved: OFF revisions turned four correct drafts into wrong finals; ON turned two into wrong finals. Inspection of these six development episodes shows XML-form tool requests returned as plain response text during a tool-free revision, despite `Reply.tool_calls` being empty. Such text was incorrectly accepted as an answer and sometimes marked runtime-resolved. No tool was actually executed from that XML. This exposes an answer-validation defect rather than missing retrieval. The diagnostic pilot will retain the registered all-ON candidate, after which its failures and this pattern receive deterministic offline recovery validation before final registration. The A/B is not rerun or rescored.
+
+Pattern runtime resolved/triggered across both arms: FP1 **16/18**, FP2 **12/14**, FP3 **2/11**, FP4 **2/6**, FP5 **5/10**, FP6 **1/2**, FP7 **1/1**. These signals are not gold correctness or independent causal effects; `ab.summary.json` also records eligible wrong-to-right counts and final correctness for every pattern. Full answers and initial drafts remain private in `ab.scored.json`.
+
+Workflow actual spend so far: **$1.86428514** ($0.26683144 before evaluation plus $1.5974537 A/B). Remaining pilot plus final planning estimate **$3.94168860**; actual-plus-remaining **$5.80597374**, within the approved $6.50 cap and protected reserve. One diagnostic pilot follows, 30 development questions, all recoveries ON, unchanged candidate and temperature 0.2. It is not a gate.
+
+## Review 4 step 6 — one diagnostic pilot closed
+
+Registration `pilot.registration.json`, SHA-256 `9960592058802226a8278a5915f3aaecb1b6953d9ba5fe2532a11563d392a5e6`, closed complete at 30/30. Candidate was identical to the ON A/B arm. No replacement pilot.
+
+| Run | Final correct | Eligible initial drafts correct | Calls | Errors | Wrong graph | Structured withheld | Cost |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| All-ON diagnostic pilot | 24/30 | 26/29 | 154 (5.13/question) | 2 | 0 | 0 | $0.7421256 |
+
+One episode recovered before an initial draft and is excluded from the initial-draft denominator. Runtime resolved/triggered: FP1 **6/8**, FP2 **4/6**, FP3 **2/7**, FP4 **1/5**, FP5 **2/4**, FP6 **1/1**. Signals and co-occurring patterns are not independent causal gold success. Receipts, original drafts and per-pattern final-correct/wrong-to-right counts are in `pilot.summary.json` / `pilot.scored.json`.
+
+Five failed finals contain structured XML tool requests returned as plain text. Four replaced correct initial drafts. This confirms new **FP9** (also observed in the A/B): tool-free output can contain protocol requests while the adapter's `tool_calls` list is empty. Deterministic detector: complete `<tool_call>` / `<function=...>` protocol structure in a proposed answer, distinct from merely mentioning a tag. One bounded remedy: reject the proposed answer and retain the prior draft; without a prior answer, return an explicit incomplete-answer fallback and do not mark step-limit synthesis complete. No extra executable/model step. Log the detector format, action and outcome; never execute the embedded request. RED tests for revision retention, step-limit reporting and production FP4 policy precede implementation; a literal-tag prose control already passes.
+
+Remaining non-XML misses concern confident adjacent-source selection under the existing FP1/FP3 limitations. No key-derived detector, ranking tweak or broadened answer key is introduced for them. Offline FP9 replay and full verification follow before final registration. The pilot remains **24/30**, regardless of subsequent offline counterfactuals.
+
+Workflow actual spend is now **$2.60641074**. The final-90 planning estimate is **$2.95626646**; actual-plus-remaining **$5.56267720**. The $6.50 cap and protected $2.00260389 reserve remain unchanged. Final cycle has not started; held-out v2 remains blind.
+
+### FP9 offline repair evidence before final registration
+
+Generic Loop recovery and step-limit tests passed **31/31** after three RED follow-up oracles (first-draft retention, step-limit non-completion and FP4 production default) and a literal-tag prose control. The shared metadata enum accepts FP9 without charging another executable step; its new integration oracle was RED before that extension. A separate RED measurement oracle now prevents scoring a changed sealed file; it passes without exposing v2 identities.
+
+First FP9 replay (`PHASE67_REVIEW4_FP9_OFFLINE_FIRST.json`) reported 12 true positives, 76 true negatives and two apparent false positives. Manual review of those two outputs found complete tool requests whose query arguments happened to contain answer markers. The original marker scores are preserved, but they are not completed prose answers. Original annotations and replay remain separate. Corrected annotations/replay (`PHASE67_REVIEW4_FP9_OFFLINE_SECOND.json`) give **14/14 true detections**, **0/76 false triggers**, **14/90 trigger rate**, zero paid calls. This is a small development sample, not proof of universal detection.
+
+Keeping actual recorded prior drafts gives offline counterfactual **27/30 OFF**, **27/30 ON**, **28/30 pilot**. These are not reruns, replacement rows or predictive accuracy claims. Paid results remain **23/30**, **25/30**, **24/30**. Product runtime uses only protocol structure and actual drafts, never these annotations or answer keys. FP9's resolved outcome means an invalid proposal was safely rejected, not that the retained answer is correct. New code-research profiles now enable FP4 by default under the registered A/B decision; explicit profile overrides remain supported. Full verify, fresh installed-wheel smoke/dry runs and the full Librarian suite are pending final closure before dispatch.
+
+### Qualified candidate checks (final dispatch still pending)
+
+The first post-pilot full Geo run retained **750 passed / 1 failed**: cold directed QI **3.381 s** versus the unchanged 3 s limit. An isolated check also failed (**3.662 s**). Profiling found legacy actor declaration summaries traversing entire expression trees. Module-only lazy traversal was insufficient: its full run retained **751 passed / 1 failed**, cold **3.049 s**. A further RED oracle preceded narrowing fallback declaration discovery to statement suites. Six module/legacy/if/except/finally/match/class descriptor checks pass, as do actor compatibility tests. All **three predetermined fresh-process** cold checks pass. The full corrected Geo verification then passed **757 backend tests**, frontend checks and **17 browser tests** (`output/review4-final-statement-full-verify.log`). No threshold or frozen source facts changed; all failed rows and profiles remain retained.
+
+The rebuilt wheel is `output/phase67-gates/review4/recovery-qualified-dist/geo_grapher-0.1.1-py3-none-any.whl`, SHA-256 `1a687fd8ab3bf0442e1be6c70747bca141782267c1b86b43f06579edb0739b21`. It passed **28/28** installed preset checks and the expanded actual no-model preflight, including rejection of a tool-free XML proposal while keeping the real draft and unchanged step/call counts (`output/review4-readiness-qualified-all-on.log`). The no-network capped-meter fixture also passes. The final generic recovery/step-limit suite passed **32** tests, including a RED-first fenced-example control. The full isolated Librarian suite is running on feature commit `970fb23`.
+
+Offline remeasurement on this candidate (`PHASE67_OFFLINE_DEV30_FINAL_RUNTIME.json`) is unchanged: question recall@8 **27/30**, recorded-query recall@8 **69/102**, recommended verbatim-plus-guess **93/102**; actual front-door deferred/auto recovery **52/102 → 82/102**, 38 extra local actions total, maximum 1 per query. FP1 triggers 38/102 with false triggers 3/52 originally correct; FP2 triggers 32/102 with false triggers 1/52. Final FP9 replay remains **14 true detections / 76 true negatives**, zero paid calls; prior first replay and annotations remain retained separately.
+
+Coverage inspection confirms the two remaining non-XML pilot misses (`heldout-07`, `heldout-21`) had no registered target in search/content coverage or supplemental IDs; their actual calls used search/content, not an untracked architecture payload. This supports the recorded retrieval/adjacent-source classification. No answer key was broadened. All three sealed v2 files still match their committed hashes; the lead has not displayed their identities. Actual-plus-final planning spend remains **$5.56267720**, below the approved $6.50 cap. No new paid dispatch yet; no merge or push.
+
+## Review 4 step 7 — FINAL cycle registered before dispatch
+
+Registration is committed as `reports/PHASE67_REVIEW4_FINAL_REGISTRATION.json`, exact SHA-256 **`62a1b49e45070836e950b4d3971e932995f380a32e833479df7434b158538b70`**, matching `output/phase67-gates/review4/final.registration.json`. This is the **single final Review 4 cycle**. No replacement, resume or tuning after results. All prior cycle/pilot/A/B rows remain separate.
+
+Candidate source: Geo `af7ee5e`, isolated Librarian `970fb23`. Exact wheel SHA-256 **`1a687fd8ab3bf0442e1be6c70747bca141782267c1b86b43f06579edb0739b21`**. Verified: **757 backend**, frontend checks, **17 browser**, **2,221 Librarian** (2 skipped / 5 deselected), **28 installed preset calls**, expanded actual no-model all-ON dry run, meter fixture, offline search/recovery and FP9 replay. The final-wheel fresh real-store browser also passed **5/5** (`output/qa-real/review4-qualified-results.json`); teardown found no extra graphs and preserved the baseline. The verified fixture junction was removed after server exit; copy marked complete. First failed checks and first replay remain retained.
+
+Protocol: frozen Qwen3-Coder-480B-A35B-Instruct-Turbo, **temperature 0.2**, declared context **1,048,576**, production code-research profile, library-scoped installed-wheel lead preset, bundles OFF; optional **local Model2Vec semantic channel ON**, all bounded recoveries ON, at most 12 ordinary steps and 3 shared extra executable steps / 2 extra logical model invocations. This is qualification of that configured candidate, not a lexical-only default or live Resource-Library route qualification.
+
+Order: held-out v2 **25**, original dev **5**, repeated for runs **1–3**: **90 episodes**, six immutable first batches. Every batch repeats the actual no-model preflight before loading credentials; source/model/cache/question hashes and snapshot scope are enforced. No v2 answer key opens until all six raw batches close complete, at which point the committed seal hashes must also match.
+
+Pass marks fixed before dispatch: held-out **>=64/75** overall and **>=20/25 each run**; original dev **5/5 each run**; **0 wrong-graph**, **0 structured-code withheld**, and **<=10 mean tool calls/question**. Report actual eligible pre-recovery draft success and per-pattern runtime/final-answer outcomes, without fabricated counterfactuals. Original five retain all-marker scoring; sealed v2 accepts any sealed equivalence marker, without key edits or citation-based overrides.
+
+Ledger charges at registered rates so far **$2.60641074**; remaining planning estimate **$2.95626646**, combined **$5.56267720**, below the approved **$6.50** cap. Lifetime spendable ceiling **$14.24739611** preserves **$2.00260389** outside it. Every HTTP attempt is reserved and settled; uncertain attempts keep reserves. Dispatch is not yet started at this registration entry. After collection/scoring/reporting, **STOP whatever the result**. No merge or push is authorised.
+
+## Review 4 final cycle CLOSED — registered verdict FAIL
+
+All six raw batches closed complete: **90/90** episodes. Registration and candidate hashes matched; the v2 seal was verified and its key first opened by the scorer after complete closure. No replacement run, question/key edit, source tuning or further paid dispatch follows. Prior rows, raw answers, first drafts, first failed checks, scoring files and receipts remain separate.
+
+| Set | Run | Final correct | Eligible initial drafts correct | Tool calls/question | Errors | Wrong graph | Structured withheld | Ledger charge |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Held-out v2 | 1 | 24/25 | 24/25 | 4.08 | 0 | 0 | 0 | $0.4667396 |
+| Original development | 1 | 5/5 | 5/5 | 5.60 | 0 | 0 | 0 | $0.1257292 |
+| Held-out v2 | 2 | 22/25 | 23/24 | 4.20 | 1 | 0 | 0 | $0.4982047 |
+| Original development | 2 | 5/5 | 4/4 | 6.20 | 0 | 0 | 0 | $0.1582648 |
+| Held-out v2 | 3 | 24/25 | 24/25 | 4.12 | 0 | 0 | 0 | $0.4873735 |
+| Original development | 3 | 3/5 | 3/5 | 6.60 | 0 | 0 | 0 | $0.1635422 |
+
+**The mandatory original-development condition failed:** runs were **5/5, 5/5, 3/5 = 13/15**, requiring 5/5 every run. Held-out **24/25, 22/25, 24/25 = 70/75 (93.3%)** exceeds both its >=64/75 overall and >=20/25 per-run marks. Combined **83/90 (92.2%)** does not override the failed development condition. Wrong-graph and structured-code withheld are both **0**; mean tool calls **4.47** (402 total), below 10. There was one tool error, handled through FP6; errors were not an independent zero-error pass condition.
+
+Eligible actual initial drafts score **83/88 (94.3%)**; two episodes recovered before producing an unrecovered draft and have no invented counterfactual. No eligible wrong draft became correct in this cycle; **two correct drafts regressed** after FP4 revisions. The two early-recovered episodes ended correct, so this must not be described as recovery improving overall accuracy from the first-attempt fraction.
+
+| Pattern | Triggered | Runtime signal resolved | Final correct among triggered | Eligible wrong-to-right |
+|---|---:|---:|---:|---:|
+| FP1 | 15 | 12/15 | 13/15 | 0/15 |
+| FP2 | 15 | 12/15 | 13/15 | 0/15 |
+| FP3 | 8 | 0/8 | 7/8 | 0/7 |
+| FP4 | 11 | 0/11 | 9/11 | 0/11 |
+| FP5 | 3 | 0/3 | 3/3 | 0/3 |
+| FP6 | 1 | 1/1 | 1/1 | 0/0 |
+| FP7 | 1 | 0/1 | 1/1 | 0/0 |
+| FP9 | 7 | 7/7 | 6/7 | 0/6 |
+
+FP8 is the dispatch prerequisite rather than an answer remedy: all six paid paths passed their fresh real-tool no-model preflights before credentials/dispatch. Pattern signals are not gold answer correctness and co-occurring recoveries are not independent causal attribution. FP9 safely rejected seven protocol proposals; five eligible correct drafts were retained. FP4 met its earlier registered A/B keep rule but shows two harmful prose revisions here; its runtime signal remained unresolved. The configured policy is left unchanged after this final cycle.
+
+Observed bounds across all 90 episodes: **maximum 3 extra executable steps**, **maximum 2 extra logical model invocations**, no repeated pattern in an episode. **489 HTTP attempts**, including **21 recovery HTTP attempts**, all completed with no uncertain reservations. Maximum observed provider prompt: **38,068 tokens**; the frozen million-token declaration is not a claim of hosted million-token testing.
+
+Post-closure miss inspection (diagnosis only; no rescore):
+
+- Development run 3, `dev-02`: target metadata and target content were recorded, but the answer omitted `lead_agents` and discussed adjacent concurrency mechanisms. `dev-03`: `run_one` appeared in target metadata but had no target source-body range recorded; the answer discussed adjacent queue/routing implementations. FP9 retained that incorrect draft when a later revision proposed XML tools.
+- Held-out run 2, `heldout-v2-02` and `heldout-v2-17`: correct initial drafts became citation-only/fragmentary prose after FP4. Targets had recorded content. Citation identity validation alone did not preserve an adequate answer; the unresolved check still allowed replacement. No further fix or trial is made.
+- `heldout-v2-25`, all three runs: the answer named `_lines_through`, `SessionStore`, the correct file and canonical citation, but placed class/method names separately. The sealed markers require contiguous `SessionStore._lines_through` (or its full qualified form). This is a mechanical scoring limitation; all three frozen misses remain misses. Even altering that interpretation would not repair the independent failed development gate.
+
+Final cycle charge: **$1.8998540**. Entire Review 4 workflow ledger charge: **$4.50626474**, below the approved **$6.50** cap. Funded uncommitted pool: **$3.99633915**, including the protected **$2.00260389** reserve. These are registered-rate API-usage ledger charges, not an invoice claim. No uncertain HTTP charge remains in this final cycle.
+
+Evidence: `PHASE67_REVIEW4_FINAL_REGISTRATION.json`, `PHASE67_REVIEW4_FINAL_SUMMARY.json`, `PHASE67_REVIEW4_FINAL_AUDIT.json`; private full rows and receipts under `output/phase67-gates/review4/`. Verified candidate: Geo source `af7ee5e`, Librarian `970fb23`, qualified wheel `1a687fd8…`. Full checks remain **757 Geo backend**, frontend checks, **17 browser**, **2,221 Librarian**, **28 preset**, and **5 real-store browser** passes.
+
+**STOPPED as requested.** No new product changes, retries, additional cycles, merge, push, release or live Resource-Library qualification follow. F3 preparation remains on the feature branches; the live route qualification and release approvals remain separate owner prerequisites.

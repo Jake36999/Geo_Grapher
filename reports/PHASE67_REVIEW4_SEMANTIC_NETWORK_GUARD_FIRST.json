@@ -1,0 +1,6 @@
+{
+  "status": "invalid_test_setup",
+  "cause": "Replacing socket.socket with a function prevented ssl.SSLSocket class definition during dependency import; this was a TypeError, not evidence of network access.",
+  "hosted_embedding_calls": 0,
+  "next_test": "Keep socket class intact and block connect/connect_ex/sendto plus address resolution."
+}

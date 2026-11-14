@@ -1,0 +1,30 @@
+*   baac8307efe3373abe30b5cf1a70e60de911072c 8c80e39cca2fced7bc4dcd4c4614c530c4d6eb60 9f3a0d826f6078524f4da5aae8d2489e4f55cb8b Test integration C: delegation reasoning controls
+|\
+| * 9f3a0d826f6078524f4da5aae8d2489e4f55cb8b c4eb76ff1c2b78346fd7743dadda5d6b170427b5 Add opt-in delegation reasoning controls with free regression tests
+*   8c80e39cca2fced7bc4dcd4c4614c530c4d6eb60 6a51b01015d420056d2ac90f9fad9225bf3d6d51 db55b891daddad0d6bf8a5ef2444c5a1f3125e3a Test integration B: Geo-Grapher wave 4
+|\
+| * db55b891daddad0d6bf8a5ef2444c5a1f3125e3a dcc7770808fbb4828a19f1afd3d62a2f451e4c19 fix(code-research): turn the FP4 answer self-check off by default
+| * dcc7770808fbb4828a19f1afd3d62a2f451e4c19 b814bd2d77f7e4c956bb4e41c6e1350ce509abed Reject tool-request text during bounded answer recovery
+| * b814bd2d77f7e4c956bb4e41c6e1350ce509abed 4b0385758f1f928d7b68548a3d75c10bb2e109e1 feat: bound code-research recoveries and retain honest first drafts
+| * 4b0385758f1f928d7b68548a3d75c10bb2e109e1 43d54b87471d13f3c243cd34a0642b7a0cba7408 test: specify bounded code recovery and first-draft behavior with RED oracles
+| * 43d54b87471d13f3c243cd34a0642b7a0cba7408 192ca7fed2eb31b90880d91b4f03d480e72d42b1 test: compare SBOM hashes against the same wheel artifact
+| * 192ca7fed2eb31b90880d91b4f03d480e72d42b1 90b6aca63ebf39fbc3fee4ae9f9ccdf07f9ba54d docs: mirror closed code-quality results and sealed protocol evidence
+| * 90b6aca63ebf39fbc3fee4ae9f9ccdf07f9ba54d d3821bc854db698436f62c700666da101663e963 docs: record production code profile and inconclusive self-check diagnostic
+| * d3821bc854db698436f62c700666da101663e963 e925952b1c1d2985fa2e1be8fda88bc53091a260 Revert "feat: trial a guarded code-answer evidence check within ordinary steps"
+| * e925952b1c1d2985fa2e1be8fda88bc53091a260 15912cf213e61eac1f79da41b322c6f833eab7f1 feat: trial a guarded code-answer evidence check within ordinary steps
+| * 15912cf213e61eac1f79da41b322c6f833eab7f1 e849932abdf7e7e660b2387a1af9846a9f7cd7fe feat: pin production code-research profile temperature to 0.2
+| * e849932abdf7e7e660b2387a1af9846a9f7cd7fe 2007031ea32d14909b5b45e363a0791e10be1b75 Mirror final code acceptance and release-preparation evidence
+| * 2007031ea32d14909b5b45e363a0791e10be1b75 7122b73b5f07b57d94abc3be7cd078c5780921c9 Document Phase 6-7 runtime and release preparation
+| * 7122b73b5f07b57d94abc3be7cd078c5780921c9 a675c45ec570fa4d4f0d55177d9ea5932b108095 Answer from gathered evidence when the tool-step budget ends
+| * a675c45ec570fa4d4f0d55177d9ea5932b108095 c5c4c5eb38212d245188c2e9e84316daa52fb5f1 Mirror authorised cycle results and stability-gate escalation
+| * c5c4c5eb38212d245188c2e9e84316daa52fb5f1 a15b93583619a200803b249ff488b36d22a1f9ed Mirror local continuation evidence and next-cycle proposal
+| * a15b93583619a200803b249ff488b36d22a1f9ed aea7360097966aed00ee4e6be8ad508b67390df6 Mirror review-2 wave 4 results and qualification stop
+| * aea7360097966aed00ee4e6be8ad508b67390df6 2083292ae0c853afa421bdb225cb6a85b22cac0f Mirror owner-directed wave 4 gate revision
+| * 2083292ae0c853afa421bdb225cb6a85b22cac0f 3a9bb6a03347f5544e7c967aebb6a9a494eb5945 docs: record wave 4 gate evidence and unresolved pilot
+| * 3a9bb6a03347f5544e7c967aebb6a9a494eb5945 e91de76a45df29cc586b680ee2f8d3db677b3200 fix(mcp): preserve objects behind local schema references
+| * e91de76a45df29cc586b680ee2f8d3db677b3200 59593d2da4dca80a7e08dd02774911fbd6033b0c feat(plans): dispatch packet-backed DAGs through real helper paths
+| * 59593d2da4dca80a7e08dd02774911fbd6033b0c bfbf74d334075e6a951d88f099007fe3de99d532 feat(clerk): unframed code contracts and bound citation checks
+| * bfbf74d334075e6a951d88f099007fe3de99d532 70ffe386d75d787861bc1067fb840c9fd0651964 feat(mcp): route-aware atomic result limits and scope rechecks
+* | 6a51b01015d420056d2ac90f9fad9225bf3d6d51 c4eb76ff1c2b78346fd7743dadda5d6b170427b5 70ffe386d75d787861bc1067fb840c9fd0651964 Test integration A: Geo-Grapher survey
+|/
+* 70ffe386d75d787861bc1067fb840c9fd0651964 c4eb76ff1c2b78346fd7743dadda5d6b170427b5 feat(deploy): optional Geo-Grapher partition preview in the survey

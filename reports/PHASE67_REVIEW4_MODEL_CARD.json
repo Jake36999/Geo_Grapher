@@ -1,0 +1,26 @@
+{
+  "verified_at": "2026-11-13T20:52:49.302594+00:00",
+  "source": "https://api.deepinfra.com/v1/openai/models",
+  "model": "Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo",
+  "metadata": {
+    "description": "Qwen3-Coder-480B-A35B-Instruct is the Qwen3's most agentic code model, featuring Significant Performance on Agentic Coding, Agentic Browser-Use and other foundational coding tasks, achieving results comparable to Claude Sonnet.",
+    "context_length": 262144,
+    "max_tokens": 262144,
+    "pricing": {
+      "input_tokens": 0.3,
+      "output_tokens": 1.0,
+      "cache_read_tokens": 0.09999999899999999
+    },
+    "discount": null,
+    "tags": [
+      "chat",
+      "prompt_cache"
+    ],
+    "default_width": null,
+    "default_height": null,
+    "default_iterations": null
+  },
+  "planning_rate_agrees": true,
+  "frozen_declared_loop_window": 1048576,
+  "note": "The frozen declared loop window is retained for comparison; the provider advertises a 262144-token native window. This is not a claim of testing 1M-token requests. No paid request was made."
+}

@@ -1,0 +1,155 @@
+{
+  "owner_date": "2026-11-14",
+  "master_head": "c4eb76ff1c2b78346fd7743dadda5d6b170427b5",
+  "inventory_matches": true,
+  "files": [
+    {
+      "path": "reports/2026-11-05-ui-wave/STATUS.md",
+      "status": " M",
+      "bytes": 4349,
+      "sha256": "0d85ed5e3d3249f0bf96708ede4cc6f6f31569b0261596a09eab30835877650f",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\reports\\2026-11-05-ui-wave\\STATUS.md",
+      "delegation": false
+    },
+    {
+      "path": "scripts/delegate_deepinfra.py",
+      "status": " M",
+      "bytes": 36458,
+      "sha256": "d6ef11a3795b6a1042093f661d308b040bcf329326ac6acc0374ce2dccc6d71a",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\scripts\\delegate_deepinfra.py",
+      "delegation": true
+    },
+    {
+      "path": "src/resource_librarian/agent_runtime.py",
+      "status": " M",
+      "bytes": 54133,
+      "sha256": "75781dbb78dc5a3f02880ac7a77c1e3f35a54cd0ec03685f7e0ae275b4de13b4",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\src\\resource_librarian\\agent_runtime.py",
+      "delegation": false
+    },
+    {
+      "path": "src/resource_librarian/loop.py",
+      "status": " M",
+      "bytes": 66811,
+      "sha256": "a1a5481f8e2f011702cf23ca052c60e52ad19e73043d11041ab8dfc3a94a0605",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\src\\resource_librarian\\loop.py",
+      "delegation": false
+    },
+    {
+      "path": "src/resource_librarian/mcp_client.py",
+      "status": " M",
+      "bytes": 26000,
+      "sha256": "7993e02f4feec446759413cc9664582695e3a74a28cb13c0fe216b36d1f4b930",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\src\\resource_librarian\\mcp_client.py",
+      "delegation": false
+    },
+    {
+      "path": "src/resource_librarian/standard/profiles/history.yaml",
+      "status": " M",
+      "bytes": 872,
+      "sha256": "3d8c1a3cae8bfe8a7bc2b9af67b55fe739d785090f652e56d4c819b4274a3520",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\src\\resource_librarian\\standard\\profiles\\history.yaml",
+      "delegation": false
+    },
+    {
+      "path": "src/resource_librarian/standard/profiles/software-systems.yaml",
+      "status": " M",
+      "bytes": 580,
+      "sha256": "349e1bba8b0cf64bbd23383581416c908f4fa1020225b968f855be2c7f910c7e",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\src\\resource_librarian\\standard\\profiles\\software-systems.yaml",
+      "delegation": false
+    },
+    {
+      "path": "src/resource_librarian/starter/About/Recommended MCP Servers.md",
+      "status": " M",
+      "bytes": 4676,
+      "sha256": "2a101114a5c33c12a9204f7bce1c69f2839cb4415cd72fdd1e95dee9ba157cfa",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\src\\resource_librarian\\starter\\About\\Recommended MCP Servers.md",
+      "delegation": false
+    },
+    {
+      "path": "src/resource_librarian/ui/app.js",
+      "status": " M",
+      "bytes": 380835,
+      "sha256": "83bfaca8f30fd8926ccfa0f8903df5c8b2fa47dc921869fd56a9ee0d51800e04",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\src\\resource_librarian\\ui\\app.js",
+      "delegation": false
+    },
+    {
+      "path": "tests/test_capabilities.py",
+      "status": " M",
+      "bytes": 5928,
+      "sha256": "5455c9c34f26e605337ade9f8afbfdce86c32231056c2dca922d189eb577648d",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\tests\\test_capabilities.py",
+      "delegation": false
+    },
+    {
+      "path": "tests/test_loop.py",
+      "status": " M",
+      "bytes": 32466,
+      "sha256": "d22b87088c4950b4128c612f99a5f7336db80dabedae05db52b707e196d9b433",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\tests\\test_loop.py",
+      "delegation": false
+    },
+    {
+      "path": "tests/test_profiles.py",
+      "status": " M",
+      "bytes": 3637,
+      "sha256": "68413944514a0fe6cbe591124497c06a359f4f0cd42a324c8a541b1ef94cb61b",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\tests\\test_profiles.py",
+      "delegation": false
+    },
+    {
+      "path": "ui/src/settings.ts",
+      "status": " M",
+      "bytes": 106047,
+      "sha256": "a38d041743c511aaeb65bc69c8cc163ac6a7711c89602f26571b0cbba29b6e21",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\ui\\src\\settings.ts",
+      "delegation": false
+    },
+    {
+      "path": "Theorising_transcription.md",
+      "status": "??",
+      "bytes": 14581,
+      "sha256": "add2e4b63358aad212afa1e5fa20ae85c4ed167d5826d064ab27fa9cfac1465c",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\Theorising_transcription.md",
+      "delegation": false
+    },
+    {
+      "path": "reports/2026-11-05-ui-wave/HOST-QUALIFICATION.md",
+      "status": "??",
+      "bytes": 3520,
+      "sha256": "b347e81602988db0c1fa01f0b72ee311ea9063fbcdf1ddaec0154058fb88631a",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\reports\\2026-11-05-ui-wave\\HOST-QUALIFICATION.md",
+      "delegation": false
+    },
+    {
+      "path": "reports/2026-11-05-ui-wave/native-sandbox-policy.png",
+      "status": "??",
+      "bytes": 92567,
+      "sha256": "f2ff222ba26bbd9f2e55afb22919f5e43efe1de9a6ebc5ca721eb2f980343f37",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\reports\\2026-11-05-ui-wave\\native-sandbox-policy.png",
+      "delegation": false
+    },
+    {
+      "path": "tests/test_external_bundles.py",
+      "status": "??",
+      "bytes": 3438,
+      "sha256": "f2cff2b5cef8fa9e29f75c5f09850cd51523f2f8ab07e1ca46b8d7321a11bc1f",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\tests\\test_external_bundles.py",
+      "delegation": false
+    },
+    {
+      "path": "tests/test_mcp_structured_bounds.py",
+      "status": "??",
+      "bytes": 2233,
+      "sha256": "0454e0b79bbc41c75815bab87f8b96f21c328680858b099d7cfe22205a684270",
+      "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup\\tests\\test_mcp_structured_bounds.py",
+      "delegation": false
+    }
+  ],
+  "backup": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\precleanup",
+  "parking_branch": "wip/pre-phase67-release-2026-11-14",
+  "parking_commits": [],
+  "status": "captured_before_cleanup"
+}

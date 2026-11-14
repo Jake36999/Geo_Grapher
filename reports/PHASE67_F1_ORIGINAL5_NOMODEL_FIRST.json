@@ -1,0 +1,681 @@
+{
+  "paid_provider_calls": 0,
+  "provider_calls": 0,
+  "profile_fp4_default": false,
+  "temperature": 0.2,
+  "wheel_sha256": "6dcff054b5a1d3f4743209fada19479c94765d5bdff96ec30e522165e00b5545",
+  "semantic_enabled": false,
+  "rows": [
+    {
+      "id": "dev-01",
+      "question": "What tool set may research helpers use? Cite the defining code.",
+      "natural_question_target_returned": true,
+      "exact_identifier_fixture_used": false,
+      "target_entity_id": "entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600",
+      "source_range_recorded": true,
+      "packet_success": true,
+      "per_call": [
+        {
+          "tool": "search_entities",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"query\": \"What tool set may research helpers use? Cite the defining code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "e8a9e92753838411249525074f5df96d3494d7ca93488f19e7d1fb17b9623780"
+            },
+            {
+              "entity_id": "entity:1e7fb0069e90dec191b5174ccb2d410ae5d74d5d14800c183260346a4496a7bd",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "10bc61b5dbc9a1e57dc86fb3859c08d8292d652dc5839efeeecfcd8abc0e5d04"
+            },
+            {
+              "entity_id": "entity:82c2cd8667f51269715236873217e3a33fe67ff81898d9194c933858e2860700",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "1615b9832cd1612324d1f02fec7585cdfc917b57292321165336df86f86a94f2"
+            },
+            {
+              "entity_id": "entity:e063e9de1a4e1f9717f35a1d31af7826236d39be9e0382c47d340315dabfbaa8",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "b16d4120d7b4e96c0325e22166f3b97da5381d0b75c95d4517e275eea4acf8eb"
+            },
+            {
+              "entity_id": "entity:9a457a57c23ddca00aaa3ebe101e580f6fc69df1f4ad36e05ba1457e18400cc6",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "15f7f256a60b7348ffcdf6223a3be711dc9d1ba9fa745b59ad02bc222912d3ad"
+            },
+            {
+              "entity_id": "entity:ca3cc071635d4213818a4916f605fc43cfff5110a291c7b6bda3b22f09505fe5",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "57bd4fca6a9be3fbe41542da67ac5ae9254dfdb689a23f930d51d7d58afcdf88"
+            },
+            {
+              "entity_id": "entity:d69b9c4a763ad221ec0b88a481e56a13e3dcc33c0309d1b76b7c426de4eab0b3",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "18765698bb38ce7fa907fd6eeb0105eadf63a42985e42ed0f1ae7e225d008da2"
+            },
+            {
+              "entity_id": "entity:06a4030c7c0e91dad16603a73fef37f0aaf8dd0af0257ab61c50cef68a5a6d57",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "88a18e0f825774aed141574e2602418038aeb8697db68a9e83c4184bfa14ca0d"
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "get_entity_content",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"entity_id\": \"entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600",
+              "start_line": 17,
+              "end_line": 19,
+              "truncated": false,
+              "sha256": "7bb634986e48685d3480b5db9df3e79b84bb108c7f51adc2f4c2b37a4e5cf058",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/tools/delegate.py"
+              }
+            },
+            {
+              "entity_id": "entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600",
+              "start_line": 103,
+              "end_line": 105,
+              "truncated": false,
+              "sha256": "fd1f827546dfcee331ecf7d337d9514f51533e88992b0fb267b2bcb62b46d9ef",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/tools/delegate.py"
+              }
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "compile_task_packet",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"anchors\": [\"entity:entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600\"], \"instruction\": \"What tool set may research helpers use? Cite the defining code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        }
+      ]
+    },
+    {
+      "id": "dev-02",
+      "question": "What does delegate use to cap concurrent tier 1 helpers? Cite the code.",
+      "natural_question_target_returned": true,
+      "exact_identifier_fixture_used": false,
+      "target_entity_id": "entity:9551466b8e6eb027a4271f362b617b6ef945cddfcf185301621fd60a75e1d339",
+      "source_range_recorded": true,
+      "packet_success": true,
+      "per_call": [
+        {
+          "tool": "search_entities",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"query\": \"What does delegate use to cap concurrent tier 1 helpers? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:d05b33e1508dad24d91cf04aaecd8498c72cae030988b12f3c1d14bf8fd56600",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "3738270fc1cb758ca5b3d48aa14bc630989d41894f709f007f495bce7dfb420e"
+            },
+            {
+              "entity_id": "entity:9551466b8e6eb027a4271f362b617b6ef945cddfcf185301621fd60a75e1d339",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "ebaa164c946103b7c204e9ebea8cd6418463c50caefb8b8eb542503aa1630c3e"
+            },
+            {
+              "entity_id": "entity:37c9b33cd963735401b5dd3af6231e96793b45ad5e69ce206838a1129acf93f4",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "cc80b2006c213f6a9758e989399de2c631cabcf1ee71e574df207b09865f6cf0"
+            },
+            {
+              "entity_id": "entity:1e7fb0069e90dec191b5174ccb2d410ae5d74d5d14800c183260346a4496a7bd",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "5802b4410b164b7e4dd9dd29e4f660e4958546597e20d4235c68b33442a87567"
+            },
+            {
+              "entity_id": "entity:e4ccf8f5431eeb3e623c872403791e2ff2fe9f8e7c529008ff9ad7cb678d7917",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "724b41a4101add473628a3ac94754156d754e6abe0507203bf54891cf14fd4ae"
+            },
+            {
+              "entity_id": "entity:ca3cc071635d4213818a4916f605fc43cfff5110a291c7b6bda3b22f09505fe5",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "57bd4fca6a9be3fbe41542da67ac5ae9254dfdb689a23f930d51d7d58afcdf88"
+            },
+            {
+              "entity_id": "entity:d69b9c4a763ad221ec0b88a481e56a13e3dcc33c0309d1b76b7c426de4eab0b3",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "b40c6cc974baf00c3c0ef7c5f074c4de95c3eae64b672b2beaec7eccd097c2c1"
+            },
+            {
+              "entity_id": "entity:f0b686ee9472646c520d27304130cd4dfff4e05e0e088a662157582988714f3a",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "bf972cd100d2f2fcd400f154f824dda6b5c907f054ee2363776b808a4625f904"
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "get_entity_content",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"entity_id\": \"entity:9551466b8e6eb027a4271f362b617b6ef945cddfcf185301621fd60a75e1d339\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:9551466b8e6eb027a4271f362b617b6ef945cddfcf185301621fd60a75e1d339",
+              "start_line": 40,
+              "end_line": 123,
+              "truncated": false,
+              "sha256": "eb88eb0254666266519d8de925b372bc70318f74a62c683c2fb47d25a3fe83ac"
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "compile_task_packet",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"anchors\": [\"entity:entity:9551466b8e6eb027a4271f362b617b6ef945cddfcf185301621fd60a75e1d339\"], \"instruction\": \"What does delegate use to cap concurrent tier 1 helpers? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        }
+      ]
+    },
+    {
+      "id": "dev-03",
+      "question": "How does the Clerk run and check one task? Cite the code.",
+      "natural_question_target_returned": true,
+      "exact_identifier_fixture_used": false,
+      "target_entity_id": "entity:4977f9b9da104ef7e0a79301d5c9568f749bf760a82b136401550427a490c05e",
+      "source_range_recorded": true,
+      "packet_success": true,
+      "per_call": [
+        {
+          "tool": "search_entities",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"query\": \"How does the Clerk run and check one task? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:77f8a2f3029ced4b533e736e78793023700cd3e6922efe6215d86fbe6aebccd7",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "b27d842e12e10d488c06d4b6c7e2afe2dac7cad7e75bed110f55ee015caee56b"
+            },
+            {
+              "entity_id": "entity:7173779a62d5b6a478e511ffe1a95bb5c20a0b76edbe1cfac9937455a5e0f582",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "bc467196e1fb89a37bba91f3956b8316a85ee898b2cae8c78f6ea37f436138c8"
+            },
+            {
+              "entity_id": "entity:d4d8caa20ee830b51445ffa7f7d70890807792b7d2c4eaefe8ae532fba1683d3",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "af175427ee067caca8e8409cb94c5c97db194e521312a09d56ddac40022b6805"
+            },
+            {
+              "entity_id": "entity:4977f9b9da104ef7e0a79301d5c9568f749bf760a82b136401550427a490c05e",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "7c31d93a92727d73b13c2bdf06c16750a7ba360cd61a6f15791018a527812c89"
+            },
+            {
+              "entity_id": "entity:a88ee6f19f79a2eb04bd7cde97267b8f06235cb8d72a4c4486b44c73d50168bb",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "6dff65fbb4d62b3dd59f67cba8fba5e4b3c0ed2fa0c05747caf04e061cead0d0"
+            },
+            {
+              "entity_id": "entity:9aef6503abf71402332d31cf02bc3fa241da2a3d6609af852f7696b9abaa4b85",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "8ab0382937c9e9abc9ccb772cf5f17791225e949d5b6105fdad06c07ecc58598"
+            },
+            {
+              "entity_id": "entity:5a6ad42ab8c48ae0595f57522bd985409b64409a44f2db3061e0ad3f10f64958",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "2e241a4d8cea5d2aefabbe71ed898d964b73dedc7cc7476349c80a4a6fc2516f"
+            },
+            {
+              "entity_id": "entity:e063e9de1a4e1f9717f35a1d31af7826236d39be9e0382c47d340315dabfbaa8",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "5a711975497364b99d3197089dac03f2a6d7de093d66bcd2b97cfecec723ac2b"
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "get_entity_content",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"entity_id\": \"entity:4977f9b9da104ef7e0a79301d5c9568f749bf760a82b136401550427a490c05e\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:4977f9b9da104ef7e0a79301d5c9568f749bf760a82b136401550427a490c05e",
+              "start_line": 1421,
+              "end_line": 1440,
+              "truncated": false,
+              "sha256": "2e95c0beccdcf977bc3a68f804ab959b1fc0effe1aba9c66c3bb17d692d27727"
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": [
+            "entity:5ba2cd5a5be9be7785a796ab6f67ec8a184edffe4ffe23457d2e0650ef29e43d"
+          ]
+        },
+        {
+          "tool": "compile_task_packet",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"anchors\": [\"entity:entity:4977f9b9da104ef7e0a79301d5c9568f749bf760a82b136401550427a490c05e\"], \"instruction\": \"How does the Clerk run and check one task? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        }
+      ]
+    },
+    {
+      "id": "dev-04",
+      "question": "How are external MCP structured results bounded? Cite the code.",
+      "natural_question_target_returned": true,
+      "exact_identifier_fixture_used": false,
+      "target_entity_id": "entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e",
+      "source_range_recorded": true,
+      "packet_success": true,
+      "per_call": [
+        {
+          "tool": "search_entities",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"query\": \"How are external MCP structured results bounded? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:96c6d5b2c45b46dc5ff1e2a0526e9530ad2d5a83255c39070645192836374d6c",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "59e1e703f672670c3226569b2af6ccba37dd0cd62afd24ed25f0d43ecf5513d9"
+            },
+            {
+              "entity_id": "entity:06a4030c7c0e91dad16603a73fef37f0aaf8dd0af0257ab61c50cef68a5a6d57",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "7662de231aa2f7778613152907c97c87c5499e24494d7a2632c11ddc3cb04632"
+            },
+            {
+              "entity_id": "entity:9a457a57c23ddca00aaa3ebe101e580f6fc69df1f4ad36e05ba1457e18400cc6",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "762949f04eb4cc4a2262f6e788da1b6fb86a081e3ba4f333cc8c3f55796c2c9a"
+            },
+            {
+              "entity_id": "entity:f82b57ab2bbc7e948d698ebe9074ddc85dd39c4a7f30ab0f0ba063a15a5e7d8c",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "b30fcd37c6bf2b9ea02f013071e355b54716b9aee1e244498ccc32567c231938"
+            },
+            {
+              "entity_id": "entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "05fdf0791171617b22fd7faf29207b1dbbbddc78096bc0a7b0e8d33b92382096"
+            },
+            {
+              "entity_id": "entity:7bcf11421bde3d00f94c44be3645b18456cfc441f60918671728f771d3a5d4d0",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "7e64e16552539e74eb72df4abe6ea9566a49cc738491696022eea96e727e34f2"
+            },
+            {
+              "entity_id": "entity:e063e9de1a4e1f9717f35a1d31af7826236d39be9e0382c47d340315dabfbaa8",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "5a711975497364b99d3197089dac03f2a6d7de093d66bcd2b97cfecec723ac2b"
+            },
+            {
+              "entity_id": "entity:cdf152d43877a917f1a142ae63f398fd3f631396127f976024390ed1220527f8",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "8d143e5bb1cd9d2ea78808bde160d37158ddcf0e25d3ff68ce4b8d1991a6b489"
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "get_entity_content",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"entity_id\": \"entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e",
+              "start_line": 47,
+              "end_line": 47,
+              "truncated": false,
+              "sha256": "a1d7bfb6d22841e5a623e3fb44182edfde06f68e9915bedcda9d56a18564f3ee",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/mcp_client.py"
+              }
+            },
+            {
+              "entity_id": "entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e",
+              "start_line": 490,
+              "end_line": 492,
+              "truncated": false,
+              "sha256": "4b89b153bfc1b70b2cc4f4e10cd1e71debb7da00c16586cca89a027a685415c8",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/mcp_client.py"
+              }
+            },
+            {
+              "entity_id": "entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e",
+              "start_line": 494,
+              "end_line": 496,
+              "truncated": false,
+              "sha256": "fc6b1f9f9080c0608095b0c2e384b9f162e2c2d35f1786b6b297eb1982401ddf",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/mcp_client.py"
+              }
+            },
+            {
+              "entity_id": "entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e",
+              "start_line": 501,
+              "end_line": 503,
+              "truncated": false,
+              "sha256": "ece313ecdfa1902837d898855a762a904323b11a04752616f97dafb51c304981",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/mcp_client.py"
+              }
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "compile_task_packet",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"anchors\": [\"entity:entity:0bb68e89186c2bf3f1b3dafa13d1518d8f1b818aa4d6c351155500d7f403a22e\"], \"instruction\": \"How are external MCP structured results bounded? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        }
+      ]
+    },
+    {
+      "id": "dev-05",
+      "question": "How does the loop choose its fallback context window? Cite the code.",
+      "natural_question_target_returned": true,
+      "exact_identifier_fixture_used": false,
+      "target_entity_id": "entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec",
+      "source_range_recorded": true,
+      "packet_success": true,
+      "per_call": [
+        {
+          "tool": "search_entities",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"query\": \"How does the loop choose its fallback context window? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "f1fb7ca0ac6a80d86a0fcd4d5972bffe6fbe92bb535ef0d5ff06d7c50cb5b998"
+            },
+            {
+              "entity_id": "entity:4e3e79f9d66cc3e9626033cb3c0be69d77d5f39cc9cd991d30131d8d2cea6ec6",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "ba80ff24ae6126df2a01cc45f443fdcc781058bdbdf97f914c7fb185aec8e783"
+            },
+            {
+              "entity_id": "entity:f2781a4d6c28bb74bb55673098ca0da0a6bfc92140995b5be45e2dc0091517d9",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "00fff5d939c7d253d14890d54747bda86e8ec8de6122a62a8c6a5b04f58e0621"
+            },
+            {
+              "entity_id": "entity:7b3c63913b7b79b76233906f72df03d345c3551ee66969fb3aa93db1b5368ec4",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "cbb9504118757babd2da876272150e6d3e2b9e0e84b0355c4b90c5531e6695b4"
+            },
+            {
+              "entity_id": "entity:06a4030c7c0e91dad16603a73fef37f0aaf8dd0af0257ab61c50cef68a5a6d57",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "7662de231aa2f7778613152907c97c87c5499e24494d7a2632c11ddc3cb04632"
+            },
+            {
+              "entity_id": "entity:f82b57ab2bbc7e948d698ebe9074ddc85dd39c4a7f30ab0f0ba063a15a5e7d8c",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "b30fcd37c6bf2b9ea02f013071e355b54716b9aee1e244498ccc32567c231938"
+            },
+            {
+              "entity_id": "entity:e063e9de1a4e1f9717f35a1d31af7826236d39be9e0382c47d340315dabfbaa8",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "340e423127e7515f806345f21d76dac385b351a9bfff289383d464fcb26127af"
+            },
+            {
+              "entity_id": "entity:9a457a57c23ddca00aaa3ebe101e580f6fc69df1f4ad36e05ba1457e18400cc6",
+              "start_line": null,
+              "end_line": null,
+              "truncated": false,
+              "sha256": "5da4e19b335e7eb0dd473b27d62a408ebfac813403640d07d95e5fdecf8ecd70"
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "get_entity_content",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"entity_id\": \"entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [
+            {
+              "entity_id": "entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec",
+              "start_line": 131,
+              "end_line": 139,
+              "truncated": false,
+              "sha256": "7252c9ba65de1c8a9f6675f78bb995417a396039b53414d11f7a3ef9dbd40dd5",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/loop.py"
+              }
+            },
+            {
+              "entity_id": "entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec",
+              "start_line": 577,
+              "end_line": 579,
+              "truncated": false,
+              "sha256": "50c6cf4224561508379c858d40d0606eb103b99d5650a2586e27421f2a870719",
+              "source": {
+                "repo_id": "g_1bbebca16afc45c39b2f2f8a",
+                "revision": "working-tree:5818d8f86b0b6c0639db49b26842571e899c55ffcfb3db96180549be77d56100",
+                "rel_path": "src/resource_librarian/loop.py"
+              }
+            }
+          ],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        },
+        {
+          "tool": "compile_task_packet",
+          "arguments": "{\"graph_id\": \"librarian-v2\", \"anchors\": [\"entity:entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec\"], \"instruction\": \"How does the loop choose its fallback context window? Cite the code.\"}",
+          "arguments_truncated": false,
+          "recoveries": [],
+          "recovery_steps_consumed": 0,
+          "withheld": false,
+          "error_code": "",
+          "error_message": "",
+          "success": true,
+          "coverage": [],
+          "coverage_truncated": false,
+          "supplemental_entities": []
+        }
+      ]
+    }
+  ],
+  "source_checks": 5,
+  "packet_checks": 5,
+  "natural_question_hits": 5,
+  "limitation": "Conformance only, not answer accuracy. When natural search misses the target, an explicitly labelled known-identifier fixture validates the source/packet path; no model is asked to answer and no key-generated answer is scored."
+}

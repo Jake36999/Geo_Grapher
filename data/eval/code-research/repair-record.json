@@ -1,0 +1,45 @@
+{
+  "snapshots": {
+    "librarian-v2": "snapshot:1703964f018a8f5981c139069836a87178098924bd94383d5788c083bb89c9bf",
+    "ToolSet": "snapshot:f5029b6bf601fcb2896a3c494e30dc306ced8624436d9334a9f9000931e1abee"
+  },
+  "original_count": 5,
+  "repaired_v1_count": 25,
+  "recorded_search_calls": 132,
+  "distinct_agent_queries": 102,
+  "repairs": [
+    {
+      "id": "heldout-02",
+      "reasons": [
+        "Compaction implementation and inseparable history-view/configuration are accepted, rather than only retention constant."
+      ],
+      "question_changed": false,
+      "original_frozen_score_unchanged": true
+    },
+    {
+      "id": "heldout-04",
+      "reasons": [
+        "Repair garbled wording and explicitly ask for the documented constant."
+      ],
+      "question_changed": true,
+      "original_frozen_score_unchanged": true
+    },
+    {
+      "id": "heldout-10",
+      "reasons": [
+        "Replace under-specified separator-only prompt using the defining rule function documentation, retaining R001 as an equivalent identifier."
+      ],
+      "question_changed": true,
+      "original_frozen_score_unchanged": true
+    },
+    {
+      "id": "heldout-16",
+      "reasons": [
+        "The requested documented rule ID R005 is equivalent to defining function rule_r005."
+      ],
+      "question_changed": false,
+      "original_frozen_score_unchanged": true
+    }
+  ],
+  "scoring_rule": "Equivalence markers chosen from defining/implementing code; original five preserve exact legacy marker requirements. Original v1 cycle rows and scores never changed."
+}

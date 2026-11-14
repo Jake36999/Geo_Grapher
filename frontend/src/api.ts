@@ -16,6 +16,10 @@ import type {
 export type DocumentaryLink = NonNullable<
   ActorViewportFrameData["documentary_links"]
 >[number];
+export type QiOptions = NonNullable<ActorOperations["viewport_frame"]["request"]["qi"]>;
+export function frameQI(frame: ViewportFrameData | undefined) {
+  return (frame as { qi?: ActorViewportFrameData["qi"] } | undefined)?.qi;
+}
 export type GroupMode =
   | "mixed"
   | "repository"

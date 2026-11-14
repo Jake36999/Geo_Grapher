@@ -1,0 +1,418 @@
+{
+  "seal_sha256": "ccb0e6c0ea8380a68e94e9f8571339143572243f7a2b872289e020e33145f02d",
+  "count": 25,
+  "two_reviewers_confirmed": 25,
+  "top20_qualified": 25,
+  "meaningful_documentation": 25,
+  "question_validation": 25,
+  "overlap_v1": 0,
+  "product_sources_unchanged": true,
+  "product_sources_sha256": "60596057669e6f80bc6534116a5aea3ab0f849d431e906c245891293dca7ee99",
+  "review_decisions_sha256": {
+    "output\\phase67-gates\\review4\\heldout-v2\\round1-decisions.private.json": "7dedbf009f5e73cc77172a306bfa34074d2b2240150e228488f26c37aa850b3d",
+    "output\\phase67-gates\\review4\\heldout-v2\\round10-decisions.private.json": "f53df3b090dcc7e53f2c7b46f62c516805f04f874616d79989309b70093ad90b",
+    "output\\phase67-gates\\review4\\heldout-v2\\round11-decisions.private.json": "396c3a52b2a76af73ed7aae346013ffdf4e87b0af9fc1714fc141e6740d67fd4",
+    "output\\phase67-gates\\review4\\heldout-v2\\round2-decisions.private.json": "b66b96b555953be2d5bc962c275a32778844168454fedbc7706869ba2142994e",
+    "output\\phase67-gates\\review4\\heldout-v2\\round3-decisions.private.json": "ba1c93e34cf7440a08a44101fdfdcf9645d6619aa75de728780fec1f9dfbb9e2",
+    "output\\phase67-gates\\review4\\heldout-v2\\round4-decisions.private.json": "1be7c7a8bd8772c06a019aba94df36c467b7bd84dc1b6e575a0f6f55a9528128",
+    "output\\phase67-gates\\review4\\heldout-v2\\round5-decisions.private.json": "72c2deefa2b705cfe72be2a8b225eb8df63bf2841ad6ad0efb3c1317c02729d7",
+    "output\\phase67-gates\\review4\\heldout-v2\\round6-decisions.private.json": "626af2f36d3f396d9c8450ab974a9b87e4d0f8f44ee3254bd4ce58ba636464a0",
+    "output\\phase67-gates\\review4\\heldout-v2\\round7-decisions.private.json": "b8dcc9d7c1bfb2ee2fdef84913e570daa902227aee2e3d552d5c08303c994933",
+    "output\\phase67-gates\\review4\\heldout-v2\\round8-decisions.private.json": "a1d5b722cd4c9034a69545429474854ef22c25f7b5cc0dae17684f8a2ac9cd2f",
+    "output\\phase67-gates\\review4\\heldout-v2\\round9-decisions.private.json": "a589b1443a6b71ed49077aefdd8efc4eb00d9b4be7bb987c01c5f53b49626db9"
+  },
+  "complete_worker_receipts": [
+    {
+      "run_id": "20261113T174225-452d2954",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00740629,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T174225-452d2954-review4-v2-r1-author.receipt.json"
+    },
+    {
+      "run_id": "20261113T175258-e37d1259",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00523633,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175258-e37d1259-review4-v2-r1-review-a-batch1-retry1.receipt.json"
+    },
+    {
+      "run_id": "20261113T175303-a3db1e65",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00566062,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175303-a3db1e65-review4-v2-r1-review-a-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T175309-dd1e0422",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00527126,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175309-dd1e0422-review4-v2-r1-review-a-batch3.receipt.json"
+    },
+    {
+      "run_id": "20261113T175315-371449ac",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00544495,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175315-371449ac-review4-v2-r1-review-a-batch4.receipt.json"
+    },
+    {
+      "run_id": "20261113T175322-d61c73c8",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00588812,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175322-d61c73c8-review4-v2-r1-review-a-batch5.receipt.json"
+    },
+    {
+      "run_id": "20261113T175327-d512de79",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00654728,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175327-d512de79-review4-v2-r1-review-a-batch6.receipt.json"
+    },
+    {
+      "run_id": "20261113T175335-58bc31bf",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00140646,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175335-58bc31bf-review4-v2-r1-review-a-batch7.receipt.json"
+    },
+    {
+      "run_id": "20261113T175337-7b7b5a5d",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0078124,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175337-7b7b5a5d-review4-v2-r1-review-b-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T175443-fee33868",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0058582,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175443-fee33868-review4-v2-r1-review-b-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T175526-ec685e13",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0071186,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175526-ec685e13-review4-v2-r1-review-b-batch3.receipt.json"
+    },
+    {
+      "run_id": "20261113T175631-61273ce5",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.008201,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T175631-61273ce5-review4-v2-r1-review-b-batch4.receipt.json"
+    },
+    {
+      "run_id": "20261113T180319-9e449cb7",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0012086,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180319-9e449cb7-review4-v2-r1-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183153-614bd811",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00031306,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183153-614bd811-review4-v2-r10-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183200-7639e8f4",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00223556,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183200-7639e8f4-review4-v2-r10-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183428-945f66d2",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00036372,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183428-945f66d2-review4-v2-r11-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183435-6cfaae0d",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00217353,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183435-6cfaae0d-review4-v2-r11-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183439-31300ff5",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0004892,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183439-31300ff5-review4-v2-r11-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T180326-abb08ffa",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00191133,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180326-abb08ffa-review4-v2-r2-author.receipt.json"
+    },
+    {
+      "run_id": "20261113T180826-5a9877f3",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00076324,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180826-5a9877f3-review4-v2-r2-author-repair-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T180833-d9b4b94f",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00063353,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180833-d9b4b94f-review4-v2-r2-author-repair-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T180837-888e1872",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00071746,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180837-888e1872-review4-v2-r2-author-repair-batch3.receipt.json"
+    },
+    {
+      "run_id": "20261113T180841-75af507e",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.0007205,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180841-75af507e-review4-v2-r2-author-repair-batch4.receipt.json"
+    },
+    {
+      "run_id": "20261113T180846-cce28545",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00100194,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180846-cce28545-review4-v2-r2-author-repair-batch5.receipt.json"
+    },
+    {
+      "run_id": "20261113T180852-25c5a533",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.0007189,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180852-25c5a533-review4-v2-r2-author-repair-batch6.receipt.json"
+    },
+    {
+      "run_id": "20261113T180859-d0244b4f",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00521003,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180859-d0244b4f-review4-v2-r2-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T180904-9ba15228",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00522522,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180904-9ba15228-review4-v2-r2-review-a-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T180911-9e6427b8",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00536511,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180911-9e6427b8-review4-v2-r2-review-a-batch3.receipt.json"
+    },
+    {
+      "run_id": "20261113T180914-1e9764f7",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00530312,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180914-1e9764f7-review4-v2-r2-review-a-batch4.receipt.json"
+    },
+    {
+      "run_id": "20261113T180925-47a6532b",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00565013,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180925-47a6532b-review4-v2-r2-review-a-batch5.receipt.json"
+    },
+    {
+      "run_id": "20261113T180929-2a22901f",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00393945,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180929-2a22901f-review4-v2-r2-review-a-batch6.receipt.json"
+    },
+    {
+      "run_id": "20261113T180933-50eea757",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0023552,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180933-50eea757-review4-v2-r2-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T180937-9f8edd04",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.00261,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180937-9f8edd04-review4-v2-r2-review-b-pending-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T180944-ef415dfe",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0007258,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180944-ef415dfe-review4-v2-r2-review-b-pending-batch3.receipt.json"
+    },
+    {
+      "run_id": "20261113T180951-527e2e89",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00209065,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T180951-527e2e89-review4-v2-r3-author.receipt.json"
+    },
+    {
+      "run_id": "20261113T181010-29d28be9",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00517888,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181010-29d28be9-review4-v2-r3-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181016-2ed7809a",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.005649,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181016-2ed7809a-review4-v2-r3-review-a-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T181450-c1eac597",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00551286,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181450-c1eac597-review4-v2-r3-review-a-batch3-retry1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181458-de10a755",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00264562,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181458-de10a755-review4-v2-r3-review-a-batch4.receipt.json"
+    },
+    {
+      "run_id": "20261113T181504-fdc5f563",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0025698,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181504-fdc5f563-review4-v2-r3-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181512-ea8da814",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00082497,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181512-ea8da814-review4-v2-r4-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181525-6e338aa6",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00078322,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181525-6e338aa6-review4-v2-r4-author-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T181533-66930a00",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00033281,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181533-66930a00-review4-v2-r4-author-batch3.receipt.json"
+    },
+    {
+      "run_id": "20261113T181540-5db87505",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.0055471,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181540-5db87505-review4-v2-r4-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181554-e8ca66ff",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00539432,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181554-e8ca66ff-review4-v2-r4-review-a-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T181626-c700915f",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00126596,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181626-c700915f-review4-v2-r4-review-a-batch3.receipt.json"
+    },
+    {
+      "run_id": "20261113T181631-acc2430f",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.001965,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181631-acc2430f-review4-v2-r4-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181640-5cb82ef5",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00065275,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181640-5cb82ef5-review4-v2-r5-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181645-59dcce8c",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.0005692,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181645-59dcce8c-review4-v2-r5-author-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T181656-b4549069",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00521597,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181656-b4549069-review4-v2-r5-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T181705-331a9080",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00346962,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181705-331a9080-review4-v2-r5-review-a-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T181709-41372aaf",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.000561,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T181709-41372aaf-review4-v2-r5-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182219-3d94ce7a",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00072011,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182219-3d94ce7a-review4-v2-r6-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182315-85532fd6",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00051262,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182315-85532fd6-review4-v2-r6-author-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T182325-4a9ab934",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00536085,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182325-4a9ab934-review4-v2-r6-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182333-6e7f77b5",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00342123,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182333-6e7f77b5-review4-v2-r6-review-a-batch2.receipt.json"
+    },
+    {
+      "run_id": "20261113T182342-16de055c",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0010398,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182342-16de055c-review4-v2-r6-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182350-68b9eeb5",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00076584,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182350-68b9eeb5-review4-v2-r7-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182436-fed8030e",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00530748,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182436-fed8030e-review4-v2-r7-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182504-ea670d28",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.0010064,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182504-ea670d28-review4-v2-r7-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182727-4795281f",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00031221,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182727-4795281f-review4-v2-r8-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182901-f69eb369",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00227326,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182901-f69eb369-review4-v2-r8-review-a-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T182905-3a0d47c4",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "cost_usd": 0.000576,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T182905-3a0d47c4-review4-v2-r8-review-b-pending-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183138-c97aae87",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00039321,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183138-c97aae87-review4-v2-r9-author-batch1.receipt.json"
+    },
+    {
+      "run_id": "20261113T183146-b7342580",
+      "model": "XiaomiMiMo/MiMo-V2.6-Pro",
+      "cost_usd": 0.00218217,
+      "receipt": "D:\\Librarian_V2\\tmp\\deepinfra-delegation\\runs\\20261113T183146-b7342580-review4-v2-r9-review-a-batch1.receipt.json"
+    }
+  ],
+  "all_prior_rejections_preserved": true,
+  "blindness": "Audit reports counts/hashes only; implementing lead has not read v2 questions or keys."
+}

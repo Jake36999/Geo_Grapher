@@ -1439,7 +1439,8 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     ],
   );
   return (
-    <div ref={host} className="scene-host" data-testid="spatial-scene">
+    <div ref={host} className="scene-host" data-testid="spatial-scene"
+      data-qi-group-count={props.frame?.nodes.filter(n => n.kind === "qi" && props.frame?.spheres.some(s => s.node_id === n.id)).length ?? 0}>
       <div
         className="scene-layout-tools"
         role="group"

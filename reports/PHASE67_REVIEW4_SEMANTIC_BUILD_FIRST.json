@@ -1,0 +1,47 @@
+{
+  "encoder_fingerprint": "c26bc406dbceea32d721871e4420dabad9052aea8366b9e66359a4bf9aae516d",
+  "encoder": {
+    "kind": "model2vec",
+    "model": "",
+    "assets": {
+      "config.json": "2a6ac0e9aaa356a68a5688070db78fc3a464fefe85d2f06a1905ce3718687553",
+      "model.safetensors": "f65d0f325faadc1e121c319e2faa41170d3fa07d8c89abd48ca5358d9a223de2",
+      "tokenizer.json": "e67e803f624fb4d67dea1c730d06e1067e1b14d830e2c2202569e3ef0f70bb50"
+    },
+    "versions": {
+      "numpy": "2.4.6",
+      "model2vec": "0.10.0",
+      "tokenizers": "0.23.3"
+    },
+    "max_tokens": 512,
+    "normalization": "l2-finite-zero-omit-v1",
+    "implementation": "bd8ed26c3a0a3591ecfeeb32abe3dbafdbcd5ddeb5b429cb8d5fd699c95b17af"
+  },
+  "graphs": {
+    "librarian-v2": {
+      "entities": 3879,
+      "encoded": 3879,
+      "zero_vectors": 0,
+      "seconds": 1.4191808000032324,
+      "bytes": 25075712,
+      "namespace": "fcf01815b1204960e6b606cf746b04ebc6e96b2991d7e80aa25aaa0d11447695",
+      "texts_truncated": 5,
+      "canonical_sha256": "9c4e8203c11873e1ba2a7cf87e61b4c1ce4ce4615bd24dcf7fbe761002f18f3c",
+      "canonical_unchanged": true,
+      "snapshot": "snapshot:1703964f018a8f5981c139069836a87178098924bd94383d5788c083bb89c9bf"
+    },
+    "ToolSet": {
+      "entities": 2420,
+      "encoded": 2420,
+      "zero_vectors": 0,
+      "seconds": 0.8711629000026733,
+      "bytes": 40726528,
+      "namespace": "3f669b657a9312a00a799148141ef197d3c19f5cf86c5b472a71e897efa5e9fd",
+      "texts_truncated": 1,
+      "canonical_sha256": "ca518dac38a3bd2f38443e763ff1c6f30b77a26be0d75d406f5866ce83d3eac7",
+      "canonical_unchanged": true,
+      "snapshot": "snapshot:f5029b6bf601fcb2896a3c494e30dc306ced8624436d9334a9f9000931e1abee"
+    }
+  },
+  "paid_calls": 0
+}

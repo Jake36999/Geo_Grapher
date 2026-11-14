@@ -1,0 +1,152 @@
+[
+  {
+    "id": "dev-01",
+    "graph": "librarian-v2",
+    "question": "What tool set may research helpers use? Cite the defining code."
+  },
+  {
+    "id": "dev-02",
+    "graph": "librarian-v2",
+    "question": "What does delegate use to cap concurrent tier 1 helpers? Cite the code."
+  },
+  {
+    "id": "dev-03",
+    "graph": "librarian-v2",
+    "question": "How does the Clerk run and check one task? Cite the code."
+  },
+  {
+    "id": "dev-04",
+    "graph": "librarian-v2",
+    "question": "How are external MCP structured results bounded? Cite the code."
+  },
+  {
+    "id": "dev-05",
+    "graph": "librarian-v2",
+    "question": "How does the loop choose its fallback context window? Cite the code."
+  },
+  {
+    "id": "heldout-01",
+    "graph": "librarian-v2",
+    "question": "Which implementation defines the platform-specific retry behavior for a PermissionError raised by os.replace during file replacement, and where is that documented?"
+  },
+  {
+    "id": "heldout-02",
+    "graph": "librarian-v2",
+    "question": "Which implementation compacts the history of older tool results sent to the model, clipping them to a character limit while keeping the full log intact?"
+  },
+  {
+    "id": "heldout-03",
+    "graph": "librarian-v2",
+    "question": "Which implementation reads non-model-provider API keys (such as web search backends and GitHub repository intake) from the environment?"
+  },
+  {
+    "id": "heldout-04",
+    "graph": "librarian-v2",
+    "question": "Which named constant defines the sandbox runner that reads its job from /job/spec.json, imports one module, calls one function and prints a marked JSON line? Cite the source."
+  },
+  {
+    "id": "heldout-05",
+    "graph": "librarian-v2",
+    "question": "Which implementation defines the core-authored per-caller fields (session envelope, revision token) that are excluded from a reference's bytes?"
+  },
+  {
+    "id": "heldout-06",
+    "graph": "ToolSet",
+    "question": "Which implementation defines the set of file extensions treated as workflow residue in a vault, and why are personal document formats excluded?"
+  },
+  {
+    "id": "heldout-07",
+    "graph": "ToolSet",
+    "question": "Which implementation deliberately omits a repository count from its output, and what reasoning is documented for that choice?"
+  },
+  {
+    "id": "heldout-08",
+    "graph": "ToolSet",
+    "question": "Which implementation defines the version constant that must be bumped whenever analysis logic changes, given that the cache keys on file content?"
+  },
+  {
+    "id": "heldout-09",
+    "graph": "ToolSet",
+    "question": "Which implementation defines whether a document class may supply the single headline purpose for a file, and why is the unclassified class permitted?"
+  },
+  {
+    "id": "heldout-10",
+    "graph": "ToolSet",
+    "question": "Which rule identifier rejects create_file_map_v2.py with the -o flag because that script does not support it? Cite the source."
+  },
+  {
+    "id": "heldout-11",
+    "graph": "librarian-v2",
+    "question": "Which function returns everything readable rather than guessed, filtered to the vault's permitted values, leaving a missing axis missing?"
+  },
+  {
+    "id": "heldout-12",
+    "graph": "librarian-v2",
+    "question": "Which function enforces that Core-backed extraction stays on its single SQLite owner, and what must a standalone script explicitly choose?"
+  },
+  {
+    "id": "heldout-13",
+    "graph": "librarian-v2",
+    "question": "Which function looks up a note by name and prefers a particular shape when two notes share a name?"
+  },
+  {
+    "id": "heldout-14",
+    "graph": "librarian-v2",
+    "question": "Which function normalizes the small non-secret usage subset shared by supported APIs, and which value types does it ignore?"
+  },
+  {
+    "id": "heldout-15",
+    "graph": "librarian-v2",
+    "question": "Which function runs one tool call in the vault's active Core or refuses, and what conditions produce a CORE_REQUIRED refusal?"
+  },
+  {
+    "id": "heldout-16",
+    "graph": "ToolSet",
+    "question": "Which rule identifier flags an automated slicer invocation missing --deterministic as a WARN rather than a BLOCK, and what is the documented justification?"
+  },
+  {
+    "id": "heldout-17",
+    "graph": "ToolSet",
+    "question": "Which function resolves absolute paths as absolute and relative paths against the repository root, and what past trace defect motivated this?"
+  },
+  {
+    "id": "heldout-18",
+    "graph": "ToolSet",
+    "question": "Which function runs partition_experiments in n fresh processes with distinct PYTHONHASHSEED values and reports the spread, and why is that spread meaningful?"
+  },
+  {
+    "id": "heldout-19",
+    "graph": "ToolSet",
+    "question": "Which function deletes node JSONs no longer referenced by any row, and what on-disk defect does it address?"
+  },
+  {
+    "id": "heldout-20",
+    "graph": "ToolSet",
+    "question": "Which function writes a valid Python data-constants bundle containing no executable workflow logic and returns its path?"
+  },
+  {
+    "id": "heldout-21",
+    "graph": "librarian-v2",
+    "question": "Which implementation defines the three short call kinds (lens_document, lens_support, probe_answers) for staging document-level stances across a book's parts?"
+  },
+  {
+    "id": "heldout-22",
+    "graph": "librarian-v2",
+    "question": "Which implementation creates a project-side pointer to the canonical Application record, and how is the target folder determined?"
+  },
+  {
+    "id": "heldout-23",
+    "graph": "librarian-v2",
+    "question": "Which implementation applies a person's answer about an outcome-unknown step to a run as its log recorded it, and when is it refused?"
+  },
+  {
+    "id": "heldout-24",
+    "graph": "ToolSet",
+    "question": "Which implementation re-clusters with graphify's own cluster() and compares against the stored communities, running one-variable experiments per repo?"
+  },
+  {
+    "id": "heldout-25",
+    "graph": "ToolSet",
+    "question": "Which implementation records decorator targets as dotted names with arguments dropped, and which function records the full dotted target of a call including the receiver?"
+  }
+]

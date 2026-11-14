@@ -26,9 +26,10 @@ TOOL_PRESETS={
     'papers':frozenset({'list_graphs','paper_search_documents','paper_get_document','paper_find_by_concept','paper_get_related','paper_get_section'}),
     'code':frozenset({'list_graphs','search_entities','get_architecture_context','find_dependants','get_entity_content','check_architecture'}),
     'cross':frozenset({'list_graphs','federated_search','list_bridges','analyze_cross_graphs','search_entities','get_entity_content'}),
+    'lead':frozenset({'list_graphs','search_entities','get_architecture_context','get_entity_content','analyze_cross_graphs','compile_task_packet'}),
 }
-CROSS_MODES=('evolution_diff','clone_candidates','bridge_candidates')
-CROSS_LATER=('bridge_impact','theory_conformance')  # wave 4
+CROSS_MODES=('evolution_diff','clone_candidates','bridge_candidates','bridge_impact','theory_conformance')
+CROSS_LATER=()
 
 
 def offered_tools(spec):
@@ -36,7 +37,7 @@ def offered_tools(spec):
     if spec is None or spec in ('','all'):return None
     if spec in TOOL_PRESETS:return TOOL_PRESETS[spec]
     names=frozenset(s.strip() for s in str(spec).split(',') if s.strip())
-    known={op for op in CODE_OPERATIONS-{'viewport_frame'}}|{'paper_'+op for op in PAPER_OPERATIONS}|{'list_graphs','list_bridges','federated_search','analyze_cross_graphs'}
+    known={op for op in CODE_OPERATIONS-{'viewport_frame'}}|{'paper_'+op for op in PAPER_OPERATIONS}|{'list_graphs','list_bridges','federated_search','analyze_cross_graphs','compile_task_packet'}
     unknown=sorted(names-known)
     if unknown or not names:raise ValueError(f"Unknown tools {unknown}; use 'all', {sorted(TOOL_PRESETS)} or tool names")
     return names
@@ -57,10 +58,11 @@ def _add_citation_handles(node,label):
 
 
 class GraphRouter:
-    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None):
+    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None,semantic=None):
         self.catalog=catalog;self.services=OrderedDict();self.lock=threading.RLock();self.cond=threading.Condition(self.lock)
         self.leases=Counter();self.retired=set();self.borrowed=set();self.deleting=set()
         self.offered_tools=offered_tools(tools)
+        self.semantic_config=semantic
         if max_result_chars is not None and (type(max_result_chars) is not int or max_result_chars<1000):
             raise ValueError('max_result_chars must be an integer of at least 1000')
         self.max_result_chars=max_result_chars
@@ -140,7 +142,7 @@ class GraphRouter:
         with self.lock:
             if graph_id in self.deleting:raise ValueError('GRAPH_BUSY: the graph is being deleted')
             if key not in self.services:
-                from .server import persisted_secret
+                from .cursor_secret import persisted_secret
                 path=Path(row['code_database'])
                 if not path.is_file():raise ValueError('Graph store missing')
                 with sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True) as check:
@@ -201,6 +203,8 @@ class GraphRouter:
     def query(self,graph_id,operation,request):
         graph_id=self.resolve(graph_id)
         if not isinstance(request,dict):raise ValueError('request must be an object')
+        from .task_packets import check_profile
+        check_profile(request.get('budget',{}).get('profile'),request.get('budget',{}).get('limit_tokens'))
         self.permit(graph_id)
         graph=self.catalog.graph(graph_id);label=graph['label']
         if operation in CODE_OPERATIONS:
@@ -265,7 +269,7 @@ class GraphRouter:
             except (ValueError,sqlite3.DatabaseError,OSError) as exc:
                 availability='unavailable';error=str(exc)[:300]
             profile=json.loads(graph['profile_json'])
-            rows.append(dict(graph_id=graph['graph_id'],label=graph['label'],root_path=graph['root_path'],
+            rows.append(dict(label=graph['label'],graph_id=graph['graph_id'],root_path=graph['root_path'],
                 graph_kind=profile.get('graph_kind','project'),repo_ids=profile.get('owner_repo_ids',[graph['graph_id']]),
                 source_graph_ids=[s['graph_id'] for s in profile.get('source_graphs',[])],
                 owned_store=self.catalog.owns_store(graph),bridge_count=self.catalog.bridge_count(graph['graph_id']),copied_from=profile.get('copied_from'),
@@ -305,24 +309,38 @@ class GraphRouter:
             if isinstance(holder,dict) and isinstance(holder.get('error'),dict):return holder['error']
         return None
 
-    def analyze_cross_graphs(self,graph_ids,mode,*,limit_tokens=4096,cursor=None):
+    def analyze_cross_graphs(self,graph_ids,mode,*,limit_tokens=4096,cursor=None,profile=None,
+                             start=None,max_hops=6,pinned_graphs=(),theory_graph=None,code_graph=None):
         """cross-graph-v1: one mode-parameterised read-only analysis over explicitly selected graphs.
 
         Items are packed whole under an exact complete-envelope cap; every item endpoint has a node
         (endpoint closure); a snapshot-bound cursor resumes in order. Graph-local rankings only.
         """
         from .cross_graph import clone_pairs,diff_graphs,pack_items
+        from .task_packets import check_profile
+        check_profile(profile,limit_tokens)
         if mode in CROSS_LATER:raise ValueError(f'MODE_NOT_AVAILABLE: {mode} arrives in a later wave')
         if mode not in CROSS_MODES:raise ValueError(f'Unknown mode; choose one of {list(CROSS_MODES)}')
         if not isinstance(graph_ids,list):raise ValueError('graph_ids must be a list')
         graph_ids=sorted(self.resolve(g) for g in graph_ids)
-        want=(2,2) if mode=='evolution_diff' else (2,8)
+        want=(2,2) if mode in {'evolution_diff','theory_conformance'} else (2,8)
         if not want[0]<=len(graph_ids)<=want[1] or len(set(graph_ids))!=len(graph_ids):
             raise ValueError(f'{mode} needs {want[0]}' + ('' if want[0]==want[1] else f'..{want[1]}') + ' distinct graph IDs')
         if type(limit_tokens) is not int or not 1024<=limit_tokens<=32768:raise ValueError('limit_tokens must be 1024..32768')
         for gid in graph_ids:self.permit(gid)
         rows={gid:self.catalog.graph(gid) for gid in graph_ids}
-        key=digest(mode,graph_ids,[rows[g]['snapshot_id'] for g in graph_ids])[:16]
+        if mode=='bridge_impact':
+            if not isinstance(start,dict) or set(start)!={'graph_id','ref'}:raise ValueError('IMPACT_START_REQUIRED')
+            start=dict(start,graph_id=self.resolve(start['graph_id']))
+            pinned_graphs=sorted(self.resolve(g) for g in pinned_graphs)
+            if start['graph_id'] not in graph_ids or not set(pinned_graphs)<=set(graph_ids):raise ValueError('Impact endpoints must be selected graphs')
+        if mode=='theory_conformance':
+            if not theory_graph or not code_graph:raise ValueError('CONFORMANCE_ROLES_REQUIRED')
+            theory_graph,code_graph=self.resolve(theory_graph),self.resolve(code_graph)
+            if theory_graph==code_graph or {theory_graph,code_graph}!=set(graph_ids):raise ValueError('Conformance roles must identify the selected pair')
+        extra=(start,max_hops,pinned_graphs,theory_graph,code_graph,
+            [(b['bridge_id'],self.catalog.bridge_state(b['bridge_id'])) for b in self.catalog.bridges(graph_ids)]) if mode in {'bridge_impact','theory_conformance'} else ()
+        key=digest(mode,graph_ids,[rows[g]['snapshot_id'] for g in graph_ids],extra)[:16]
         offset=0
         if cursor is not None:
             if not isinstance(cursor,str) or not re.fullmatch(r'[0-9a-f]{16}:[0-9]{1,9}',cursor):raise ValueError('INVALID_CURSOR')
@@ -331,7 +349,7 @@ class GraphRouter:
         label={g:rows[g]['label'] for g in graph_ids}
         names={}
         def node(gid,ref,qualified_name=None):
-            return dict(graph_id=gid,id=ref,qualified_name=qualified_name,cite_as=f"{label[gid]}/{ref if not ref.startswith('doc:') else ref.split('#')[0]}")
+            return dict(graph_id=gid,id=ref,qualified_name=qualified_name,cite_as=f"{label[gid]}/{ref}")
         def lookup(gid,eids):
             from .store import SnapshotStore
             want_ids=sorted(set(eids)-set(names.get(gid,{})))
@@ -373,7 +391,7 @@ class GraphRouter:
                 for p in result['pairs']:
                     ends=[node(p['graph_a'],'entity:'+p['entity_a'],qn[p['graph_a']].get(p['entity_a'])),node(p['graph_b'],'entity:'+p['entity_b'],qn[p['graph_b']].get(p['entity_b']))]
                     bundles.append(dict(item=dict(kind='clone',match=p['match'],endpoints=[dict(graph_id=n['graph_id'],id=n['id']) for n in ends]),nodes=ends))
-        else:
+        elif mode=='bridge_candidates':
             from .bridges import alias_policy,code_candidates,paper_candidates,score_pairs
             policy=alias_policy();sides={}
             for gid in graph_ids:
@@ -391,12 +409,31 @@ class GraphRouter:
                 ends=[node(a,p['source_ref'],qa.get(p['source_ref'][7:])),node(b,p['target_ref'],qb.get(p['target_ref'][7:]))]
                 bundles.append(dict(item=dict(kind='bridge_candidate',score=p['score'],features=p['features'],status='unreviewed',
                     endpoints=[dict(graph_id=n['graph_id'],id=n['id']) for n in ends]),nodes=ends))
+        hint=None
+        if mode in {'bridge_impact','theory_conformance'}:
+            from .cross_graph import bridge_impact,conformance
+            if mode=='bridge_impact':
+                result=bridge_impact(self.catalog,(start['graph_id'],start['ref']),max_hops=max_hops,pinned_graphs=set(pinned_graphs),graph_ids=set(graph_ids))
+                counts=dict(bridges_considered=result['bridges_considered'],dependants=len(result['dependants']))
+                for item in result['dependants']:
+                    ends={(item['graph_id'],item['ref'])}
+                    for step in item['path']:
+                        for end in ('from','to'):ends.add((step[end]['graph_id'],step[end]['ref']))
+                    nodes=[node(g,r) for g,r in sorted(ends)]
+                    bundles.append(dict(item=dict(kind='bridge_impact',**item,endpoints=[dict(graph_id=n['graph_id'],id=n['id']) for n in nodes]),nodes=nodes))
+            else:
+                result=conformance(self.catalog,theory_graph,code_graph);hint=result['hint']
+                counts=dict(bridges_considered=result['bridges_considered'],findings=len(result['findings']))
+                for item in result['findings']:
+                    nodes=[node(g,item[k]) for g,k in ((theory_graph,'theory_ref'),(code_graph,'code_ref')) if item[k]]
+                    bundles.append(dict(item=dict(kind='theory_conformance',**item,endpoints=[dict(graph_id=n['graph_id'],id=n['id']) for n in nodes]),nodes=nodes))
         if offset>len(bundles):raise ValueError('INVALID_CURSOR')
         header=dict(engine_version='cross-graph-v1',mode=mode,graph_ids=graph_ids,ranking='independent_per_graph_no_global_rank',
             omitted_graphs=omitted,
             scope_anchor_identities=[dict(graph_id=g,snapshot_id=rows[g]['snapshot_id'],id='root',qualified_name=label[g],basis='snapshot_identity_only') for g in graph_ids],
             header=dict(counts=counts,total_items=len(bundles),offset=offset),
             next_cursor=key+':'+'9'*9,limit_tokens=limit_tokens)  # placeholder cursor reserves its maximum size
+        if hint is not None:header['hint']=hint
         counter=TokenCounter();budget=limit_tokens
         size=lambda o:len(json.dumps(o,ensure_ascii=False,default=str))
         for _ in range(8):
@@ -413,10 +450,17 @@ class GraphRouter:
             raise ValueError('RESULT_TOO_LARGE: one item exceeds this connection\'s max_result_chars')
         return out
 
-    def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation'):
+    def compile_task_packet(self,graph_id,anchors,instruction,*,profile='tier3_leaf',upstream=()):
+        from .task_packets import compile_packet
+        return compile_packet(self,graph_id,anchors,instruction,profile=profile,upstream=upstream)
+
+    def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation',profile=None,agent=False):
+        from .task_packets import check_profile
+        check_profile(profile,limit_tokens)
         if isinstance(graph_ids,list):graph_ids=[self.resolve(gid) for gid in graph_ids]
         if not isinstance(graph_ids,list) or not 2<=len(graph_ids)<=8 or len(set(graph_ids))!=len(graph_ids):raise ValueError('Choose 2..8 distinct graph IDs explicitly')
-        if type(limit_tokens) is not int or not 2048<=limit_tokens<=32768:raise ValueError('Federation budget must be 2048..32768 tokens')
+        minimum=256 if profile is not None else 2048
+        if type(limit_tokens) is not int or not minimum<=limit_tokens<=32768:raise ValueError(f'Federation budget must be {minimum}..32768 tokens')
         if mode not in {'lexical','documentation','hybrid'} or not isinstance(query,str) or not 1<=len(query)<=500:raise ValueError('Invalid search mode or query')
         for gid in graph_ids:self.permit(gid)
         graphs=sorted((self.catalog.graph(gid) for gid in graph_ids),key=lambda g:g['graph_id'])
@@ -438,6 +482,7 @@ class GraphRouter:
                     req=dict(schema_version='1.1',request_id='federated-search',snapshot_id=graph['snapshot_id'],
                         budget=dict(limit_tokens=per_graph,tokenizer='o200k_base',allow_byte_fallback=False),query=query,
                         mode=mode,repo_ids=[],kinds=[],limit=limit,cursor=None)
+                    if agent:req['identity_mode']='canonical_map'
                     envelope=self.query(gid,'search_entities',req)
                     # The router nests a service error under `result`; it is never "no hits".
                     err=self._nested_error(envelope)
@@ -486,8 +531,55 @@ class GraphRouter:
         for _ in range(5):
             response=assemble(select(candidates,budget))
             count=fit(response)
-            if count<=limit_tokens:return response
+            if count<=limit_tokens:return self._fit_federation(response,limit_tokens,counter,query,mode,agent)
             budget-=count-limit_tokens
         response=assemble({})
         if fit(response)>limit_tokens:raise ValueError('Federation metadata exceeds token budget')
-        return response
+        return self._fit_federation(response,limit_tokens,counter,query,mode,agent)
+
+    def _fit_federation(self,response,limit_tokens,counter,query,mode,agent=False):
+        """Shrink whole hit envelopes, then omit graphs, in utility order."""
+        cap=self.max_result_chars
+        if not cap and not agent:return response
+        def present():
+            out=deepcopy(response) if agent else response
+            if agent:
+                from .agent_requests import canonical_flat
+                for env in out['results']:
+                    canonical_flat(self,env['graph_id'],self.catalog.graph(env['graph_id']),env)
+                    for _ in range(12):
+                        count=counter.count(env)
+                        if env['routing_budget']['used_tokens']==count:break
+                        env['routing_budget']['used_tokens']=count
+            for _ in range(12):
+                count=counter.count(out)
+                if count==out['used_tokens']:break
+                out['used_tokens']=count
+            return out
+        while True:
+            projected=present()
+            if (not cap or len(json.dumps(projected,ensure_ascii=False))<=cap) and counter.count(projected)<=limit_tokens:return projected
+            if not response['results']:raise ValueError('Federation metadata exceeds connection cap')
+            envelope=min(response['results'],key=lambda r:(response['selection']['utility'][r['graph_id']],r['graph_id']))
+            gid=envelope['graph_id'];d=envelope['result'].get('data',{});hits=d.get('hits',[])
+            response['omitted']=[r for r in response['omitted'] if r['graph_id']!=gid]
+            response['omitted'].append(dict(graph_id=gid,reason='size_limit'))
+            if len(hits)>1:
+                # Re-pack fewer whole hits so inner wire counts, cursors and
+                # endpoint definitions stay valid as well as the outer budget.
+                graph=self.catalog.graph(gid)
+                req=dict(schema_version='1.1',request_id='federated-size-fit',snapshot_id=graph['snapshot_id'],
+                    budget=dict(limit_tokens=envelope['routing_budget']['limit_tokens'],tokenizer='o200k_base',allow_byte_fallback=False),
+                    query=query,mode=mode,repo_ids=[],kinds=[],limit=len(hits)-1,cursor=None)
+                if agent:req['identity_mode']='canonical_map'
+                smaller=self.query(gid,'search_entities',req)
+                if self._nested_error(smaller):
+                    response['results'].remove(envelope);response['selection']['tiers'][gid]='omit';response['selection']['utility'][gid]=0
+                else:
+                    response['results'][response['results'].index(envelope)]=smaller
+                    response['selection']['tiers'][gid]='compact'
+                    trust,modality=self._stratum(graph);ranks,exact=self._hit_facts(smaller,query)
+                    response['selection']['utility'][gid]=utility(trust,modality,intent(query),os.path.getsize(graph['code_database'])/1_000_000,ranks,exact)
+            else:
+                response['results'].remove(envelope);response['selection']['tiers'][gid]='omit'
+                response['selection']['utility'][gid]=0

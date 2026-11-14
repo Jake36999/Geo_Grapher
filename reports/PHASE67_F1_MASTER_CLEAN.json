@@ -1,0 +1,21 @@
+{
+  "status": "master_clean",
+  "master_head": "c4eb76ff1c2b78346fd7743dadda5d6b170427b5",
+  "index_equals_head": true,
+  "working_tree_clean": true,
+  "parked_branch": "wip/pre-phase67-release-2026-11-14",
+  "parked_head": "610b4496a6af314d660da7fe936e1f087bf2dc5b",
+  "parked_branch_unchanged": true,
+  "delegation_branch": "codex/phase67-delegation-controls",
+  "delegation_commit": "9f3a0d826f6078524f4da5aae8d2489e4f55cb8b",
+  "delegation_matches_captured_change_with_repository_lf_normalisation": true,
+  "delegation_tests": {
+    "red": 10,
+    "focused_modules_passed": 88,
+    "full_passed": 2149,
+    "skipped": 2,
+    "deselected": 5
+  },
+  "merged": false,
+  "pushed": false
+}

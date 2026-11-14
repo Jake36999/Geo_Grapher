@@ -1,0 +1,33 @@
+{
+  "source_catalog": "D:\\Librarian_V2\\tmp\\geo-grapher-wave4-continuation-stores\\catalog.sqlite",
+  "catalog": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\integration\\20261114-f2-geo\\catalog.sqlite",
+  "browse_root": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\integration\\20261114-f2-geo\\browse",
+  "junction_created": true,
+  "graphs": [
+    {
+      "graph_id": "g_03a111af7e3130d797ab1772",
+      "label": "ai-research-papers",
+      "snapshot_id": "snapshot:f593e618fe5441b701a918b0b83452d7d85b6b3d03b5e54089ff530083d132de"
+    },
+    {
+      "graph_id": "g_f329b1eb566856ee104f3f35",
+      "label": "timeline-mapping",
+      "snapshot_id": "snapshot:1050080a5791035a5af57046cbc76301bef74717d127d1dd7ee41e5f956ec094"
+    },
+    {
+      "graph_id": "g_850b52af2916ae87854c9ada",
+      "label": "ToolSet",
+      "snapshot_id": "snapshot:f5029b6bf601fcb2896a3c494e30dc306ced8624436d9334a9f9000931e1abee"
+    },
+    {
+      "graph_id": "g_1bbebca16afc45c39b2f2f8a",
+      "label": "librarian-v2",
+      "snapshot_id": "snapshot:1703964f018a8f5981c139069836a87178098924bd94383d5788c083bb89c9bf"
+    },
+    {
+      "graph_id": "g_9389ecb83d86491f69da9942",
+      "label": "librarian-survey-worktree",
+      "snapshot_id": "snapshot:6db76479d9cb2b85b2030c5a8b8131a2e378ff1913b6b6f9042ccdb12914eef2"
+    }
+  ]
+}

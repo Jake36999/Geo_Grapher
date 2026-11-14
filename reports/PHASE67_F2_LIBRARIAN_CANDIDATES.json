@@ -1,0 +1,64 @@
+{
+  "status": "OWNER_STOP_before_any_merge",
+  "refs": {
+    "master": "c4eb76ff1c2b78346fd7743dadda5d6b170427b5",
+    "geo-grapher-survey": "70ffe386d75d787861bc1067fb840c9fd0651964",
+    "geo-grapher-wave4": "db55b891daddad0d6bf8a5ef2444c5a1f3125e3a",
+    "codex/phase67-delegation-controls": "9f3a0d826f6078524f4da5aae8d2489e4f55cb8b",
+    "wip/pre-phase67-release-2026-11-14": "610b4496a6af314d660da7fe936e1f087bf2dc5b",
+    "codex/phase67-survey-pre-rebase-20261114": "70ffe386d75d787861bc1067fb840c9fd0651964",
+    "codex/phase67-wave4-pre-rebase-20261114": "737ea28095936c4847db0c62aa299d44376d7085"
+  },
+  "trees": {
+    "master": "f992dec1cb5c82e6cd075b2fe2a7c7f9af9b9b92",
+    "geo-grapher-survey": "a74b82a525420bb802c27afd42c45ba674dbc5c8",
+    "geo-grapher-wave4": "27e2fdda2a85e240c7bdfbd84399c2bb251838c6",
+    "codex/phase67-delegation-controls": "c2657ec3bd228d822a3c9319b06c4bd34262ec58",
+    "wip/pre-phase67-release-2026-11-14": "980d51bd4b61a0f8af4b98828704676c24adf3f2",
+    "codex/phase67-survey-pre-rebase-20261114": "a74b82a525420bb802c27afd42c45ba674dbc5c8",
+    "codex/phase67-wave4-pre-rebase-20261114": "77c9bbbad11f57ae1879fd0bffc194dec97b925e"
+  },
+  "master_clean": true,
+  "parked_git_blobs_verified": 17,
+  "parked_branch_unchanged": true,
+  "parked_and_delegation_branches_excluded_from_integration": true,
+  "wave4_delta_from_pre_rebase": [
+    "src/resource_librarian/deploy_survey.py",
+    "tests/test_deploy_survey_geo_grapher.py"
+  ],
+  "code_research_policy": {
+    "binding_role": "lead",
+    "temperature": 0.2,
+    "answer_self_check": false
+  },
+  "results": [
+    {
+      "candidate": "survey",
+      "log": "F:\\uv-data\\Geo_Grapher\\output\\f2-survey-full-suite-first.log",
+      "sha256": "da1e86ef7ff7d30ef264b747552fdf09b45c2d489ae9e61ca171c4155c6131a1",
+      "summary": "2143 passed, 2 skipped, 5 deselected"
+    },
+    {
+      "candidate": "wave4_initial_context",
+      "log": "F:\\uv-data\\Geo_Grapher\\output\\f2-wave4-on-survey-full-suite-first.log",
+      "sha256": "b7e73cb5bff0ed594d040eace3f164d2327e7b3543f095e190017a0919e9c3c7",
+      "summary": "2 failed, 2223 passed, 2 skipped, 5 deselected"
+    },
+    {
+      "candidate": "wave4_neutral_context",
+      "log": "F:\\uv-data\\Geo_Grapher\\output\\f2-wave4-on-survey-full-suite-neutral.log",
+      "sha256": "3b81845808b51a5cd25ec7a3efdcb9f1aa58887e6820dccd8b321c4c694ae130",
+      "summary": "2225 passed, 2 skipped, 5 deselected"
+    },
+    {
+      "candidate": "delegation",
+      "log": "F:\\uv-data\\Geo_Grapher\\output\\f1-delegation-full-suite.log",
+      "sha256": "701d613ac4636e212d88524b2d322e7233d937d2eaafd7e0273d426bb1d2f3a0",
+      "summary": "2149 passed, 2 skipped, 5 deselected"
+    }
+  ],
+  "paid_calls": 0,
+  "merged": false,
+  "pushed": false,
+  "geo_scratch_integration_started": false
+}

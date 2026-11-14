@@ -1,0 +1,17 @@
+{
+  "status": "testing_before_master_mutation",
+  "branch": "codex/phase67-librarian-premerge-20261114",
+  "worktree": "D:\\Librarian_V2\\tmp\\phase67-release-20261114\\combined-test-worktree",
+  "tested_head": "baac8307efe3373abe30b5cf1a70e60de911072c",
+  "tested_tree": "f6479caaf040da4dcfb066befd22e8ca3ba974c7",
+  "neutral_cwd": "F:\\uv-data",
+  "original_master": "c4eb76ff1c2b78346fd7743dadda5d6b170427b5",
+  "order": [
+    "70ffe386d75d787861bc1067fb840c9fd0651964",
+    "db55b891daddad0d6bf8a5ef2444c5a1f3125e3a",
+    "9f3a0d826f6078524f4da5aae8d2489e4f55cb8b"
+  ],
+  "merge_mode": "--no-ff",
+  "master_untouched": true,
+  "paid_calls": 0
+}
