@@ -1,0 +1,1036 @@
+{
+  "version": "access-audit-v1",
+  "authorship_vocabulary": [
+    "owner_created",
+    "generated",
+    "third_party"
+  ],
+  "tools": [
+    {
+      "tool": "canonical:check_architecture",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/server.py",
+        "symbol": "check_architecture"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "canonical:find_dependants",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/server.py",
+        "symbol": "find_dependants"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "canonical:find_similar_code",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/server.py",
+        "symbol": "find_similar_code"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "canonical:get_architecture_context",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/server.py",
+        "symbol": "get_architecture_context"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "canonical:get_entity_content",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/server.py",
+        "symbol": "get_entity_content"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "canonical:inspect_relationship_witnesses",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/server.py",
+        "symbol": "inspect_relationship_witnesses"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "canonical:search_entities",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/server.py",
+        "symbol": "search_entities"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:annotate_document",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S2"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "annotate_document"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:find_by_concept",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "find_by_concept"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:get_annotations",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_annotations"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:get_claim",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_claim"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:get_concept",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_concept"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:get_corpus_status",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": false,
+      "authorship_may_return": [],
+      "status": "n/a",
+      "fixes": [],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_corpus_status"
+      },
+      "reason": "Corpus counters or bridge metadata; not a content-access pass."
+    },
+    {
+      "tool": "paper:get_document",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_document"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:get_outline",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_outline"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:get_related",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_related"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:get_section",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "get_section"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "paper:search_documents",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "connected MCP client (not tier-labelled)"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "pipeline/mcp_doc_graph.py",
+        "symbol": "search_documents"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:analyze_cross_graphs",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "analyze_cross_graphs"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:check_architecture",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "check_architecture"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:compile_task_packet",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "compile_task_packet"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:federated_search",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "federated_search"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:find_dependants",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "find_dependants"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:find_similar_code",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "find_similar_code"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:get_architecture_context",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "get_architecture_context"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:get_entity_content",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "get_entity_content"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:inspect_relationship_witnesses",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "inspect_relationship_witnesses"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:list_bridges",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "list_bridges"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:list_graphs",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "B2"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "list_graphs"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_find_by_concept",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_find_by_concept"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_get_annotations",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_annotations"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_get_claim",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_claim"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_get_concept",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_concept"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_get_corpus_status",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": false,
+      "authorship_may_return": [],
+      "status": "n/a",
+      "fixes": [],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_corpus_status"
+      },
+      "reason": "Corpus counters or bridge metadata; not a content-access pass."
+    },
+    {
+      "tool": "scoped:paper_get_document",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_document"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_get_outline",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_outline"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_get_related",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_related"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_get_section",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_get_section"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:paper_search_documents",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S3",
+        "S4",
+        "S5"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "paper_search_documents"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    },
+    {
+      "tool": "scoped:search_entities",
+      "minimum_tier": "connection-scoped (no native registry tier)",
+      "actors": [
+        "person",
+        "lead",
+        "research helper",
+        "Clerk/Scribe connection principal: own-only; native models have no external registry tools"
+      ],
+      "returns_content": true,
+      "authorship_may_return": [
+        "owner_created",
+        "generated",
+        "third_party"
+      ],
+      "status": "diverges",
+      "fixes": [
+        "S1",
+        "S4"
+      ],
+      "evidence": {
+        "path": "src/geographer/graph_server.py",
+        "symbol": "search_entities"
+      },
+      "reason": "Wave L scoped role/provenance boundaries exist; authorship/domain and the new source-access route are not yet enforced."
+    }
+  ]
+}
