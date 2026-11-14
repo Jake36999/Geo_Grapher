@@ -24,6 +24,13 @@ def test_stable_contract_manifest_covers_every_contract_byte():
     assert all(hashlib.sha256((base/name).read_bytes()).hexdigest()==sha
                for name,sha in manifest['sha256'].items())
 
+def test_wheel_declares_every_frozen_contract_file():
+    package=tomllib.loads((ROOT/'pyproject.toml').read_text())['tool']['setuptools']['data-files']
+    shipped={name for names in package.values() for name in names}
+    manifest=json.loads((ROOT/'contracts/v1.1/RELEASE_MANIFEST.json').read_text())
+    assert {'contracts/v1.1/'+name for name in manifest['sha256']} <= shipped
+    assert 'contracts/v1.1/RELEASE_MANIFEST.json' in shipped
+
 @pytest.mark.parametrize('samples,passed',[
     ([2.0,2.9,3.4],True),([2.0,3.0,3.1],False),
     ([2.0,2.9,3.5],False),([2.0,2.9],False),
