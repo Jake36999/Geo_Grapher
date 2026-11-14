@@ -137,3 +137,11 @@ The first two are answer-selection problems, not retrieval problems. The most pr
 ## Appendix: the gate-power method
 
 For a pass rule over n items and r runs, compute P(pass | p) analytically (binomial) at the target and failure values of p. Example: "≥ 20/25 per run × 3 runs" at p = 0.93 gives 0.98, and at p = 0.80 gives 0.23. It discriminates well, though a system at 0.80 still passes about one time in four; tighten to ≥ 21/25 if 0.80 must fail more reliably. "5/5 per run × 3 runs" gives 0.35 at p = 0.93 and 0.04 at p = 0.80, so it rejects good systems. Commit the calculation next to every registration.
+
+## Decision record
+
+- **2026-11-14: FP4 switched off by owner decision (§5.2).**
+  - Librarian `geo-grapher-wave4` `737ea28` sets `code-research` `answer_self_check` to False and inverts the pinning test (RED, then GREEN). The full suite gives 2,221 passed, 2 skipped and 5 deselected, the same as the verified candidate.
+  - Geo-Grapher `214d8cd` updates `docs/phase67/RECOVERY_DESIGN.md` and `AGENT_MCP_GUIDE.md`.
+  - The FP4 mechanism and its explicit-opt-in tests remain.
+  - **No paid evaluation was run on the changed default.** The released default therefore differs from the configuration measured in the final cycle. Based on that cycle, the expected effect is that the 2 FP4 regressions disappear, but this is unmeasured. Measure it, if wanted, with the offline and dev suite rather than a new paid cycle.
