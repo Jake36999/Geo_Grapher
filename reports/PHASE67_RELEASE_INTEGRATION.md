@@ -55,3 +55,21 @@ Machine-readable first outputs: `PHASE67_F1_OFFLINE_LEXICAL_FIRST.json`, `PHASE6
 The measured quality rows remain **wave-4 12/15 PASS**, **held-out v2 70/75 = 93% (CI 85–97%)**, **development 13/15 = 87%**, and the **registered final-cycle gate FAIL**. The measured configuration had FP4 on; the release default is off at Librarian `737ea28`. Free checks show no retrieval/tool-contract regression and verify the changed default; they do **not** measure fresh live answer accuracy or real-usage representativeness. No further paid check was needed or attempted.
 
 F1 decisions, parking, isolated flags and pre-F2 free checks are now complete. F2 proceeds by rebase/testing only. Every merge, tag and push remains separately owner-controlled.
+
+## F2 Librarian integration candidates — OWNER STOP before merges
+
+The original master remains **clean at c4eb76f**. Backup refs preserve survey `70ffe38` and pre-rebase wave 4 `737ea28` (`codex/phase67-survey-pre-rebase-20261114`, `codex/phase67-wave4-pre-rebase-20261114`). The parked branch remains **610b4496…**, with all 17 raw Git blobs checked again against the pre-cleanup SHA256 values. Neither the parked branch nor the separate delegation-controls branch is an ancestor of either integration candidate.
+
+| Candidate / attempt | Commit | Full-suite result | Evidence |
+|---|---|---|---|
+| Survey rebased onto current master | **70ffe386d75d787861bc1067fb840c9fd0651964** | **2,143 passed / 2 skipped / 5 deselected** | `output/f2-survey-full-suite-first.log` |
+| Wave 4 on survey, first launch context | **db55b891daddad0d6bf8a5ef2444c5a1f3125e3a** | **2 failed / 2,223 passed / 2 skipped / 5 deselected** | `output/f2-wave4-on-survey-full-suite-first.log` |
+| Same wave-4 candidate, neutral launch directory | **db55b891daddad0d6bf8a5ef2444c5a1f3125e3a** | **2,225 passed / 2 skipped / 5 deselected** | `output/f2-wave4-on-survey-full-suite-neutral.log` |
+
+Survey's rebase was already up to date. Wave 4's 22 commits rebased cleanly onto survey, with no conflict resolutions or product edits. Comparing the old wave-4 tree to the new one shows **only** `src/resource_librarian/deploy_survey.py` and `tests/test_deploy_survey_geo_grapher.py`; the FP4-off policy and temperature 0.2 are preserved and checked from the committed source.
+
+The first wave-4 suite was launched inside a worktree beneath the Geo-Grapher repository's pre-existing `.librarian` directory. Two global CLI tests (`test_rules_and_capabilities`, `test_doctor_never_shows_key_values`) discovered that ambient library and failed. Both focused cases passed from **F:/uv-data**, then the entire unchanged candidate passed from that neutral directory. No test expectations or product code were changed, and no ambient-library cleanup/takeover was attempted. The initial complete failing run is retained, not replaced. For this nested worktree, run the suite from outside any library with an absolute test path and the explicit source `PYTHONPATH`.
+
+`PHASE67_F2_LIBRARIAN_CANDIDATES.json` records exact commit/tree hashes, backup refs, log hashes, absence of excluded branch ancestry, master cleanliness and the committed code-research policy. Delegation remains separately tested at **9f3a0d8** (88 focused module tests; full 2,149 passed), not silently included in the survey/wave-4 suite results.
+
+**STOP — explicit owner decisions required before any merge.** Requested actions and their order are in `PHASE67_F2_MERGE_APPROVAL.md`. No merge, push, tag or paid evaluation was performed. Geo scratch integration, its full verify/preset/browser/wheel checks, merged-mains cross-repository smoke and F3/F4 remain pending the staged owner approvals. The six-task live pilot remains deferred and unvalidated.
