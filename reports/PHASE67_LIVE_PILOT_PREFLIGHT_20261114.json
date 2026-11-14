@@ -1,0 +1,210 @@
+{
+  "status": "Core_recovered_free_preflight_complete_owner_spend_and_policy_gates_pending",
+  "core": {
+    "pid": 21752,
+    "url": "http://127.0.0.1:64046",
+    "vault": "D:/Resource-Library/.librarian-app",
+    "recovery_owner_approved": true
+  },
+  "l0": {
+    "research_helper": "PASS",
+    "clerk": "PASS",
+    "rerun_after_MCP_registry_change": true
+  },
+  "l1": {
+    "research_helper": "NOT RUN",
+    "clerk": "NOT RUN",
+    "core_estimated_cost_usd": null,
+    "planning_estimate_under_usd": 0.01,
+    "allowance_requested_usd": 0.02,
+    "prices": {
+      "gemma": {
+        "input_per_million": 0.07,
+        "output_per_million": 0.34,
+        "source": "https://deepinfra.com/google/gemma-4-26B-A4B-it"
+      },
+      "qwen": {
+        "input_per_million": 0.45,
+        "output_per_million": 3.0,
+        "source": "https://deepinfra.com/pricing"
+      }
+    },
+    "probe_requested_output_tokens_per_role": {
+      "proposal": 64,
+      "continuation": 256
+    }
+  },
+  "packet_preflight": {
+    "passed": true,
+    "scope": "No-model candidate anchors and packet transport only; lead has not compiled or dispatched this plan",
+    "paid_calls": 0,
+    "live_tasks_dispatched": 0,
+    "wheel_sha256": "4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d",
+    "catalog": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\pilot\\20261114-six-task\\catalog.sqlite",
+    "graph_id": "g_850b52af2916ae87854c9ada",
+    "snapshot_id": "snapshot:f5029b6bf601fcb2896a3c494e30dc306ced8624436d9334a9f9000931e1abee",
+    "anchors": [
+      {
+        "entity_id": "entity:256ddd69e64c872f1718406151b1534ab29a63fe8b5960a56aede8ede0a78943",
+        "qualified_name": "aletheia_toolchain/aletheia_tool_core/config.py.load_json_config",
+        "ref": "entity:entity:256ddd69e64c872f1718406151b1534ab29a63fe8b5960a56aede8ede0a78943"
+      },
+      {
+        "entity_id": "entity:0e9c1f8c1603eda1d8a0ccea8c7646284cdaf005a6030af6e52174bf289578cc",
+        "qualified_name": "aletheia_toolchain/aletheia_tool_core/config.py.resolve_precedence",
+        "ref": "entity:entity:0e9c1f8c1603eda1d8a0ccea8c7646284cdaf005a6030af6e52174bf289578cc"
+      },
+      {
+        "entity_id": "entity:c177e40ca7fbb5454be9e096760dec9f29dd338abdd49cae2bff0642940ec26e",
+        "qualified_name": "aletheia_toolchain/aletheia_tool_core/config.py.resolve_profile",
+        "ref": "entity:entity:c177e40ca7fbb5454be9e096760dec9f29dd338abdd49cae2bff0642940ec26e"
+      },
+      {
+        "entity_id": "entity:97fe812e96b7cd63ef214c752d20bc1245609c7e82acd9fe7952b5e473e22543",
+        "qualified_name": "aletheia_toolchain/aletheia_tool_core/config.py.validate_config",
+        "ref": "entity:entity:97fe812e96b7cd63ef214c752d20bc1245609c7e82acd9fe7952b5e473e22543"
+      }
+    ],
+    "packets": [
+      {
+        "task_id": "contract-1",
+        "tier": 3,
+        "used_tokens": 1163,
+        "limit_tokens": 1200,
+        "characters": 3182,
+        "handles": 5,
+        "upstream_omitted": 0
+      },
+      {
+        "task_id": "contract-2",
+        "tier": 3,
+        "used_tokens": 1103,
+        "limit_tokens": 1200,
+        "characters": 3283,
+        "handles": 3,
+        "upstream_omitted": 0
+      },
+      {
+        "task_id": "contract-3",
+        "tier": 3,
+        "used_tokens": 1082,
+        "limit_tokens": 1200,
+        "characters": 3021,
+        "handles": 4,
+        "upstream_omitted": 0
+      },
+      {
+        "task_id": "contract-4",
+        "tier": 3,
+        "used_tokens": 1051,
+        "limit_tokens": 1200,
+        "characters": 3333,
+        "handles": 3,
+        "upstream_omitted": 0
+      },
+      {
+        "task_id": "synthesis",
+        "tier": 2,
+        "used_tokens": 1542,
+        "limit_tokens": 1800,
+        "characters": 4371,
+        "handles": 5,
+        "upstream_omitted": 2
+      },
+      {
+        "task_id": "review",
+        "tier": 1,
+        "used_tokens": 2499,
+        "limit_tokens": 32768,
+        "characters": 6213,
+        "handles": 12,
+        "upstream_omitted": 0
+      }
+    ]
+  },
+  "core_preflight": {
+    "connected": true,
+    "tools": 6,
+    "consult_attempt": "TIER_REFUSED",
+    "contribute_attempt": "Client timed out after 30s while broker waited for owner; own pending request then denied/cancelled",
+    "fully_passed": false
+  },
+  "lead": {
+    "model": "ByteDance/Seed-2.0-mini",
+    "status": "ineligible",
+    "required_owner_decision": "Eligible lead selection or explicit pilot-only override; current binding not changed",
+    "tier1_helper_role_qualification_needed": true
+  },
+  "budget": {
+    "ceiling_usd": 14.24739611,
+    "committed_usd": 12.25366085,
+    "remaining_usd": 1.99373526,
+    "required_reserve_usd": 2.0,
+    "reserve_shortfall_usd": 0.00626474,
+    "new_spend_usd": 0,
+    "requested_top_up_usd": 0.5,
+    "requested_total_pilot_allowance_usd": 0.4,
+    "top_up_applied": false
+  },
+  "paid_calls": 0,
+  "live_tasks_dispatched": 0,
+  "policy_changes": {
+    "lead_override": false,
+    "model_bindings_changed": false,
+    "global_permission_mode_changed": false,
+    "scoped_MCP_server_added": "geo_phase67_pilot_20261114",
+    "tool_permissions": "ask"
+  },
+  "pending": [
+    "Owner funding and bounded-spend approval",
+    "Owner lead eligibility/override and exact-role qualification choices",
+    "Owner pilot-tool permission approval",
+    "Metered no-model dispatch readiness before provider calls"
+  ],
+  "artifacts": [
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\research_helper-l1-plan.json",
+      "sha256": "e1bbf3c4e315ac4a83a0c4060000103864813ba3422c29a028e22c539f740a6d"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\clerk-l1-plan.json",
+      "sha256": "69a0a3ea9c581e3136f6d621d8bcd2a38eeb0f7360e3b5f8271b855945567bb4"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\research_helper-l0-first.json",
+      "sha256": "27d06be8a5038342e73c662379dcaeef1355094d42f38c4fd01ad75266875add"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\clerk-l0-first.json",
+      "sha256": "2a7982c0f0b65e91cb1b1e954c1e49e8dca8223e832416d249faa1f171be40c6"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\research_helper-l0-after-mcp.json",
+      "sha256": "3e88214eb07d368e13c68485a6ea4db36e4ef7ec9db49bdde0d6bb5202f13e41"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\clerk-l0-after-mcp.json",
+      "sha256": "e22447a7c90b9f89bde5922566dc19201f0a9a64ee241a5a2b62d0ec79df15c8"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\packet-preflight-first.json",
+      "sha256": "8c8ee78419a587836a30c209f52d50ff893423949987020ebf9537a4a8239e58"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\candidate-plan.json",
+      "sha256": "a9a6853d17f0a64c997dfa7df1c6e182be3c6bd5833ee5d338127803b0a4b874"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-mcp-preflight-first.json",
+      "sha256": "e5aa497d2f901b8cbcd125e0a85280f1008d8a62de9dcc07e085166c17caf8cf"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-permission-preflight-first.json",
+      "sha256": "6a78a929c124049adb65a0772ad802ba2176b3061ebfc406fbea9077791c49b2"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\pool-before-paid.json",
+      "sha256": "434891f1d9d09a8fb2fdbb74d02a9c7051b6f9b727f72cee0717490fc1154cd7"
+    }
+  ]
+}

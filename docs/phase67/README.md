@@ -11,4 +11,4 @@ Both mains contain the owner-approved integration. Geo-Grapher is versioned 0.2.
 - [Integration evidence](../../reports/PHASE67_RELEASE_INTEGRATION.md), [live security evidence](../../reports/PHASE67_F3_SECURITY.md).
 - [F4 owner acceptance](../../reports/PHASE67_F4_OWNER_ACCEPTANCE.md): fresh-copy commands, checklist and three production-route questions.
 
-The [gate report](../../reports/PHASE67_WAVE4_GATE.md) retains every historical result. The six-task pilot is deferred and unvalidated. FP4 is off and semantic retrieval is optional/off: shipped defaults differ from the measured 93% configuration. No fresh autonomous accuracy claim is made. Tags and pushes require separate owner instructions.
+The [gate report](../../reports/PHASE67_WAVE4_GATE.md) retains every historical result. The [six-task pilot was attempted and failed](../../reports/PHASE67_LIVE_PILOT_20261114.md); successful coordination remains unvalidated. FP4 is off and semantic retrieval is optional/off: shipped defaults differ from the measured 93% configuration. No fresh autonomous accuracy claim is made. Tags and pushes require separate owner instructions.

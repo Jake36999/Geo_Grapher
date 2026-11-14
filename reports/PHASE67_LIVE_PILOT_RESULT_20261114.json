@@ -1,0 +1,503 @@
+{
+  "verdict": "FAIL",
+  "date": "2026-11-14",
+  "quality_cycles_reopened": false,
+  "owner_approved_topup_usd": 0.5,
+  "owner_total_allowance_usd": 0.4,
+  "approved_lead_change": "Seed unavailable; explicit owner approval for Gemma experimental pilot lead; original restored afterward",
+  "qualification": [
+    {
+      "route": "gemma",
+      "run_id": "ce84205e76c1cc4aef30",
+      "outcome": "pass",
+      "observed_model": "google/gemma-4-26B-A4B-it",
+      "duration_ms": 2047,
+      "detail": "strict tool continuation probe passed",
+      "budget_hold_usd": 0.02,
+      "actual_invoice_cost_usd": null
+    },
+    {
+      "route": "qwen",
+      "run_id": "f4581682a0f9d2ef18da",
+      "outcome": "pass",
+      "observed_model": "Qwen/Qwen3.5-397B-A17B",
+      "duration_ms": 3812,
+      "detail": "strict tool continuation probe passed",
+      "budget_hold_usd": 0.02,
+      "actual_invoice_cost_usd": null
+    },
+    {
+      "route": "seed-helper",
+      "run_id": "145bedcad5f8b1af649c",
+      "outcome": "unavailable",
+      "observed_model": "",
+      "duration_ms": 16797,
+      "detail": "HTTP 500 from https://api.deepinfra.com/v1/openai/chat/completions: {\"error\":{\"message\":\"{\\\"error\\\":{\\\"code\\\":\\\"InvalidEndpoint.ClosedEndpoint\\\",\\\"message\\\":\\\"The request targeted an endpoint that is currently closed or temporarily unavailable. Request id: 021794652155909c323afa74840446e61be924aaf3459ee7513da\\\",\\\"param\\\":\\\"\\\",\\\"type\\\":\\\"Bad Request\\\"}}\",\"type\":\"api_error\",\"param\":null,\"code\":null}}",
+      "budget_hold_usd": 0.02,
+      "actual_invoice_cost_usd": null
+    }
+  ],
+  "attempts": [
+    {
+      "kind": "native",
+      "file": "live-controller-result.json",
+      "valid_tasks_dispatched": 0,
+      "error": "Malformed plan field names; controller KeyError before native validation",
+      "api_usage_estimate_usd": 0.00045428000000000005
+    },
+    {
+      "kind": "native schema-only correction",
+      "file": "live-controller-result-schema-repair.json",
+      "valid_tasks_dispatched": 0,
+      "error": "String tier values refused",
+      "api_usage_estimate_usd": 0.0006699100000000001
+    },
+    {
+      "kind": "assisted exact tier-string to integer normalisation",
+      "file": "assisted-controller-result.json",
+      "valid_plans_dispatched": 1,
+      "task_states": {
+        "contract-1": "failed",
+        "contract-2": "failed",
+        "contract-3": "failed",
+        "contract-4": "failed",
+        "review-1": "skipped",
+        "synthesis-1": "skipped"
+      },
+      "unassisted_pass": false
+    }
+  ],
+  "graph_id": "g_850b52af2916ae87854c9ada",
+  "snapshot_id": "snapshot:f5029b6bf601fcb2896a3c494e30dc306ced8624436d9334a9f9000931e1abee",
+  "wheel_sha256": "4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d",
+  "waves": [
+    [
+      "contract-1",
+      "contract-2",
+      "contract-3",
+      "contract-4"
+    ],
+    [
+      "synthesis-1"
+    ],
+    [
+      "review-1"
+    ]
+  ],
+  "wall_seconds": 130.53100000001723,
+  "controller_wall_seconds": 130.56200000000536,
+  "clerk_contracts": {
+    "attempted": 4,
+    "returned": 0,
+    "failed": 4,
+    "completion_tokens_per_attempt": [
+      1800,
+      1800,
+      1800,
+      1800
+    ],
+    "configured_output_cap": 1800
+  },
+  "citation_verification": {
+    "verified": 0,
+    "unverified": 0,
+    "rate": null,
+    "reason": "No contract output reached verification"
+  },
+  "stale": {
+    "reported": 0,
+    "successful_result_revalidation_ran": false
+  },
+  "live_synthesis_ran": false,
+  "live_review_ran": false,
+  "dry_run_upstream_omissions": 2,
+  "spending": {
+    "main_http_attempts": 6,
+    "main_api_usage_estimate_usd": 0.02532294,
+    "qualification_invoice_usage_known": false,
+    "qualification_holds_usd": 0.06,
+    "conservative_committed_total_usd": 0.08532294,
+    "pool_budget_usd": 14.74739611,
+    "pool_committed_usd": 12.33898379,
+    "pool_remaining_usd": 2.40841232,
+    "reserve_floor_usd": 2.0
+  },
+  "restoration": {
+    "original_role_bindings_restored": true,
+    "lead": "ByteDance/Seed-2.0-mini",
+    "other_roles_unchanged": true,
+    "pilot_only_override_removed": true,
+    "profile_restored": "lead",
+    "effort_restored": 2,
+    "shared_defaults": "Follow restored pre-pilot Resource-Library tier/override settings through normal Settings update",
+    "mode_unchanged": true
+  },
+  "final_core": {
+    "core_pid": 7972,
+    "url": "http://127.0.0.1:56192",
+    "core_running": true,
+    "busy": false,
+    "pending": [],
+    "mode": "ask",
+    "lead": {
+      "status": "ineligible",
+      "model": "preset-deepinfra/ByteDance/Seed-2.0-mini"
+    },
+    "original_role_bindings_restored": true,
+    "scoped_pilot_server_removed": true,
+    "qualifications_after_restoring_original_tool_registry": {
+      "research_helper": {
+        "host_id": "preset-deepinfra",
+        "model_id": "google/gemma-4-26B-A4B-it",
+        "role": "research_helper",
+        "status": "experimental",
+        "updated_at": "2026-11-14T10:56:27+00:00",
+        "expires_at": "",
+        "invalidation": "hard compatibility fingerprint changed; L0 pass; L1\u2013L3 requalification queued",
+        "evidence_runs": [
+          "d575a2114df3fca315de",
+          "0e1302251f5cd7118606"
+        ],
+        "fresh": false,
+        "freshness": "expired_or_missing"
+      },
+      "clerk": {
+        "host_id": "preset-deepinfra",
+        "model_id": "Qwen/Qwen3.5-397B-A17B",
+        "role": "clerk",
+        "status": "experimental",
+        "updated_at": "2026-11-14T10:56:27+00:00",
+        "expires_at": "",
+        "invalidation": "hard compatibility fingerprint changed; L0 pass; L1\u2013L3 requalification queued",
+        "evidence_runs": [
+          "3ed4d8d77d396a306621",
+          "00d55a39ea978745eadb"
+        ],
+        "fresh": false,
+        "freshness": "expired_or_missing"
+      }
+    },
+    "warning": "Qualification was fresh during the scoped pilot. Restoring/removing temporary MCP tools changes the dependency fingerprint; status above is authoritative for the restored configuration. No automatic paid requalification ran."
+  },
+  "findings": [
+    "Generic nested plan schema omits required keys/types",
+    "All four Qwen contracts exhausted 1800 output tokens without usable output",
+    "L1 connectivity screening does not establish real task compatibility",
+    "Tier-2 dry-run drops two upstream records",
+    "Operational guard unchecked tier lookup hardened prospectively, RED then five tests PASS"
+  ],
+  "further_paid_runs": false,
+  "product_source_changed": false,
+  "tags_created": false,
+  "pushed": false,
+  "artifacts": [
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\assisted-controller-first.log",
+      "sha256": "ecb27feeb63ca999e7649fab35422070427f64a7eb1731df84280c7f5ea783df"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\assisted-controller-result.json",
+      "sha256": "14354fdf57ca3ef14d3b3c2fe9f8fd2443186ca6cd598fe196ff36a06d677232"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\assisted-plan.json",
+      "sha256": "8a12b306cef84ddddcb000e83606a9ae26aeaa4188107baddaeeab4ffcd08256"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\assisted-registration.json",
+      "sha256": "c417add81d0c5e9317bb6f3e48eb0e96f9afc20e3d66c02ef8f6c12f9d22b68b"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\candidate-packets.json",
+      "sha256": "85c45e33044aeac3710a73d869bdda8e67bc1b2d5626819c19f4a9d2f4301e08"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\candidate-plan.json",
+      "sha256": "a9a6853d17f0a64c997dfa7df1c6e182be3c6bd5833ee5d338127803b0a4b874"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\clerk-l0-after-mcp.json",
+      "sha256": "e22447a7c90b9f89bde5922566dc19201f0a9a64ee241a5a2b62d0ec79df15c8"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\clerk-l0-first.json",
+      "sha256": "2a7982c0f0b65e91cb1b1e954c1e49e8dca8223e832416d249faa1f171be40c6"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\clerk-l1-plan.json",
+      "sha256": "69a0a3ea9c581e3136f6d621d8bcd2a38eeb0f7360e3b5f8271b855945567bb4"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\configure-first.log",
+      "sha256": "9ce0eaa63d1fa56bee5ddca8e37a5408cd4afbd1ba845e79c55bedd004980cf2"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\configured-owner-approved.json",
+      "sha256": "348e4ff2ff40d80d95f576903859acd8d565642df255f20fdcc89c7e433f821b"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-clean-shutdown.json",
+      "sha256": "dc352205a842aa53cbb47e78251ea366d888cf989ff5a1ca21abdadc96b7d583"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-mcp-preflight-first.json",
+      "sha256": "e5aa497d2f901b8cbcd125e0a85280f1008d8a62de9dcc07e085166c17caf8cf"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-mcp-preflight-first.log",
+      "sha256": "4a311d6b200bb7bf3e28e62169d016519b2611a6b99adfdab74baede641c5c24"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-permission-preflight-first.json",
+      "sha256": "6a78a929c124049adb65a0772ad802ba2176b3061ebfc406fbea9077791c49b2"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-stderr.log",
+      "sha256": "76495147bcdd64fa179390b36e7fcdaa1913cffef6f47498dd667f9f6b1ced0d"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\core-stdout.log",
+      "sha256": "f331372733095e9a066a18c7b3eb381476bc7461612d7f77223df9aa8a9fa7f4"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\dispatch-plan-advertised-schema.json",
+      "sha256": "872433b5bf13d81a161a39cb355ac8a3c31c9c99eac1751cce6c37d5d318ec1c"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\final-core-restored.json",
+      "sha256": "1158917085721c226987b1a95a670a3885051c1187d754271aed39e929aee079"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\gemma-l1-approved-first.json",
+      "sha256": "c721305dde566a566bd45be51854aed10ff5b10e7996ebe20153e0e7ee53eacb"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\gemma-l1-approved-first.log",
+      "sha256": "0823fa2d7d0e1c524ac6f24a8f38772303e42e9ae6ef8ffe01bfe869ec7287db"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\gemma-l1-approved-first.receipt.json",
+      "sha256": "3f4dc9b2b5073c7bbe4884a5db426beb7147e9b22bf579a3138780f48394a152"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\idle-before-metered-core.json",
+      "sha256": "583d0ae279849c06381876497d1ada2316bba7c0178609ce7849ca1e559377d7"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-controller-first.log",
+      "sha256": "7764b0e9965e5690babdd59f014a5781ad88fb5f6d572001142f9a08eb3bda5c"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-controller-result-schema-repair.json",
+      "sha256": "feb065c9d4af3744528b090ea9732ef47eafb7da123698909be7f30af994d288"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-controller-result.json",
+      "sha256": "d6affceed721e77851e7879a88341f9c73bebcf9dc501d77664354ab44a65aac"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-controller-schema-repair-first.log",
+      "sha256": "b0037ecba5570c0906a44aa952d88f73de0c622249e1d849fc71e48d8d69ac6d"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-events-schema-repair.jsonl",
+      "sha256": "b0d5c88138913fd3204bc3dfd08b914e3c1d0d928c436f5750aa4c25c85e33ed"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-events.jsonl",
+      "sha256": "a664bca3eeff9e36ea3f90110b85e62ef67fd6689d02ccdebb16f42d0d28e930"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-lead-prompt-schema-repair.txt",
+      "sha256": "85fcc4a51e6bc298b97d3c9d97196cf47923f82a044924fd325e2d1a7c0f55b2"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-lead-prompt.txt",
+      "sha256": "8f0676d19f576c23141cc232e13421b08e73bb08e05e76f9b04d4c164888954b"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-registration-schema-repair.json",
+      "sha256": "c877c9408911d9d0c97b8438a1dfca5e35f7040076200542032a0044b8ac573b"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\live-registration.json",
+      "sha256": "3816e9edd5cd70f8c7a3fb55a551a4c0a6881cfaf21667e2ef21a126ac1bbcb0"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\metered-core-stderr.log",
+      "sha256": "e68656d0af4c94793e99ddf212010770018ef6834bfae8c81b4b00cf56c1490b"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\metered-core-stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\metered-core-v2-stderr.log",
+      "sha256": "84bdde324727fd55a32c4ce77ff24419630b10a369365e3da054117f6f4faa6f"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\metered-core-v2-stdout.log",
+      "sha256": "c4b7ad1e74a1279a777580777cda16378dcfb92269da6fc55c7df4b989f57925"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\owner-budget-approval.json",
+      "sha256": "6be32199881de2b6f614e884b399b69d6773980ac550e1da51fb5d5083303231"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\packet-preflight-first.json",
+      "sha256": "8c8ee78419a587836a30c209f52d50ff893423949987020ebf9537a4a8239e58"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\packet-preflight-first.log",
+      "sha256": "7188c3919c983d68d2010943da2b52103135b9a9524bf2496e128b0e43babbd5"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\pilot-runtime-as-executed.py",
+      "sha256": "1c2735a6adede8daae954399b09801e42626535e4055e6091c33b3f494ca60ca"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\pilot-session-map-first.json",
+      "sha256": "5cea5173aacf5bd00a08a531e287a7326617e11d72501a134fa415f99e3ea654"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\pilot-session-opened.json",
+      "sha256": "cef5a794d2e8b5336a8ce2533a83d5c950766f600f8d64e4dd32350ffbf57027"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\pilot-session-repair-opened.json",
+      "sha256": "0ad4a23594a9674684eb48fadaf757d14f4ba3f4aa6df52aa87b1cbf6b196f8e"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\pool-after-pilot.json",
+      "sha256": "7ea48b47834b21e40aaf42b86cee43c11254a6ce1b7560f7e3aa7a61126b53d7"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\pool-before-paid.json",
+      "sha256": "434891f1d9d09a8fb2fdbb74d02a9c7051b6f9b727f72cee0717490fc1154cd7"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\qwen-l1-approved-first.json",
+      "sha256": "0a566cf59e75c338c43330ff53009d583765b89798ae65f94fae343f323c6bf5"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\qwen-l1-approved-first.log",
+      "sha256": "33f8caf4b26caa0e1afd3777a0d4819c838e45b107d374089d6ff71b8585ef28"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\qwen-l1-approved-first.receipt.json",
+      "sha256": "59803df0820b87c3263522824f90dcc5d5e3c1b59fa123c63d8eefabb20a102b"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\research_helper-l0-after-mcp.json",
+      "sha256": "3e88214eb07d368e13c68485a6ea4db36e4ef7ec9db49bdde0d6bb5202f13e41"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\research_helper-l0-first.json",
+      "sha256": "27d06be8a5038342e73c662379dcaeef1355094d42f38c4fd01ad75266875add"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\research_helper-l1-plan.json",
+      "sha256": "e1bbf3c4e315ac4a83a0c4060000103864813ba3422c29a028e22c539f740a6d"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime\\pilot-summary.json",
+      "sha256": "5da0efc1485796de217547cb216097eba38adf5423891e72bf0fbda1a08a43a3"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime\\state.json",
+      "sha256": "8920976c9187497f17264dcdefeb37587238286355ffd228c8adfbaa2823ea8c"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-guard-green-corrected.log",
+      "sha256": "9014148bf4cf2566816306a054dca6e4be01a09ee682786ddc706031961aeb96"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-guard-green.log",
+      "sha256": "9fb17f6bd6008da616355fb21cd8db2a804ad304da2d78f06c1739d99f3fed40"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-guard-red.log",
+      "sha256": "5d96326d9eb7fe60ba9d3c878c54c011c219a00b35ba2ccf5916540cdd073858"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-shape-regression-green.log",
+      "sha256": "823d3ee3eff688ceea67909a794296a4730b280894303fcbc475a8d4a4bcca05"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-shape-regression-red.log",
+      "sha256": "8824fd742a9a19cffd1a479288abaf299487a473aba1c9cf486adb0fee25229d"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\http-001.json",
+      "sha256": "6b6bd316458e8f73979ed803529d533bb1907fb1f3a676da724224dfd61d5ffb"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\http-002.json",
+      "sha256": "820dee7fe570b0d2e33ea70d00521cb16557629d8ffb859ac3a035a86da38c4a"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\http-003.json",
+      "sha256": "73cc88600b7ec584e219cbf3e892422c70d308f819a9593d69f491f0b4b2b38a"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\http-004.json",
+      "sha256": "976fee4eee7af43b7da988472ddfea1d3ec9d5decf736c76c60e32e04d12125d"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\http-005.json",
+      "sha256": "b2241eedc8ea300d504b421f3fb8c6d3dfeca5e5b7680b94182ae01d96851ada"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\http-006.json",
+      "sha256": "f1550afd2643e939de30bceda31f3e3440925ddbea422b101a32b83662cf18d6"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\live-plan.json",
+      "sha256": "0046d3f80029d7a4e93f6778f33dccddfa35a84e0d1c1c11dc04d618021038ff"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\live-result.json",
+      "sha256": "d897d7f881a71256295537ffbb4f68a33ca3443545cdb506f0e07640d5f8af15"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\pilot-summary.json",
+      "sha256": "5da0efc1485796de217547cb216097eba38adf5423891e72bf0fbda1a08a43a3"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\runtime-v2\\state.json",
+      "sha256": "782621cb3ba365c0972c80fefe6e1fb703f4fada894fcb7dcbcc35500af8d2b3"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\schema-repair-authorisation-scope.json",
+      "sha256": "dafd1749b09290e45689bf32032f683c0dc170cbd294ccfb0c1ef7ef04b43131"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\seed-helper-l0-approved-first.json",
+      "sha256": "05c28ded38c5b443c1cafbfaf92ba419852e24a0631d7163d892bb3e691d385b"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\seed-helper-l0-approved-first.log",
+      "sha256": "fad280e6bfb00a5bcbb43dd97b51dfa5c9e8ac9c8b3844ca1c72abe67a01fa70"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\seed-helper-l1-approved-first.json",
+      "sha256": "bcdce58951d7b03c93ac29f744df2f380eb736718c24e46a4dd825d57428fc14"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\seed-helper-l1-approved-first.log",
+      "sha256": "cc028e2a16d8fabe36aa12cd0b41399c0feeff89b087dacf55050ebcfa15b3f5"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\seed-helper-l1-approved-first.receipt.json",
+      "sha256": "9415da000642c38ec7a299a1e4a9b78ee0141e7ecd0b205c8f158385668a866c"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\settings-before-pilot.json",
+      "sha256": "61eee70a43078e317b858f8ca42a967fca78f77385eb881b2564e67d2a0006a1"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\live-pilot-20261114\\settings-restoration.json",
+      "sha256": "d520b52cd51ced0ee09030d04caca1ebb28abaa6b24c6002e01b0d04cad9cd76"
+    }
+  ]
+}

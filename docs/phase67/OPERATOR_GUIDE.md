@@ -63,3 +63,8 @@ Run `scripts/verify.ps1` for the full backend, frontend/browser suite, wheel bui
 Use `scripts/verify.ps1 -QuietMachine -LatencyCatalog <catalog.sqlite> -GateOutput <new-directory>` after other QA jobs stop. Prospectively, C14 requires the median of **three fresh processes <3.0 s** and their **maximum <3.5 s**, on the same snapshot and installed wheel. All first samples are retained. Without `-QuietMachine`, verification explicitly reports latency as not run. Historical scores are unchanged. The isolated CLI is `python scripts/qa_c14.py --quiet-machine --wheel <wheel> --catalog <catalog> --out <new-result.json>`.
 
 Wave-4 code evaluation is closed after its final registered cycle. Preserve `wave4-code-evaluation-final.json`, all seals, raw results and cost receipts. No cleanup or operator retry should reopen that cycle. F2 merges and F3 version preparation are owner-authorised and completed locally. F4 sign-off remains required. Tagging and pushing require separate explicit owner instruction.
+
+
+## Live-pilot findings after release preparation
+
+The [2026-11-14 pilot](../../reports/PHASE67_LIVE_PILOT_20261114.md) failed. Connectivity qualification did not establish that Qwen could finish `code_block_contract` inside 1,800 output tokens. Qualify against the final MCP configuration: adding/removing tools changes the full-registry qualification fingerprint, even for helper roles. Prior screened evidence can become stale; queued requalification is inert and does not authorise paid probes. Do not increase budgets, change reasoning settings or substitute a model merely to report a pass. All first results and conservative billing holds are retained.

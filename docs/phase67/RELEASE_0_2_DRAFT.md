@@ -61,7 +61,7 @@ Catalog tables auto-create on open, including bridge bindings/proposals and arti
 
 | Area | Limitation / follow-up |
 |---|---|
-| Six-task live pilot | **Owner-DEFERRED.** Resource-Library role qualification remains outstanding. Live coordination, verification and timing are **unvalidated**. No pilot-passed claim. |
+| Six-task live pilot | **Attempted 2026-11-14: FAIL.** Native lead plan shape/types failed; assisted execution returned **4 Clerk failures / 2 dependency skips**. No contracts reached verification; no successful end-to-end pilot is claimed. [Actual results](../../reports/PHASE67_LIVE_PILOT_20261114.md). |
 | Accuracy scope | Registered final-cycle FAIL stands; FP4 changed after measurement. No real-usage population evidence; scoring brittleness and adjacent-mechanism confusion remain. |
 | Answer discipline | Prior-knowledge slip 1/29 is outside the zero-cross-graph-leak criterion; missing-corpus abstention is wave-5 work. |
 | Performance | Librarian-v2 QI historically 6–11 s cold; ToolSet prospective C14 does not certify every graph or target machine. |
@@ -78,4 +78,4 @@ See [rulings](RULINGS_INDEX.md), [Review 5](../../reports/PHASE67_REVIEW_5_SCIEN
 
 ## Owner acceptance
 
-Review the [20-minute 0.2.0 checklist and three production-route questions](../../reports/PHASE67_F4_OWNER_ACCEPTANCE.md). Sign off these notes and the known limitations. The six-task pilot remains deferred; it is not replaced by the three questions. **A v0.2.0 tag and every push require separate explicit owner instruction.**
+Review the [20-minute 0.2.0 checklist and three production-route questions](../../reports/PHASE67_F4_OWNER_ACCEPTANCE.md). Sign off these notes and the known limitations. The six-task pilot has now failed; the owner must review that known limitation explicitly. The three questions do not replace successful six-task coordination. **A v0.2.0 tag and every push require separate explicit owner instruction.**

@@ -1,6 +1,6 @@
 # F4 — 0.2.0 owner acceptance (prepared, not executed)
 
-**OWNER STOP.** Review the [draft release notes](../docs/phase67/RELEASE_0_2_DRAFT.md), migration guide and Known Limitations. The six-task pilot is deferred and unvalidated; this checklist does not qualify its helper/Clerk routes. The three questions below are owner-run production-route acceptance, not another evaluation cycle. Codex has made no paid calls.
+**OWNER STOP.** Review the [draft release notes](../docs/phase67/RELEASE_0_2_DRAFT.md), migration guide and Known Limitations. The [six-task pilot was attempted and failed](PHASE67_LIVE_PILOT_20261114.md); this checklist does not establish successful coordination. Role screening was fresh for the pilot configuration, and restoring the normal MCP registry invalidated its fingerprints. The three questions below are owner-run production-route acceptance, not another evaluation cycle. Codex has made no paid calls.
 
 Exact reviewed wheel SHA256: **`4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d`**. Full artifact/test evidence is in [PHASE67_F3_RELEASE_EVIDENCE.json](PHASE67_F3_RELEASE_EVIDENCE.json).
 
@@ -45,7 +45,7 @@ Record elapsed time, unexpected errors and any screenshots/handles privately. Au
 
 ## Three questions through the Resource-Library production route
 
-Use the existing **Resource-Library** configuration and its normal configured lead, not a benchmark model. Check Core status first; start the library through its usual UI/host if needed. Do not take over a live/stale lease automatically. Do not rebind providers or qualify helper routes as part of this checklist. For code, select `code-research` and confirm temperature **0.2**, FP4 **off**; customised profiles need explicit inspection. No helper delegation is needed.
+Use the existing **Resource-Library** configuration and its normal configured lead, not a benchmark model. The temporary Gemma pilot lead was restored afterward: the original Seed-2.0-mini route currently returns `InvalidEndpoint.ClosedEndpoint`. Select an available lead and verify qualification against the final MCP configuration before these owner questions; do not count a substituted route as the original one. Check Core status first; start the library through its usual UI/host if needed. Do not take over a live/stale lease automatically. Do not rebind providers or qualify helper routes as part of this checklist. For code, select `code-research` and confirm temperature **0.2**, FP4 **off**; customised profiles need explicit inspection. No helper delegation is needed.
 
 Attach the exact 0.2.0 wheel through the library's MCP settings with a **stdio** server, `GEOGRAPHER_CATALOG` set to the fresh acceptance catalog, result cap 7500 and explicit allowed graphs. Choose the appropriate six-tool preset for each question. Preserve the existing production provider binding. The HTTP workspace uses the same catalog, so returned canonical handles can be checked against the same snapshots.
 
@@ -62,7 +62,7 @@ If a route is unavailable, record **blocked**; do not substitute another model o
 - [ ] UI checklist completed; findings recorded.
 - [ ] Paper, code and cross-graph questions completed or explicitly accepted as blocked limitations, with cited handles checked.
 - [ ] Migration/backups and optional local-only semantic instructions reviewed.
-- [ ] Known Limitations accepted, including deferred pilot, changed FP4 default after measurement, registered gate FAIL and untested real-usage population.
+- [ ] Known Limitations accepted, including the now-failed pilot, changed FP4 default after measurement, registered gate FAIL and untested real-usage population.
 - [ ] Draft release notes approved, or requested edits listed.
 
 Owner / date / decision: **pending**.
