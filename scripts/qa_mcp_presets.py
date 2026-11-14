@@ -12,28 +12,16 @@ EXPECTED={
  'cross':{'list_graphs','federated_search','list_bridges','analyze_cross_graphs','search_entities','get_entity_content'}}
 
 def _paper_fixture(path):
-    con = sqlite3.connect(path)
-    con.executescript("""
-    CREATE TABLE read_documents(id INTEGER PRIMARY KEY,title TEXT,authors TEXT,year INTEGER,venue TEXT,doi TEXT,abstract_summary TEXT,
-      page_count INTEGER,file_path TEXT,primary_source_id INTEGER,source_count INTEGER,claim_count INTEGER,metadata_json TEXT NOT NULL);
-    CREATE TABLE read_claims(id INTEGER PRIMARY KEY,section_id INTEGER,text TEXT,claim_type TEXT,doc_id INTEGER,source_ids_json TEXT);
-    CREATE TABLE read_concepts(id INTEGER PRIMARY KEY,canonical_name TEXT,aliases TEXT,definition TEXT,concept_type TEXT,def_doc_id INTEGER,quality TEXT,original_ids_json TEXT);
-    CREATE TABLE read_doc_concepts(doc_id INTEGER NOT NULL,concept_id INTEGER NOT NULL,edge_type TEXT NOT NULL,PRIMARY KEY(doc_id,concept_id,edge_type));
-    CREATE TABLE sections(id INTEGER PRIMARY KEY,doc_id INTEGER,heading TEXT,section_type TEXT,position INTEGER,text TEXT,word_count INTEGER);
-    CREATE TABLE corpus_metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);
-    INSERT INTO corpus_metadata VALUES('revision','rev-1');
-    INSERT INTO read_documents VALUES(1,'Knowledge graphs','[]',2020,NULL,'10.1234/kg.2020',NULL,1,'a.pdf',1,1,1,'{"source_document_ids":[1]}');
-    INSERT INTO read_documents VALUES(2,'Unrelated','[]',2021,NULL,NULL,NULL,1,'b.pdf',2,1,0,'{"source_document_ids":[2]}');
-    INSERT INTO sections VALUES(5,1,'Entity linking','body',1,'...',1);
-    INSERT INTO read_claims VALUES(3,5,'Knowledge graphs improve recall.','finding',1,'[1]');
-    INSERT INTO read_concepts VALUES(1,'knowledge graph','["knowledge graphs"]','',NULL,1,'ok','[1]');
-    INSERT INTO read_concepts VALUES(2,'entity linking','[]','',NULL,1,'ok','[2]');
-    INSERT INTO read_concepts VALUES(3,'transformer','[]','',NULL,2,'ok','[3]');
-    INSERT INTO read_doc_concepts VALUES(1,1,'defines');
-    INSERT INTO read_doc_concepts VALUES(1,2,'mentions');
-    INSERT INTO read_doc_concepts VALUES(2,3,'defines');
-    """)
-    con.commit(); con.close()
+    from pipeline import stage3_build_db as builder
+    artifact=path.with_suffix('.nodes.json')
+    artifact.write_text(json.dumps(dict(file_path='fixture.pdf',status='complete',
+        metadata=dict(title='Knowledge graph research methods',authors=['Fixture, QA'],year=2026,
+                      abstract_summary='Graph research methods.'),
+        sections=[dict(heading='Results',section_type='results',position=0,text='Knowledge graphs improve recall.',
+            word_count=5,claims=[dict(text='Knowledge graphs improve recall.',claim_type='finding')],
+            concepts=[dict(name='knowledge graph',definition='A research graph.',concept_type='term')])])),encoding='utf-8')
+    with closing(sqlite3.connect(path)) as con:
+        con.executescript(builder.DDL);builder.load_nodes_file(artifact,con);con.commit()
 
 
 def make_fixture(base):
@@ -51,13 +39,13 @@ def make_fixture(base):
     return catalog_path
 
 async def run(a):
-    with sqlite3.connect(a.catalog.resolve().as_uri()+'?mode=ro',uri=True) as c:
+    with closing(sqlite3.connect(a.catalog.resolve().as_uri()+'?mode=ro',uri=True)) as c:
         c.row_factory=sqlite3.Row;graphs=[dict(r) for r in c.execute('SELECT * FROM graphs')]
     code=next(g for g in graphs if g['label']=='librarian-v2');paper=next(g for g in graphs if g['label']=='ai-research-papers')
     other=next(g for g in graphs if g['label']=='ToolSet')
-    with sqlite3.connect(Path(code['code_database']).resolve().as_uri()+'?mode=ro',uri=True) as c:
+    with closing(sqlite3.connect(Path(code['code_database']).resolve().as_uri()+'?mode=ro',uri=True)) as c:
         eid=c.execute("SELECT entity_id FROM entities WHERE snapshot_id=? AND kind='function' AND rel_path LIKE '%effort.py' ORDER BY CASE WHEN qualified_name LIKE '%.of' THEN 0 ELSE 1 END,entity_id LIMIT 1",(code['snapshot_id'],)).fetchone()[0]
-    with sqlite3.connect(Path(paper['paper_database']).resolve().as_uri()+'?mode=ro',uri=True) as c:
+    with closing(sqlite3.connect(Path(paper['paper_database']).resolve().as_uri()+'?mode=ro',uri=True)) as c:
         doc=c.execute('SELECT id FROM read_documents ORDER BY id LIMIT 1').fetchone()[0]
         section=c.execute('SELECT id FROM sections WHERE doc_id=? ORDER BY id LIMIT 1',(doc,)).fetchone()
         concept=c.execute('SELECT canonical_name FROM read_concepts ORDER BY id LIMIT 1').fetchone()[0]
@@ -87,7 +75,7 @@ async def run(a):
                     out=await s.call_tool(tool.name,cases[tool.name]);body=out.structuredContent
                     size=len(json.dumps(body,ensure_ascii=False))
                     result=dict(preset=preset,tool=tool.name,success=not out.isError,characters=size,
-                        schema_characters=len(json.dumps(tool.inputSchema)),error=body.get('error') if isinstance(body,dict) else None)
+                        schema_characters=len(json.dumps(tool.inputSchema)),error=(body.get('error') if isinstance(body,dict) else None) or (str(out.content)[:800] if out.isError else None))
                     results.append(result);a.out.write_text(json.dumps(results,indent=2),encoding='utf-8')
                 name='paper_get_document' if preset=='papers' else 'search_entities'
                 bad=await s.call_tool(name,{'graph_id':pgid if preset=='papers' else cgid,**({'request':{}} if preset=='papers' else {'query':17})})

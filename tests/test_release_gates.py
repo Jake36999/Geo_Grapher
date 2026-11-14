@@ -50,3 +50,17 @@ def test_presets_have_a_self_contained_default_catalog(tmp_path):
     papers=next(r[2] for r in rows if r[0]=='ai-research-papers')
     with sqlite3.connect(papers) as c:
         assert c.execute('SELECT count(*) FROM read_documents').fetchone()[0]>=1
+
+def test_default_preset_papers_support_current_query_contract(tmp_path):
+    from scripts.qa_mcp_presets import make_fixture
+    from pipeline import mcp_doc_graph as tools
+    catalog=make_fixture(tmp_path)
+    with sqlite3.connect(catalog) as c:
+        database=c.execute("SELECT paper_database FROM graphs WHERE label='ai-research-papers'").fetchone()[0]
+    token=tools.DATABASE_SCOPE.set(Path(database))
+    try:
+        result=tools._TOOLS['get_document']('doc:1')
+        assert 'error' not in result,result
+        assert result['title']
+        assert tools._TOOLS['search_documents']('graph')['count']>=1
+    finally:tools.DATABASE_SCOPE.reset(token)
