@@ -59,6 +59,7 @@ def preflight(args,out):
             returned=[m for m in messages if m.get('role')=='tool']
             names={spec.name.rsplit('__',1)[-1]:spec.name for spec in tools}
             if not tools:
+                if self.kind=='xml':return Reply(text='<tool_call><function=get_entity_content></function></tool_call>')
                 records=[item for message in returned for item in objects(message.get('content',''))]
                 found=next((item for item in records if item.get('qualified_name')==targets[label]['name'] and item.get('entity_id')),None)
                 return Reply(text=f"The directly defining implementation is {targets[label]['name']}. {found.get('cite_as','')}" if found else 'Evidence incomplete; source not yet gathered.')
@@ -90,6 +91,11 @@ def preflight(args,out):
                 limited=harness.run(Offline(),f"Graph: '{label}'. Inspect this generic code definition.",max_steps=1,server='geo_code',research_question=targets[label]['question'])
                 assert limited['completed_at_step_limit'] and limited['recovery_model_calls']==1
                 assert any(r['pattern']=='FP7' for r in limited['recoveries'])
+                protocol=harness.run(Offline('xml'),f"Graph: '{label}'. Inspect this generic code definition.",server='geo_code',research_question=targets[label]['question'])
+                assert any(r['pattern']=='FP9' and r['action']=='retain_prior_answer' and r['outcome']=='resolved' for r in protocol['recoveries'])
+                assert protocol['answer']==protocol['first_attempt']['answer'] and '<tool_call>' not in protocol['answer']
+                assert protocol['recovery_steps']==2 and protocol['recovery_model_calls']==1
+                checks['protocol_answer_guard']=True
                 assert not result['librarian_tools_used'] and not result['withheld_oversize']
                 graphs=json.loads(harness.call('list_graphs',{},'geo_code')['content'])['graphs']
                 assert {g['label'] for g in graphs}=={label}

@@ -65,6 +65,14 @@ def test_pattern_used_on_another_server_is_not_run_again(world):
     finally:META.reset(token)
 
 
+def test_agent_answer_validation_pattern_is_accepted_in_shared_metadata(world):
+    token=META.set(dict(episode_id='answer-validation',question='upload fallback capacity',mode='defer',remaining_steps=2,used_patterns=['FP9']))
+    try:
+        out=call_code(world[0],'search_entities',dict(graph_id='scent',query='unmatched_xyz'))
+        assert out['recovery_steps_consumed']==0
+    finally:META.reset(token)
+
+
 def test_recovery_is_still_accounted_when_the_requested_response_budget_cannot_fit(world):
     import pytest
     from geographer.agent_requests import call_code_connection,error

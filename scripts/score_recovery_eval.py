@@ -7,6 +7,13 @@ from register_recovery_eval import ROOT,write_new
 from eval_readiness import fingerprint
 
 def read(path):return json.loads(Path(path).read_text(encoding='utf-8'))
+def validate_seal(seal,root):
+    import hashlib
+    for relative,expected in seal['files'].items():
+        path=(root/relative).resolve()
+        if not path.is_relative_to(root.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest()!=expected:
+            raise ValueError('Sealed file changed; scoring blocked')
+
 def correct(answer,key):
     hits=[m for m in key['markers'] if m in answer]
     return len(hits)==len(key['markers']) if key.get('legacy_marker_required') else bool(hits)
@@ -23,6 +30,7 @@ def main():
     keys={q['id']:q for q in read(ROOT/'data/eval/code-research/development30.json')['questions']}
     if reg['stage']=='final':
         # First key read occurs here, after all six raw collections and closure checks.
+        validate_seal(reg['heldout_seal'],ROOT)
         keys.update({q['id']:q for q in read(directory/'heldout-v2/answers.sealed.json')})
     summaries=[];scored=[];patterns=defaultdict(Counter)
     for name,rows in all_rows.items():

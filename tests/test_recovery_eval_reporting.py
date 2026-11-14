@@ -25,3 +25,12 @@ def test_incomplete_cycle_never_reads_keys(tmp_path,monkeypatch):
     monkeypatch.setattr(sys,'argv',['score',str(registration)])
     with pytest.raises(ValueError,match='No keys'):scoring.main()
     assert len(seen)==2
+
+
+def test_sealed_key_change_is_rejected_before_scoring(tmp_path):
+    import hashlib
+    path=tmp_path/'answers.json';path.write_text('sealed')
+    seal=dict(files={'answers.json':hashlib.sha256(path.read_bytes()).hexdigest()})
+    scoring.validate_seal(seal,tmp_path)
+    path.write_text('changed')
+    with pytest.raises(ValueError,match='Sealed'):scoring.validate_seal(seal,tmp_path)

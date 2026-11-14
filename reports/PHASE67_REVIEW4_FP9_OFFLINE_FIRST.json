@@ -1,0 +1,841 @@
+{
+  "paid_provider_calls": 0,
+  "confusion": {
+    "true_negative": 76,
+    "true_positive": 12,
+    "false_positive": 2
+  },
+  "phases": {
+    "ab-off": {
+      "total": 30,
+      "original_correct": 23,
+      "offline_counterfactual_correct": 27,
+      "triggered": 6
+    },
+    "ab-on": {
+      "total": 30,
+      "original_correct": 25,
+      "offline_counterfactual_correct": 27,
+      "triggered": 2
+    },
+    "pilot": {
+      "total": 30,
+      "original_correct": 24,
+      "offline_counterfactual_correct": 28,
+      "triggered": 6
+    }
+  },
+  "rows": [
+    {
+      "phase": "ab-off",
+      "id": "dev-01",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "dev-02",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "ab-off",
+      "id": "dev-03",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "dev-04",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "dev-05",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-01",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-02",
+      "format": "xml_tool_call",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-03",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-04",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-05",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-06",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-07",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-08",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-09",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-10",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-11",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-12",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-13",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-14",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-15",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-16",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-17",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-18",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-19",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-20",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-21",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-22",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-23",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-24",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-off",
+      "id": "heldout-25",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "dev-01",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "dev-02",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "dev-03",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "dev-04",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "dev-05",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-01",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-02",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-03",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-04",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-05",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-06",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-07",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-08",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-09",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-10",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-11",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-12",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-13",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-14",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-15",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-16",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-17",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-18",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-19",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-20",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-21",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-22",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-23",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-24",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "ab-on",
+      "id": "heldout-25",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "dev-01",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "dev-02",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "dev-03",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "dev-04",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "dev-05",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-01",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-02",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-03",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-04",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-05",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-06",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-07",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-08",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-09",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-10",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-11",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-12",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-13",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-14",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-15",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-16",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-17",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-18",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-19",
+      "format": "xml_tool_call",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-20",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-21",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": false
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-22",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-23",
+      "format": "xml_tool_call",
+      "annotated": true,
+      "prior_draft_available": true,
+      "original_correct": false,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-24",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    },
+    {
+      "phase": "pilot",
+      "id": "heldout-25",
+      "format": "",
+      "annotated": false,
+      "prior_draft_available": true,
+      "original_correct": true,
+      "offline_counterfactual_correct": true
+    }
+  ],
+  "warning": "Offline counterfactual retains recorded prior drafts. It is not a paid rerun, original-result rescore, or prediction of stochastic final-cycle accuracy."
+}

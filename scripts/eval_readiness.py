@@ -5,7 +5,7 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-REQUIRED={'profile_registry','real_tool_calls','scope','structured_withheld','batch_path','recovery_loop','mcp_metadata','step_limit_recovery'}
+REQUIRED={'profile_registry','real_tool_calls','scope','structured_withheld','batch_path','recovery_loop','mcp_metadata','step_limit_recovery','protocol_answer_guard'}
 
 
 def graph_scope(catalog,labels):

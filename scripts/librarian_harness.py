@@ -483,7 +483,7 @@ def main() -> None:
     parser.add_argument('--wheel',type=Path,help='Exact local wheel for uvx verification, avoiding a stale same-version cached build')
     parser.add_argument('--resume',action='store_true',help='Keep completed first attempts and continue an interrupted benchmark/probe file')
     parser.add_argument('--question-file',type=Path,help='Sealed blind questions only; no answer key is accepted')
-    parser.add_argument('--self-check',choices=['on','off'],help='Diagnostic A/B only; omitted uses production policy')
+    parser.add_argument('--self-check',choices=['on','off'],help='Evaluation override; omitted uses production policy')
     parser.add_argument('--semantic-model',help='Explicit local-only optional encoder, identical to production server configuration')
     parser.add_argument('--semantic-cache',type=Path,help='Prebuilt immutable derived-analysis sidecar')
     parser.add_argument('--semantic-python',type=Path,help='Pin the interpreter used to build the semantic namespace')

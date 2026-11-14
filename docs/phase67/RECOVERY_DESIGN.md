@@ -28,3 +28,9 @@ The code-research Loop keeps the initial draft internally and emits only the cho
 
 Semantic retrieval remains explicitly opt-in and local-only. Its derived SQLite cache is disposable, snapshot/encoder-bound and distinct from canonical graph facts. Enabling it requires the exact model assets and a matching prebuilt namespace; cache mismatch fails closed. See [local semantic search](LOCAL_SEMANTIC_SEARCH.md) for provisioning and rollback.
 
+## Protocol requests during tool-free answering (FP9)
+
+The development A/B and diagnostic pilot exposed complete XML `tool_call` / `function=...` requests returned as plain text while the adapter reported no native tool calls. Proposed revisions are now checked for this structured envelope outside fenced examples. Mentioning a tag in prose is not a trigger. A detected revision is rejected and the actual prior draft retained; an initial or step-limit proposal without a prior answer becomes an explicit incomplete-answer fallback and is not reported as completed step-limit synthesis. Embedded requests never execute. FP9 records the format, stage, action and outcome, consumes no extra executable/model step and never asks a model to judge validity.
+
+New code-research profiles enable the FP4 self-check after its registered 30-question paired A/B met the keep-default rule. Explicit profile overrides remain supported; existing customised profiles are not rewritten. Evaluation records whether the switch was enabled. The final configured evaluation includes the optional local semantic channel and all recoveries; its results must not be presented as qualification of the default lexical-only configuration.
+

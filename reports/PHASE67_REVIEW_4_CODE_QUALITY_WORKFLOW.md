@@ -161,6 +161,7 @@ Every pattern below was observed in this project's evidence:
 | FP6 | **Invalid or mistyped IDs** | Waves 3–4 | A structured error code | Scoped ID recovery with real candidates (done in A3.2) |
 | FP7 | **Step-limit exhaustion** | Wave 4 run 1 | `completed_at_step_limit` | Final synthesis from the evidence (done in A3.1). Also log which pattern consumed the steps |
 | FP8 | **Measurement defects**: a harness profile error; substring detectors; garbled or mis-keyed items | §19 | No-model dry run; structured-code detectors; two-reviewer item checks | Block paid dispatch until they're clean (§5 step 1) |
+| FP9 | **Protocol request accepted as an answer** during tool-free synthesis/revision | Review 4 paired A/B and one diagnostic pilot; originals retained in gate report | Complete XML `tool_call` / `function=...` request structure in proposed answer; a tag mentioned in prose is not sufficient | Reject proposal, retain actual prior draft; if absent, return explicit incomplete-answer fallback and leave step-limit completion false. Zero additional dispatch/steps; log format, action and outcome. |
 
 ### 7.2 How a recovery workflow must behave
 

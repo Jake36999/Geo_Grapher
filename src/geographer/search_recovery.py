@@ -16,7 +16,7 @@ def state_for(router,connection,question):
         raise ValueError('Recovery mode/remaining_steps invalid')
     original=meta.get('question',question)
     used=meta.get('used_patterns',[])
-    if not isinstance(used,list) or len(used)>8 or any(not isinstance(p,str) or p not in {'FP'+str(n) for n in range(1,9)} for p in used):
+    if not isinstance(used,list) or len(used)>9 or any(not isinstance(p,str) or p not in {'FP'+str(n) for n in range(1,10)} for p in used):
         raise ValueError('Invalid recovery used_patterns')
     if not isinstance(original,str) or not original.strip() or len(original)>10000:raise ValueError('Recovery question must contain 1..10000 characters')
     episode=meta.get('episode_id')
