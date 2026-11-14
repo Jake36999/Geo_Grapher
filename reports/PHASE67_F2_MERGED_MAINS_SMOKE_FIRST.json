@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "provider_calls": 0,
+  "paid_calls": 0,
+  "librarian_module": "D:\\Librarian_V2/src\\resource_librarian\\mcp_client.py",
+  "geo_head": "990f127a68e7746ff603d33fb8ad9f1ff5ebc873",
+  "librarian_head": "8ea7c45ae814fed35a1f71ecaac6ec307ad9b31f",
+  "wheel_sha256": "e1b31be4a5258c050c526ae3d3bd54a1dc8a8248f200176465a326c700316373",
+  "temperature": 0.2,
+  "fp4": false,
+  "target_entity_id": "entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec",
+  "calls": [
+    {
+      "tool": "search_entities",
+      "arguments": "{\"graph_id\": \"librarian-v2\", \"query\": \"DEFAULT_CONTEXT_TOKENS\"}",
+      "arguments_truncated": false,
+      "recoveries": [],
+      "recovery_steps_consumed": 0,
+      "withheld": false,
+      "error_code": "",
+      "error_message": "",
+      "success": true,
+      "coverage": [
+        {
+          "entity_id": "entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec",
+          "start_line": null,
+          "end_line": null,
+          "truncated": true,
+          "sha256": "3112297efdb429005246456205ef55500aabc81634ce4f13e3b99d8819ca0bf1"
+        },
+        {
+          "entity_id": "entity:f24f78ce3078a55d9e8b0fd7d39687629c55dcdb37b8b6fab49938e51490c75b",
+          "start_line": null,
+          "end_line": null,
+          "truncated": true,
+          "sha256": "b2c05e7e0b557845aa7ad2861425623d7ce744c3be077cfbccb44ecebcc96030"
+        },
+        {
+          "entity_id": "entity:ad7dfc5f037139459530c6e7d41e57d34bc7d313262d4c382a91225bc1a3633f",
+          "start_line": null,
+          "end_line": null,
+          "truncated": true,
+          "sha256": "5b651ed249fc0dbb0fdff7b1618e6cbc0c4ec7b1b2e03b3a011086a3b2061941"
+        },
+        {
+          "entity_id": "entity:aca693ea539c615d6a9d7b14963398d4b028b5d3a6d35ac1b8eec3084b607704",
+          "start_line": null,
+          "end_line": null,
+          "truncated": true,
+          "sha256": "e81780bc377eaa8f47ceb668e53fe0ced0fc6ce6a9f68e6576a24d885d963a50"
+        }
+      ],
+      "coverage_truncated": false,
+      "supplemental_entities": []
+    },
+    {
+      "tool": "compile_task_packet",
+      "arguments": "{\"graph_id\": \"librarian-v2\", \"anchors\": [\"entity:entity:426cfb01891d39e4c1a2eb446c6b064f4552785c723c43106b9d44dd3a4d8dec\"], \"instruction\": \"Inspect this constant and its documented use.\"}",
+      "arguments_truncated": false,
+      "recoveries": [],
+      "recovery_steps_consumed": 0,
+      "withheld": false,
+      "error_code": "",
+      "error_message": "",
+      "success": true,
+      "coverage": [],
+      "coverage_truncated": false,
+      "supplemental_entities": []
+    }
+  ],
+  "scope": "Deterministic no-model search-to-packet integration through merged Librarian registry/MCP; not answer accuracy"
+}

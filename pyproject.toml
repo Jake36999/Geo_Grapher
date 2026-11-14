@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geo-grapher"
-version = "0.1.1"
+version = "0.2.0"
 description = "Evidence-backed multi-scale repository architecture explorer"
 requires-python = ">=3.11"
 dependencies = [
@@ -42,7 +42,7 @@ pipeline = ["concept_aliases.json"]
 [tool.setuptools.data-files]
 "share/geographer/contracts" = ["contracts/geographer.schema.sql", "contracts/geographer.wire.d.ts", "contracts/geographer.rules.schema.json", "contracts/geographer.rules.example.yaml", "contracts/visibility-presets.json"]
 "share/geographer/contracts/generated" = ["contracts/generated/geographer.wire.schema.json"]
-"share/geographer/contracts/v1.1" = ["contracts/v1.1/geographer.wire.d.ts", "contracts/v1.1/ACTOR_SCHEMA.md", "contracts/v1.1/PACKING_ADDENDUM.md", "contracts/v1.1/WORKSPACE_ADDENDUM.md", "contracts/v1.1/geographer.trace.schema.json", "contracts/v1.1/RUNTIME_ADDENDUM.md", "contracts/v1.1/FINGERPRINT_ADDENDUM.sql"]
+"share/geographer/contracts/v1.1" = ["contracts/v1.1/geographer.wire.d.ts", "contracts/v1.1/ACTOR_SCHEMA.md", "contracts/v1.1/PACKING_ADDENDUM.md", "contracts/v1.1/WORKSPACE_ADDENDUM.md", "contracts/v1.1/geographer.trace.schema.json", "contracts/v1.1/RUNTIME_ADDENDUM.md", "contracts/v1.1/FINGERPRINT_ADDENDUM.sql", "contracts/v1.1/STABILITY.md", "contracts/v1.1/RELEASE_MANIFEST.json"]
 "share/geographer/contracts/v1.1/generated" = ["contracts/v1.1/generated/geographer.wire.schema.json"]
 "share/geographer/assets/tiktoken" = ["assets/tiktoken/*.tiktoken", "assets/tiktoken/README.md", "assets/tiktoken/LICENSE"]
 "share/geographer/frontend/dist" = ["frontend/dist/index.html", "frontend/dist/favicon.svg", "frontend/dist/THIRD_PARTY_NOTICES.txt"]

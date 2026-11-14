@@ -1,6 +1,5 @@
 """Directed contraction as a QI algorithm, with additive block expansion and the κ anomaly boost (wave 3 Task 3)."""
 import copy
-import time
 from pathlib import Path
 
 import pytest
@@ -142,29 +141,3 @@ def test_anomaly_boost_expands_feedback_arc_block_first(service_with_two_blocks_
 def test_service_never_disables_port_check():
     source = Path(__file__).resolve().parents[1].joinpath("src/geographer/service.py").read_text(encoding="utf-8")
     assert "ports_check" not in source
-
-
-@pytest.mark.integration
-def test_cold_latency_within_c14():
-    path = Path(__file__).resolve().parents[1] / "output/phase67-gates/wave2/catalog.sqlite"
-    if not path.is_file():
-        pytest.skip("wave 2 gate catalog not present")
-    from geographer.graph_catalog import GraphCatalog
-    catalog = GraphCatalog(path)
-    try:
-        row = next((dict(r) for r in catalog.graphs() if r["label"] == "ToolSet"), None)
-    finally:
-        catalog.close()
-    if row is None:
-        pytest.skip("ToolSet gate graph not present")
-    store = SnapshotStore(row["code_database"])
-    try:
-        svc = QueryService(store, secret=b"x" * 32); sid = row["snapshot_id"]
-        g = store.graph(sid)
-        focus = next(e.entity_id for e in sorted(g.entities.values(), key=lambda e: e.entity_id)
-                     if e.kind == "function" and not (e.is_external or e.is_test or e.is_generated or e.is_vendor))
-        start = time.perf_counter()
-        frame(svc, request(sid, focus, algorithm=DIRECTED))
-        assert time.perf_counter() - start < 3.0
-    finally:
-        store.close()

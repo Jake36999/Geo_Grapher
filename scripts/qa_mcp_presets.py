@@ -1,5 +1,6 @@
 """Exercise every preset tool through an exact installed wheel, without a model."""
-import argparse,asyncio,json,os,sqlite3
+import argparse,asyncio,json,os,sqlite3,tempfile
+from contextlib import closing
 from pathlib import Path
 from mcp import ClientSession,StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -9,6 +10,45 @@ EXPECTED={
  'code':{'list_graphs','search_entities','get_architecture_context','find_dependants','get_entity_content','check_architecture'},
  'lead':{'list_graphs','search_entities','get_architecture_context','get_entity_content','analyze_cross_graphs','compile_task_packet'},
  'cross':{'list_graphs','federated_search','list_bridges','analyze_cross_graphs','search_entities','get_entity_content'}}
+
+def _paper_fixture(path):
+    con = sqlite3.connect(path)
+    con.executescript("""
+    CREATE TABLE read_documents(id INTEGER PRIMARY KEY,title TEXT,authors TEXT,year INTEGER,venue TEXT,doi TEXT,abstract_summary TEXT,
+      page_count INTEGER,file_path TEXT,primary_source_id INTEGER,source_count INTEGER,claim_count INTEGER,metadata_json TEXT NOT NULL);
+    CREATE TABLE read_claims(id INTEGER PRIMARY KEY,section_id INTEGER,text TEXT,claim_type TEXT,doc_id INTEGER,source_ids_json TEXT);
+    CREATE TABLE read_concepts(id INTEGER PRIMARY KEY,canonical_name TEXT,aliases TEXT,definition TEXT,concept_type TEXT,def_doc_id INTEGER,quality TEXT,original_ids_json TEXT);
+    CREATE TABLE read_doc_concepts(doc_id INTEGER NOT NULL,concept_id INTEGER NOT NULL,edge_type TEXT NOT NULL,PRIMARY KEY(doc_id,concept_id,edge_type));
+    CREATE TABLE sections(id INTEGER PRIMARY KEY,doc_id INTEGER,heading TEXT,section_type TEXT,position INTEGER,text TEXT,word_count INTEGER);
+    CREATE TABLE corpus_metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);
+    INSERT INTO corpus_metadata VALUES('revision','rev-1');
+    INSERT INTO read_documents VALUES(1,'Knowledge graphs','[]',2020,NULL,'10.1234/kg.2020',NULL,1,'a.pdf',1,1,1,'{"source_document_ids":[1]}');
+    INSERT INTO read_documents VALUES(2,'Unrelated','[]',2021,NULL,NULL,NULL,1,'b.pdf',2,1,0,'{"source_document_ids":[2]}');
+    INSERT INTO sections VALUES(5,1,'Entity linking','body',1,'...',1);
+    INSERT INTO read_claims VALUES(3,5,'Knowledge graphs improve recall.','finding',1,'[1]');
+    INSERT INTO read_concepts VALUES(1,'knowledge graph','["knowledge graphs"]','',NULL,1,'ok','[1]');
+    INSERT INTO read_concepts VALUES(2,'entity linking','[]','',NULL,1,'ok','[2]');
+    INSERT INTO read_concepts VALUES(3,'transformer','[]','',NULL,2,'ok','[3]');
+    INSERT INTO read_doc_concepts VALUES(1,1,'defines');
+    INSERT INTO read_doc_concepts VALUES(1,2,'mentions');
+    INSERT INTO read_doc_concepts VALUES(2,3,'defines');
+    """)
+    con.commit(); con.close()
+
+
+def make_fixture(base):
+    """Small no-model CI catalog; real-store QA remains a separate gate."""
+    from geographer.graph_catalog import GraphCatalog
+    from geographer.source import Repository
+    catalog_path=base/'catalog'/'catalog.sqlite'
+    with closing(GraphCatalog(catalog_path)) as catalog:
+        for label in ('librarian-v2','ToolSet','ai-research-papers'):
+            root=base/label;root.mkdir()
+            (root/'effort.py').write_text('def of():\n    """Graph research effort."""\n    return 1\n\ndef graph():\n    return of()\n',encoding='utf-8')
+            row=catalog.import_project(root,Repository.from_directory(root,label),label=label)
+            if label=='ai-research-papers':
+                db=base/'papers.sqlite';_paper_fixture(db);catalog.attach_papers(row['graph_id'],db)
+    return catalog_path
 
 async def run(a):
     with sqlite3.connect(a.catalog.resolve().as_uri()+'?mode=ro',uri=True) as c:
@@ -60,9 +100,12 @@ async def run(a):
     return bool(failed)
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--catalog',type=Path,required=True);p.add_argument('--wheel',type=Path,required=True)
+    p=argparse.ArgumentParser();p.add_argument('--catalog',type=Path);p.add_argument('--wheel',type=Path,required=True)
     p.add_argument('--out',type=Path,required=True);p.add_argument('--max-chars',type=int,default=7500);a=p.parse_args()
     if a.out.exists():raise SystemExit('Use a new result path; preserve first attempts')
-    a.out.parent.mkdir(parents=True,exist_ok=True);raise SystemExit(asyncio.run(run(a)))
+    a.out.parent.mkdir(parents=True,exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='geo-preset-gate-') as tmp:
+        if a.catalog is None:a.catalog=make_fixture(Path(tmp))
+        raise SystemExit(asyncio.run(run(a)))
 
 if __name__=='__main__':main()
