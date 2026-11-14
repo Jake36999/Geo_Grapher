@@ -47,19 +47,35 @@ def test_packet_rejects_bad_anchor_long_instruction_and_scope(packet_world):
     scoped.close()
 
 
-def test_upstream_is_structured_revalidated_and_budgeted(packet_world):
+@pytest.mark.parametrize('port',['inputs','outputs'])
+def test_upstream_is_structured_revalidated_and_budgeted(packet_world,port):
     _, r, gid, ids = packet_world
     ref = 'entity:' + ids['f']
     cite = r.compile_task_packet(gid, [ref], 'Describe.')['anchors'][0]['cite_as']
-    upstream = [{'task_id': 't1', 'ref': ref, 'cite': cite, 'inputs': [
-        {'name': 'x', 'cite': cite}, {'name': 'ghost', 'cite': 'elsewhere/entity:nope'}],
-        'outputs': [{'name': 'value', 'cite': cite}]}]
+    # Validate each port separately: the previous two-port fixture could cost
+    # 300 tokens against a 297-token shared allowance solely from tmp-root IDs.
+    # Keep the leaf ceiling; use a record with headroom for the validation case.
+    record = dict(task_id='t1',ref=ref,cite=cite,inputs=[],outputs=[])
+    record[port] = [{'name':'x','cite':cite},{'name':'ghost','cite':'elsewhere/entity:nope'}]
+    upstream = [record]
     p = r.compile_task_packet(gid, ['entity:' + ids['g']], 'Describe.', upstream=upstream)
     assert p['upstream_dropped'] == 1 and p['upstream_omitted'] == 0
-    assert [i['name'] for i in p['upstream'][0]['inputs']] == ['x']
+    assert [i['name'] for i in p['upstream'][0][port]] == ['x']
+    assert p['upstream'][0]['outputs' if port=='inputs' else 'inputs'] == []
     assert p['upstream'][0]['origin'] == 'model_produced_citation_verified'
     assert cite in p['handles']
     assert p['used_tokens'] == TokenCounter().count(p) <= 1200
+
+
+def test_oversized_upstream_record_is_omitted_whole_under_the_leaf_quarter(packet_world):
+    _,r,gid,ids=packet_world
+    ref='entity:'+ids['f']
+    cite=r.compile_task_packet(gid,[ref],'Describe.')['anchors'][0]['cite_as']
+    ports=[dict(name=f'port-{i}',cite=cite) for i in range(24)]
+    upstream=[dict(task_id='large',ref=ref,cite=cite,inputs=ports[:12],outputs=ports[12:])]
+    p=r.compile_task_packet(gid,['entity:'+ids['g']],'Describe.',upstream=upstream)
+    assert p['upstream']==[] and p['upstream_omitted']==1 and p['upstream_dropped']==0
+    assert p['used_tokens']==TokenCounter().count(p)<=p['limit_tokens']==1200
 
 
 def test_packets_fit_connection_limit_by_dropping_whole_items(packet_world):

@@ -1,0 +1,10 @@
+{
+  "source_fixture": "D:\\Librarian_V2\\tmp\\geo-grapher-wave4-final-tests\\pytest-of-jakem\\pytest-58\\test_upstream_is_structured_re0\\catalog\\catalog.sqlite",
+  "graph_id": "g_595ece5bf985cb4454589a9b",
+  "profile": "tier3_leaf",
+  "limit_tokens": 1200,
+  "shared_instruction_upstream_allowance": 297,
+  "two_port_record_marginal_tokens": 300,
+  "single_port_record_marginal_tokens": 239,
+  "conclusion": "Whole upstream omission is required by the 25% cap when the marginal record cost exceeds the allowance; random temporary-root hashes affect token count. No packing policy change is needed."
+}

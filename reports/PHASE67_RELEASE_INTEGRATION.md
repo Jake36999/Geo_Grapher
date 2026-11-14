@@ -91,3 +91,9 @@ Master is clean at **8ea7c45…**, and its tree is **identical** to the tested i
 The parked WIP remains frozen at **610b4496…**. It overlaps wave 4 in `agent_runtime.py`, `loop.py`, `mcp_client.py` (including line-ending churn in the latter); un-parking requires an owner-performed manual merge. Both pre-rebase backup refs remain in place until after release. The two cwd-sensitive CLI tests remain unchanged; the Known Limitations/follow-ups record requires a later self-containment fix.
 
 Geo-Grapher scratch integration now proceeds. Its merge to main still requires the next explicit OWNER approval.
+
+## Geo scratch integration — first verification and fixture repair
+
+Scratch `codex/phase67-geo-integration-20261114` merged `phase67-wave4` d39cef2 onto main 0f12dfa with `--no-ff`, producing 7ec2c4b. Main remains unchanged. The first full verify attempt recorded **761 passed / 1 failed / 1 deselected** (`output/f2-geo-scratch-verify-first.log`). The one deselection is the superseded single-sample C14 case; an explicit three-fresh-process installed-wheel measurement under the owner's prospective median/max rule replaces it below. No historical result is rescored.
+
+The packet failure was a fixture boundary, not a runtime defect: the retained temporary-root-derived IDs made the record cost **300 tokens** against **297 available** under the plan's shared instruction/upstream 25% ceiling. Whole-record omission was required. `PHASE67_F2_PACKET_FIXTURE_DIAGNOSIS.json` preserves the concrete fixture and measurements. A test-only repair checks both ports separately with headroom, preserves the 1,200-token leaf ceiling, and adds an explicit oversized-record whole-omission assertion. **11 focused packet tests pass** (`output/f2-packet-fixtures-focused.log`). No production packing or budget policy changed. The first failed run remains separate evidence. Full corrected verification is in progress.
