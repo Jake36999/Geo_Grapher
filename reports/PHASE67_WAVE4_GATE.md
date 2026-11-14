@@ -767,3 +767,20 @@ Before paid dispatch: the full 30-question paired A/B is OFF then ON, frozen mod
 Owner-approved hard cap **$6.50**; protected reserve **$2.00260389**. Actual workflow spend **$0.26683144**, remaining planning estimate **$5.91253291**. Every HTTP attempt is reserved and settled against lifetime spendable ceiling **$14.24739611**, with no-network meter fixtures passing. No paid A/B/pilot/final has started at this registration boundary. No merge or push.
 A/B registration sealed before dispatch: `output/phase67-gates/review4/ab.registration.json`, SHA-256 `072a7da26431e261dba8e31576fd5212628aa9ec830ee76759bf15e23eefe2db`. Exact candidate installed-wheel preset smoke: **28/28** passed (`PHASE67_REVIEW4_AGENT_PRESETS_FIRST.json`).
 Exact recovery-wheel real-store browser: **5/5 PASS**, `output/qa-real/review4-agent-final-results.json`. Fresh managed copy; no extra graphs and baseline preserved at teardown. Fixture junction removed after server exit; copy marked complete. F3 migration/recovery/security-delta notes remain feature-branch preparation.
+
+## Review 4 step 5 — closed 60-episode paired A/B
+
+Both registered batches closed complete without replacement or resume. Registration SHA-256: `072a7da26431e261dba8e31576fd5212628aa9ec830ee76759bf15e23eefe2db`. Raw and scored first rows remain separate under `output/phase67-gates/review4/`.
+
+| FP4 | Final correct | Actual eligible initial drafts correct | Tool calls | Errors | Wrong graph | Structured withheld | Cost |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OFF | 23/30 | 27/30 | 158 | 0 | 0 | 0 | $0.8167936 |
+| ON | 25/30 | 23/28 | 156 | 2 | 0 | 0 | $0.7806601 |
+
+The two ON episodes with early recovery have no invented pre-recovery draft. Mean tool calls: **5.23/question**. FP4 meets the registered keep-default rule (+2 final correct, no additional wrong-graph/withheld); the difference is diagnostic evidence from one paired comparison, not a statistical reliability guarantee.
+
+A material regression is preserved: OFF revisions turned four correct drafts into wrong finals; ON turned two into wrong finals. Inspection of these six development episodes shows XML-form tool requests returned as plain response text during a tool-free revision, despite `Reply.tool_calls` being empty. Such text was incorrectly accepted as an answer and sometimes marked runtime-resolved. No tool was actually executed from that XML. This exposes an answer-validation defect rather than missing retrieval. The diagnostic pilot will retain the registered all-ON candidate, after which its failures and this pattern receive deterministic offline recovery validation before final registration. The A/B is not rerun or rescored.
+
+Pattern runtime resolved/triggered across both arms: FP1 **16/18**, FP2 **12/14**, FP3 **2/11**, FP4 **2/6**, FP5 **5/10**, FP6 **1/2**, FP7 **1/1**. These signals are not gold correctness or independent causal effects; `ab.summary.json` also records eligible wrong-to-right counts and final correctness for every pattern. Full answers and initial drafts remain private in `ab.scored.json`.
+
+Workflow actual spend so far: **$1.86428514** ($0.26683144 before evaluation plus $1.5974537 A/B). Remaining pilot plus final planning estimate **$3.94168860**; actual-plus-remaining **$5.80597374**, within the approved $6.50 cap and protected reserve. One diagnostic pilot follows, 30 development questions, all recoveries ON, unchanged candidate and temperature 0.2. It is not a gate.

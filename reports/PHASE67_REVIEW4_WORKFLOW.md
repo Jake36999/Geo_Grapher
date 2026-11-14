@@ -110,3 +110,20 @@ Clarification on delivery experiments: 7,500 characters was the capped/default-w
 
 The same recovery candidate wheel also passed **5/5 real-store browser scenarios** (`output/qa-real/review4-agent-final-results.json`): directed ToolSet QI, prune preserving the source snapshot, actual code-pair bridge review, add-folder ingestion, and picker containment. Managed QA cleanup ran before preparing a fresh copy under `D:/Librarian_V2/tmp/geo-grapher-qa-workspaces/recovery/20261113-agent-final`. Browser teardown reports no extra graphs and all baseline graphs preserved. After the server stopped, the explicitly verified fixture junction was removed as a link entry and the copy marked complete. Original stores and benchmark inputs were not modified by browser QA. Migration/recovery documentation and the bounded F3 security delta are prepared on feature branches; no merge or push.
 
+
+## Review 4 step 5 — closed 60-episode paired A/B
+
+Both registered batches closed complete without replacement or resume. Registration SHA-256: `072a7da26431e261dba8e31576fd5212628aa9ec830ee76759bf15e23eefe2db`. Raw and scored first rows remain separate under `output/phase67-gates/review4/`.
+
+| FP4 | Final correct | Actual eligible initial drafts correct | Tool calls | Errors | Wrong graph | Structured withheld | Cost |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OFF | 23/30 | 27/30 | 158 | 0 | 0 | 0 | $0.8167936 |
+| ON | 25/30 | 23/28 | 156 | 2 | 0 | 0 | $0.7806601 |
+
+The two ON episodes with early recovery have no invented pre-recovery draft. Mean tool calls: **5.23/question**. FP4 meets the registered keep-default rule (+2 final correct, no additional wrong-graph/withheld); the difference is diagnostic evidence from one paired comparison, not a statistical reliability guarantee.
+
+A material regression is preserved: OFF revisions turned four correct drafts into wrong finals; ON turned two into wrong finals. Inspection of these six development episodes shows XML-form tool requests returned as plain response text during a tool-free revision, despite `Reply.tool_calls` being empty. Such text was incorrectly accepted as an answer and sometimes marked runtime-resolved. No tool was actually executed from that XML. This exposes an answer-validation defect rather than missing retrieval. The diagnostic pilot will retain the registered all-ON candidate, after which its failures and this pattern receive deterministic offline recovery validation before final registration. The A/B is not rerun or rescored.
+
+Pattern runtime resolved/triggered across both arms: FP1 **16/18**, FP2 **12/14**, FP3 **2/11**, FP4 **2/6**, FP5 **5/10**, FP6 **1/2**, FP7 **1/1**. These signals are not gold correctness or independent causal effects; `ab.summary.json` also records eligible wrong-to-right counts and final correctness for every pattern. Full answers and initial drafts remain private in `ab.scored.json`.
+
+Workflow actual spend so far: **$1.86428514** ($0.26683144 before evaluation plus $1.5974537 A/B). Remaining pilot plus final planning estimate **$3.94168860**; actual-plus-remaining **$5.80597374**, within the approved $6.50 cap and protected reserve. One diagnostic pilot follows, 30 development questions, all recoveries ON, unchanged candidate and temperature 0.2. It is not a gate.
