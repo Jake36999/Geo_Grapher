@@ -2,6 +2,16 @@
 
 Status: integrated on both mains and prepared locally for F4 acceptance. No tag or push. Geo merge 990f127 follows approved candidate 6c41756; Librarian master 8ea7c45 matches its tested integration tree. Release hardening begins at Geo 5c385b9; packaging completion is 82ff0aa. See the final release report for the exact wheel SHA256 and latest documentation commit.
 
+## Release artifact and free checks
+
+Wheel: `output/phase67-release/f3/verify-corrected/dist/geo_grapher-0.2.0-py3-none-any.whl`.
+
+SHA256: **`4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d`**.
+
+Final full verification: **775 backend, 16 frontend unit and 17 browser tests passed**, typecheck/build PASS, **28/28 installed-wheel preset/cap checks**. Prospective C14 first samples: **2.528, 2.480, 2.495 s**, median **2.495**, maximum **2.528** — PASS. Final live HTTP security **6/6** and real-store UI **5/5** passed on this exact wheel. Installed-wheel search→packet through Librarian master passed with **zero model calls**. Librarian's unchanged merged tree has **2,235 passed / 2 skipped / 5 deselected** from its neutral-directory pre-merge suite. All first failures and fixes remain in the integration record; they are not overwritten by these passes.
+
+All **11 frozen contract files** and **78 runtime Python files** were checked byte-for-byte in the wheel. `uv lock --check --offline` passes after the lock metadata refresh. See [machine-readable release evidence](../../reports/PHASE67_F3_RELEASE_EVIDENCE.json). F4 acceptance remains pending.
+
 ## Features
 
 Waves 1–4 add readable graph labels/roles and affinity layout; calibrated federation and discovery cards; snapshot fingerprints/drift, notebooks and folder onboarding; independent-graph diffs and clones; directed helper contraction and UI controls; reviewed snapshot-bound bridges and lineage; prune by derivation; six-tool presets and cited tiered packets; bounded cross-graph impact/conformance reports. The [changelog](../../CHANGELOG.md) separates the waves.

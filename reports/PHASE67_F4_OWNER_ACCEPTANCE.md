@@ -2,6 +2,8 @@
 
 **OWNER STOP.** Review the [draft release notes](../docs/phase67/RELEASE_0_2_DRAFT.md), migration guide and Known Limitations. The six-task pilot is deferred and unvalidated; this checklist does not qualify its helper/Clerk routes. The three questions below are owner-run production-route acceptance, not another evaluation cycle. Codex has made no paid calls.
 
+Exact reviewed wheel SHA256: **`4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d`**. Full artifact/test evidence is in [PHASE67_F3_RELEASE_EVIDENCE.json](PHASE67_F3_RELEASE_EVIDENCE.json).
+
 ## Fresh-copy preparation, before starting the 20-minute clock
 
 Use PowerShell from `F:/uv-data/Geo_Grapher`. The source catalog below is the preserved real-store corpus used for application QA; all browser writes must target the new copy. Choose a free port (8790 below). If the destination already exists, choose a new destination: do not overwrite or delete it. Allow time and about 5 GB for the copy.

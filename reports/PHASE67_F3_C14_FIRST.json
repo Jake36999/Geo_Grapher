@@ -1,0 +1,46 @@
+{
+  "quiet_machine": true,
+  "rule": "median of 3 cold <3.0 s AND max <3.5 s; prospective only",
+  "timing_scope": "Fresh process; graph/focus lookup before clock, query and validation timed; no OS-cache flush",
+  "wheel": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\f3\\verify-corrected\\dist\\geo_grapher-0.2.0-py3-none-any.whl",
+  "wheel_sha256": "4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d",
+  "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+  "samples": [
+    {
+      "seconds": 2.5276159000059124,
+      "pid": 24240,
+      "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+      "focus_id": "entity:0002131fb0c8352bf56ffbeb04485642c94aca7ee49737446a58a5cf53e463b6",
+      "success": true,
+      "package_file": "C:\\Users\\jakem\\AppData\\Local\\uv\\cache\\archive-v0\\et53zp9xUYgAKz0c\\Lib\\site-packages\\geographer\\__init__.py",
+      "package_version": "0.2.0",
+      "sample": 1,
+      "returncode": 0
+    },
+    {
+      "seconds": 2.4799773000122514,
+      "pid": 30868,
+      "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+      "focus_id": "entity:0002131fb0c8352bf56ffbeb04485642c94aca7ee49737446a58a5cf53e463b6",
+      "success": true,
+      "package_file": "C:\\Users\\jakem\\AppData\\Local\\uv\\cache\\archive-v0\\et53zp9xUYgAKz0c\\Lib\\site-packages\\geographer\\__init__.py",
+      "package_version": "0.2.0",
+      "sample": 2,
+      "returncode": 0
+    },
+    {
+      "seconds": 2.4953368000278715,
+      "pid": 36084,
+      "snapshot_id": "snapshot:40fe6aba6c57fcdbfa2161a4ddeaffe128506762f5bc068c1e694b3e35cb9040",
+      "focus_id": "entity:0002131fb0c8352bf56ffbeb04485642c94aca7ee49737446a58a5cf53e463b6",
+      "success": true,
+      "package_file": "C:\\Users\\jakem\\AppData\\Local\\uv\\cache\\archive-v0\\et53zp9xUYgAKz0c\\Lib\\site-packages\\geographer\\__init__.py",
+      "package_version": "0.2.0",
+      "sample": 3,
+      "returncode": 0
+    }
+  ],
+  "passed": true,
+  "median_seconds": 2.4953368000278715,
+  "max_seconds": 2.5276159000059124
+}

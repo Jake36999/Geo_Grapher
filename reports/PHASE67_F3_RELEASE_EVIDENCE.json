@@ -1,0 +1,207 @@
+{
+  "status": "F3_engineering_complete_F4_OWNER_STOP",
+  "recorded_at": "2026-11-14T05:07:22.831030+00:00",
+  "geo_merge": "990f127a68e7746ff603d33fb8ad9f1ff5ebc873",
+  "main_at_wheel_build": "ebfe9f814f51c76ee5032206a6a142fdf7c09405",
+  "release_code_commit": "8faccf7",
+  "lock_commit": "1c99f16",
+  "librarian_master": "8ea7c45ae814fed35a1f71ecaac6ec307ad9b31f",
+  "librarian_clean": true,
+  "prior_librarian_full_suite": {
+    "passed": 2235,
+    "skipped": 2,
+    "deselected": 5,
+    "source_unchanged": true
+  },
+  "wheel": {
+    "path": "F:\\uv-data\\Geo_Grapher\\output\\phase67-release\\f3\\verify-corrected\\dist\\geo_grapher-0.2.0-py3-none-any.whl",
+    "sha256": "4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d",
+    "version": "0.2.0",
+    "runtime_python_files_verified": 78
+  },
+  "contracts": {
+    "status": "stable",
+    "future_changes": "v1.2",
+    "manifest": "F:\\uv-data\\Geo_Grapher\\contracts\\v1.1\\RELEASE_MANIFEST.json",
+    "manifest_sha256": "43f4f9201ccfe695e8e6b97f8a54dadaac01c22959ae166c0661541a3f3ca92e",
+    "files_verified": 11
+  },
+  "verification_attempts": [
+    {
+      "log": "output/f3-verify-cli-red.log",
+      "status": "interrupted; old script ignored unknown parameters; not a completed suite"
+    },
+    {
+      "log": "output/f3-verify-first.log",
+      "backend_passed": 773,
+      "frontend_unit": 16,
+      "browser_passed": 17,
+      "preset_success": 23,
+      "preset_failed": 5,
+      "status": "FAIL new fixture obsolete paper model and cleanup handle leak; retained"
+    },
+    {
+      "log": "output/f3-verify-corrected.log",
+      "backend_passed": 775,
+      "backend_skipped": 0,
+      "backend_deselected": 0,
+      "frontend_typecheck": "PASS",
+      "frontend_build": "PASS",
+      "frontend_unit": 16,
+      "browser_passed": 17,
+      "preset_success": 28,
+      "preset_failed": 0,
+      "c14": "PASS",
+      "status": "PASS"
+    }
+  ],
+  "presets": {
+    "max_characters": 6978,
+    "limit": 7500,
+    "self_contained_default": true
+  },
+  "c14": {
+    "samples": [
+      2.5276159000059124,
+      2.4799773000122514,
+      2.4953368000278715
+    ],
+    "median": 2.4953368000278715,
+    "maximum": 2.5276159000059124,
+    "rule": "median of 3 cold <3.0 s AND max <3.5 s; prospective only",
+    "quiet_machine": true,
+    "first_samples_only": true
+  },
+  "security": {
+    "passed": 6,
+    "failed": 0,
+    "live_server": true,
+    "port": 8788,
+    "new_confirmed_findings": 0
+  },
+  "real_store_ui": {
+    "passed": 5,
+    "failed": 0,
+    "qa_root": "D:\\Librarian_V2\\tmp\\geo-grapher-qa-workspaces\\security\\20261114-release-0.2.0",
+    "baseline_heads_unchanged": true,
+    "cleanup": {
+      "extra_graphs": [],
+      "baseline_preserved": true
+    },
+    "junctions_removed": true
+  },
+  "installed_librarian_smoke": {
+    "passed": true,
+    "calls": 2,
+    "provider_calls": 0,
+    "fp4": false,
+    "temperature": 0.2,
+    "evidence": "reports/PHASE67_F3_INSTALLED_SMOKE_FIRST.json"
+  },
+  "lock_check": "uv lock --check --offline PASS after registry metadata refresh; no model assets fetched",
+  "paid_calls": 0,
+  "pushes": 0,
+  "tags_created": 0,
+  "parked_wip": "610b4496a6af314d660da7fe936e1f087bf2dc5b",
+  "backup_refs": {
+    "codex/phase67-survey-pre-rebase-20261114": "70ffe386d75d787861bc1067fb840c9fd0651964",
+    "codex/phase67-wave4-pre-rebase-20261114": "737ea28095936c4847db0c62aa299d44376d7085"
+  },
+  "pending": [
+    "Owner 20-minute hands-on acceptance",
+    "Three owner production-route questions",
+    "Owner review of migration/guides/release notes and Known Limitations",
+    "Separate explicit instructions for any release tag or push"
+  ],
+  "live_pilot": "Owner-deferred and unvalidated; no qualification or pilot execution",
+  "artifacts": [
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-gates-red.log",
+      "sha256": "f4faff0228717f6683339bb587833dd7cfc0e04e6b026ac877ce314c7bcf3d16"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-gates-green.log",
+      "sha256": "c22439c2387f165740b18bab9f377fa5556a994c030f04255136b8969cee7377"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-gates-green-corrected.log",
+      "sha256": "7c68ec9449f7d5931dda5bafa5939f3bef3c2df17b7824cff57eba8b4f9aee49"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-contract-freeze-red.log",
+      "sha256": "cd4d240a6c670cb0661679ae53b8999d85517315556bacdc58913f60ef22e870"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-contract-package-red.log",
+      "sha256": "9b1f46be2cda756c5ec0b42805fd1dddf38ab115490ba9e1c7dbc2a5fcb333bd"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-preset-current-paper-red.log",
+      "sha256": "945729ba6f1eb4e889607e74d344b15de1e6ccc9c9134eca9f64c508f6ecb494"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-gates-fixture-green.log",
+      "sha256": "ecd69ac706937129a5d709d2840e37bf57b45df577a0f7cbdecaee77db301475"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-verify-cli-red.log",
+      "sha256": "7d8337823318c4b22b23cad5c615be63593e09daf8bfd406aa569b172605ab24"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-verify-first.log",
+      "sha256": "a5e5fcd008806191fcbf649a52b1373a3c4290510ab6966f1bc8fd4f08f61a77"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-verify-corrected.log",
+      "sha256": "adbe5f93ca68b855c39760293132cbdcc8e9a59ab36d4b94f8e8ce9c852e6315"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-lock-check-red.log",
+      "sha256": "67650e16de55e736b02967baa467fc4f9237facf831914612c1baa4b04b151a0"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-lock-refresh-first.log",
+      "sha256": "67650e16de55e736b02967baa467fc4f9237facf831914612c1baa4b04b151a0"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-lock-refresh-online.log",
+      "sha256": "711e179f54b62a18ca3f89f6837044005709d47586a9e77c395c0f07e3905cb5"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-lock-check-green.log",
+      "sha256": "0e3a3d80eb166cd08476d1ff83c1810aeff49d988b37f395acab8662a5b34830"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-security-first.log",
+      "sha256": "53fb0bc7acc7a7f87e3d8f9a23718261aa7f0cd81a44e746f90222dd350aca4f"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\qa-real\\f3-release-security-first.json",
+      "sha256": "438f5b85862cbbc4b5674025b3b8b815c41c29f012c4cb033d2021b1c0cb9993"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-ui-first.log",
+      "sha256": "17790e0e8d14e61e5bcdcbe36f47adbc53d0acfa429723672f64c981ef256077"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\qa-real\\f3-release-ui-first.json",
+      "sha256": "f1e10719ecc10c34cd2fc07cebf513b2cffa250812b7e7c2ae22719666efc242"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-installed-librarian-smoke-first.log",
+      "sha256": "030393b06834231c338a9774bb440abd9376af90074117a923b3454cace6feae"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-cleanup-before-security.log",
+      "sha256": "912622c99c6e4a1e9b63f4092fb8cddab83138e8b71624515ec08d1edc9f6045"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-cleanup-before-ui.log",
+      "sha256": "14ee60c7c7717eeb073b4e549a4bb09f29f03fe2f27c2cccece82be4ad3f0195"
+    },
+    {
+      "path": "F:\\uv-data\\Geo_Grapher\\output\\f3-release-security-prepare.log",
+      "sha256": "7fad4395461cb9ec22e84320942bdb6d764bde862ea1a99e8966bcc9df00d871"
+    }
+  ]
+}

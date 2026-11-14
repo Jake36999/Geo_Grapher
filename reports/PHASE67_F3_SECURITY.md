@@ -60,3 +60,22 @@ The optional semantic backend accepts only explicit local model assets. Public-w
 Recovery metadata is supplied by the trusted Loop outside model-facing arguments and carries the original question and shared budget. The server validates metadata types and scopes state to connection/episode/question; once-per-pattern metadata prevents repeated remedies across the Loop's server connections. The Loop caps additional executable steps and guarded model invocations, checks access again before source use, and rejects revision citations absent from delivered IDs/ranges. Source comments and search payloads remain untrusted evidence. These are generic tested boundaries, not a claim that arbitrary prompt injection cannot influence prose.
 
 Evaluation artifacts have an expanded privacy footprint: initial drafts, final answers, bounded tool arguments/previews and separate raw provider replies can contain private code. They remain local. HTTP receipts use request hashes and exclude authentication headers; credentials are loaded only by the approved loader after the actual no-model preflight. Each provider attempt is metered, uncertain outcomes retain their reserve, and changed candidate/snapshot/registration inputs block further dispatch. See `PHASE67_REVIEW4_WORKFLOW.md` for verification counts and the immutable first attempts. These additions do not qualify Resource-Library routes or authorise a release, merge or push.
+
+## Final 0.2.0 live-server re-check — 2026-11-14
+
+After owner-approved F2 integration, the actual **0.2.0 wheel** served a newly prepared disposable copy of real stores under `D:/Librarian_V2/tmp/geo-grapher-qa-workspaces/security/20261114-release-0.2.0` at `127.0.0.1:8788`. Canonical stores were only backup sources. The same production HTTP app was used, with a QA-only cleanup route in the harness. Its containment fixture included both an outside-root junction and a same-root junction. The security/privacy skill's bounded local-release workflow was applied; no third-party targets were probed.
+
+**6/6 live HTTP/browser scenarios PASS**, first attempt, `output/f3-release-security-first.log` and `output/qa-real/f3-release-security-first.json`:
+
+1. Foreign/opaque/lookalike Origin values denied across ingest preview/execute, prune, proposal creation/decision and delete; hostile Host refused; original graph heads unchanged.
+2. Picker and ingest preview reject traversal, UNC, outside-root, outside-target junction and same-root junction paths.
+3. A previewed directory replaced with a junction is refused before execution creates a job.
+4. Unknown plans/jobs, invalid prune paths, oversized body and malformed JSON fail without original-head changes.
+5. Actual code-pair proposals reject invalid kind/limit and empty rationale; a valid rejection succeeds, and replay returns 409.
+6. A browser page with opaque origin cannot submit the JSON mutation. This includes browser/CORS behaviour and is not attributed solely to one server check.
+
+**No new confirmed defect was found within this scope.** S1/S2 first failures and their earlier RED/green evidence above remain intact. This is not exhaustive authentication, denial-of-service, prompt-injection or OS-race assurance. The app remains a local single-user loopback service, not a remotely authenticated multi-user service; a hostile local process with filesystem control is outside this guard's sandbox.
+
+Wheel SHA256: **4d903d7df0cb029e332b8bff1e076b122d40dabe8dfab765aaf7615bfcc4450d**. All 11 frozen v1.1 contract files and all 78 shipped runtime Python files match the checkout byte-for-byte. No provider/key loader, paid model evaluation or hosted embedding service was used. Evidence can contain private source/paths and stays local. QA cleanup ran before the server cycle; teardown, final real-store UI results and exact retained artifact hashes are recorded in `PHASE67_F3_RELEASE_EVIDENCE.json` and the integration record.
+
+F1 decisions and F2 merges are now complete. F4 hands-on checks, three owner production-route questions and release-note sign-off remain **pending owner acceptance**. The six-task live pilot stays owner-deferred and unvalidated. No tag or push.
