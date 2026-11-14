@@ -69,6 +69,11 @@ def tool(read_only=True):
                 except (ValueError,FileNotFoundError) as exc:result={'error':{'code':'INVALID_REQUEST','message':str(exc)}}
                 context=QUERY_CONTEXT.get()
                 if context:result['context']=context
+                # The standalone legacy corpus has no accepted own-graph
+                # classification. Scoped calls inherit their graph projection.
+                if DATABASE_SCOPE.get() is None:
+                    result.update(authorship='third_party', provenance='third_party',
+                                  authorship_scope='original_source')
                 return result
             finally:QUERY_CONTEXT.reset(token)
         _TOOLS[fn.__name__]=safe

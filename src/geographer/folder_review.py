@@ -26,6 +26,20 @@ def stratum_for(card):
     return role, trust, modality
 
 
+def authorship_for(card):
+    decision = card['decision']
+    derived = {'own-current': 'owner_created', 'own-legacy': 'owner_created',
+               'own-docs': 'owner_created', 'research-docs': 'third_party',
+               'third-party': 'third_party'}.get(decision['purpose'])
+    explicit = decision.get('authorship')
+    if derived and explicit and explicit != derived:
+        raise ValueError('FOLDER_AUTHORSHIP: purpose and authorship disagree')
+    result = derived or explicit
+    if result not in {'owner_created', 'generated', 'third_party'}:
+        raise ValueError('FOLDER_AUTHORSHIP: data/transcripts require explicit authorship')
+    return result
+
+
 def apply_review(catalog, request):
     library = str(Path(request['library']).resolve()); groups = defaultdict(list)
     decisions = request['decisions']; roots = []
@@ -45,6 +59,8 @@ def apply_review(catalog, request):
     existing_by_label = defaultdict(list)
     for graph in catalog.graphs(): existing_by_label[graph['label'].casefold()].append(graph)
     for label, members in groups.items():
+        if len({authorship_for(c) for _, c in members}) != 1:
+            raise ValueError('GROUP_STRATUM_CONFLICT: different authorship cannot share a graph')
         if len({stratum_for(c) for _, c in members}) != 1:
             raise ValueError('GROUP_STRATUM_CONFLICT: own and external content cannot share a graph')
         choices = existing_by_label[label.casefold()]
@@ -94,7 +110,8 @@ def apply_review(catalog, request):
         profile = dict(prior_profile)
         profile.update(graph_kind='reviewed_folder_group', owner_repo_ids=owners, retained_sources=retained, disabled=False,
                        source_roots_reviewed=sources, library=library, read_only=True,
-                       stratum=dict(role=role, trust_tier=trust, modality=modality))
+                       stratum=dict(role=role, trust_tier=trust, modality=modality,
+                                    authorship=authorship_for(members[0][1])))
         with catalog.lock, catalog.connection:
             catalog.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?) '
                 'ON CONFLICT(graph_id) DO UPDATE SET snapshot_id=excluded.snapshot_id,profile_json=excluded.profile_json',

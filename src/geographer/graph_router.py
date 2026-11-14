@@ -163,6 +163,7 @@ class GraphRouter:
                 for old in [k for k in self.services if k[0]==graph_id and k!=key]:
                     self.retired.add(old);self._close_if_idle(old)
             self.services.move_to_end(key)
+            self.services[key][1].graph_provenance = metadata(row)
             return key,self.services[key][1]
 
     def _close_if_idle(self,key):

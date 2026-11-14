@@ -159,7 +159,12 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
             result=agent_requests.error(name,exc)
         result=agent_requests.enforce_cap(router,name,result)
         failed='error' in result or 'error' in result.get('result',{})
-        return types.CallToolResult(content=[],structuredContent=result,isError=failed)
+        from .provenance import response_metadata
+        try:
+            access = response_metadata(router, arguments)
+        except (ValueError, KeyError, TypeError):
+            access = dict(authorship=None, authorship_resolution='unclassified')
+        return types.CallToolResult(content=[],structuredContent=result,isError=failed, _meta={'access': access})
 
     @mcp._mcp_server.list_resources()
     async def list_resources():return [types.Resource(uri='geographer://graphs',name='Independent project graphs',mimeType='application/json')]

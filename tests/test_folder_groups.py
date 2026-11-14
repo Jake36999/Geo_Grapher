@@ -20,6 +20,7 @@ def test_two_accepted_folders_really_share_one_graph_without_cross_resolution(tm
     graph = cat.graphs()[0]; profile = json.loads(graph['profile_json'])
     assert len(profile['owner_repo_ids']) == 2
     assert profile['stratum']['role'] == 'third_party'
+    assert profile['stratum']['authorship'] == 'third_party'
     from geographer.graph_router import GraphRouter
     with GraphRouter(cat).lease(graph['graph_id']) as svc:
         rows = list(svc.store.connection.execute("SELECT DISTINCT repo_id FROM entities WHERE snapshot_id=? AND kind='function'", (graph['snapshot_id'],)))
@@ -106,4 +107,5 @@ def test_third_party_graph_uses_reviewed_content_modality(tmp_path):
     card = dict(source_root=str(root), path='.', status='accepted', partition=dict(stratum=dict(modality='paper')),
         decision=dict(purpose='third-party', graph='external-papers', accepted_by='person'))
     report = apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=[card]))
-    assert report['graphs'][0]['stratum'] == dict(role='third_party', trust_tier='bronze', modality='paper')
+    assert report['graphs'][0]['stratum'] == dict(role='third_party', trust_tier='bronze', modality='paper',
+                                               authorship='third_party')

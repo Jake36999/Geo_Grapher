@@ -16,6 +16,14 @@ EXCLUDED = {".git", ".venv", "venv", "__pycache__", "node_modules", ".cache", "g
 SUPPORTED = {".py", ".md", ".txt", ".js", ".ts", ".tsx", ".jsx", ".ipynb"}
 
 
+def generated_path(name: str) -> bool:
+    """Build artifacts are generated hygiene; inspect their TS/source inputs."""
+    p = PurePosixPath(str(name).replace('\\', '/'))
+    return (bool({'dist', 'build', '.next', '.nuxt', 'coverage'}.intersection(p.parts))
+        or ('/resource_librarian/ui/' in '/' + p.as_posix() and p.suffix == '.js')
+        or p.name.endswith(('.bundle.js', '.min.js', '.js.map')))
+
+
 def valid_path(name: str) -> bool:
     path = PurePosixPath(name)
     return bool(name) and not path.is_absolute() and not any(x in {"..", "."} for x in path.parts) and ":" not in name and "\\" not in name
@@ -68,7 +76,7 @@ class Repository:
             name = raw_name.decode('utf-8', 'surrogateescape'); p = PurePosixPath(name)
             if (mode not in (b'100644', b'100755') or kind != b'blob'
                     or not valid_path(name) or credential_path(name)
-                    or EXCLUDED.intersection(p.parts) or p.suffix not in SUPPORTED):
+                    or EXCLUDED.intersection(p.parts) or generated_path(name) or p.suffix not in SUPPORTED):
                 continue
             size = int(raw_size)
             if size > 4 * 1024 * 1024:
@@ -116,7 +124,7 @@ class Repository:
             rel = p.relative_to(root)
             if all(source_roots) and not any(rel.as_posix()==r or rel.as_posix().startswith(r.rstrip('/')+'/') for r in source_roots):
                 continue
-            if credential_path(rel) or EXCLUDED.intersection(rel.parts) or p.suffix not in SUPPORTED:
+            if credential_path(rel) or EXCLUDED.intersection(rel.parts) or generated_path(rel.as_posix()) or p.suffix not in SUPPORTED:
                 continue
             if not any(fnmatchcase(rel.as_posix(),g) for g in include_globs) or any(fnmatchcase(rel.as_posix(),g) for g in exclude_globs):continue
             if not p.resolve().is_relative_to(root):

@@ -78,7 +78,13 @@ def create_server(service,host='127.0.0.1',port=8765,wire_version='1.0'):
             result={**service._error('invalid-request','INVALID_REQUEST','Tool/schema version unavailable'),'schema_version':wire_version}
         else:result=await anyio.to_thread.run_sync(service.query,name,arguments)
         # Explicit CallToolResult prevents the SDK duplicating the JSON in text.
-        return types.CallToolResult(content=[],structuredContent=json.loads(canonical(result)),isError='error' in result)
+        # MCP transport metadata leaves the stable v1.x response schema intact.
+        # A canonical snapshot alone has no accepted graph authorship: flag it,
+        # never infer owner status from a repo name or trust ranking.
+        access={**getattr(service, 'graph_provenance', dict(authorship=None,
+            authorship_resolution='unclassified')), 'snapshot_id': result.get('snapshot_id')}
+        return types.CallToolResult(content=[],structuredContent=json.loads(canonical(result)),
+                                    isError='error' in result, _meta={'access': access})
     @low.read_resource()
     async def read_resource(uri):
         if str(uri)=='geographer://projects':
