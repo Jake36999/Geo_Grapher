@@ -104,6 +104,12 @@ def _provenance(conn,doc_id):
             producer=manifest['producer'],source_kind=manifest['source_kind'],coverage=json.loads(manifest['coverage_json']))
     representation=result['coverage'].get('representation')
     if representation:result['representation']=representation
+    catalogue=result['coverage'].pop('catalogue',None)
+    if isinstance(catalogue,dict):
+        result['catalogue_history_available']=isinstance(catalogue.get('use_rollup'),dict)
+        result['catalogue_captured_at']=str(catalogue.get('captured_at') or '')[:80] or None
+        # History has a bounded projection on cards. Repeating the full import
+        # payload in every section's provenance would defeat the size cap.
     return result
 
 

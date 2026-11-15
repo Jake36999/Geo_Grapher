@@ -147,6 +147,19 @@ def test_use_history_does_not_overflow_a_single_search_card(artifact, monkeypatc
     assert history['details_truncated'] is True
 
 
+def test_section_provenance_does_not_repeat_full_catalogue_history(artifact, monkeypatch):
+    from pipeline import mcp_doc_graph as tools
+    conn, path, data = artifact
+    data['catalogue'] = {'use_rollup': {'log_use_count': 50, 'recent_uses': [{'used_for': 'x' * 7000}]}}
+    path.write_text(json.dumps(data), encoding='utf-8')
+    load_nodes_file(path, conn); conn.commit()
+    monkeypatch.setattr(tools, 'DB_PATH', path.parent / 'paper.sqlite')
+    out = tools._TOOLS['get_section']('Full study', section_id=1, max_chars=500)
+    assert len(json.dumps(out, ensure_ascii=True)) <= 8000
+    assert out['provenance']['catalogue_history_available'] is True
+    assert 'catalogue' not in out['provenance']['coverage']
+
+
 def test_standalone_paper_result_preserves_page_provenance_with_authorship(artifact, monkeypatch):
     from pipeline import mcp_doc_graph as tools
     conn, path, _ = artifact
