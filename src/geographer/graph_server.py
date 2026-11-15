@@ -194,13 +194,40 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
     return mcp
 
 
-def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui=False,primary_graph_id=None,browse_roots=()):
+def _loopback_url(url):
+    """Only an http URL on a loopback host may be offered as the way back to Librarian."""
+    from urllib.parse import urlparse
+    parsed=urlparse(url or '')
+    if parsed.scheme!='http' or parsed.hostname not in {'127.0.0.1','localhost','::1'}:
+        raise ValueError('librarian_url must be an http loopback URL')
+    return url
+
+
+def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui=False,primary_graph_id=None,browse_roots=(),
+                      access_token=None,librarian_url=None,library_name=None):
+    """`access_token`: a per-library token set by the owning Librarian Core. Programs send it as
+    X-Geo-Token; a browser opens `/?geo_token=...` once and receives an HttpOnly cookie instead,
+    so the token leaves the address bar. Without a token the server is unchanged."""
+    import hmac
+    from starlette.responses import RedirectResponse
     from .server import create_http_app
+    if librarian_url is not None:librarian_url=_loopback_url(librarian_url)
     mcp=create_graph_mcp(router,host,port);app=mcp.streamable_http_app();children={}
     security=TransportSecurityMiddleware(mcp.settings.transport_security)
+    def _token_ok(value):
+        return isinstance(value,str) and bool(value) and hmac.compare_digest(value.encode(),access_token.encode())
     async def guard(request,call_next):
         denied=await security.validate_request(request,is_post=request.method=='POST')
         if denied:return denied
+        if access_token:
+            offered=request.query_params.get('geo_token')
+            if offered is not None and request.method=='GET':
+                if not _token_ok(offered):return JSONResponse({'error':'Unauthorized'},status_code=401)
+                reply=RedirectResponse(request.url.path or '/',status_code=303)
+                reply.set_cookie('geo_token',access_token,httponly=True,samesite='strict',path='/')
+                return reply
+            if not (_token_ok(request.headers.get('x-geo-token')) or _token_ok(request.cookies.get('geo_token'))):
+                return JSONResponse({'error':'Unauthorized'},status_code=401)
         if request.method in {'POST','PUT','DELETE'}:
             chunks=[];size=0
             async for chunk in request.stream():
@@ -235,6 +262,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         if not resolved.is_dir() or not (resolved==root or resolved.is_relative_to(root)):return None
         return resolved
     async def fs_roots(request):return JSONResponse(dict(roots=[str(r) for r in allowed_roots]))
+    async def workspace_context(request):return JSONResponse(dict(library_name=library_name,librarian_url=librarian_url))
     async def fs_list(request):
         path=browsable(request.query_params.get('path',''))
         if path is None:return JSONResponse({'error':'PATH_NOT_BROWSABLE'},status_code=403)
@@ -402,7 +430,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         Route('/api/graphs/plan',plan,methods=['POST']),
         Route('/api/graphs/bridge-proposals',proposals_get),Route('/api/graphs/bridge-proposals',proposals_post,methods=['POST']),
         Route('/api/graphs/bridge-proposals/{proposal_id}',proposal_decide,methods=['POST']),
-        Route('/api/fs/roots',fs_roots),Route('/api/fs/list',fs_list),
+        Route('/api/fs/roots',fs_roots),Route('/api/workspace/context',workspace_context),Route('/api/fs/list',fs_list),
         Route('/api/workspace/ingest-preview',ingest_preview,methods=['POST']),Route('/api/workspace/ingest-execute',ingest_execute,methods=['POST']),
         Route('/api/workspace/jobs/{job_id}',job_status),Route('/api/graphs/{graph_id}/prune',prune,methods=['POST']),
         Route('/api/graphs/{graph_id}/copy',copy,methods=['POST']),Route('/api/graphs/{graph_id}',delete,methods=['DELETE']),

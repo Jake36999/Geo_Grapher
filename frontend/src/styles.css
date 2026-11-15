@@ -1602,3 +1602,19 @@ dialog input {
   max-height: 120px;
   overflow: auto;
 }
+
+/* Way back to the owning library's Librarian (per-library service). */
+.library-link {
+  font-size: 12px;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.library-link:hover,
+.library-link:focus-visible {
+  color: inherit;
+  border-color: currentColor;
+}

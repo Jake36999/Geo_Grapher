@@ -98,6 +98,10 @@ def main():
     graphserver.add_argument('--catalog',type=Path,default=Path(env_catalog) if env_catalog else None,required=not env_catalog,
         help='Graph catalog (default: $GEOGRAPHER_CATALOG)');graphserver.add_argument('--transport',choices=['stdio','http'],default='http');graphserver.add_argument('--port',type=int,default=8765)
     graphserver.add_argument('--ui-origin',help='Compatibility listener: redirect its viewer to this loopback origin')
+    graphserver.add_argument('--ready-file',type=Path,help='After binding, write {url, port, pid} here (never the token). '
+        'Use with --port 0 so the owning Librarian Core learns the chosen port')
+    graphserver.add_argument('--librarian-url',help="The owning library's Librarian address (http loopback), for the UI's way back")
+    graphserver.add_argument('--library-name',help="The owning library's name, shown in the UI")
     graphserver.add_argument('--browse-root',action='append',type=Path,default=[],metavar='DIR',help='Folder the UI directory picker may browse (repeatable; none disables the picker)')
     env_graphs=[g.strip() for g in os.environ.get('GEOGRAPHER_GRAPHS','').split(',') if g.strip()]
     graphserver.add_argument('--graph-id',action='append',dest='allow_graph',metavar='GRAPH_ID',default=None,
@@ -186,8 +190,23 @@ def main():
                 try:
                     if args.transport=='stdio':create_graph_mcp(router,port=args.port).run(transport='stdio')
                     else:
-                        import uvicorn
-                        uvicorn.run(create_graph_http(router,port=args.port,ui_origin=args.ui_origin,browse_roots=args.browse_root),host='127.0.0.1',port=args.port)
+                        import socket,uvicorn
+                        # Bind first so --port 0 yields a real port before anything is announced.
+                        sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);sock.bind(('127.0.0.1',args.port))
+                        bound=sock.getsockname()[1]
+                        app=create_graph_http(router,port=bound,ui_origin=args.ui_origin,browse_roots=args.browse_root,
+                            access_token=os.environ.get('GEOGRAPHER_ACCESS_TOKEN') or None,
+                            librarian_url=args.librarian_url,library_name=args.library_name)
+                        server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=bound,log_level='warning'))
+                        if args.ready_file:
+                            started=server.startup
+                            async def startup(sockets=None):
+                                await started(sockets=sockets)
+                                ready=dict(url=f'http://127.0.0.1:{bound}/',port=bound,pid=os.getpid())
+                                tmp=args.ready_file.with_name(args.ready_file.name+'.tmp')
+                                tmp.write_text(json.dumps(ready),encoding='utf-8');os.replace(tmp,args.ready_file)
+                            server.startup=startup
+                        server.run(sockets=[sock])
                 finally:router.close()
                 return
             output=json.dumps(result,indent=2)

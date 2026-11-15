@@ -1,3 +1,4 @@
+import { LibraryLink } from "./LibraryLink";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QiControl, { type QiMode } from "./QiControl";
 import { frameQI, type QiOptions } from "./api";
@@ -1024,6 +1025,7 @@ export default function App({
           Geo Grapher
         </a>
         <span className="local-badge">LOCAL WORKSPACE</span>
+        <LibraryLink />
         {workspace?.tools}
         <label className="sr-only" htmlFor="snapshot">
           Repository snapshot
