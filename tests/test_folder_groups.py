@@ -109,3 +109,21 @@ def test_third_party_graph_uses_reviewed_content_modality(tmp_path):
     report = apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=[card]))
     assert report['graphs'][0]['stratum'] == dict(role='third_party', trust_tier='bronze', modality='paper',
                                                authorship='third_party')
+
+
+def test_agent_policy_decisions_from_the_owning_core_apply_but_unvouched_ones_do_not(tmp_path):
+    """Librarian agent mode (owner, 2026-11-15): the Core records accepted_by='agent-policy' with
+    its policy only after checking the library's promotion.mode; anything else is still refused."""
+    from geographer.folder_review import apply_review
+    cat = GraphCatalog(tmp_path / 'catalog/catalog.sqlite'); root = tmp_path / 'source'; root.mkdir()
+    (root / 'own.py').write_text('OUR_CODE = 1\n')
+    card = lambda decision: [dict(source_root=str(root), path='.', status='accepted', decision=decision)]
+    policy = dict(mode='agent', rule='unambiguous suggestion, not sensitive')
+    result = apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=card(
+        dict(purpose='own-current', graph='our-system', accepted_by='agent-policy', policy=policy))))
+    assert [g['label'] for g in cat.graphs()] == ['our-system'] and result['graphs']
+    for bad in (dict(purpose='own-current', graph='x', accepted_by='agent-policy'),            # no policy record
+                dict(purpose='own-current', graph='x', accepted_by='agent-policy', policy=dict(mode='person')),
+                dict(purpose='own-current', graph='x', accepted_by='model')):
+        with pytest.raises(ValueError, match='FOLDER_REVIEW_REQUIRED'):
+            apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=card(bad)))

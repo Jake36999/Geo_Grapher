@@ -40,12 +40,25 @@ def authorship_for(card):
     return result
 
 
+def _reviewed(decision):
+    """A person's decision, or the owning Librarian Core's agent-mode policy decision.
+
+    The Core records accepted_by='agent-policy' with policy.mode='agent' only after checking
+    the library's promotion.mode; this CLI is invoked by that Core alone.
+    """
+    if decision.get('accepted_by') == 'person':
+        return True
+    policy = decision.get('policy')
+    return (decision.get('accepted_by') == 'agent-policy' and isinstance(policy, dict)
+            and policy.get('mode') == 'agent')
+
+
 def apply_review(catalog, request):
     library = str(Path(request['library']).resolve()); groups = defaultdict(list)
     decisions = request['decisions']; roots = []
     for card in decisions:
         decision = card['decision']; relative = card['path']
-        if (card.get('status') != 'accepted' or decision.get('accepted_by') != 'person'
+        if (card.get('status') != 'accepted' or not _reviewed(decision)
                 or (relative != '.' and not valid_path(relative))):
             raise ValueError('FOLDER_REVIEW_REQUIRED: explicit person decisions with safe folder paths')
         root = Path(card['source_root']).resolve(); target = root if relative == '.' else root / relative
