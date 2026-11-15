@@ -109,6 +109,7 @@ class Repository:
         cls(repo_id,"working-tree",{},tuple(source_roots),resolution_group,tuple(include_globs),tuple(exclude_globs))
         files = {}
         total_bytes=0
+        omitted=[]
         def candidates():
             for directory,dirs,names in os.walk(root,followlinks=False):
                 rel_dir=Path(directory).relative_to(root).as_posix()
@@ -130,12 +131,15 @@ class Repository:
             if not p.resolve().is_relative_to(root):
                 raise ValueError("Repository path escaped root")
             if p.stat().st_size > 4 * 1024 * 1024:
-                raise ValueError(f"Input file exceeds 4 MiB: {rel}")
+                # Recorded, never silently dropped; one large transcript must not abort a project.
+                omitted.append(dict(path=rel.as_posix(), bytes=p.stat().st_size, reason='exceeds 4 MiB per-file limit'))
+                continue
             total_bytes+=p.stat().st_size
             if len(files)>=max_files or total_bytes>max_total_bytes:raise ValueError('Repository input exceeds selected file/byte budget; narrow the ingestion profile')
             files[rel.as_posix()] = p.read_bytes()
         provisional = cls(repo_id, "working-tree", files, tuple(source_roots),resolution_group,tuple(include_globs),tuple(exclude_globs))
         provisional.revision = "working-tree:" + provisional.content_digest
+        provisional.omitted = omitted
         return provisional
 
     def modules(self, rel_path: str) -> list[str]:
