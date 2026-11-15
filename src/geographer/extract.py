@@ -248,6 +248,12 @@ class PythonExtractor(StaticDispatch):
                 duplicate[key] += 1
                 qualified = self.graph.entities[owner].qualified_name + "." + name + (f"#{ordinal}" if ordinal else "")
                 eid = entity_id(repo.repo_id, path, qualified, kind, signature, ordinal)
+                if eid in self.graph.entities:
+                    # Same-named owners with different signatures (e.g. a notebook cell redefining a
+                    # function) give nested definitions the same qualified name. Disambiguate only on
+                    # collision, by line, so every non-colliding identity stays unchanged.
+                    qualified += f"@L{node.lineno}"
+                    eid = entity_id(repo.repo_id, path, qualified, kind, signature, ordinal)
                 self.graph.add(Entity(eid, repo.repo_id, kind, qualified, owner, rel_path=path, start_line=node.lineno,
                                       end_line=node.end_lineno, **flags))
                 unit.owners[scope] = eid
