@@ -102,6 +102,7 @@ def main():
         'Use with --port 0 so the owning Librarian Core learns the chosen port')
     graphserver.add_argument('--librarian-url',help="The owning library's Librarian address (http loopback), for the UI's way back")
     graphserver.add_argument('--library-name',help="The owning library's name, shown in the UI")
+    graphserver.add_argument('--create-catalog',action='store_true',help='Create an empty catalog if missing (a new library before its first accepted folder); never implicit')
     graphserver.add_argument('--browse-root',action='append',type=Path,default=[],metavar='DIR',help='Folder the UI directory picker may browse (repeatable; none disables the picker)')
     env_graphs=[g.strip() for g in os.environ.get('GEOGRAPHER_GRAPHS','').split(',') if g.strip()]
     graphserver.add_argument('--graph-id',action='append',dest='allow_graph',metavar='GRAPH_ID',default=None,
@@ -141,7 +142,9 @@ def main():
     if args.command in {'serve','serve-graphs'}:require_pinned_mcp()
     if args.command in {'ingest-graphs','serve-graphs','plan-graph','attach-graph-papers','set-graph-stratum','copy-graph','delete-graph','plan-graph-merge','merge-graphs'}:
         from .graph_catalog import GraphCatalog,CollisionReview
-        if args.command!='ingest-graphs' and not args.catalog.is_file():raise ValueError('Graph catalog not found; no empty catalog was created')
+        create=args.command=='serve-graphs' and getattr(args,'create_catalog',False)
+        if args.command!='ingest-graphs' and not create and not args.catalog.is_file():raise ValueError('Graph catalog not found; no empty catalog was created')
+        if create:args.catalog.parent.mkdir(parents=True,exist_ok=True)
         catalog=GraphCatalog(args.catalog)
         try:
             if args.command=='ingest-graphs':

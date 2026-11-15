@@ -104,3 +104,32 @@ def test_serve_graphs_binds_port_zero_and_reports_it_in_a_ready_file(tmp_path):
     finally:
         proc.terminate()
         proc.wait(timeout=20)
+
+
+def test_create_catalog_lets_a_new_library_start_with_no_graphs_yet(tmp_path):
+    """A library's first start happens before any folder is accepted."""
+    catalog = tmp_path / "fresh" / "catalog.sqlite"
+    ready = tmp_path / "ready.json"
+    env = {**os.environ, "GEOGRAPHER_ACCESS_TOKEN": TOKEN,
+           "PYTHONPATH": os.pathsep.join([str(Path(__file__).resolve().parents[1] / "src"),
+                                          os.environ.get("PYTHONPATH", "")])}
+    refused = subprocess.run([sys.executable, "-m", "geographer", "serve-graphs", "--catalog", str(catalog),
+                              "--port", "0", "--ready-file", str(ready)], env=env, capture_output=True, timeout=120)
+    assert refused.returncode != 0 and not catalog.exists()          # never created implicitly
+    proc = subprocess.Popen([sys.executable, "-m", "geographer", "serve-graphs", "--catalog", str(catalog),
+                             "--create-catalog", "--port", "0", "--ready-file", str(ready)], env=env,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        for _ in range(300):
+            if ready.is_file():
+                break
+            time.sleep(0.1)
+        info = json.loads(ready.read_text(encoding="utf-8"))
+        import urllib.request
+        request = urllib.request.Request(info["url"] + "api/graphs", headers={"X-Geo-Token": TOKEN})
+        with urllib.request.urlopen(request, timeout=10) as reply:
+            assert reply.status == 200
+        assert catalog.is_file()
+    finally:
+        proc.terminate()
+        proc.wait(timeout=20)
