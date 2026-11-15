@@ -74,6 +74,8 @@ def main():
     init.add_argument('--yes',action='store_true',help='Scan and apply every proposed partition')
     folder_review=sub.add_parser('apply-folder-review',help='Apply person-accepted folder groups from JSON on stdin')
     folder_review.add_argument('--catalog',type=Path,required=True)
+    library_paper=sub.add_parser('import-library-paper',help='Import a verified native conversion into its reviewed graph; retain prior generations')
+    library_paper.add_argument('--catalog',type=Path,required=True)
     folder_mcp=sub.add_parser('review-mcp-config',help='Print scoped MCP entry suggestions; never launch or accept servers')
     folder_mcp.add_argument('--catalog',type=Path,required=True)
     folder_mcp.add_argument('--command-json',required=True,help='Pinned installed-wheel command as a JSON array')
@@ -220,6 +222,13 @@ def main():
         catalog=GraphCatalog(args.catalog)
         try:print(json.dumps(apply_review(catalog,request),ensure_ascii=False))
         finally:catalog.close()
+        return
+    if args.command=='import-library-paper':
+        from .library_papers import publish
+        from .graph_catalog import GraphCatalog
+        catalog=GraphCatalog(args.catalog)
+        try: print(json.dumps(publish(catalog,json.loads(sys.stdin.read())),ensure_ascii=False))
+        finally: catalog.close()
         return
     if args.command=='init-workspace':
         from .graph_catalog import GraphCatalog
