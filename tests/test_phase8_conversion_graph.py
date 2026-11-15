@@ -95,6 +95,58 @@ def test_catalogue_only_paper_remains_findable_without_inventing_source_text(art
     assert outline['sections'] == [], outline
 
 
+def test_paper_search_exposes_imported_use_history_without_claiming_live_sync(artifact, monkeypatch):
+    from pipeline import mcp_doc_graph as tools
+    conn, path, data = artifact
+    data['catalogue'] = {'authorship': 'generated', 'captured_at': '2026-11-15T00:00:00Z',
+        'use_rollup': {'authorship': 'generated', 'log_use_count': 2, 'application_count': 1,
+                       'recent_uses': [{'used_for': 'A located comparison.'}], 'applications': []}}
+    path.write_text(json.dumps(data), encoding='utf-8')
+    load_nodes_file(path, conn)
+    conn.commit()
+    monkeypatch.setattr(tools, 'DB_PATH', path.parent / 'paper.sqlite')
+    hit = tools._TOOLS['search_documents']('study')['results'][0]
+    assert hit['use_rollup']['sources'][0]['history']['log_use_count'] == 2
+    assert hit['use_rollup']['sources'][0]['history']['application_count'] == 1
+    assert hit['use_rollup']['sources'][0]['captured_at'] == '2026-11-15T00:00:00Z'
+    assert hit['use_rollup']['freshness'] == 'at graph import; not live session history'
+
+
+def test_legacy_paper_search_says_use_history_is_unknown(artifact, monkeypatch):
+    from pipeline import mcp_doc_graph as tools
+    conn, path, _ = artifact
+    load_nodes_file(path, conn)
+    conn.commit()
+    monkeypatch.setattr(tools, 'DB_PATH', path.parent / 'paper.sqlite')
+    hit = tools._TOOLS['search_documents']('study')['results'][0]
+    assert hit['use_rollup']['status'] == 'not_recorded'
+
+
+def test_oversized_catalogue_metadata_is_rejected_before_import(artifact):
+    conn, path, data = artifact
+    data['catalogue'] = {'use_rollup': {'recent_uses': ['x' * 100000]}}
+    path.write_text(json.dumps(data), encoding='utf-8')
+    with pytest.raises(ValueError, match='catalogue'):
+        load_nodes_file(path, conn)
+    assert conn.execute('SELECT count(*) FROM documents').fetchone()[0] == 0
+
+
+def test_use_history_does_not_overflow_a_single_search_card(artifact, monkeypatch):
+    from pipeline import mcp_doc_graph as tools
+    conn, path, data = artifact
+    data['catalogue'] = {'use_rollup': {'log_use_count': 50, 'application_count': 2,
+                                      'recent_uses': [{'used_for': 'x' * 7000}]}}
+    path.write_text(json.dumps(data), encoding='utf-8')
+    load_nodes_file(path, conn)
+    conn.commit()
+    monkeypatch.setattr(tools, 'DB_PATH', path.parent / 'paper.sqlite')
+    result = tools._TOOLS['search_documents']('study')
+    history = result['results'][0]['use_rollup']
+    assert len(json.dumps(history, ensure_ascii=True)) <= 2400
+    assert history['sources'][0]['history']['log_use_count'] == 50
+    assert history['details_truncated'] is True
+
+
 def test_standalone_paper_result_preserves_page_provenance_with_authorship(artifact, monkeypatch):
     from pipeline import mcp_doc_graph as tools
     conn, path, _ = artifact

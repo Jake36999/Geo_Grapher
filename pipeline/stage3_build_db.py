@@ -200,6 +200,9 @@ def _validate_conversion(data):
 
 def _load_nodes_file(nodes_path: Path, conn: sqlite3.Connection) -> None:
     data = json.loads(nodes_path.read_text(encoding="utf-8"))
+    catalogue = data.get('catalogue')
+    if catalogue is not None and (not isinstance(catalogue,dict) or len(json.dumps(catalogue,ensure_ascii=True))>8192):
+        raise ValueError('Bounded catalogue metadata must be an object within 8192 serialized characters')
     if data.get('skipped') or data.get('status')=='incomplete':raise ValueError('Incomplete/skipped extraction is not a publishable document')
     file_path = data["file_path"]
     meta      = data.get("metadata", {})
@@ -247,7 +250,8 @@ def _load_nodes_file(nodes_path: Path, conn: sqlite3.Connection) -> None:
             (doc_id,artifact_digest,data.get('source_sha256'),
              data.get('source','legacy_artifact'),data.get('producer',data.get('model_id','legacy_unknown')),
              json.dumps(dict(data.get('coverage',{'status':'legacy_unverified','limitations':['No extraction/source coverage manifest']}),
-                             extracted_at=data.get('extracted_at'), **({'representation':representation} if representation else {})))))
+                             extracted_at=data.get('extracted_at'), **({'representation':representation} if representation else {}),
+                             **({'catalogue':catalogue} if catalogue is not None else {})))))
 
     # Delete old sections (re-import is clean)
     cur.execute("DELETE FROM sections WHERE doc_id=?", (doc_id,))
