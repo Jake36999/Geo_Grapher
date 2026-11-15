@@ -109,11 +109,32 @@ Code-response token caps include the graph wrapper. Paper requests retain their
 documented row/character bounds; no exact paper-envelope token guarantee is added
 implicitly. Source assertions remain untrusted data and are not tool instructions.
 
+### Per-connection allow-list
+
+`serve-graphs --graph-id ID` (repeatable) restricts one hub connection to the
+named graphs: `list_graphs` lists only them, and any query, federation, bridge
+lookup or service open for another graph fails with `graph_id is not available
+on this connection`. Without the flag a connection can reach every catalog
+graph, and an agent that chooses `graph_id` itself can hop graphs. Measured
+through the Librarian, an open connection let a model answer an AI-graph
+question with Timeline notes. Give each consuming library a connection pinned to
+its own graphs. Every envelope also carries `graph_label`, so results stay
+attributable when a connection does span several graphs.
+
+`graph_id` arguments also accept a graph's label when it names exactly one graph
+visible on the connection; ambiguous labels are refused. An unknown, mistyped or
+disallowed ID returns an error listing the graphs this connection may use, so an
+agent can recover. Paper results add a `cite_as` handle (`graph-label/doc:N`) to
+every document reference. Agents routed through the Librarian had renumbered bare
+`doc:N` IDs by position; the tool descriptions ask for the handle verbatim.
+
 ## Deliberate federation
 
 `federated_search` requires 2–8 distinct `graph_ids`, a query, optional search mode,
 and a 2,048–32,768 `limit_tokens` cap. It currently compares canonical code/document
-search results. Each graph is searched independently with a bounded allocation:
+search results. Each graph is searched independently against the whole budget
+(`min(limit_tokens, 32768)` less the response skeleton); the budget is not pre-split
+across graphs, because an even share can fall below one graph's smallest envelope:
 
 ```typescript
 interface FederatedSearch {
@@ -125,7 +146,8 @@ interface FederatedSearch {
 interface FederatedResults {
   graph_ids: string[];
   results: ScopedCodeResponse<unknown>[];
-  omitted: { graph_id: string; reason: 'full_graph_envelope_omitted_by_budget' }[];
+  omitted: { graph_id: string; reason: 'GRAPH_UNAVAILABLE' | 'budget_compact_only' | 'budget_omitted' | 'no_relevant_hits'; message?: string }[];
+  selection: { method: 'pc-mckp-v1'; tiers: Record<string, 'full' | 'compact' | 'omit'>; utility: Record<string, number> };
   ranking: 'independent_per_graph_no_global_rank';
   tokenizer: 'o200k_base';
   used_tokens: number;
@@ -135,10 +157,24 @@ interface FederatedResults {
 There is no global BM25/RRF normalization and no graph union. Packing retains or
 omits a whole valid graph envelope, preserving node/relationship endpoint closure.
 The final serialized response is counted exactly, including omission metadata.
-When over budget, the largest envelope is omitted first (ties: the later one), so
-the outcome does not depend on argument order. An inner query error remains
-explicit; a graph whose store cannot be opened yields its own `GRAPH_UNAVAILABLE`
-entry while the other graphs' results are kept. Missing results are not fabricated.
+Each healthy graph is queried at two sizes (`full`: 5 results, `compact`: 2) and the
+router chooses `full`, `compact` or omission per graph (`pc-mckp-v1`). The choice is
+an exact search that maximises total utility, then minimises tokens, then takes the
+lexicographically smallest assignment (compact < full < omit), so the outcome does
+not depend on argument order. A graph's utility weights its trust tier, modality
+(`profile_json.stratum`; default `silver` with `code`, or `paper` for a paper-only
+graph), query intent, store size and its own hit ranks; utilities are never compared
+as retrieval scores. The response carries `selection = {method, tiers, utility}`,
+keyed by graph ID. If the assembled response overflows, selection is re-run with a
+tighter budget. `omitted[].reason` is one of `GRAPH_UNAVAILABLE`,
+`budget_compact_only` (only the compact envelope is included), `budget_omitted` (no envelope
+fits the total, including a graph whose own query reports `BUDGET_TOO_SMALL`) and
+`no_relevant_hits` (a healthy graph with zero utility; a nested per-graph error is never
+reported as this). A nested error other than `BUDGET_TOO_SMALL` is reported as
+`GRAPH_UNAVAILABLE`. A graph whose store cannot be
+opened appears only in `omitted` with `GRAPH_UNAVAILABLE`; `results` holds healthy
+envelopes only, and the other graphs' results are kept. Missing results are not
+fabricated.
 Cross-graph similarity/impact/conformance and paper-specific federation are not
 implemented as automatic traversals. Agents can make separate explicitly scoped
 queries and keep their origins attached.

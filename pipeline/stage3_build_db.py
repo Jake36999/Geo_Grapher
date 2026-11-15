@@ -157,15 +157,63 @@ def load_nodes_file(nodes_path: Path, conn: sqlite3.Connection, *, refresh_read_
         conn.execute('ROLLBACK TO paper_import');conn.execute('RELEASE paper_import');raise
 
 
+def _validate_conversion(data):
+    """Verify local bytes and complete page coverage before publishing this projection."""
+    from geographer.credentials import refuse_credentials
+    def checked(kind):
+        value = data.get(kind, {})
+        if not isinstance(value, dict):raise ValueError(f'Invalid {kind} conversion provenance')
+        path = Path(value.get('path', ''))
+        refuse_credentials(path);refuse_credentials(path.resolve())
+        if not path.is_file():raise ValueError(f'Missing {kind} conversion input')
+        h=hashlib.sha256()
+        with path.open('rb') as handle:
+            for chunk in iter(lambda:handle.read(1024*1024),b''):h.update(chunk)
+        if h.hexdigest()!=value.get('sha256'):raise ValueError(f'{kind} conversion hash mismatch')
+        return value,path
+    original,original_path=checked('original')
+    conversion,conversion_path=checked('conversion')
+    if (conversion.get('authorship')!='generated'
+            or original.get('authorship') not in {'owner_created','generated','third_party'}
+            or original_path.as_posix()!=data.get('file_path')
+            or original.get('sha256')!=data.get('source_sha256')):
+        raise ValueError('Invalid original/conversion identity or authorship')
+    count=data.get('page_count')
+    if type(count) is not int or count<1:raise ValueError('Conversion needs an original page count')
+    content=conversion_path.read_text(encoding='utf-8')
+    marks=list(re.finditer(r'^\[page ([1-9][0-9]*)\][ \t]*$',content,re.M))
+    if ([int(m[1]) for m in marks]!=list(range(1,count+1)) or not marks
+            or content[:marks[0].start()].strip()):raise ValueError('Invalid conversion page anchors')
+    pages=[content[m.end():marks[i+1].start() if i+1<len(marks) else len(content)].strip() for i,m in enumerate(marks)]
+    covered=[]
+    for section in data['sections']:
+        start,end=section.get('page_start'),section.get('page_end')
+        if type(start) is not int or type(end) is not int or not 1<=start<=end<=count:
+            raise ValueError('Invalid conversion section page range')
+        if section.get('text')!='\n\n'.join(pages[start-1:end]):raise ValueError('Section differs from full conversion pages')
+        covered.extend(range(start,end+1))
+    if covered!=list(range(1,count+1)):raise ValueError('Conversion sections omit, repeat or reorder pages')
+    if data.get('coverage',{}).get('page_verification') is not False:
+        raise ValueError('Conversion ingestion cannot assert original-page claim verification')
+    return {'original':original,'conversion':conversion}
+
+
 def _load_nodes_file(nodes_path: Path, conn: sqlite3.Connection) -> None:
     data = json.loads(nodes_path.read_text(encoding="utf-8"))
+    catalogue = data.get('catalogue')
+    if catalogue is not None and (not isinstance(catalogue,dict) or len(json.dumps(catalogue,ensure_ascii=True))>8192):
+        raise ValueError('Bounded catalogue metadata must be an object within 8192 serialized characters')
     if data.get('skipped') or data.get('status')=='incomplete':raise ValueError('Incomplete/skipped extraction is not a publishable document')
     file_path = data["file_path"]
     meta      = data.get("metadata", {})
     sections  = data.get("sections", [])
     if not isinstance(file_path,str) or not file_path.strip():raise ValueError('Source file_path required')
     if not isinstance(meta,dict) or not isinstance(meta.get('title'),str) or not meta['title'].strip():raise ValueError('Nonempty document title required')
-    if not isinstance(sections,list) or not sections:raise ValueError('At least one extracted section required')
+    conversion_source = data.get('source') == 'librarian_conversion'
+    catalogue_only = data.get('source') in {'librarian_conversion','catalogue_note'} and data.get('coverage', {}).get('status') == 'catalogue_only'
+    if not isinstance(sections,list) or (not sections and not catalogue_only):raise ValueError('At least one extracted section required')
+    if catalogue_only and sections:raise ValueError('Catalogue-only documents cannot assert source sections')
+    representation = _validate_conversion(data) if conversion_source and not catalogue_only else None
     positions=[s.get('position') for s in sections]
     if any(type(p) is not int or p<0 for p in positions) or len(set(positions))!=len(positions):raise ValueError('Unique nonnegative section positions required')
     if data.get('source_sha256') is not None and not re.fullmatch('[0-9a-f]{64}',data['source_sha256']):raise ValueError('Invalid source SHA-256')
@@ -201,7 +249,9 @@ def _load_nodes_file(nodes_path: Path, conn: sqlite3.Connection) -> None:
         cur.execute('INSERT OR REPLACE INTO import_manifests VALUES(?,?,?,?,?,?)',
             (doc_id,artifact_digest,data.get('source_sha256'),
              data.get('source','legacy_artifact'),data.get('producer',data.get('model_id','legacy_unknown')),
-             json.dumps(dict(data.get('coverage',{'status':'legacy_unverified','limitations':['No extraction/source coverage manifest']}),extracted_at=data.get('extracted_at')))))
+             json.dumps(dict(data.get('coverage',{'status':'legacy_unverified','limitations':['No extraction/source coverage manifest']}),
+                             extracted_at=data.get('extracted_at'), **({'representation':representation} if representation else {}),
+                             **({'catalogue':catalogue} if catalogue is not None else {})))))
 
     # Delete old sections (re-import is clean)
     cur.execute("DELETE FROM sections WHERE doc_id=?", (doc_id,))
@@ -221,11 +271,12 @@ def _load_nodes_file(nodes_path: Path, conn: sqlite3.Connection) -> None:
         )
         sec_id = cur.lastrowid
         if conn.execute("SELECT 1 FROM sqlite_master WHERE name='section_provenance'").fetchone():
-            reliable=data.get('source_extractor_version')=='paper-text-v2'
+            anchored=representation is not None
+            reliable=anchored or data.get('source_extractor_version')=='paper-text-v2'
             cur.execute('INSERT INTO section_provenance VALUES(?,?,?,?,?)',
                 (sec_id,s.get('page_start') if reliable else None,s.get('page_end') if reliable else None,
-                 'heuristic_pdf_section' if reliable else 'stored_section_text',
-                 'note_assertion' if data.get('source')=='md_import' else 'model_extracted_documentary_assertion'))
+                 'original_pdf_page_via_generated_conversion' if anchored else 'heuristic_pdf_section' if reliable else 'stored_section_text',
+                 'generated_text_unverified_against_original' if anchored else 'note_assertion' if data.get('source')=='md_import' else 'model_extracted_documentary_assertion'))
 
         # Claims
         for c in s.get("claims", []):

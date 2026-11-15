@@ -1,6 +1,8 @@
 """Local CLI. Repository source is never imported as part of ingestion."""
 import argparse
 import json
+import os
+import sys
 from pathlib import Path
 
 from .pipeline import ingest
@@ -63,16 +65,69 @@ def main():
     workspace=sub.add_parser('ingest-workspace',help='Ingest explicit, nonoverlapping project roots; isolated unless resolution_group is declared')
     workspace.add_argument('--manifest',type=Path,required=True);workspace.add_argument('--database',type=Path,required=True)
     workspace.add_argument('--stage',type=int,choices=[1,2,3],default=1);workspace.add_argument('--report',type=Path)
+    discovery=sub.add_parser('discovery-report',help='Deterministic discovery card (discovery-card-v1) as Markdown, optionally JSON')
+    discovery.add_argument('--store',type=Path,required=True);discovery.add_argument('--snapshot');discovery.add_argument('--out',required=True,help='Markdown file, or - for stdout');discovery.add_argument('--json',type=Path)
+    init=sub.add_parser('init-workspace',help='Plan disjoint graph partitions for any folder (workspace-init-v1); applies only with --apply or --yes')
+    init.add_argument('--root',type=Path,required=True);init.add_argument('--catalog',type=Path,required=True)
+    init.add_argument('--plan-out',default='-',help='Plan JSON file, or - for stdout');init.add_argument('--apply',type=Path,help='Apply every partition of this saved plan')
+    init.add_argument('--survey-in',help='folder-inventory-v1 JSON file, or - for stdin; uses the Librarian survey without walking twice')
+    init.add_argument('--yes',action='store_true',help='Scan and apply every proposed partition')
+    folder_review=sub.add_parser('apply-folder-review',help='Apply person-accepted folder groups from JSON on stdin')
+    folder_review.add_argument('--catalog',type=Path,required=True)
+    library_paper=sub.add_parser('import-library-paper',help='Import a verified native conversion into its reviewed graph; retain prior generations')
+    library_paper.add_argument('--catalog',type=Path,required=True)
+    folder_mcp=sub.add_parser('review-mcp-config',help='Print scoped MCP entry suggestions; never launch or accept servers')
+    folder_mcp.add_argument('--catalog',type=Path,required=True)
+    folder_mcp.add_argument('--command-json',required=True,help='Pinned installed-wheel command as a JSON array')
+    diffg=sub.add_parser('diff-graphs',help='Fingerprint diff and quotient-cycle delta between two catalog graphs, as JSON')
+    diffg.add_argument('--catalog',type=Path,required=True);diffg.add_argument('--graph-a',required=True);diffg.add_argument('--graph-b',required=True)
+    diffg.add_argument('--out',type=Path,required=True)
+    clones=sub.add_parser('clone-report',help='Cross-graph structural clones (py-ast-v1, signature+guard), as JSON')
+    clones.add_argument('--catalog',type=Path,required=True);clones.add_argument('--graph-ids',required=True,help='Comma-separated, 2..8 graphs')
+    clones.add_argument('--limit',type=int,default=200);clones.add_argument('--out',type=Path,required=True)
+    drift=sub.add_parser('drift-report',help='Five-tier drift between two snapshots (master G3), as JSON')
+    for side in ('a','b'):drift.add_argument(f'--store-{side}',type=Path,required=True);drift.add_argument(f'--snapshot-{side}',required=True)
+    drift.add_argument('--out',type=Path,required=True)
     graphs=sub.add_parser('ingest-graphs',help='One independent database/graph per project profile')
     graphs.add_argument('--manifest',type=Path,required=True);graphs.add_argument('--catalog',type=Path,required=True)
     graphs.add_argument('--on-overlap',choices=['keep_separate','child_module']);graphs.add_argument('--report',type=Path)
     graphserver=sub.add_parser('serve-graphs',help='Graph-scoped MCP and display-only multi-graph UI')
-    graphserver.add_argument('--catalog',type=Path,required=True);graphserver.add_argument('--transport',choices=['stdio','http'],default='http');graphserver.add_argument('--port',type=int,default=8765)
+    # Environment defaults let an MCP host (e.g. Librarian's curated list, whose
+    # args cannot reference variables) configure a pinned launch per person.
+    env_catalog=os.environ.get('GEOGRAPHER_CATALOG')
+    graphserver.add_argument('--catalog',type=Path,default=Path(env_catalog) if env_catalog else None,required=not env_catalog,
+        help='Graph catalog (default: $GEOGRAPHER_CATALOG)');graphserver.add_argument('--transport',choices=['stdio','http'],default='http');graphserver.add_argument('--port',type=int,default=8765)
     graphserver.add_argument('--ui-origin',help='Compatibility listener: redirect its viewer to this loopback origin')
+    graphserver.add_argument('--browse-root',action='append',type=Path,default=[],metavar='DIR',help='Folder the UI directory picker may browse (repeatable; none disables the picker)')
+    env_graphs=[g.strip() for g in os.environ.get('GEOGRAPHER_GRAPHS','').split(',') if g.strip()]
+    graphserver.add_argument('--graph-id',action='append',dest='allow_graph',metavar='GRAPH_ID',default=None,
+        help='Expose only this graph (repeatable; default: comma-separated $GEOGRAPHER_GRAPHS). '
+             'Turns per-call scoping into an access boundary for this connection')
+    graphserver.add_argument('--tools',default=os.environ.get('GEOGRAPHER_TOOLS') or None,
+        help="Tool surface: 'all' (default), 'papers', 'code', or comma-separated tool names "
+             "(default: $GEOGRAPHER_TOOLS). For hosts that offer an agent only a few tools per turn")
+    graphserver.add_argument('--consumer-role',choices=['lead','research_helper','clerk','scribe'],default='lead',
+        help='Connection principal; Clerk and Scribe connections cannot include third-party graphs')
+    graphserver.add_argument('--semantic-model',default=os.environ.get('GEOGRAPHER_SEMANTIC_MODEL') or None,
+        help='Opt-in local encoder, model2vec:absolute-directory or fastembed:model-name@absolute-directory')
+    graphserver.add_argument('--semantic-cache',type=Path,default=os.environ.get('GEOGRAPHER_SEMANTIC_CACHE') or None,
+        help='Prebuilt immutable derived-analysis sidecar; default off, never auto-populated on reads')
+    env_cap=os.environ.get('GEOGRAPHER_MAX_RESULT_CHARS','').strip()
+    graphserver.add_argument('--max-result-chars',type=int,default=int(env_cap) if env_cap.isdigit() else None,
+        help="Fit paper results to a client's size cap (e.g. 7500 for Librarian) by paging whole items, never cutting JSON "
+             "(default: $GEOGRAPHER_MAX_RESULT_CHARS)")
     plan=sub.add_parser('plan-graph',help='Read-only root collision review before graph import')
     plan.add_argument('--catalog',type=Path,required=True);plan.add_argument('--root',type=Path,required=True)
     papers=sub.add_parser('attach-graph-papers',help='Bind an existing independent paper corpus to one graph')
     papers.add_argument('--catalog',type=Path,required=True);papers.add_argument('--graph-id',required=True);papers.add_argument('--database',type=Path,required=True)
+    stratum=sub.add_parser('set-graph-stratum',help='Record a graph trust tier and modality for federated search')
+    stratum.add_argument('--catalog',type=Path,required=True);stratum.add_argument('--graph-id',required=True);stratum.add_argument('--role',required=True)
+    from .federation import TIER_WEIGHT,MODALITIES
+    stratum.add_argument('--trust-tier',required=True,choices=sorted(TIER_WEIGHT));stratum.add_argument('--modality',required=True,choices=sorted(MODALITIES))
+    copying=sub.add_parser('copy-graph',help='Independent online copy of a graph code store under a new label')
+    copying.add_argument('--catalog',type=Path,required=True);copying.add_argument('--graph-id',required=True);copying.add_argument('--label',required=True)
+    deleting=sub.add_parser('delete-graph',help='Delete a graph and its bridges; only catalog-owned stores are unlinked')
+    deleting.add_argument('--catalog',type=Path,required=True);deleting.add_argument('--graph-id',required=True);deleting.add_argument('--confirm-label',required=True)
     for name in ('plan-graph-merge','merge-graphs'):
         merging=sub.add_parser(name,help='Reviewed namespace-preserving physical merge into a new graph')
         merging.add_argument('--catalog',type=Path,required=True);merging.add_argument('--graph-id',action='append',required=True)
@@ -80,7 +135,7 @@ def main():
         if name=='merge-graphs':merging.add_argument('--plan-id',required=True)
     args = parser.parse_args()
     if args.command in {'serve','serve-graphs'}:require_pinned_mcp()
-    if args.command in {'ingest-graphs','serve-graphs','plan-graph','attach-graph-papers','plan-graph-merge','merge-graphs'}:
+    if args.command in {'ingest-graphs','serve-graphs','plan-graph','attach-graph-papers','set-graph-stratum','copy-graph','delete-graph','plan-graph-merge','merge-graphs'}:
         from .graph_catalog import GraphCatalog,CollisionReview
         if args.command!='ingest-graphs' and not args.catalog.is_file():raise ValueError('Graph catalog not found; no empty catalog was created')
         catalog=GraphCatalog(args.catalog)
@@ -110,16 +165,29 @@ def main():
             elif args.command=='merge-graphs':
                 from .graph_merge import execute_merge
                 result=execute_merge(catalog,args.graph_id,args.label,args.plan_id)
+            elif args.command=='copy-graph':result=catalog.copy_graph(args.graph_id,args.label)
+            elif args.command=='delete-graph':
+                if catalog.graph(args.graph_id)['label']!=args.confirm_label:raise ValueError('--confirm-label does not match the graph label')
+                result=catalog.delete_graph(args.graph_id)
+            elif args.command=='set-graph-stratum':
+                catalog.set_stratum(args.graph_id,args.role,args.trust_tier,args.modality)
+                result=dict(graph_id=args.graph_id,stratum=json.loads(catalog.graph(args.graph_id)['profile_json'])['stratum'])
             elif args.command=='attach-graph-papers':catalog.attach_papers(args.graph_id,args.database);result=dict(graph_id=args.graph_id,papers_attached=True)
             else:
                 from .graph_router import GraphRouter
                 from .graph_server import create_graph_http,create_graph_mcp
-                router=GraphRouter(catalog)
+                semantic=None
+                if args.semantic_model or args.semantic_cache:
+                    if not args.semantic_model or not args.semantic_cache:raise ValueError('Supply both --semantic-model and --semantic-cache')
+                    from .semantic import load_encoder
+                    semantic=dict(encoder=load_encoder(args.semantic_model),cache=args.semantic_cache)
+                    if not Path(args.semantic_cache).is_file():raise ValueError('Semantic cache missing; explicitly backfill before serving')
+                router=GraphRouter(catalog,allowed=args.allow_graph or env_graphs or None,max_result_chars=args.max_result_chars,tools=args.tools,semantic=semantic,consumer_role=args.consumer_role)
                 try:
                     if args.transport=='stdio':create_graph_mcp(router,port=args.port).run(transport='stdio')
                     else:
                         import uvicorn
-                        uvicorn.run(create_graph_http(router,port=args.port,ui_origin=args.ui_origin),host='127.0.0.1',port=args.port)
+                        uvicorn.run(create_graph_http(router,port=args.port,ui_origin=args.ui_origin,browse_roots=args.browse_root),host='127.0.0.1',port=args.port)
                 finally:router.close()
                 return
             output=json.dumps(result,indent=2)
@@ -140,6 +208,81 @@ def main():
         output=json.dumps(report,indent=2,ensure_ascii=False)
         if args.report:args.report.parent.mkdir(parents=True,exist_ok=True);args.report.write_text(output+'\n',encoding='utf-8')
         print(output);return
+    if args.command=='review-mcp-config':
+        from .graph_catalog import GraphCatalog
+        from .provenance import mcp_entries
+        catalog=GraphCatalog(args.catalog)
+        try:print(json.dumps(dict(mcpServers=mcp_entries(catalog,json.loads(args.command_json))),indent=2))
+        finally:catalog.close()
+        return
+    if args.command=='apply-folder-review':
+        from .folder_review import apply_review
+        from .graph_catalog import GraphCatalog
+        request=json.loads(sys.stdin.read())
+        catalog=GraphCatalog(args.catalog)
+        try:print(json.dumps(apply_review(catalog,request),ensure_ascii=False))
+        finally:catalog.close()
+        return
+    if args.command=='import-library-paper':
+        from .library_papers import publish
+        from .graph_catalog import GraphCatalog
+        catalog=GraphCatalog(args.catalog)
+        try: print(json.dumps(publish(catalog,json.loads(sys.stdin.read())),ensure_ascii=False))
+        finally: catalog.close()
+        return
+    if args.command=='init-workspace':
+        from .graph_catalog import GraphCatalog
+        from .model import canonical
+        from .workspace_init import apply,scan
+        inventory = (json.loads(sys.stdin.read()) if args.survey_in == '-' else
+                     json.loads(Path(args.survey_in).read_text(encoding='utf-8'))) if args.survey_in else None
+        if args.apply or args.yes:
+            catalog=GraphCatalog(args.catalog)
+            try:
+                plan=json.loads(args.apply.read_text(encoding='utf-8')) if args.apply else scan(args.root,catalog,inventory=inventory)
+                print(canonical(apply(catalog,plan,approved_keys={p['key'] for p in plan['partitions']},inventory=inventory)))
+            finally:catalog.close()
+            return
+        plan=scan(args.root, inventory=inventory)
+        if args.plan_out=='-':sys.stdout.buffer.write((canonical(plan)+'\n').encode('utf-8'))
+        else:Path(args.plan_out).parent.mkdir(parents=True,exist_ok=True);Path(args.plan_out).write_text(canonical(plan)+'\n',encoding='utf-8')
+        return
+    if args.command in ('diff-graphs','clone-report'):
+        from .cross_graph import clone_pairs,diff_graphs
+        from .graph_catalog import GraphCatalog
+        from .model import canonical
+        if not args.catalog.is_file():raise SystemExit(f'Catalog not found: {args.catalog}')
+        catalog=GraphCatalog(args.catalog)
+        try:
+            result=(diff_graphs(catalog,args.graph_a,args.graph_b) if args.command=='diff-graphs' else
+                    clone_pairs(catalog,[g.strip() for g in args.graph_ids.split(',') if g.strip()],limit=args.limit))
+        finally:catalog.close()
+        args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(canonical(result)+'\n',encoding='utf-8');return
+    if args.command=='drift-report':
+        from .drift import drift_report
+        from .model import canonical
+        from .store import SnapshotStore
+        for path in (args.store_a,args.store_b):
+            if not path.is_file():raise SystemExit(f'Store not found: {path}')
+        with SnapshotStore(args.store_a) as a,SnapshotStore(args.store_b) as b:
+            report=drift_report(a,args.snapshot_a,b,args.snapshot_b)
+        args.out.parent.mkdir(parents=True,exist_ok=True);args.out.write_text(canonical(report)+'\n',encoding='utf-8');return
+    if args.command=='discovery-report':
+        from .discovery import build_card,render_markdown
+        from .model import canonical
+        from .store import SnapshotStore
+        if not args.store.is_file():raise ValueError('Store not found; no empty store was created')
+        store=SnapshotStore(args.store)
+        try:
+            sid=args.snapshot or (store.connection.execute("SELECT snapshot_id FROM snapshot_sets WHERE status='complete' ORDER BY created_at DESC,snapshot_id DESC LIMIT 1").fetchone() or [None])[0]
+            if sid is None:raise ValueError('No complete snapshot in store')
+            card=build_card(store,sid);text=render_markdown(card)
+        finally:store.close()
+        if args.json:args.json.parent.mkdir(parents=True,exist_ok=True);args.json.write_text(canonical(card)+chr(10),encoding='utf-8',newline=chr(10))
+        if args.out=='-':sys.stdout.buffer.write(text.encode('utf-8'));sys.stdout.buffer.flush()
+        else:
+            out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(text.encode('utf-8'))
+        return
     if args.command=="cache-tokenizers":
         from .tokens import cache_weights
         print(json.dumps(cache_weights(args.directory),indent=2));return

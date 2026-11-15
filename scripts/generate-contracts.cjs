@@ -91,6 +91,7 @@ function constrain(name,schema) {
   }
   if (s.type==='array' && ['witness_preview','top_exemplars'].includes(name)) s.maxItems=name==='witness_preview'?3:5;
   if (s.type==='string' && ['signature','doc_gist'].includes(name)) s.maxLength=name==='signature'?240:140;
+  if (s.type==='string' && name==='display_label') s.maxLength=48;
   return s;
 }
 const operationNode=declarations.get('OperationMap');

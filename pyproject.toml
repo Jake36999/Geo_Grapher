@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geo-grapher"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evidence-backed multi-scale repository architecture explorer"
 requires-python = ">=3.11"
 dependencies = [
@@ -19,6 +19,8 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=8,<9"]
 papers = ["PyMuPDF>=1.24,<2"]
+semantic = ["model2vec>=0.6,<1", "numpy>=1.26,<3"]
+semantic-fastembed = ["fastembed>=0.7,<1", "numpy>=1.26,<3"]
 treesitter = [
     "tree-sitter>=0.23,<0.26",
     "tree-sitter-javascript>=0.23,<0.26",
@@ -28,13 +30,19 @@ treesitter = [
 [project.scripts]
 geographer = "geographer.cli:main"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+# `pipeline` (the paper-corpus tools) lives beside src/ as a namespace package;
+# packaging it lets an installed `geographer serve-graphs` offer paper_* tools.
+package-dir = {"geographer" = "src/geographer", "pipeline" = "pipeline"}
+packages = ["geographer", "pipeline"]
+
+[tool.setuptools.package-data]
+pipeline = ["concept_aliases.json"]
 
 [tool.setuptools.data-files]
 "share/geographer/contracts" = ["contracts/geographer.schema.sql", "contracts/geographer.wire.d.ts", "contracts/geographer.rules.schema.json", "contracts/geographer.rules.example.yaml", "contracts/visibility-presets.json"]
 "share/geographer/contracts/generated" = ["contracts/generated/geographer.wire.schema.json"]
-"share/geographer/contracts/v1.1" = ["contracts/v1.1/geographer.wire.d.ts", "contracts/v1.1/ACTOR_SCHEMA.md", "contracts/v1.1/PACKING_ADDENDUM.md", "contracts/v1.1/WORKSPACE_ADDENDUM.md", "contracts/v1.1/geographer.trace.schema.json", "contracts/v1.1/RUNTIME_ADDENDUM.md"]
+"share/geographer/contracts/v1.1" = ["contracts/v1.1/geographer.wire.d.ts", "contracts/v1.1/ACTOR_SCHEMA.md", "contracts/v1.1/PACKING_ADDENDUM.md", "contracts/v1.1/WORKSPACE_ADDENDUM.md", "contracts/v1.1/geographer.trace.schema.json", "contracts/v1.1/RUNTIME_ADDENDUM.md", "contracts/v1.1/FINGERPRINT_ADDENDUM.sql", "contracts/v1.1/STABILITY.md", "contracts/v1.1/RELEASE_MANIFEST.json", "contracts/v1.1/baseline-digests.json", "contracts/v1.1/PROJECT_ISOLATION_ADDENDUM.md"]
 "share/geographer/contracts/v1.1/generated" = ["contracts/v1.1/generated/geographer.wire.schema.json"]
 "share/geographer/assets/tiktoken" = ["assets/tiktoken/*.tiktoken", "assets/tiktoken/README.md", "assets/tiktoken/LICENSE"]
 "share/geographer/frontend/dist" = ["frontend/dist/index.html", "frontend/dist/favicon.svg", "frontend/dist/THIRD_PARTY_NOTICES.txt"]

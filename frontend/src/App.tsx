@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import QiControl, { type QiMode } from "./QiControl";
+import { frameQI, type QiOptions } from "./api";
 import type {
   Filter,
   ViewportFrameData,
@@ -124,6 +126,9 @@ export default function App({
       }[];
     }>();
   const [violations, setViolations] = useState<string[]>([]);
+  const [qiMode, setQiMode] = useState<QiMode>("off");
+  const [qiExpanded, setQiExpanded] = useState<string[]>([]);
+  useEffect(() => setQiExpanded([]), [snapshotId]);
   const [pins, setPins] = useState<string[]>([]),
     [panelSizes, setPanelSizes] = useState<[number, number]>(
       workspace?.settings?.panelSizes ?? [235, 330],
@@ -136,6 +141,8 @@ export default function App({
     [viewFailed, setViewFailed] = useState(false),
     [status, setStatus] = useState("Opening the local workspace…"),
     [error, setError] = useState(""),
+    pruneGraph = () => workspace?.active ?? graphBasePath().match(/^\/graphs\/(g_[0-9a-f]{24})\//)?.[1],
+    [pruneDraft, setPruneDraft] = useState<{ paths: string[]; label: string; graph?: string; busy?: boolean; message?: string }>(),
     [drawer, setDrawer] = useState<"hierarchy" | "inspector" | null>(null);
   const [search, setSearch] = useState(""),
     [results, setResults] = useState<Node[]>([]),
@@ -172,6 +179,9 @@ export default function App({
   const [saveOpen, setSaveOpen] = useState(false),
     [saveName, setSaveName] = useState(""),
     [initialCamera, setInitialCamera] = useState<CameraState>();
+  const qiEligible = grouping === "atomic" && filter.families.join() === "static" && filter.resolution_statuses.join() === "exact";
+  const activeQi: QiMode = qiEligible ? qiMode : "off";
+  const viewportPins = activeQi === "off" ? pins : [...new Set([...pins, ...qiExpanded])];
   const scope = JSON.stringify([
     snapshotId,
     focus,
@@ -180,6 +190,8 @@ export default function App({
     pins,
     contextRadius,
     grouping,
+    activeQi,
+    qiExpanded,
     modelDigest,
     navigation,
   ]);
@@ -223,6 +235,7 @@ export default function App({
     grouping,
     contextRadius,
     modelDigest,
+    activeQi,
   );
   useEffect(() => {
     workspace?.settingsChanged({
@@ -276,6 +289,11 @@ export default function App({
     }
     if (pending.enter) {
       const node = pending.frame.nodes.find((n) => n.id === pending.local_id);
+      if (node?.kind === "qi") {
+        void expandQi(pending.local_id, pending.frame);
+        workspace.consume();
+        return;
+      }
       const id = node?.entity_id ?? node?.parent_id;
       if (id) {
         setFocus(id);
@@ -439,14 +457,16 @@ export default function App({
     setViewFailed(false);
     setError("");
     cursor.current = null;
-    const q: ViewportFrameRequest = {
+    const q: ViewportFrameRequest & { qi: QiOptions } = {
       ...base(snapshot.snapshot_id, 32768),
       focus_id: focus,
       revealed_ids: revealed,
-      pins,
+      pins: viewportPins,
       context_radius: contextRadius,
       filter,
-      layout_version: "sphere-pack-v1",
+      qi: { enabled: activeQi !== "off", max_diameter: 2, algorithm: activeQi === "off" ? "helper_tree_balls_v1" : activeQi },
+      // Older servers answer sphere-pack-v1; the frame echoes what was used.
+      layout_version: "sphere-affinity-v1" as unknown as ViewportFrameRequest["layout_version"],
       seed: "geographer-workspace-v1",
       beta,
       edge_lens: { enabled: lens, center: [0, 0, 0], radius: 5, strength: 0.8 },
@@ -517,8 +537,10 @@ export default function App({
     JSON.stringify(revealed),
     JSON.stringify(filter),
     JSON.stringify(pins),
+    JSON.stringify(qiExpanded),
     contextRadius,
     grouping,
+    activeQi,
     modelDigest,
     navigation,
   ]);
@@ -708,12 +730,27 @@ export default function App({
       setError((e as Error).message);
     }
   }
+  async function expandQi(id: string, data = frame?.data) {
+    const node = data?.nodes.find(n => n.id === id);
+    if (!node?.membership_handle) return;
+    try {
+      const result = await json<{ members: string[] }>("/api/v1/handles/" + encodeURIComponent(node.membership_handle));
+      setInspectionFrame(undefined);
+      setQiExpanded(old => [...new Set([...old, ...result.members])]);
+      setNavigation(n => n + 1);
+      setStatus(`Expanded ${result.members.length} QI members.`);
+    } catch (e) { setError((e as Error).message); }
+  }
   function enter(id: string) {
     const origin = composition?.origins.get(id);
     if (origin && workspace) {
       const source = composition?.frames.find(
         (f) => f.graph_id === origin.graph_id,
       );
+      if (origin.graph_id === workspace.active && source?.frame?.nodes.find(n => n.id === origin.local_id)?.kind === "qi") {
+        void expandQi(origin.local_id, source.frame);
+        return;
+      }
       if (source?.frame && source.snapshot_id)
         workspace.pick({
           graph_id: origin.graph_id,
@@ -728,6 +765,7 @@ export default function App({
     }
     setInspectionFrame(undefined);
     const n = frame?.data.nodes.find((x) => x.id === id) ?? nodes[id];
+    if (n?.kind === "qi") { void expandQi(id); return; }
     if (n?.entity_id === null) {
       void select(id);
       setStatus(
@@ -1341,6 +1379,11 @@ export default function App({
                 ))}
               </select>
             </label>
+            {view === "spatial" && <QiControl mode={qiMode} enabled={qiEligible}
+              report={frameCurrent ? frameQI(frame?.data) : undefined}
+              groups={frameCurrent ? frame?.data.nodes.filter(n => n.kind === "qi") ?? [] : []}
+              onChange={value => { captureCamera(); setQiMode(value); setQiExpanded([]); setNavigation(n => n + 1); }}
+              onExpand={id => { void expandQi(id); }} />}
             <div role="group" aria-label="Context breadth">
               {(["Path", "Nearby", "Wider"] as const).map((label, i) => (
                 <button
@@ -1813,20 +1856,89 @@ export default function App({
                     setStatus(reason);
                     changeView("list");
                   }}
+                  onPrune={(selected) => {
+                    // Prune always targets this view's graph; in a composed scene, keep only nodes from it.
+                    const graph = pruneGraph();
+                    const paths = [
+                      ...new Set(
+                        selected
+                          .filter((s) => !composition || composition.origins.get(s.id)?.graph_id === graph)
+                          .map((s) => s.rel_path),
+                      ),
+                    ].sort();
+                    setPruneDraft(
+                      graph && paths.length
+                        ? { paths, label: "", graph }
+                        : { paths: [], label: "", message: "The selection holds no files of this graph." },
+                    );
+                  }}
                 />
+                {pruneDraft && (
+                  <form
+                    className="prune-dialog"
+                    aria-label="Prune selection"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      setPruneDraft({ ...pruneDraft, busy: true, message: "" });
+                      try {
+                        const out = await json<{ graph_id: string }>(
+                          `/api/graphs/${encodeURIComponent(pruneDraft.graph ?? "")}/prune`,
+                          { exclude_rel_paths: pruneDraft.paths, label: pruneDraft.label.trim() },
+                        );
+                        await workspace?.reloadGraphs();
+                        setPruneDraft({ ...pruneDraft, busy: false, message: `Created derived graph ${out.graph_id}` });
+                      } catch (err) {
+                        setPruneDraft({ ...pruneDraft, busy: false, message: (err as Error).message });
+                      }
+                    }}
+                  >
+                    <p>
+                      Create a new graph without {pruneDraft.paths.length} path(s). The current graph is unchanged.
+                    </p>
+                    <ul>
+                      {pruneDraft.paths.map((p) => (
+                        <li key={p}>
+                          <code>{p}</code>
+                        </li>
+                      ))}
+                    </ul>
+                    <label>
+                      New graph label{" "}
+                      <input
+                        value={pruneDraft.label}
+                        maxLength={120}
+                        disabled={pruneDraft.busy}
+                        onChange={(e) => setPruneDraft({ ...pruneDraft, label: e.target.value })}
+                      />
+                    </label>{" "}
+                    <button type="submit" disabled={pruneDraft.busy || !pruneDraft.graph || !pruneDraft.label.trim() || !pruneDraft.paths.length}>
+                      Create pruned graph
+                    </button>{" "}
+                    <button type="button" onClick={() => setPruneDraft(undefined)}>
+                      Close
+                    </button>
+                    {pruneDraft.message && <p role="status">{pruneDraft.message}</p>}
+                  </form>
+                )}
                 <div className="legend">
                   <span>○ enclosure / summary</span>
-                  <span>→ direction: darker source to lighter target</span>
-                  <span>·· candidate / unresolved · –– expected only</span>
                   <span>
-                    Solid: calls · long dash: imports · paired dash: inherits
+                    → Colour = relationship: orange call/data · violet
+                    hierarchy · cyan design rationale · sky describes · teal
+                    cites · gold bridge · red violation
                   </span>
                   <span>
-                    Grey: static · sage: observed · amber: rule violation
+                    → Direction: bright at the source, fading into the target
                   </span>
                   <span>
-                    Size: capped content / membership and packing space.
-                    Position is not similarity.
+                    → Pattern: solid exact · dashed candidate · dotted expected
+                    only · pulsing observed at runtime
+                  </span>
+                  <span>
+                    {(composition?.frames.find((f) => f.frame)?.frame ?? frame?.data)
+                      ?.layout_version === "sphere-pack-v1"
+                      ? "Size: content and packing share. Position is not similarity."
+                      : "→ Size: content & packing share · Radial depth: coreness vs. indifference · Angle: relational affinity"}
                   </span>
                 </div>
                 <div

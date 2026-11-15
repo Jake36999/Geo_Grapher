@@ -10,7 +10,16 @@ import visibilityPresets from "../../contracts/visibility-presets.json";
 import type {
   OperationMap as ActorOperations,
   NodeRecord as ActorNode,
+  ViewportFrameData as ActorViewportFrameData,
 } from "../../contracts/v1.1/geographer.wire";
+/** v1.1 documentary link layer (hyperedge incidences drawn as threads). */
+export type DocumentaryLink = NonNullable<
+  ActorViewportFrameData["documentary_links"]
+>[number];
+export type QiOptions = NonNullable<ActorOperations["viewport_frame"]["request"]["qi"]>;
+export function frameQI(frame: ViewportFrameData | undefined) {
+  return (frame as { qi?: ActorViewportFrameData["qi"] } | undefined)?.qi;
+}
 export type GroupMode =
   | "mixed"
   | "repository"
@@ -66,6 +75,8 @@ export type Node = NodeRecord & {
   child_count?: number;
   summary?: ActorNode["summary"];
   group_preview?: ActorNode["group_preview"];
+  display_label?: ActorNode["display_label"];
+  role_badge?: ActorNode["role_badge"];
 };
 export interface RuntimeCollection {
   collection_id: string;
@@ -173,7 +184,7 @@ export async function json<T>(
   signal?: AbortSignal,
 ): Promise<T> {
   const prefix = graphBasePath();
-  const target = prefix !== "/" && url.startsWith("/api/") && !url.startsWith('/api/graphs') ? prefix.slice(0,-1) + url : url;
+  const target = prefix !== "/" && url.startsWith("/api/") && !/^\/api\/(graphs|fs|workspace)(\/|\?|$)/.test(url) ? prefix.slice(0,-1) + url : url;
   const response = await fetch(target, {
     method: body === undefined ? "GET" : "POST",
     headers: body === undefined ? {} : { "Content-Type": "application/json" },
@@ -226,92 +237,8 @@ export async function viewportPage(
   );
 }
 
-const referenceFields = new Set([
-  "id",
-  "node_id",
-  "entity_id",
-  "source",
-  "target",
-  "parent_id",
-  "source_subject_id",
-  "target_subject_id",
-  "projection_id",
-  "relationship_id",
-  "focus_id",
-  "representative_focus_id",
-  "start_id",
-  "scope_id",
-  "component_id",
-  "source_component_id",
-  "target_component_id",
-  "canonical_source",
-  "canonical_target",
-  "doc_handle",
-  "resolved_source",
-  "resolved_target",
-  "ancestor_ids",
-  "evidence_ids",
-  "witness_path_ids",
-  "witness_projection_ids",
-  "fragment_ids",
-  "fallback_parent_ids",
-  "call_relationship_ids",
-  "alternatives",
-  "relationship_ids",
-]);
-// Decode only schema reference positions. Repository source/prose is never rewritten.
-export function canonicalActor<
-  T extends {
-    revisions: { repo_id: string; revision: string }[];
-    data: {
-      ids: Record<string, string>;
-      view_id: string | null;
-      nodes: ActorNode[];
-    };
-  },
->(result: T): T {
-  const ids = result.data.ids;
-  const decode = (value: any, key = ""): any =>
-    Array.isArray(value)
-      ? value.map((v) => decode(v, key))
-      : value && typeof value === "object"
-        ? Object.fromEntries(
-            Object.entries(value).map(([k, v]) => [k, decode(v, k)]),
-          )
-        : typeof value === "string" && referenceFields.has(key)
-          ? (ids[value] ?? value)
-          : value;
-  const copy = decode(result) as T;
-  const revisions = Object.fromEntries(
-    copy.revisions.map((r) => [r.repo_id, r.revision]),
-  );
-  const restore = (v: any): void => {
-    if (!v || typeof v !== "object") return;
-    if (
-      "repo_id" in v &&
-      "rel_path" in v &&
-      "start_line" in v &&
-      !("revision" in v)
-    )
-      v.revision = v.revision_override ?? revisions[v.repo_id];
-    for (const child of Object.values(v)) restore(child);
-  };
-  restore(copy.data);
-  for (const node of copy.data.nodes)
-    Object.assign(node, {
-      entity_id: node.is_synthetic ? null : node.id,
-      depth: null,
-      ast_body_hash: null,
-      wl_3hop_hash: null,
-      doi: null,
-    });
-  for (const relation of (copy.data as any).relationships ?? [])
-    Object.assign(relation, {
-      view_id: copy.data.view_id,
-      witness_cursor: null,
-    });
-  return copy;
-}
+export { canonicalActor } from "./actorDecode.ts";
+import { canonicalActor } from "./actorDecode.ts";
 export function actorBase(snapshot_id: string, limit = 16384) {
   return {
     ...base(snapshot_id, limit),
@@ -367,6 +294,13 @@ export async function workspaceFrame(
   return response as unknown as SuccessEnvelope<ViewportFrameData>;
 }
 
+export function frameLinks(
+  frame: object | undefined,
+): DocumentaryLink[] | undefined {
+  return (frame as { documentary_links?: DocumentaryLink[] } | undefined)
+    ?.documentary_links;
+}
+
 export function mergeFrame(
   old: ViewportFrameData | undefined,
   page: ViewportFrameData,
@@ -386,6 +320,15 @@ export function mergeFrame(
     ),
     spheres: merge(old.spheres, page.spheres, (s) => s.node_id),
     curves: merge(old.curves, page.curves, (c) => c.relationship_id),
+    ...(frameLinks(old) || frameLinks(page)
+      ? {
+          documentary_links: merge(
+            frameLinks(old) ?? [],
+            frameLinks(page) ?? [],
+            (l) => l.link_id,
+          ),
+        }
+      : {}),
     scene_completeness: {
       omitted_spheres: Math.max(
         0,
@@ -404,6 +347,8 @@ export function mergeFrame(
 }
 
 export function shortName(node: Node): string {
+  if (typeof node.display_label === "string" && node.display_label !== "")
+    return node.display_label;
   if (node.kind === "repository" && graphDisplayLabel() && graphBasePath().includes(node.repo_id)) return graphDisplayLabel()!;
   if (node.kind === "residual")
     return `Other contents · ${node.member_count.toLocaleString()}`;
@@ -534,3 +479,50 @@ export function validSaved(value: unknown): boolean {
         !x.filter.resolution_statuses.includes("observed")),
   );
 }
+
+async function lifecycleRequest<T>(
+  method: string,
+  url: string,
+  body?: unknown,
+): Promise<T> {
+  const response = await fetch(url, {
+    method,
+    headers: body === undefined ? {} : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok)
+    throw Error(
+      typeof result?.error === "string" ? result.error : `HTTP ${response.status}`,
+    );
+  return result as T;
+}
+
+export interface GraphDeleteReceipt {
+  deleted: string;
+  bridges_removed: string[];
+  files_unlinked: string[];
+  files_kept: string[];
+}
+
+export const copyGraph = (graphId: string, label: string) =>
+  lifecycleRequest<{ graph_id: string; label: string; copied_from: string }>(
+    "POST",
+    `/api/graphs/${encodeURIComponent(graphId)}/copy`,
+    { label },
+  );
+
+export const deleteGraph = (graphId: string, confirmLabel: string) =>
+  lifecycleRequest<GraphDeleteReceipt>(
+    "DELETE",
+    `/api/graphs/${encodeURIComponent(graphId)}`,
+    { confirm_label: confirmLabel },
+  );
+
+export const getActiveGraphs = () =>
+  lifecycleRequest<{ graph_ids: string[] }>("GET", "/api/workspace/active-graphs");
+
+export const setActiveGraphs = (graphIds: string[]) =>
+  lifecycleRequest<{ graph_ids: string[] }>("PUT", "/api/workspace/active-graphs", {
+    graph_ids: graphIds,
+  });

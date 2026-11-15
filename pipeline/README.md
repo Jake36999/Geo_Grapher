@@ -30,10 +30,27 @@ Ten default tools are read-only. Each response includes `context.api_version`
 `expected_revision` on subsequent pages. `STALE_CORPUS` means restart pagination.
 Identifiers are typed: documents `doc:N`, concepts `concept:N`, claims `claim:N`
 (v4 typed concept IDs, which v3 returned as bare integers). Search uses Porter
-stemming (`paper-read-v4`), so "networks" matches "network"; corpora built
-before v4 report `READ_MODEL_OUTDATED` until `maintain refresh --backup PATH`.
+stemming (`paper-read-v5`), so "networks" matches "network". Version 5 keeps
+explicit catalogue-only references searchable without inventing source sections;
+search cards label them `coverage_status: catalogue_only`. Older corpora report
+`READ_MODEL_OUTDATED` until `maintain refresh --backup PATH`.
 Use `get_corpus_status` after connecting to identify stale code/read models and
 distinguish original source counts from readable canonical works.
+
+Librarian's native batch prepares free `.nodes.json` projections under
+`.librarian/derived/paper-graph/`, using the full persistent generated conversion
+and DIK chapters. Import with `stage3_build_db --work-dir DIR --db NEW_DB` after
+placing the reviewed artifacts in `DIR/nodes/`. Each section covers original PDF
+page coordinates through retained `[page N]` anchors. Import verifies original
+and conversion SHA256 and complete, ordered section/page coverage. Provenance
+keeps the original and generated representation separate. This does not verify
+claims against the original: use the bounded original-page verification route.
+
+The `stage2_from_md` CLI now creates catalogue-only references. A note summary is
+not a full paper conversion. The old `_convert_md` helper remains for legacy
+artifact compatibility; it is not the CLI ingestion path. Papers without an
+original or with unverified legacy anchors have no asserted source sections.
+Build new stores and retain existing stores before any approved catalog rebind.
 
 | Tool | Contract |
 |---|---|

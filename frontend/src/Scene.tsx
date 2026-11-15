@@ -8,7 +8,22 @@ import {
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { Vec3, ViewportFrameData } from "../../contracts/geographer.wire";
-import { shortName, type Node } from "./api";
+import { shortName, type DocumentaryLink, type Node } from "./api";
+import {
+  ALPHA_SLOPE,
+  ALPHA_START,
+  colourAt,
+  documentaryCurve,
+  resolveCurveStyle,
+  resolveLinkStyle,
+  type StyledCurveFields,
+  dashFor,
+  PULSE_GAIN,
+  PULSE_PERIOD_SECONDS,
+  STATUS_CODE,
+  type RelationshipFamily,
+  type RuntimeStatus,
+} from "./edgeStyle";
 import { samples, type Lens } from "./curves";
 import {
   editedScene,
@@ -30,7 +45,67 @@ export interface SceneHandle {
 export type SceneData = Pick<
   ViewportFrameData,
   "nodes" | "relationships" | "spheres" | "curves"
->;
+> & { documentary_links?: DocumentaryLink[] };
+const EDGE_VERTEX = `
+attribute float aT;
+attribute float aDist;
+attribute float aStatus;
+attribute float aEdge;
+varying vec3 vColor;
+varying float vT;
+varying float vDist;
+varying float vStatus;
+varying float vEdge;
+void main() {
+  vColor = color;
+  vT = aT;
+  vDist = aDist;
+  vStatus = aStatus;
+  vEdge = aEdge;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+// Direction law: alpha = 0.95 - 0.60 t. Status law: dashes by aDist (world
+// units); observed edges pulse in brightness. Dash sizes come from edgeStyle.
+const EDGE_FRAGMENT = `
+uniform float uTime;
+uniform float uDimOthers;
+uniform float uHover;
+uniform vec2 uCandidate;
+uniform vec2 uExpected;
+varying vec3 vColor;
+varying float vT;
+varying float vDist;
+varying float vStatus;
+varying float vEdge;
+void main() {
+  float s = floor(vStatus + 0.5);
+  if (s > 0.5 && s < 1.5 && mod(vDist, uCandidate.x + uCandidate.y) > uCandidate.x) discard;
+  if (s > 1.5 && s < 2.5 && mod(vDist, uExpected.x + uExpected.y) > uExpected.x) discard;
+  vec3 c = vColor;
+  if (s > 2.5) c *= 1.0 + ${(PULSE_GAIN - 1).toFixed(1)} * max(0.0, sin(6.2832 * (vDist * 0.5 - uTime / ${PULSE_PERIOD_SECONDS.toFixed(1)})));
+  float a = ${ALPHA_START.toFixed(2)} - ${ALPHA_SLOPE.toFixed(2)} * vT;
+  if (uDimOthers > 0.5 && abs(vEdge - uHover) > 0.5) a *= 0.35;
+  gl_FragColor = vec4(min(c, vec3(1.0)), a);
+  #include <colorspace_fragment>
+}`;
+function edgeMaterial() {
+  const candidate = dashFor("candidate")!,
+    expected = dashFor("expected_only")!;
+  return new THREE.ShaderMaterial({
+    vertexShader: EDGE_VERTEX,
+    fragmentShader: EDGE_FRAGMENT,
+    vertexColors: true,
+    transparent: true,
+    depthWrite: false,
+    uniforms: {
+      uTime: { value: 0 },
+      uDimOthers: { value: 0 },
+      uHover: { value: -1 },
+      uCandidate: { value: new THREE.Vector2(candidate.dash, candidate.gap) },
+      uExpected: { value: new THREE.Vector2(expected.dash, expected.gap) },
+    },
+  });
+}
 interface Props {
   frame?: SceneData;
   declaredLinks?: {
@@ -57,6 +132,8 @@ interface Props {
   ) => void;
   onEnter: (id: string) => void;
   onFailure: (reason: string) => void;
+  /** Called with (node id, source path) for every box-selected node and its descendants. */
+  onPrune?: (selected: { id: string; rel_path: string }[]) => void;
 }
 
 type Bucket = { mesh: THREE.InstancedMesh; capacity: number; ids: string[] };
@@ -89,6 +166,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           resetLayout: () => void;
           scaleSelection: (factor: number) => void;
           moveSelection: (dx: number, dy: number) => void;
+          selectedIds: () => string[];
         }
       | undefined
     >(undefined);
@@ -161,7 +239,13 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       uniforms: { strength: { value: 1 } },
       vertexShader: `varying vec3 shellNormal;varying vec3 shellView;varying vec3 shellColor;
         void main(){vec4 mv=modelViewMatrix*instanceMatrix*vec4(position,1.0);shellNormal=normalize(normalMatrix*mat3(instanceMatrix)*normal);
-        shellView=-mv.xyz;shellColor=instanceColor;gl_Position=projectionMatrix*mv;}`,
+        shellView=-mv.xyz;
+        #ifdef USE_INSTANCING_COLOR
+        shellColor=instanceColor;
+        #else
+        shellColor=vec3(0.66,0.68,0.71);
+        #endif
+        gl_Position=projectionMatrix*mv;}`,
       fragmentShader: `uniform float strength;varying vec3 shellNormal;varying vec3 shellView;varying vec3 shellColor;
         void main(){float rim=pow(1.0-abs(dot(normalize(shellNormal),normalize(shellView))),3.0);
         gl_FragColor=vec4(shellColor,strength*(0.025+0.7*rim));
@@ -186,13 +270,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       }),
     };
     const buckets: Record<string, Bucket> = {};
-    const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0xffffff,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.42,
-      depthWrite: false,
-    });
+    const lineMaterial = edgeMaterial();
     const lines = new THREE.LineSegments(
       new THREE.BufferGeometry(),
       lineMaterial,
@@ -200,13 +278,9 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     scene.add(lines);
     // Operator assertions use a separate display layer, never dependency rows.
     const declaredLayer = new THREE.Group();
-    const declaredMaterial = new THREE.LineDashedMaterial({
-      color: 0xd5b27b,
-      dashSize: 0.16,
-      gapSize: 0.1,
-      transparent: true,
-      opacity: 0.8,
-    });
+    // Bridges are drawn client-side with the catalog_bridge stops and the same
+    // direction gradient as backend curves.
+    const declaredMaterial = lineMaterial;
     scene.add(declaredLayer);
     function updateDeclaredLinks() {
       for (const object of [...declaredLayer.children]) {
@@ -225,12 +299,39 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         const mid = a.clone().lerp(b, 0.5);
         mid.y += 1.5 + index * 0.08;
         const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
-        const line = new THREE.Line(
-          new THREE.BufferGeometry().setFromPoints(curve.getPoints(48)),
-          declaredMaterial,
+        const pts = curve.getPoints(48),
+          geometry = new THREE.BufferGeometry().setFromPoints(pts),
+          n = pts.length,
+          tValues = new Float32Array(n),
+          dist = new Float32Array(n),
+          rgb = new Float32Array(3 * n),
+          tint = new THREE.Color();
+        let run = 0;
+        for (let i = 0; i < n; i++) {
+          if (i) run += pts[i].distanceTo(pts[i - 1]);
+          tValues[i] = i / (n - 1);
+          dist[i] = run;
+          const [r, g, b] = colourAt(
+            "catalog_bridge",
+            propsRef.current.theme,
+            tValues[i],
+          );
+          tint.setRGB(r, g, b, THREE.SRGBColorSpace);
+          rgb.set([tint.r, tint.g, tint.b], 3 * i);
+        }
+        geometry.setAttribute("color", new THREE.BufferAttribute(rgb, 3));
+        geometry.setAttribute("aT", new THREE.BufferAttribute(tValues, 1));
+        geometry.setAttribute("aDist", new THREE.BufferAttribute(dist, 1));
+        geometry.setAttribute(
+          "aStatus",
+          new THREE.BufferAttribute(new Float32Array(n), 1),
         );
+        geometry.setAttribute(
+          "aEdge",
+          new THREE.BufferAttribute(new Float32Array(n).fill(-2), 1),
+        );
+        const line = new THREE.Line(geometry, declaredMaterial);
         line.userData.declared_bridge_id = link.id;
-        line.computeLineDistances();
         declaredLayer.add(line);
       }
     }
@@ -288,6 +389,9 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       string,
       ViewportFrameData["relationships"][number]
     >();
+    const white = new THREE.Color(0xffffff);
+    let edgeIndex = new Map<string, number>(),
+      documentaryLookup = new Map<string, DocumentaryLink>();
     let edgePoints = new Map<string, Vec3[]>(),
       segmentIds: string[] = [],
       lastNavigation = "",
@@ -404,23 +508,6 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     tooltip.setAttribute("role", "tooltip");
     tooltip.hidden = true;
     element.append(tooltip);
-    function dotted(id: string) {
-      const status = relationLookup.get(id)?.resolution_status;
-      return status === "candidate" || status === "unresolved";
-    }
-    function segmentVisible(id: string, index: number) {
-      const relation = relationLookup.get(id);
-      if (dotted(id)) return index % 2 === 0;
-      if (relation?.family === "expected") return index % 6 < 4;
-      if (
-        relation?.subtype === "imports" ||
-        relation?.subtype === "imports_from"
-      )
-        return index % 8 < 6;
-      if (relation?.subtype === "inherits")
-        return [0, 1, 3, 4].includes(index % 8);
-      return true;
-    }
     function updateEdges() {
       const data = displayData;
       if (!data) return;
@@ -436,7 +523,15 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         radius: selected ? 3 * selected.radius : 5,
       };
       edgePoints = new Map();
+      edgeIndex = new Map();
       segmentIds = [];
+      type Drawn = {
+        id: string;
+        points: Vec3[];
+        family: RelationshipFamily;
+        status: RuntimeStatus;
+      };
+      const drawn: Drawn[] = [];
       let segmentCount = 0;
       for (const curve of data.curves) {
         const points = samples(
@@ -445,8 +540,36 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           currentLens,
           spheres.get(curve.canonical_source)?.radius ?? 1,
         );
-        edgePoints.set(curve.relationship_id, points);
-        segmentCount += points.length - 1;
+        const id = curve.relationship_id;
+        drawn.push({
+          id,
+          points,
+          ...resolveCurveStyle(
+            curve as StyledCurveFields,
+            Boolean(propsRef.current.violations?.includes(id)),
+            relationLookup.get(id),
+          ),
+        });
+      }
+      documentaryLookup = new Map();
+      for (const link of data.documentary_links ?? []) {
+        const curve = documentaryCurve(link) as unknown as ViewportFrameData["curves"][number];
+        documentaryLookup.set(link.link_id, link);
+        drawn.push({
+          id: link.link_id,
+          points: samples(
+            curve,
+            propsRef.current.beta,
+            currentLens,
+            spheres.get(link.fragment_rep)?.radius ?? 1,
+          ),
+          ...resolveLinkStyle(link),
+        });
+      }
+      for (const [index, item] of drawn.entries()) {
+        edgePoints.set(item.id, item.points);
+        edgeIndex.set(item.id, index);
+        segmentCount += item.points.length - 1;
       }
       const needed = segmentCount * 6;
       if (needed > lineCapacity) {
@@ -464,46 +587,60 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           "color",
           new THREE.BufferAttribute(new Float32Array(lineCapacity), 3),
         );
-      }
-      const positions = lines.geometry.getAttribute("position") as
-        THREE.BufferAttribute | undefined;
-      const colors = lines.geometry.getAttribute("color") as
-        THREE.BufferAttribute | undefined;
-      let offset = 0;
-      if (positions) {
-        for (const [id, points] of edgePoints) {
-          const relation = relationLookup.get(id),
-            highlight = propsRef.current.highlightedEdges?.includes(id);
-          const color = new THREE.Color(
-            highlight
-              ? "#A7BCCD"
-              : propsRef.current.violations?.includes(id)
-                ? "#D5B27B"
-                : relation?.family === "runtime"
-                  ? "#9FB7AC"
-                  : propsRef.current.theme === "light"
-                    ? "#5C646E"
-                    : "#A8ADB4",
+        for (const name of ["aT", "aDist", "aStatus", "aEdge"])
+          lines.geometry.setAttribute(
+            name,
+            new THREE.BufferAttribute(new Float32Array(lineCapacity / 3), 1),
           );
+      }
+      const attr = (name: string) =>
+        lines.geometry.getAttribute(name) as THREE.BufferAttribute | undefined;
+      const positions = attr("position"),
+        colors = attr("color"),
+        aT = attr("aT"),
+        aDist = attr("aDist"),
+        aStatus = attr("aStatus"),
+        aEdge = attr("aEdge");
+      let vertex = 0;
+      if (positions && colors && aT && aDist && aStatus && aEdge) {
+        const tint = new THREE.Color();
+        for (const item of drawn) {
+          const { points } = item,
+            highlight = propsRef.current.highlightedEdges?.includes(item.id),
+            last = Math.max(1, points.length - 1),
+            code = STATUS_CODE[item.status];
+          // Cumulative world length from the source end.
+          const run = [0];
+          for (let i = 1; i < points.length; i++)
+            run.push(
+              run[i - 1] +
+                Math.hypot(
+                  points[i][0] - points[i - 1][0],
+                  points[i][1] - points[i - 1][1],
+                  points[i][2] - points[i - 1][2],
+                ),
+            );
+          const put = (i: number) => {
+            positions.setXYZ(vertex, ...points[i]);
+            const t = i / last,
+              [r, g, b] = colourAt(item.family, propsRef.current.theme, t);
+            tint.setRGB(r, g, b, THREE.SRGBColorSpace);
+            if (highlight) tint.lerp(white, 0.35);
+            colors.setXYZ(vertex, tint.r, tint.g, tint.b);
+            aT.setX(vertex, t);
+            aDist.setX(vertex, run[i]);
+            aStatus.setX(vertex, code);
+            aEdge.setX(vertex, edgeIndex.get(item.id) ?? -1);
+            vertex++;
+          };
           for (let i = 0; i < points.length - 1; i++) {
-            if (!segmentVisible(id, i)) continue;
-            positions.setXYZ(offset / 3, ...points[i]);
-            const from = color
-              .clone()
-              .multiplyScalar(0.65 + (0.35 * i) / (points.length - 1));
-            colors?.setXYZ(offset / 3, from.r, from.g, from.b);
-            offset += 3;
-            positions.setXYZ(offset / 3, ...points[i + 1]);
-            const to = color
-              .clone()
-              .multiplyScalar(0.65 + (0.35 * (i + 1)) / (points.length - 1));
-            colors?.setXYZ(offset / 3, to.r, to.g, to.b);
-            offset += 3;
-            segmentIds.push(id);
+            put(i);
+            put(i + 1);
+            segmentIds.push(item.id);
           }
         }
-        positions.needsUpdate = true;
-        if (colors) colors.needsUpdate = true;
+        for (const a of [positions, colors, aT, aDist, aStatus, aEdge])
+          a.needsUpdate = true;
         lines.geometry.setDrawRange(0, segmentIds.length * 2);
         lines.geometry.computeBoundingSphere();
       }
@@ -533,6 +670,11 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       }
       const activeEdge = hoverEdge || p.selectedEdge;
       const points = edgePoints.get(activeEdge);
+      // Hovering or pinning an edge dims every other edge to 0.35 alpha.
+      lineMaterial.uniforms.uHover.value = edgeIndex.get(activeEdge) ?? -1;
+      lineMaterial.uniforms.uDimOthers.value = edgeIndex.has(activeEdge)
+        ? 1
+        : 0;
       selectedLine.visible = Boolean(points);
       arrow.visible = Boolean(points && points.length > 1);
       if (points) {
@@ -540,14 +682,10 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         selectedLine.geometry = new THREE.BufferGeometry().setFromPoints(
           points
             .slice(0, -1)
-            .flatMap((v, i) =>
-              !segmentVisible(activeEdge, i)
-                ? []
-                : [
-                    new THREE.Vector3(...v),
-                    new THREE.Vector3(...points[i + 1]),
-                  ],
-            ),
+            .flatMap((v, i) => [
+              new THREE.Vector3(...v),
+              new THREE.Vector3(...points[i + 1]),
+            ]),
         );
         const i = Math.min(points.length - 2, Math.floor(points.length * 0.76)),
           start = new THREE.Vector3(...points[i]),
@@ -565,11 +703,13 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     }
     function update() {
       const p = propsRef.current;
-      if (layoutNavigation !== p.navigationKey) {
+      // Edits made under one layout_version do not apply to another.
+      const layoutKey = `${p.navigationKey}|${(p.frame as { layout_version?: string } | undefined)?.layout_version ?? ""}`;
+      if (layoutNavigation !== layoutKey) {
         edits.clear();
         selection = [];
         setEditCount(0);
-        layoutNavigation = p.navigationKey;
+        layoutNavigation = layoutKey;
       }
       const data = p.frame ? editedScene(p.frame, edits) : undefined;
       if (!data) return;
@@ -577,8 +717,6 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       scene.background = new THREE.Color(
         p.theme === "dark" ? 0x17191c : 0xf3f2ef,
       );
-      lineMaterial.opacity = p.theme === "dark" ? 0.65 : 0.85;
-      lineMaterial.color.set(0xffffff);
       selectedMaterial.color.set(p.theme === "dark" ? 0xa7bccd : 0x385d76);
       arrow.setColor(selectedMaterial.color);
       nodes = new Map(data.nodes.map((n) => [n.id, n]));
@@ -717,6 +855,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         update();
       },
       scaleSelection: (factor) => manipulate(factor, [0, 0, 0]),
+      selectedIds: () => [...selection],
       moveSelection: (dx, dy) => {
         const pivot = selectionPivot(),
           step =
@@ -1072,7 +1211,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         ...new Set(
           hits
             .map((hit) => segmentIds[Math.floor((hit.index ?? 0) / 2)])
-            .filter(Boolean),
+            .filter((id) => Boolean(id) && relationLookup.has(id)),
         ),
       ];
       if (edges.length)
@@ -1122,8 +1261,11 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         const r = propsRef.current.frame?.relationships.find(
           (r) => r.id === hoverEdge,
         );
+        const doc = documentaryLookup.get(hoverEdge);
         if (r)
           text = `${nodes.get(r.source)?.qualified_name ?? r.source} → ${nodes.get(r.target)?.qualified_name ?? r.target} · ${r.subtype} · ${r.resolution_status} · ${r.witness_count} witnesses · ${r.weight_unit}`;
+        else if (doc)
+          text = `${nodes.get(doc.fragment_rep)?.qualified_name ?? doc.fragment_rep} → ${nodes.get(doc.entity_rep)?.qualified_name ?? doc.entity_rep} · documentary ${doc.role} · ${doc.incidence_count} incidences`;
       }
       tooltip.textContent = text;
       tooltip.hidden = !text;
@@ -1184,6 +1326,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       }
       if (controls.enabled) controls.update();
       camera.updateMatrixWorld();
+      lineMaterial.uniforms.uTime.value = reduced.matches ? 0 : now / 1000;
       drawSelection();
       if (
         new URLSearchParams(location.search).has("debug") &&
@@ -1270,7 +1413,6 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       lineMaterial.dispose();
       for (const object of declaredLayer.children)
         (object as THREE.Line).geometry.dispose();
-      declaredMaterial.dispose();
       selectedLine.geometry.dispose();
       selectedMaterial.dispose();
       ringGeometry.dispose();
@@ -1297,7 +1439,8 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     ],
   );
   return (
-    <div ref={host} className="scene-host" data-testid="spatial-scene">
+    <div ref={host} className="scene-host" data-testid="spatial-scene"
+      data-qi-group-count={props.frame?.nodes.filter(n => n.kind === "qi" && props.frame?.spheres.some(s => s.node_id === n.id)).length ?? 0}>
       <div
         className="scene-layout-tools"
         role="group"
@@ -1309,6 +1452,25 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         <span data-testid="layout-selection-status" aria-live="polite">
           {editCount} selected
         </span>
+        {props.onPrune && (
+          <button
+            disabled={!editCount}
+            onClick={() => {
+              const frame = props.frame;
+              if (!frame) return;
+              // Box selection keeps only enclosure roots; prune by every file beneath them.
+              const ids = descendants(frame, controller.current?.selectedIds() ?? []);
+              props.onPrune?.(
+                frame.nodes
+                  .filter((n) => ids.has(n.id) && n.source?.rel_path)
+                  .map((n) => ({ id: n.id, rel_path: n.source!.rel_path! }))
+                  .sort((a, b) => a.id.localeCompare(b.id)),
+              );
+            }}
+          >
+            Prune selection…
+          </button>
+        )}
         <button
           disabled={!editCount}
           onClick={() => controller.current?.scaleSelection(1.15)}

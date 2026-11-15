@@ -7,6 +7,7 @@ import json
 from .analysis import TreeIndex,partition,DEFAULT_FILTER,project,selected_relationships
 from .geometry import pack_tree,frame,knots_for,norm,sub,EPS,size_preference
 from .model import canonical,digest
+from .edge_classes import classify_relationship,classify_documentary
 from .packing import Unit
 from .service import QueryError
 
@@ -123,6 +124,62 @@ def control_polygon(tree,part,centres,a,b):
     return points
 
 
+def documentary_links(service,sid,part,tree,centres,visible,budget):
+    """Doc->code threads. Incidences are hyperedges; each is projected onto visible reps, never made a relationship."""
+    g=service._context(sid)['g']
+    def rep_of(eid):
+        if eid not in tree.parents and eid!=tree.root:return None
+        return next((a for a in reversed(tree.ancestors(eid)) if a in visible),None)
+    counts=Counter()
+    for row in g.incidences:
+        f,e=rep_of(row['fragment_id']),rep_of(row['entity_id'])
+        if f is None or e is None or f==e or f in tree.ancestors(e) or e in tree.ancestors(f):continue
+        counts[(f,e,row['role'])]+=1
+    links=[]
+    for (f,e,role),count in counts.items():
+        if f not in centres or e not in centres:continue
+        try:points=control_polygon(tree,part,centres,f,e)
+        except KeyError:continue
+        degree,knots=knots_for(len(points))
+        links.append(dict(link_id='doclink:'+digest(f,e,role)[:24],fragment_rep=f,entity_rep=e,role=role,incidence_count=count,
+            control_points=[list(p) for p in points],degree=degree,knots=knots,relationship_family=classify_documentary(role),runtime_status='exact'))
+    links.sort(key=lambda l:(-l['incidence_count'],l['link_id']))
+    return links[:max(0,min(200,budget))]
+
+
+def affinity_maps(service,sid,baseline,g,hierarchy,filters=None):
+    """Per display parent: (sibling pair weights, external degree) for sphere-affinity-v1 (master G14)."""
+    parent_of={c:p for p,cs in hierarchy.items() for c in cs}
+    nodes=set(hierarchy)|set(parent_of)
+    def chain(rep):
+        path=[]
+        while rep is not None:path.append(rep);rep=parent_of.get(rep)
+        return path[::-1]
+    pairs=defaultdict(lambda:defaultdict(float));external=defaultdict(lambda:defaultdict(float))
+    def couple(a,b,weight):
+        ca,cb=chain(a),chain(b);k=0
+        while k<min(len(ca),len(cb)) and ca[k]==cb[k]:k+=1
+        if k==0 or k>=len(ca) or k>=len(cb):return
+        u,v=ca[k],cb[k];pairs[ca[k-1]][(min(u,v),max(u,v))]+=weight
+    # Projections of the unfiltered baseline partition (the one the geometry cache is keyed on),
+    # so the cached layout never depends on which query filter was requested first.
+    rows=sorted(project(g,baseline,'affinity-baseline',filters or ALL_ENTITIES),key=lambda r:r['projection_id'])
+    for a,b,weight in ((r['source_rep_id'],r['target_rep_id'],r['witness_count']) for r in rows):
+        if a not in nodes or b not in nodes or a==b:continue
+        couple(a,b,weight)
+        cb=set(chain(b))
+        for node in chain(a)[1:]:
+            if parent_of[node] not in cb:external[parent_of[node]][node]+=weight
+    tree=service._context(sid)['tree']
+    def rep_of(eid):
+        if eid not in tree.parents and eid!=tree.root:return None
+        return next((x for x in reversed(tree.ancestors(eid)) if x in nodes),None)
+    for row in g.incidences:
+        f,e=rep_of(row['fragment_id']),rep_of(row['entity_id'])
+        if f is not None and e is not None and f!=e:couple(f,e,1.)
+    return {p:(dict(sorted(pairs[p].items())),dict(sorted(external[p].items()))) for p in sorted(hierarchy) if hierarchy[p]}
+
+
 def build_frame(service,q,ctx):
     g=ctx['g'];tree=ctx['tree'];sid=q['snapshot_id']
     if q.get('model_digest') and q['model_digest'] not in service.rules:raise QueryError('NOT_FOUND','Selected rules model unavailable')
@@ -136,6 +193,14 @@ def build_frame(service,q,ctx):
     else:
         baseline=partition(g,sid,grouping,ALL_ENTITIES,tree=tree)
         part=partition(g,sid,grouping,q['filter'],tree=tree)
+    qi=None
+    if q.get('qi',{}).get('enabled'):
+        if grouping['mode']!='atomic':raise QueryError('INVALID_REQUEST','QI requires atomic grouping')
+        pins={g.entities[p].parent_id if g.entities[p].kind=='scope_atom' else p for p in q['pins']}
+        part,_,qi=service._architecture({**q,'grouping':grouping,'pins':sorted(pins|{q['focus_id']})},ctx)
+        # A QI certificate is filter-specific. Its complete partition is the
+        # geometry universe too; never substitute an unrelated all-flags quotient.
+        baseline=part
     if grouping['mode']!='mixed':
         # T_display is a view-local tree. Canonical ownership remains unchanged.
         # Bound geometry independently of the full, persisted partition.
@@ -159,7 +224,7 @@ def build_frame(service,q,ctx):
         # uses a fixed static universe, so toggling query filters preserves layout.
         for rep in sorted(baseline.groups,key=lambda r:(r not in relevant,g.entities[r].is_external if r in g.entities else False,-incident[r],tree.distance(anchor(r),q['focus_id']),r)):
             if focused_repo!='@workspace' and not in_scope(rep) and rep not in protected:continue
-            branch=set(tree.ancestors(anchor(rep)))|{rep}
+            branch=set(tree.ancestors(anchor(rep)))|{anchor(rep),rep}
             if len(admitted|branch)<=q['node_budget']:admitted.update(branch)
         lod_omitted=len(set(baseline.groups)-admitted)
         revealed={eid for eid in admitted if eid in g.entities}
@@ -168,6 +233,9 @@ def build_frame(service,q,ctx):
     vid=service._persist_partition(sid,ctx,part,q['filter'],'viewport-partition-v1')
     partition_digest=digest({rep:sorted(members) for rep,members in sorted(part.groups.items())})
     geometry_key='layout:'+digest(sid,grouping,q['seed'],'content-orbits-v3',sorted(admitted) if admitted is not None else None)
+    if qi:geometry_key='layout:'+digest(geometry_key,q['qi'])
+    layout_version=q.get('layout_version','sphere-pack-v1')
+    if layout_version!='sphere-pack-v1':geometry_key='layout:'+digest(geometry_key,layout_version)
     # Cache is per expansion state, not filter/camera/beta. Filters therefore fade
     # existing groups without changing all coordinates or running global physics.
     layout=ctx.setdefault('layouts',{}).get(geometry_key)
@@ -177,7 +245,8 @@ def build_frame(service,q,ctx):
             hierarchy={p:[c for c in children if c in admitted] for p,children in hierarchy.items() if p in admitted}
             counts={p:n for p,n in counts.items() if p in admitted}
             aggregate&=admitted
-        try:layout=pack_tree(hierarchy,tree.root,counts,q['seed'],aggregate,display_radii(ctx,counts))
+        affinity=affinity_maps(service,sid,baseline,g,hierarchy,q['filter'] if qi else None) if layout_version=='sphere-affinity-v1' else None
+        try:layout=pack_tree(hierarchy,tree.root,counts,q['seed'],aggregate,display_radii(ctx,counts),affinity)
         except ValueError as exc:raise QueryError('LAYOUT_FAILED',str(exc)) from exc
         ctx['layouts'][geometry_key]=layout
         while len(ctx['layouts'])>16:ctx['layouts'].pop(next(iter(ctx['layouts'])))
@@ -186,7 +255,7 @@ def build_frame(service,q,ctx):
             for eid,centre in layout.centres.items():
                 if eid in g.entities:
                     service.store.connection.execute('INSERT OR IGNORE INTO layouts VALUES(?,?,?,?,?,?,?,?)',
-                        (sid,'sphere-pack-v1',seed,eid,*centre,layout.radii[eid]))
+                        (sid,layout_version,seed,eid,*centre,layout.radii[eid]))
     visible=set(part.groups)
     for rep in part.groups:
         anchor=rep if rep in g.entities else part.shells[rep]
@@ -194,13 +263,22 @@ def build_frame(service,q,ctx):
     visible.update(protected)
     visible&=set(layout.centres)
     if q['focus_id'] not in visible:raise QueryError('INVALID_REQUEST','Filters exclude the focus')
-    nodes={eid:service._node(ctx,eid,part=part,focus=q['focus_id']) for eid in visible}
+    labelled=q['schema_version']=='1.1'
+    nodes={eid:service._node(ctx,eid,part=part,focus=q['focus_id'],labels=labelled) for eid in visible}
+    if labelled:
+        from .labels import disambiguate
+        for eid,n in nodes.items():
+            if n['kind']=='fragment':n['label_text']=g.analyses.get('text:'+eid,{}).get('result',{}).get('text','')
+        ordered=sorted(nodes.values(),key=lambda n:n['id'])
+        for nid,label in disambiguate(ordered).items():nodes[nid]['display_label']=label
+        for n in ordered:n.pop('label_text',None)
     spheres={eid:dict(node_id=eid,center=list(layout.centres[eid]),radius=layout.radii[eid],
                       role='representative' if eid in part.groups else 'context_shell') for eid in visible}
-    data=service._payload(sid,ctx,layout_version='sphere-pack-v1',partition_digest=partition_digest,spheres=[],curves=[],
+    data=service._payload(sid,ctx,layout_version=layout_version,partition_digest=partition_digest,spheres=[],curves=[],
         packing=dict(tolerance=EPS,fallback_parent_ids=[eid for eid in layout.fallback if eid in visible],max_violation=layout.max_violation),
         scene_completeness=dict(omitted_spheres=lod_omitted,omitted_curves=0))
     data['view_id']=vid
+    if qi:data['qi']=qi
     required=set(protected)&visible
     for eid in sorted(required):data['nodes'].append(nodes[eid]);data['spheres'].append(spheres[eid])
     units=[]
@@ -235,12 +313,19 @@ def build_frame(service,q,ctx):
                 curve=dict(relationship_id=row['projection_id'],canonical_source=a,canonical_target=b,reversed=row['source_rep_id']!=a,
                     control_points=[list(p) for p in points],degree=degree,knots=knots,normal=list(normal),binormal=list(binormal),
                     lane_index=index,lane_count=len(group),lane_spacing=.08,sample_count=48)
+                if q['schema_version']=='1.1':curve['relationship_family'],curve['runtime_status']=classify_relationship(row['family'],row['subtype'],row['resolution_status'])
                 curve_candidates.append((row,records,curve))
             else:units.append(Unit('internal:'+row['projection_id'],2,100,records))
     curve_candidates.sort(key=lambda item:(tree.distance(q['focus_id'],part.shells.get(item[0]['source_rep_id']) or tree.root),item[0]['projection_id']))
     for index,(row,records,curve) in enumerate(curve_candidates):
         if index<q['curve_budget']:records['curves']=[curve]
         units.append(Unit('curve:'+row['projection_id'],1,200,records))
+    if labelled:
+        data['documentary_links']=[]
+        for link in documentary_links(service,sid,part,tree,layout.centres,visible,q['curve_budget']):
+            ids={link['fragment_rep'],link['entity_rep']}
+            for rep in list(ids):ids.update(set(tree.ancestors(rep))&visible)
+            units.append(Unit('doclink:'+link['link_id'],2,60,dict(nodes=[nodes[eid] for eid in sorted(ids)],spheres=[spheres[eid] for eid in sorted(ids)],documentary_links=[link])))
     data['scene_completeness']['omitted_curves']=hidden_relationships+max(0,len(curve_candidates)-q['curve_budget'])
     if lod_omitted:data['coverage']['limitations'].append('Some expanded branches were collapsed into exact residual groups to respect the scene budget' if grouping['mode']=='mixed' else 'Some complete representatives and their relationships are outside the scene budget; the stored partition remains complete')
     plan=service._plan('viewport_frame',q,data,units,vid,'viewport')

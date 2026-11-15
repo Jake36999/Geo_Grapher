@@ -10,7 +10,7 @@ try:from .artifacts import authors_list
 except ImportError:from artifacts import authors_list
 
 ALIAS_FILE=Path(__file__).with_name('concept_aliases.json')
-READ_MODEL_VERSION='paper-read-v4'
+READ_MODEL_VERSION='paper-read-v5'
 DDL='''
 CREATE TABLE IF NOT EXISTS corpus_metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS document_members(doc_id INTEGER PRIMARY KEY REFERENCES documents(id),canonical_id INTEGER NOT NULL REFERENCES documents(id),basis TEXT NOT NULL);
@@ -140,9 +140,15 @@ def _refresh(conn,alias_file=ALIAS_FILE):
         section_sources={s['id']:s['doc_id'] for s in sections}
         section_ok={s['id']:bool(str(s['text'] or '').strip() and not re.fullmatch(r'<[^>]*unread[^>]*>',str(s['text']).strip(),re.I|re.S)) for s in sections}
         active={d['id'] for d in docs if any(section_ok[s['id']] for s in by_doc[d['id']])}
+        catalogue=set()
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE name='import_manifests'").fetchone():
+            catalogue={r[0] for r in conn.execute('SELECT doc_id,source_kind,coverage_json FROM import_manifests')
+                       if r[1] in {'catalogue_note','librarian_conversion'}
+                       and json.loads(r[2]).get('status')=='catalogue_only'}
+        active.update(catalogue)  # Searchable references, never synthetic source sections.
         for d in docs:
             conn.execute('INSERT INTO document_quality VALUES(?,?,?)',(d['id'],'active' if d['id'] in active else 'quarantined',
-                'source content present' if d['id'] in active else ('Only empty/unread placeholder sections' if by_doc[d['id']] else 'No extracted sections; skipped/incomplete source, not a complete indexed paper')))
+                'catalogue only; original pages unavailable' if d['id'] in catalogue else 'source content present' if d['id'] in active else ('Only empty/unread placeholder sections' if by_doc[d['id']] else 'No extracted sections; skipped/incomplete source, not a complete indexed paper')))
         origins={r[0]:r[1] for r in conn.execute('SELECT doc_id,source_graph FROM document_origins')} if conn.execute("SELECT 1 FROM sqlite_master WHERE name='document_origins'").fetchone() else {}
         parents={d['id']:d['id'] for d in docs};titles=defaultdict(list);ids={}
         for d in docs:
@@ -189,7 +195,8 @@ def _refresh(conn,alias_file=ALIAS_FILE):
             title=fields['title'] or Path(primary['file_path']).stem
             claim_count=conn.execute('SELECT count(*) FROM read_claims WHERE doc_id=?',(canonical,)).fetchone()[0]
             metadata=dict(field_sources=origins,conflicts=conflicts,source_document_ids=[d['id'] for d in members],
-                          title_is_filename_fallback=not bool(fields['title']),abstract_missing=not bool(fields['abstract_summary']))
+                          title_is_filename_fallback=not bool(fields['title']),abstract_missing=not bool(fields['abstract_summary']),
+                          catalogue_only=all(d['id'] in catalogue for d in members))
             conn.execute('INSERT INTO read_documents VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',
                 (canonical,title,json.dumps(authors_list(fields['authors'])),fields['year'],fields['venue'],fields['doi'],fields['abstract_summary'],
                  primary['page_count'],primary['file_path'],primary['id'],len(members),claim_count,json.dumps(metadata)))

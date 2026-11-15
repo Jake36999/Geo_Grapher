@@ -4,6 +4,8 @@ An evidence-backed local repository explorer with a neutral nested 3D workspace,
 
 Stages 1–3 passed their gates in sequence. Stage 4 is implemented; hardware, screen-reader and comparative usability acceptance remain open. See [implementation status](IMPLEMENTATION_STATUS.md) and [Stage 4 evidence](reports/STAGE_4_GATE_REPORT.md).
 
+Phase 6–7 is integrated locally for 0.2.0. The [user, agent, operator and migration guides](docs/phase67/README.md) describe the shipped defaults and stable v1.1 contracts. [Owner acceptance](reports/PHASE67_F4_OWNER_ACCEPTANCE.md) and release-note sign-off remain pending; no tag or push has occurred.
+
 Use Python 3.11+, Node 22.12+ and the lockfiles. The verified host uses Python 3.11.3 and Node 24.13.0:
 
 ```powershell

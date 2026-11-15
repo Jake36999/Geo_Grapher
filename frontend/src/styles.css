@@ -1,4 +1,6 @@
 @import "@fontsource/inter/400.css";
+.qi-control { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .85rem; }
+.qi-blocks ul { max-height: 10rem; overflow: auto; list-style: none; padding: .3rem; }
 :root {
   font-family: Inter, system-ui, sans-serif;
   color-scheme: dark;
@@ -1571,7 +1573,32 @@ dialog input {
 .workspace-graph-picker p {font-size:12px;line-height:1.5;}
 .workspace-graph-choice {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;}
 .workspace-graph-choice label {display:flex;align-items:center;gap:8px;}
+.workspace-graph-choice {flex-wrap:wrap;}
+.graph-lifecycle-dialog {flex-basis:100%;display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid currentColor;border-radius:6px;}
 .workspace-scope-caption {font-size:11px;color:var(--secondary);}
 .integrated-workspace .app-header {position:relative;z-index:35;}
 .shared-graph-canvas {height:max(420px,calc(100dvh - 360px));}
 @media(max-width:600px){.shared-graph-canvas {height:360px;}.graph-workspace {padding:12px;}}
+
+/* Prune-by-derivation confirmation (wave 3 Task 7): floats above the scene, never under the canvas. */
+.prune-dialog {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 5;
+  max-width: 360px;
+  max-height: 50%;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--border, #8884);
+  border-radius: 8px;
+  background: var(--panel, var(--background, #fff));
+  color: var(--text, inherit);
+  pointer-events: auto;
+}
+.prune-dialog ul {
+  margin: 4px 0;
+  padding-left: 18px;
+  max-height: 120px;
+  overflow: auto;
+}

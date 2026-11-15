@@ -1,0 +1,19 @@
+{
+  "status": "stable",
+  "release": "0.2.0",
+  "declared_at": "2026-11-14",
+  "future_changes": "v1.2",
+  "sha256": {
+    "ACTOR_SCHEMA.md": "c34839f8f789eac147ae64909a1ce16c32a522521059d316623a8c175f96b326",
+    "baseline-digests.json": "a5218e0e90a53ce017b085240dc2bb6cad9c17dd48f06c2afcf827b9869c387a",
+    "FINGERPRINT_ADDENDUM.sql": "ced7895361ab1ab1926ed2b016e16cdb88c243d392c28ddf7eb96f1e6ec04137",
+    "generated/geographer.wire.schema.json": "cad2774ae4f2a7dc3a7f08ac541590a5dbc1c294c40876a3b2082591c4907183",
+    "geographer.trace.schema.json": "45273ccceeb8b4ef9fc19d6b14067c4536f20f544dba273ab040028e05f292b8",
+    "geographer.wire.d.ts": "cd167603c6165e4cb1d353f1bb963d9a2cb4f3e7e4cd042c108a1bd5abffa16e",
+    "PACKING_ADDENDUM.md": "beac4359b74a13bd49db4e87016b45d339d869fcda2631ad5a6747e75ef90c9e",
+    "PROJECT_ISOLATION_ADDENDUM.md": "b76752cb218e2fc29508fb9e01856e02f5a1d844a8eef2696346d29ea39bd966",
+    "RUNTIME_ADDENDUM.md": "37fa271d26669b86401775fead9bf1738b4264e42ecf0d09ae5d174cb6c2fa8a",
+    "STABILITY.md": "ddd8ccba39ce356e956233eeaf370ad4835986640db8462ceb9c93ff3ff4e970",
+    "WORKSPACE_ADDENDUM.md": "6251c36a8d652d21f88823a1baf3078c061065fbf75649a3bc705505e6940a07"
+  }
+}

@@ -42,8 +42,10 @@ class SnapshotStore:
             self.connection.executescript(schema.read_text(encoding="utf-8"))
         if self.connection.execute("PRAGMA user_version").fetchone()[0] != 1:
             raise RuntimeError("Unsupported database schema")
+        # Additive v1.1 addendum; idempotent through IF NOT EXISTS, frozen DDL untouched.
+        self.connection.executescript((resource_root() / "contracts/v1.1/FINGERPRINT_ADDENDUM.sql").read_text(encoding="utf-8"))
         # Runtime immutability enforcement supplements the unchanged normative DDL.
-        for table in ("snapshots", "entities", "relationships", "evidence", "documentary_incidences"):
+        for table in ("snapshots", "entities", "relationships", "evidence", "documentary_incidences", "entity_fingerprints"):
             for operation in ("INSERT", "UPDATE", "DELETE"):
                 refs = ["NEW"] if operation == "INSERT" else ["OLD"] if operation == "DELETE" else ["OLD", "NEW"]
                 condition = " OR ".join(f"EXISTS(SELECT 1 FROM snapshot_sets WHERE snapshot_id={ref}.snapshot_id AND status='complete')" for ref in refs)
@@ -93,12 +95,17 @@ class SnapshotStore:
                 yield tuple(row[k] for k in fields)
         self.connection.executemany(f"INSERT INTO {table}({','.join(fields)}) VALUES({','.join('?' for _ in fields)})",values())
 
-    def begin(self, repositories: list[Repository], config: dict, snapshot_id: str | None = None) -> str:
+    @staticmethod
+    def snapshot_identity(repositories: list[Repository], config: dict, snapshot_id: str | None = None):
         if len({r.repo_id for r in repositories}) != len(repositories):
             raise ValueError("Duplicate repository namespace")
         manifest = sorted((r.repo_id, r.revision, r.content_digest, list(r.source_roots)) for r in repositories)
         mh = digest(manifest, config)
         sid = snapshot_id or "snapshot:" + mh
+        return sid, mh
+
+    def begin(self, repositories: list[Repository], config: dict, snapshot_id: str | None = None) -> str:
+        sid, mh = self.snapshot_identity(repositories, config, snapshot_id)
         if self.connection.execute("SELECT 1 FROM snapshot_sets WHERE snapshot_id=?", (sid,)).fetchone():
             raise ValueError("Snapshot already exists; read it or choose a new build ID")
         with self.connection:
@@ -124,6 +131,9 @@ class SnapshotStore:
                         yield (sid,*asdict(first).values())
                         for record in rows:yield (sid,*asdict(record).values())
                     self.connection.executemany(f"INSERT INTO {table}({','.join(fields)}) VALUES({','.join('?' for _ in fields)})",values())
+            if graph.fingerprints:
+                self.connection.executemany("INSERT INTO entity_fingerprints(snapshot_id,entity_id,algorithm_version,span_sha256,ast_body_hash,signature_hash,ts_guard_hash,exact_out_edges_hash,wl_3hop_hash) VALUES(?,?,?,?,?,?,?,?,?)",
+                    ((sid,eid,'entity-fingerprint-v1',*(row.get(k) for k in ('span_sha256','ast_body_hash','signature_hash','ts_guard_hash','exact_out_edges_hash','wl_3hop_hash'))) for eid,row in sorted(graph.fingerprints.items())))
             for incidence in graph.incidences:
                 self._insert("documentary_incidences", {"snapshot_id": sid, **incidence})
             for aid, result in graph.analyses.items():
@@ -167,7 +177,8 @@ class SnapshotStore:
                 cached=c.execute('SELECT algorithm_version,scope_json,result_json FROM analysis_results WHERE snapshot_id=? AND analysis_id=?',(sid,'norm:'+e['entity_id'])).fetchone()
                 try:
                     representation=json.loads(cached['result_json'])['representation'] if cached else None
-                    if cached is None or cached['algorithm_version']!='py-ast-v1' or json.loads(cached['scope_json'])!={'entity_id':e['entity_id']} or not isinstance(representation,str) or hashlib.sha256(representation.encode()).hexdigest()!=e['ast_body_hash']:
+                    expected='constant-value-v1' if e['kind']=='constant' else 'py-ast-v1'
+                    if cached is None or cached['algorithm_version']!=expected or json.loads(cached['scope_json'])!={'entity_id':e['entity_id']} or not isinstance(representation,str) or hashlib.sha256(representation.encode()).hexdigest()!=e['ast_body_hash']:
                         bad('Normalised AST hash/cache mismatch')
                 except (KeyError,UnicodeError,TypeError):bad('Invalid normalisation cache')
             if e["parent_id"] is None:
@@ -342,9 +353,20 @@ class SnapshotStore:
                 collection[record[key]] = cls(**record)
         g.incidences = [{k: v for k, v in dict(r).items() if k != "snapshot_id"} for r in self.connection.execute(
             "SELECT * FROM documentary_incidences WHERE snapshot_id=? ORDER BY incidence_id,entity_id", (sid,))]
+        g.fingerprints = self.fingerprints(sid) or {}
         for r in self.connection.execute("SELECT * FROM analysis_results WHERE snapshot_id=?", (sid,)):
             g.analyses[r["analysis_id"]] = {"algorithm_version": r["algorithm_version"], "scope": json.loads(r["scope_json"]), "result": json.loads(r["result_json"])}
         return g
+
+    def fingerprints(self, sid: str) -> dict[str, dict] | None:
+        """entity_id -> fingerprint fields, or None (not computed) when the table has no rows for the snapshot."""
+        try:
+            rows = self.connection.execute("SELECT entity_id,span_sha256,ast_body_hash,signature_hash,ts_guard_hash,exact_out_edges_hash,wl_3hop_hash FROM entity_fingerprints WHERE snapshot_id=? ORDER BY entity_id", (sid,)).fetchall()
+        except sqlite3.OperationalError:
+            return None
+        if not rows:
+            return None
+        return {r[0]: dict(zip(('span_sha256','ast_body_hash','signature_hash','ts_guard_hash','exact_out_edges_hash','wl_3hop_hash'), r[1:])) for r in rows}
 
     def export(self, sid: str) -> dict:
         self.require_complete(sid)
@@ -390,12 +412,14 @@ class SnapshotStore:
                     continue
                 graph.add(e)
             graph.relationships.update(incoming.relationships)
+            for eid, row in incoming.fingerprints.items():
+                graph.fingerprints[eid] = {k: row.get(k) for k in ('signature_hash', 'ts_guard_hash')}
             graph.evidence.update(incoming.evidence)
             graph.incidences.extend(incoming.incidences)
             for aid,result in incoming.analyses.items():
                 # Source evidence survives; source-local query plans, partitions,
                 # diagnostics and layout caches do not describe the new union.
-                if result['algorithm_version'] in {'source-bytes-v1','py-ast-v1','documentary-v1','documentary-v2','documentary-tree-v1','source-context-v1','declaration-v1','c3-static-v1','tree-sitter-syntax-v1','runtime-collection-v1'}:
+                if result['algorithm_version'] in {'source-bytes-v1','py-ast-v1','constant-value-v1','documentary-v1','documentary-v2','documentary-tree-v1','source-context-v1','declaration-v1','role-inputs-v1','c3-static-v1','tree-sitter-syntax-v1','runtime-collection-v1'}:
                     graph.analyses[aid]=result
         graph.augment()
         config = {"stage": stage, "merge": sorted((sid for _, sid in sources)), "mode": "disjoint_fact_union", "merge_version":"namespace-union-v2"}
@@ -406,6 +430,9 @@ class SnapshotStore:
         if stage>=2:
             from .analysis import prepare_analysis
             prepare_analysis(graph)
+        else:
+            from .fingerprints import complete_fingerprints
+            complete_fingerprints(graph)
         if stage>=3:
             from .analysis import DEFAULT_FILTER
             from .contraction import contract_helpers

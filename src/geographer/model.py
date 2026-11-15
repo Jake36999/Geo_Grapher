@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
-EXTRACTOR_VERSION = "python-ast-symtable-v3-isolated"
+EXTRACTOR_VERSION = "python-ast-symtable-v5-constant-comments"
 
 
 def canonical(value: Any) -> str:
@@ -86,6 +86,7 @@ class Graph:
     evidence: dict[str, Evidence] = field(default_factory=dict)
     incidences: list[dict] = field(default_factory=list)
     analyses: dict[str, dict] = field(default_factory=dict)
+    fingerprints: dict[str, dict] = field(default_factory=dict)
 
     def add(self, value: Entity) -> str:
         old = self.entities.get(value.entity_id)

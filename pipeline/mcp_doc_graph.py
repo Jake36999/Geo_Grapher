@@ -69,6 +69,11 @@ def tool(read_only=True):
                 except (ValueError,FileNotFoundError) as exc:result={'error':{'code':'INVALID_REQUEST','message':str(exc)}}
                 context=QUERY_CONTEXT.get()
                 if context:result['context']=context
+                # The standalone legacy corpus has no accepted own-graph
+                # classification. Scoped calls inherit their graph projection.
+                if DATABASE_SCOPE.get() is None:
+                    result.update(authorship='third_party', authorship_scope='original_source')
+                    result.setdefault('provenance', 'third_party')
                 return result
             finally:QUERY_CONTEXT.reset(token)
         _TOOLS[fn.__name__]=safe
@@ -97,6 +102,14 @@ def _provenance(conn,doc_id):
         manifest=conn.execute('SELECT * FROM import_manifests WHERE doc_id=?',(doc_id,)).fetchone()
         if manifest:result.update(artifact_sha256=manifest['artifact_sha256'],source_sha256=manifest['source_sha256'],
             producer=manifest['producer'],source_kind=manifest['source_kind'],coverage=json.loads(manifest['coverage_json']))
+    representation=result['coverage'].get('representation')
+    if representation:result['representation']=representation
+    catalogue=result['coverage'].pop('catalogue',None)
+    if isinstance(catalogue,dict):
+        result['catalogue_history_available']=isinstance(catalogue.get('use_rollup'),dict)
+        result['catalogue_captured_at']=str(catalogue.get('captured_at') or '')[:80] or None
+        # History has a bounded projection on cards. Repeating the full import
+        # payload in every section's provenance would defeat the size cap.
     return result
 
 
@@ -166,9 +179,41 @@ def _page(rows,offset,limit):
     return dict(offset=offset,limit=limit,next_offset=offset+limit if len(rows)>limit else None,truncated=len(rows)>limit)
 
 
-def _card(d):
-    return dict(id='doc:'+str(d['id']),title=d['title'],year=d['year'],venue=d['venue'],
+def _catalogue_use(conn,d):
+    sources=[];details_truncated=False
+    ids=json.loads(d['metadata_json']).get('source_document_ids',[d['id']]) if 'metadata_json' in d.keys() else [d['id']]
+    if conn is not None and conn.execute("SELECT 1 FROM sqlite_master WHERE name='import_manifests'").fetchone():
+        for source_id in ids[:3]:
+            row=conn.execute('SELECT coverage_json FROM import_manifests WHERE doc_id=?',(source_id,)).fetchone()
+            catalogue=json.loads(row[0]).get('catalogue',{}) if row else {}
+            if isinstance(catalogue.get('use_rollup'),dict):
+                raw=catalogue['use_rollup'];history={}
+                for key in ('log_use_count','application_count'):
+                    value=raw.get(key)
+                    history[key]=value if type(value) is int and value>=0 else None
+                uses=raw.get('recent_uses',[]);apps=raw.get('applications',[])
+                history['recent_uses']=[dict(used_for=str(item.get('used_for',''))[:200]) for item in uses[:1] if isinstance(item,dict)] if isinstance(uses,list) else []
+                history['applications']=[dict(name=str(item.get('name',''))[:120],outcome=str(item.get('outcome',''))[:120]) for item in apps[:1] if isinstance(item,dict)] if isinstance(apps,list) else []
+                details_truncated|=history!=raw
+                sources.append(dict(document_id='doc:'+str(source_id),captured_at=str(catalogue.get('captured_at') or '')[:80] or None,history=history))
+    result=dict(status='recorded' if sources else 'not_recorded',sources=sources,
+                freshness='at graph import; not live session history',sources_truncated=len(ids)>3,
+                details_truncated=details_truncated,
+                basis='recorded use; neither efficacy evidence nor a combined count across duplicate sources')
+    if len(json.dumps(result,ensure_ascii=True))>2400:
+        for source in sources:
+            source['history'].update(recent_uses=[],applications=[])
+        result['details_truncated']=True
+    return result
+
+
+def _card(d,conn=None):
+    card = dict(id='doc:'+str(d['id']),title=d['title'],year=d['year'],venue=d['venue'],
         abstract=(d['abstract_summary'] or '')[:600] or None,abstract_truncated=len(d['abstract_summary'] or '')>600)
+    if 'metadata_json' in d.keys() and json.loads(d['metadata_json']).get('catalogue_only'):
+        card.update(coverage_status='catalogue_only',original_page_verification=False)
+    card['use_rollup']=_catalogue_use(conn,d)
+    return card
 
 
 def _work_provenance(conn,doc_id):
@@ -207,11 +252,11 @@ def search_documents(query: str, limit: int = 10, offset: int = 0, match_mode: s
             predicate=(' OR ' if match_mode=='any' else ' AND ').join([clause]*len(terms))
             args=[_like(term) for term in terms for _ in range(4)]
             rows=conn.execute('SELECT d.* FROM read_documents d WHERE '+predicate+' ORDER BY (lower(d.title)=lower(?)) DESC,d.id LIMIT ? OFFSET ?',(*args,query,limit+1,offset)).fetchall()
-        return dict(query=query,match_mode=match_mode,ranking_basis=backend,scope='active_canonical_works',excluded_incomplete_sources=conn.execute("SELECT count(*) FROM document_quality WHERE status='quarantined'").fetchone()[0],pagination=_page(rows,offset,limit),count=min(len(rows),limit),results=[_search_card(r) for r in rows[:limit]],claim_basis='unverified_documentary_assertions')
+        return dict(query=query,match_mode=match_mode,ranking_basis=backend,scope='active_canonical_works',excluded_incomplete_sources=conn.execute("SELECT count(*) FROM document_quality WHERE status='quarantined'").fetchone()[0],pagination=_page(rows,offset,limit),count=min(len(rows),limit),results=[_search_card(r,conn) for r in rows[:limit]],claim_basis='unverified_documentary_assertions')
 
 
-def _search_card(row):
-    card=_card(row)
+def _search_card(row,conn=None):
+    card=_card(row,conn)
     # snippet() returns column text even without a hit; only show genuine claim matches.
     excerpt=row['excerpt'] if 'excerpt' in row.keys() else None
     if excerpt and '«' in excerpt:card['matched_claim_excerpt']=excerpt[:400]
@@ -261,7 +306,7 @@ def get_document(title: str, detail: str = 'card', claim_limit: int = 8, claim_o
         did=_doc_id(conn.cursor(),title)
         if did is None:raise ValueError('Document not found')
         d=conn.execute('SELECT * FROM read_documents WHERE id=?',(did,)).fetchone()
-        result=_card(d);result.update(detail=detail,authors=authors_list(d['authors']),doi=d['doi'],claim_count=d['claim_count'],provenance=_work_provenance(conn,did))
+        result=_card(d,conn);result.update(detail=detail,authors=authors_list(d['authors']),doi=d['doi'],claim_count=d['claim_count'],provenance=_work_provenance(conn,did))
         annotations=conn.execute("SELECT DISTINCT a.* FROM annotations a,json_each(a.source_refs_json) ref JOIN document_members m ON m.doc_id=json_extract(ref.value,'$.source_document_id') WHERE m.canonical_id=? ORDER BY a.id DESC LIMIT 4",(did,)).fetchall()
         result['annotations']=[dict(id=a['id'],content_handle='annotation:'+str(a['id']),kind=a['kind'],text=a['text'][:600],text_truncated=len(a['text'])>600,author=a['author'],review_status=a['review_status'],corpus_revision=a['corpus_revision'],matches_current_revision=a['corpus_revision']==result['provenance']['corpus_revision']) for a in annotations[:3]]
         result['annotations_truncated']=len(annotations)>3
@@ -295,7 +340,7 @@ def get_concept(name: str, limit: int = 10, offset: int = 0, concept_offset: int
             docs=conn.execute('SELECT DISTINCT d.* FROM read_doc_concepts dc JOIN read_documents d ON d.id=dc.doc_id WHERE dc.concept_id=? ORDER BY d.id LIMIT ? OFFSET ?',(r['id'],limit+1,offset)).fetchall()
             relations=conn.execute('SELECT rel.source_id,rel.target_id,rel.relation,rel.basis,s.canonical_name source,t.canonical_name target FROM read_concept_relations rel JOIN read_concepts s ON s.id=rel.source_id JOIN read_concepts t ON t.id=rel.target_id WHERE rel.source_id=? OR rel.target_id=? ORDER BY rel.source_id,rel.target_id LIMIT 11',(r['id'],r['id'])).fetchall()
             related=[dict(rel,source_id=_concept_ref(rel['source_id']),target_id=_concept_ref(rel['target_id'])) for rel in relations[:10]]
-            matches.append(dict(id=_concept_ref(r['id']),name=r['canonical_name'],aliases=json.loads(r['aliases']),definition=(r['definition'] or '')[:1200] or None,definition_truncated=len(r['definition'] or '')>1200,definition_source_document_id=None if r['def_doc_id'] is None else 'doc:'+str(r['def_doc_id']),quality=r['quality'],document_count=r['document_count'],related_concepts=related,related_concepts_truncated=len(relations)>10,documents=[_card(d) for d in docs[:limit]],pagination=_page(docs,offset,limit)))
+            matches.append(dict(id=_concept_ref(r['id']),name=r['canonical_name'],aliases=json.loads(r['aliases']),definition=(r['definition'] or '')[:1200] or None,definition_truncated=len(r['definition'] or '')>1200,definition_source_document_id=None if r['def_doc_id'] is None else 'doc:'+str(r['def_doc_id']),quality=r['quality'],document_count=r['document_count'],related_concepts=related,related_concepts_truncated=len(relations)>10,documents=[_card(d,conn) for d in docs[:limit]],pagination=_page(docs,offset,limit)))
             if conn.execute("SELECT 1 FROM sqlite_master WHERE name='concept_origins'").fetchone():
                 origins=conn.execute('SELECT o.* FROM concept_origins o JOIN concept_members m ON m.concept_id=o.concept_id WHERE m.canonical_id=? ORDER BY o.concept_id LIMIT 6',(r['id'],)).fetchall()
                 matches[-1].update(origins=[dict(o) for o in origins[:5]],origins_truncated=len(origins)>5)
@@ -318,7 +363,7 @@ def find_by_concept(concept: str, edge_type: str = 'both', limit: int = 10, offs
         ids=[r['id'] for r in concepts];where='dc.concept_id IN ('+','.join('?' for _ in ids)+')';args=ids[:]
         if edge_type!='both':where+=' AND dc.edge_type=?';args.append(edge_type)
         rows=conn.execute('SELECT DISTINCT d.* FROM read_doc_concepts dc JOIN read_documents d ON d.id=dc.doc_id WHERE '+where+' ORDER BY d.id LIMIT ? OFFSET ?',(*args,limit+1,offset)).fetchall()
-        return dict(concept=concept,count=min(len(rows),limit),matched_concepts=[dict(id=_concept_ref(r['id']),name=r['canonical_name']) for r in concepts],concept_match_count=len(all_concepts),concept_pagination=concept_pagination,documents=[_card(r) for r in rows[:limit]],pagination=_page(rows,offset,limit),match_basis=basis)
+        return dict(concept=concept,count=min(len(rows),limit),matched_concepts=[dict(id=_concept_ref(r['id']),name=r['canonical_name']) for r in concepts],concept_match_count=len(all_concepts),concept_pagination=concept_pagination,documents=[_card(r,conn) for r in rows[:limit]],pagination=_page(rows,offset,limit),match_basis=basis)
 
 
 @tool()
@@ -337,7 +382,7 @@ def get_related(title: str, limit: int = 8, offset: int = 0, expected_revision: 
         result=[]
         ranked=sorted(scores.items(),key=lambda item:(-item[1]['score'],item[0]))
         for key,v in ranked[offset:offset+limit]:
-            card=_card(conn.execute('SELECT * FROM read_documents WHERE id=?',(key,)).fetchone());card.update(score=round(v['score'],6),shared_concepts=len(v['shared']),shared_preview=v['shared'][:8],shared_preview_complete=len(v['shared'])<=8);result.append(card)
+            card=_card(conn.execute('SELECT * FROM read_documents WHERE id=?',(key,)).fetchone(),conn);card.update(score=round(v['score'],6),shared_concepts=len(v['shared']),shared_preview=v['shared'][:8],shared_preview_complete=len(v['shared'])<=8);result.append(card)
         return dict(source='doc:'+str(did),related=result,total_related=len(ranked),pagination=_page(ranked[offset:],offset,limit),ranking_basis='distinct_shared_concept_IDF_not_semantic_equivalence')
 
 

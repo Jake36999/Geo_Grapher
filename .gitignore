@@ -1,49 +1,11 @@
-# Geo Grapher: track the system (code, tests, contracts, docs, config), never
-# the content it ingests or produces (papers, corpora, graph stores, outputs).
 
-# ── Content: source material and derived corpora ─────────────────────────────
-Research/
-*.pdf
-pipeline/work/
-*.text.json
-*.nodes.json
-*.sqlite
-*.sqlite-*
-*.db
-*.db-shm
-*.db-wal
-*.db-journal
-
-# ── Content: generated outputs, catalogs, evaluation results, logs ───────────
-output/
-*.log
-reports/Transcript/
-tmp/
-
-# ── Secrets and local machine config ─────────────────────────────────────────
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-
-# ── Python ───────────────────────────────────────────────────────────────────
-__pycache__/
-*.py[cod]
-.pytest_cache/
-*.egg-info/
-.venv/
-build/
-
-# ── Node / frontend ──────────────────────────────────────────────────────────
-node_modules/
-dist/
-test-results/
-playwright-report/
-blob-report/
-
-# ── Editors / OS ─────────────────────────────────────────────────────────────
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+# ── Internal development docs: kept locally, never published ─────────────────
+reports/**
+!reports/PHASE67_HELDOUT_V2_SEAL.json
+docs/superpowers/**
+data/eval/**
+IMPLEMENTATION_STATUS.md
+PHASE_5_IMPLEMENTATION_PLAN.md
+PHASE_5_TECHNICAL_EXPANSIONS_REVIEW.md
+docs/phase67/RULINGS_INDEX.md
+docs/phase67/RELEASE_0_2_DRAFT.md

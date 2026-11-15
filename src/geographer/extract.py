@@ -13,6 +13,7 @@ from pathlib import PurePosixPath
 
 from .cfg import CFG, UNBOUND, join, target_names
 from .model import Graph, Entity, Relationship, Evidence, canonical, digest, entity_id, EXTRACTOR_VERSION
+from .fingerprints import guard_clauses, local_names, signature_hash, ts_guard_hash
 from .normalize import normalized_ast
 from .scopes import ScopeIndex, Scope
 from .source import Repository
@@ -48,6 +49,7 @@ class Unit:
     global_mutations: set[str] = field(default_factory=set)
     attribute_mutations: set[str] = field(default_factory=set)
     early_functions: dict[str, int] = field(default_factory=dict)
+    constants: dict[tuple[int,str],str] = field(default_factory=dict)
 
 
 class PythonExtractor(StaticDispatch):
@@ -57,6 +59,7 @@ class PythonExtractor(StaticDispatch):
         if len({r.repo_id for r in repositories})!=len(repositories):raise ValueError('Duplicate repository namespaces')
         self.graph = Graph()
         self.failures = {r.repo_id: [] for r in repositories}
+        self.notebooks = {}  # rel_path -> NotebookSource (ipynb-v1), for markdown-cell fragments
         self.units: list[Unit] = []
         self.module_map: dict[str, list[Unit]] = defaultdict(list)
         self.namespace_map: dict[str, set[str]] = defaultdict(set)
@@ -153,7 +156,7 @@ class PythonExtractor(StaticDispatch):
                      'alternatives':[t for t,_ in targets]})
         self.mention_index=defaultdict(set)
         for eid,e in self.graph.entities.items():
-            if e.kind in {'function','method','class'}:
+            if e.kind in {'function','method','class','constant'}:
                 self.mention_index[e.qualified_name].add(eid);self.mention_index[e.qualified_name.rsplit('.',1)[-1]].add(eid)
         for unit in self.units:
             self.extract_relationships(unit)
@@ -166,6 +169,21 @@ class PythonExtractor(StaticDispatch):
         suffix = PurePosixPath(path).suffix
         parent = self.parent_directory(repo.repo_id, path)
         fid = entity_id(repo.repo_id, "file", path)
+        notebook = None
+        if suffix == ".ipynb":
+            # ipynb-v1: line numbers and source bytes refer to the virtual Python text.
+            from .notebooks import NotebookFormatError, to_virtual_source
+            try:
+                notebook = to_virtual_source(data, path)
+            except NotebookFormatError as exc:
+                self.failures[repo.repo_id].append(dict(rel_path=path, language="python", code="NotebookFormatError", message=str(exc)))
+                self.graph.add(Entity(fid, repo.repo_id, "file", path, parent, rel_path=path, start_line=1, end_line=1, language="python", **self.flags(path)))
+                return
+            for index in notebook.unparsed:
+                self.failures[repo.repo_id].append(dict(rel_path=path, language="python", code="SyntaxError",
+                                                        message=f"notebook cell {index} unparsed; commented out in the virtual source"))
+            data, suffix = notebook.python_text.encode("utf-8"), ".py"
+            self.notebooks[path] = notebook
         if suffix in {".md", ".txt"}:
             self.graph.add(Entity(fid, repo.repo_id, "document", path, parent, sort="text", language="markdown" if suffix == ".md" else "text", rel_path=path,
                                   start_line=1, end_line=max(1, len(data.splitlines())), **self.flags(path)))
@@ -174,6 +192,8 @@ class PythonExtractor(StaticDispatch):
                                   language="python" if suffix == ".py" else "javascript" if suffix in {".js", ".jsx"} else "typescript", **self.flags(path)))
         self.graph.analyses["source:" + fid] = dict(algorithm_version="source-bytes-v1", scope={"entity_id": fid},
                                                  result={"rel_path": path, "bytes_base64": base64.b64encode(data).decode("ascii")})
+        if notebook is not None:
+            self.graph.analyses["source:" + fid]["result"].update(coordinate_space="ipynb-python-v1", notebook_sha256=notebook.notebook_sha256)
         if suffix != ".py":
             if suffix not in {".md", ".txt"}:
                 self.fallback(repo, path, data, fid)
@@ -193,6 +213,7 @@ class PythonExtractor(StaticDispatch):
             setattr(self.graph.entities[fid], key, val)
         modules = repo.modules(path)
         unit = Unit(repo, path, text, tree, scopes, fid, modules)
+        unit.source_bytes = data  # the virtual Python bytes for a notebook (ipynb-v1)
         self.units.append(unit)
         unit.owners[scopes.root] = fid
         for name in modules:
@@ -236,6 +257,10 @@ class PythonExtractor(StaticDispatch):
                         ('async def ' if isinstance(node,ast.AsyncFunctionDef) else 'def ')+name+'('+ast.unparse(node.args)+')'+(' -> '+ast.unparse(node.returns) if getattr(node,'returns',None) else ''))
                 self.graph.analyses['declaration:'+eid]=dict(algorithm_version='declaration-v1',scope={'entity_id':eid},
                     result={'signature':header,'docstring':None if isinstance(node,ast.Lambda) else ast.get_docstring(node,clean=False)})
+                self.graph.analyses['role-inputs:'+eid]=dict(algorithm_version='role-inputs-v1',scope={'entity_id':eid},
+                    result={'decorators':[ast.unparse(d) for d in getattr(node,'decorator_list',[])],'bases':[ast.unparse(b) for b in getattr(node,'bases',[])]})
+                self.graph.fingerprints[eid]={'signature_hash':signature_hash(header,self.graph.analyses['role-inputs:'+eid]['result']['decorators']),
+                    'ts_guard_hash':ts_guard_hash(guard_clauses(node,local_names(scope),unit.text.split('\n')))}
                 if kind in {"function", "method"}:
                     try:
                         if eid in self.normal_forms:
@@ -249,6 +274,30 @@ class PythonExtractor(StaticDispatch):
             else:
                 # Comprehensions are lexical scopes, not invented source-level functions.
                 unit.owners[scope] = owner
+        # Source assignments are declarations too; never evaluate their values.
+        for scope in scopes.scopes:
+            if not isinstance(scope.node,(ast.Module,ast.ClassDef)):continue
+            owner=unit.owners[scope]
+            for node in sorted(scope.nodes,key=lambda n:(getattr(n,'lineno',0),getattr(n,'col_offset',0))):
+                if not isinstance(node,(ast.Assign,ast.AnnAssign)) or node.value is None:continue
+                targets=node.targets if isinstance(node,ast.Assign) else [node.target]
+                for target in targets:
+                    if not isinstance(target,ast.Name):continue
+                    name=target.id;value=node.value
+                    literal=isinstance(value,(ast.Constant,ast.Tuple,ast.Dict,ast.List,ast.Set)) or (isinstance(value,ast.Call) and isinstance(value.func,ast.Name) and value.func.id=='frozenset')
+                    if not name.isupper() and not literal:
+                        try:ast.literal_eval(value)
+                        except (ValueError,TypeError):continue
+                    key=(owner,name,'constant','');ordinal=duplicate[key];duplicate[key]+=1
+                    qualified=self.graph.entities[owner].qualified_name+'.'+name+(f'#{ordinal}' if ordinal else '')
+                    eid=entity_id(repo.repo_id,path,qualified,'constant','',ordinal)
+                    body=digest('constant-value-v1',ast.dump(value,include_attributes=False))
+                    self.graph.add(Entity(eid,repo.repo_id,'constant',qualified,unit.file_id,rel_path=path,start_line=node.lineno,end_line=node.end_lineno,ast_body_hash=body,**flags))
+                    unit.constants[(id(node),name)]=eid;self.definition_nodes[eid]=node;self.entity_units[eid]=unit
+                    self.graph.analyses['norm:'+eid]=dict(algorithm_version='constant-value-v1',scope={'entity_id':eid},result={'representation':canonical(['constant-value-v1',ast.dump(value,include_attributes=False)])})
+                    annotation=ast.unparse(node.annotation) if isinstance(node,ast.AnnAssign) else ''
+                    self.graph.fingerprints[eid]=dict(signature_hash=signature_hash(name+':'+annotation,[]),ts_guard_hash=ts_guard_hash([]))
+                    self.graph.analyses['declaration:'+eid]=dict(algorithm_version='declaration-v1',scope={'entity_id':eid},result={'signature':name+(':'+annotation if annotation else ''),'docstring':None})
 
     def absolute_module(self, unit, node):
         if not isinstance(node, ast.ImportFrom) or node.level == 0:
@@ -302,7 +351,7 @@ class PythonExtractor(StaticDispatch):
                         names = [node.name]
                     elif isinstance(node, ast.MatchMapping) and node.rest:
                         names = [node.rest]
-                    entries = [(name, "unknown", None, None, None) for name in names]
+                    entries = [(name,'constant' if (id(node),name) in unit.constants else 'unknown',unit.constants.get((id(node),name)),None,None) for name in names]
                 for name, kind, target, module, member in entries:
                     bid = digest(unit.repo.repo_id, unit.path,
                                  [scope.table.get_name(), scope.table.get_lineno(), unit.scopes.scopes.index(scope)],
@@ -380,6 +429,7 @@ class PythonExtractor(StaticDispatch):
             return []
         seen = seen | {bid}
         b = self.bindings[bid]
+        if b.kind=='constant':return [(b.target,'exact')]
         if b.kind == "definition":
             node = self.definition_nodes[b.target]
             return [(b.target, "candidate" if getattr(node, "decorator_list", []) else "exact")]
@@ -485,6 +535,9 @@ class PythonExtractor(StaticDispatch):
             if not targets:
                 targets=self.receiver_targets(unit,scope,expression,parts)
                 if targets:reasons=['POLYMORPHIC_MRO_CANDIDATE',*reasons]
+        # A source value is readable without being a callable declaration.
+        # In particular a constant class slot still masks a base method.
+        targets=[(target,status) for target,status in targets if self.graph.entities[target].kind!='constant']
         label = ast.unparse(node.func)
         source = unit.owners[scope]
         if not targets:
@@ -541,6 +594,10 @@ class PythonExtractor(StaticDispatch):
         # cannot retroactively change an already-loaded callee object.
         def visit(n):
             if unit.scopes.by_node.get(n) is not scope:return
+            if isinstance(n,(ast.Name,ast.Attribute)) and isinstance(n.ctx,ast.Load):
+                for ordinal,(target,status) in enumerate(sorted(set(self.resolve_access(unit,scope,n,state)))):
+                    if self.graph.entities[target].kind=='constant':
+                        self.emit(unit,unit.owners[scope],target,'reads',status,n,ordinal)
             if isinstance(n,ast.NamedExpr):
                 visit(n.value)
                 for name in target_names(n.target):state[name]=frozenset({UNBOUND})
@@ -613,17 +670,49 @@ class PythonExtractor(StaticDispatch):
                 self.graph.analyses['document:'+fid]=dict(algorithm_version=VERSION,scope={'entity_id':fid},result={
                     'document_id':fid,'coordinate_space':'decoded_docstring_value','source_fragment_id':fid,
                     'literal_start_line':doc.lineno,'literal_end_line':doc.end_lineno,**parsed})
+        notebook = self.notebooks.get(unit.path)
+        skip_lines = set()
+        if notebook is not None:
+            # Markdown cells become their own fragments; their commented-out lines and every
+            # cell header are virtual-source scaffolding, never comment fragments.
+            from .documents import parse_document, VERSION
+            file_id = entity_id(unit.repo.repo_id, "file", unit.path)
+            for cell in notebook.cells:
+                skip_lines.add(cell.start_line)
+                if cell.cell_type == "code":
+                    continue
+                skip_lines.update(range(cell.start_line, cell.end_line + 1))
+                text = notebook.cell_text(cell.index)
+                if cell.cell_type != "markdown" or cell.end_line <= cell.start_line or not text.strip():
+                    continue
+                fid = self.fragment(unit.repo, unit.path, file_id, text, cell.start_line + 1, cell.end_line,
+                                    self.mentions(text, file_id), "documents")
+                parsed = parse_document(text.encode("utf-8"), unit.path + f":cell{cell.index}.md"); parsed.pop("blocks")
+                parsed["sections"][0]["fragment_ids"] = [fid]
+                self.graph.analyses["document:" + fid] = dict(algorithm_version=VERSION, scope={"entity_id": fid}, result={
+                    "document_id": fid, "coordinate_space": "ipynb-markdown-cell", "source_fragment_id": fid,
+                    "literal_start_line": cell.start_line + 1, "literal_end_line": cell.end_line, **parsed})
+        from .comment_blocks import constant_comment_lines
+        constant_lines=constant_comment_lines(unit.text,((eid,self.graph.entities[eid].start_line,self.graph.entities[eid].end_line) for eid in unit.constants.values()))
         try:
             for token in tokenize.generate_tokens(io.StringIO(unit.text).readline):
-                if token.type != tokenize.COMMENT:
+                if token.type != tokenize.COMMENT or token.start[0] in skip_lines:
                     continue
                 # Attach to the narrowest containing entity; references form a hyperedge.
                 candidates = [e for e in self.graph.entities.values() if e.repo_id == unit.repo.repo_id and e.rel_path == unit.path and
                               e.kind in {"file", "function", "method", "class"} and e.start_line <= token.start[0] <= e.end_line]
                 owner = min(candidates, key=lambda e: (e.end_line - e.start_line, e.entity_id)).entity_id if candidates else unit.file_id
-                self.fragment(unit.repo, unit.path, owner, token.string, token.start[0], token.end[0], self.mentions(token.string, owner), "rationale_for")
+                adjacent=constant_lines.get(token.start[0],set())
+                self.fragment(unit.repo, unit.path, owner, token.string, token.start[0], token.end[0], self.mentions(token.string, owner)|adjacent, "rationale_for")
         except tokenize.TokenError:
             pass  # Syntax parsing already records invalid inputs; token streams can end in comments.
+        for scope in unit.scopes.scopes:
+            body=getattr(scope.node,'body',None)
+            if not isinstance(scope.node,(ast.Module,ast.ClassDef)) or not isinstance(body,list):continue
+            for before,doc in zip(body,body[1:]):
+                members={eid for (nid,_),eid in unit.constants.items() if nid==id(before)}
+                if members and isinstance(doc,ast.Expr) and isinstance(doc.value,ast.Constant) and isinstance(doc.value.value,str) and doc.lineno==before.end_lineno+1:
+                    self.fragment(unit.repo,unit.path,unit.file_id,doc.value.value,doc.lineno,doc.end_lineno,members,'documents')
 
     def extract_text_documents(self):
         from .documents import parse_document,VERSION

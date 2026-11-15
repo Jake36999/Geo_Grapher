@@ -193,7 +193,7 @@ def ingest_trace(store,base_snapshot_id,raw,manifest,*,environment=None,start=No
         c.execute("UPDATE snapshots SET revision=?,digest=? WHERE snapshot_id=? AND repo_id='@workspace'",('manifest:'+mh,mh,sid))
         # Source/static caches and prior runtime collections can be inherited;
         # view IDs, query handles and review artifacts cannot cross snapshots.
-        static_versions=('source-bytes-v1','py-ast-v1','declaration-v1','documentary-tree-v1','documentary-v2','c3-static-v1','directed-wl3-v1','boundary-cayley-v1','helper_tree_balls_v1','runtime-collection-v1')
+        static_versions=('source-bytes-v1','py-ast-v1','declaration-v1','role-inputs-v1','documentary-tree-v1','documentary-v2','c3-static-v1','directed-wl3-v1','boundary-cayley-v1','helper_tree_balls_v1','runtime-collection-v1')
         marks=','.join('?' for _ in static_versions)
         c.execute(f'INSERT INTO analysis_results SELECT ?,analysis_id,algorithm_version,scope_json,result_json FROM analysis_results WHERE snapshot_id=? AND algorithm_version IN ({marks})',(sid,base_snapshot_id,*static_versions))
         store.insert_many('relationships',({'snapshot_id':sid,**asdict(r)} for r in rels))

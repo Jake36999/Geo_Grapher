@@ -148,5 +148,26 @@ export function editedScene(
       lane_spacing: c.lane_spacing * scale,
     };
   });
-  return { ...data, spheres, curves };
+  // Documentary threads follow their two endpoint spheres: each control point
+  // blends the endpoint transforms by its position along the thread.
+  const documentary_links = data.documentary_links?.map((link) => {
+    const a = transform(link.fragment_rep),
+      b = transform(link.entity_rep),
+      last = Math.max(1, link.control_points.length - 1);
+    return {
+      ...link,
+      control_points: link.control_points.map((p, i) => {
+        const pa = point(p, a),
+          pb = point(p, b),
+          t = i / last;
+        return pa.map((v, j) => v * (1 - t) + pb[j] * t) as Vec3;
+      }),
+    };
+  });
+  return {
+    ...data,
+    spheres,
+    curves,
+    ...(documentary_links ? { documentary_links } : {}),
+  };
 }
