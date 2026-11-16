@@ -100,6 +100,7 @@ def main():
     graphserver.add_argument('--ui-origin',help='Compatibility listener: redirect its viewer to this loopback origin')
     graphserver.add_argument('--ready-file',type=Path,help='After binding, write {url, port, pid} here (never the token). '
         'Use with --port 0 so the owning Librarian Core learns the chosen port')
+    graphserver.add_argument('--parent-pid',type=int,help='Exit when this process exits (the owning Core, so a crashed Core never leaves a service running)')
     graphserver.add_argument('--librarian-url',help="The owning library's Librarian address (http loopback), for the UI's way back")
     graphserver.add_argument('--library-name',help="The owning library's name, shown in the UI")
     graphserver.add_argument('--create-catalog',action='store_true',help='Create an empty catalog if missing (a new library before its first accepted folder); never implicit')
@@ -209,6 +210,10 @@ def main():
                                 tmp=args.ready_file.with_name(args.ready_file.name+'.tmp')
                                 tmp.write_text(json.dumps(ready),encoding='utf-8');os.replace(tmp,args.ready_file)
                             server.startup=startup
+                        if args.parent_pid:
+                            from .parent_watch import watch_parent
+                            def parent_gone():server.should_exit=True
+                            watch_parent(args.parent_pid,parent_gone)
                         server.run(sockets=[sock])
                 finally:router.close()
                 return

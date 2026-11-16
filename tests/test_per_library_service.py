@@ -9,6 +9,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -133,3 +134,60 @@ def test_create_catalog_lets_a_new_library_start_with_no_graphs_yet(tmp_path):
     finally:
         proc.terminate()
         proc.wait(timeout=20)
+
+
+def test_watch_parent_fires_when_the_parent_exits_and_not_before():
+    from geographer.parent_watch import watch_parent
+    parent = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    fired = threading.Event()
+    cancel = watch_parent(parent.pid, fired.set)
+    try:
+        assert not fired.wait(1.0)                 # still alive: no exit
+        parent.terminate()
+        parent.wait(timeout=20)
+        assert fired.wait(10.0)
+    finally:
+        cancel.set()
+        if parent.poll() is None:
+            parent.kill()
+
+
+def test_watch_parent_can_be_cancelled():
+    from geographer.parent_watch import watch_parent
+    parent = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    fired = threading.Event()
+    cancel = watch_parent(parent.pid, fired.set)
+    cancel.set()
+    parent.terminate()
+    parent.wait(timeout=20)
+    assert not fired.wait(2.0)
+
+
+def test_serve_graphs_exits_when_its_parent_dies(tmp_path):
+    from geographer.graph_catalog import GraphCatalog
+    GraphCatalog(tmp_path / "catalog.sqlite").close()
+    ready = tmp_path / "ready.json"
+    env = {**os.environ, "GEOGRAPHER_ACCESS_TOKEN": TOKEN,
+           "PYTHONPATH": os.pathsep.join([str(Path(__file__).resolve().parents[1] / "src"),
+                                          os.environ.get("PYTHONPATH", "")])}
+    parent = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"])
+    proc = subprocess.Popen([sys.executable, "-m", "geographer", "serve-graphs", "--catalog",
+                             str(tmp_path / "catalog.sqlite"), "--transport", "http", "--port", "0",
+                             "--ready-file", str(ready), "--parent-pid", str(parent.pid)], env=env,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        for _ in range(300):
+            if ready.is_file():
+                break
+            time.sleep(0.1)
+        assert ready.is_file()
+        parent.terminate()
+        parent.wait(timeout=20)
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline and proc.poll() is None:
+            time.sleep(0.2)
+        assert proc.poll() is not None, "the service outlived its parent"
+    finally:
+        for p in (proc, parent):
+            if p.poll() is None:
+                p.kill()
