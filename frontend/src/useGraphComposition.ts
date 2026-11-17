@@ -4,6 +4,7 @@ import type {
   ViewportFrameData,
 } from "../../contracts/geographer.wire";
 import { json, type GroupMode } from "./api";
+import { memberFolder } from "./names";
 import {
   composeScene,
   renderId,
@@ -203,10 +204,15 @@ export function useGraphComposition(
     });
     for (const node of result.data.nodes) {
       const origin = result.origins.get(node.id)!;
-      const label = workspace.graphs.find(
-        (g) => g.graph_id === origin.graph_id,
-      )?.label;
-      if (node.kind !== "repository" || node.qualified_name !== label)
+      const graph = workspace.graphs.find(
+          (g) => g.graph_id === origin.graph_id,
+        ),
+        label = graph?.label;
+      // A graph made of several reviewed folders names each member by its folder.
+      const root = node.kind === "repository" ? graph?.repo_roots?.[node.repo_id] : undefined;
+      if (root && Object.keys(graph?.repo_roots ?? {}).length > 1)
+        node.qualified_name = `${label} · ${memberFolder(root)}`;
+      else if (node.kind !== "repository" || node.qualified_name !== label)
         node.qualified_name = `${label} · ${node.qualified_name}`;
     }
     const declaredLinks = (workspace.showBridges ? bridges : [])

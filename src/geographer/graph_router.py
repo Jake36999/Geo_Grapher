@@ -289,6 +289,10 @@ class GraphRouter:
             profile=json.loads(graph['profile_json'])
             rows.append(dict(label=graph['label'],graph_id=graph['graph_id'],root_path=graph['root_path'],
                 graph_kind=profile.get('graph_kind','project'),repo_ids=profile.get('owner_repo_ids',[graph['graph_id']]),
+                # Each reviewed member folder by repository id, so a graph of several folders
+                # can name each one (2026-11-17: two members showed one identical label).
+                repo_roots={s['repo_id']:s['root'] for s in profile.get('source_roots_reviewed',[])
+                            if isinstance(s,dict) and s.get('repo_id') and s.get('root')},
                 source_graph_ids=[s['graph_id'] for s in profile.get('source_graphs',[])],
                 owned_store=self.catalog.owns_store(graph),bridge_count=self.catalog.bridge_count(graph['graph_id']),copied_from=profile.get('copied_from'),
                 snapshot_id=graph['snapshot_id'],entity_count=count,papers_available=bool(graph['paper_database']),availability=availability,error=error,

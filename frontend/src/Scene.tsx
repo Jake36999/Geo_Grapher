@@ -25,6 +25,7 @@ import {
   type RuntimeStatus,
 } from "./edgeStyle";
 import { samples, type Lens } from "./curves";
+import { CROSSING_FADE, edgeFade, nodeColour } from "./nodeStyle";
 import {
   editedScene,
   editSelection,
@@ -51,13 +52,16 @@ attribute float aT;
 attribute float aDist;
 attribute float aStatus;
 attribute float aEdge;
+attribute float aFade;
 varying vec3 vColor;
 varying float vT;
 varying float vDist;
 varying float vStatus;
 varying float vEdge;
+varying float vFade;
 void main() {
   vColor = color;
+  vFade = aFade;
   vT = aT;
   vDist = aDist;
   vStatus = aStatus;
@@ -77,6 +81,7 @@ varying float vT;
 varying float vDist;
 varying float vStatus;
 varying float vEdge;
+varying float vFade;
 void main() {
   float s = floor(vStatus + 0.5);
   if (s > 0.5 && s < 1.5 && mod(vDist, uCandidate.x + uCandidate.y) > uCandidate.x) discard;
@@ -85,6 +90,7 @@ void main() {
   if (s > 2.5) c *= 1.0 + ${(PULSE_GAIN - 1).toFixed(1)} * max(0.0, sin(6.2832 * (vDist * 0.5 - uTime / ${PULSE_PERIOD_SECONDS.toFixed(1)})));
   float a = ${ALPHA_START.toFixed(2)} - ${ALPHA_SLOPE.toFixed(2)} * vT;
   if (uDimOthers > 0.5 && abs(vEdge - uHover) > 0.5) a *= 0.35;
+  a *= vFade;
   gl_FragColor = vec4(min(c, vec3(1.0)), a);
   #include <colorspace_fragment>
 }`;
@@ -108,6 +114,8 @@ function edgeMaterial() {
 }
 interface Props {
   frame?: SceneData;
+  /** Changes when the names labels are built from change (the library name). */
+  labelKey?: string;
   declaredLinks?: {
     id: string;
     source: Vec3;
@@ -248,7 +256,8 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         gl_Position=projectionMatrix*mv;}`,
       fragmentShader: `uniform float strength;varying vec3 shellNormal;varying vec3 shellView;varying vec3 shellColor;
         void main(){float rim=pow(1.0-abs(dot(normalize(shellNormal),normalize(shellView))),3.0);
-        gl_FragColor=vec4(shellColor,strength*(0.025+0.7*rim));
+        float sat=max(max(shellColor.r,shellColor.g),shellColor.b)-min(min(shellColor.r,shellColor.g),shellColor.b);
+        gl_FragColor=vec4(shellColor,strength*(0.025+0.9*sat+0.7*rim));
         #include <colorspace_fragment>
         }`,
     });
@@ -290,12 +299,13 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       for (const [index, link] of (
         propsRef.current.declaredLinks ?? []
       ).entries()) {
-        const a = new THREE.Vector3(
-            ...(spheres.get(link.sourceNodeId ?? "")?.center ?? link.source),
-          ),
-          b = new THREE.Vector3(
-            ...(spheres.get(link.targetNodeId ?? "")?.center ?? link.target),
-          );
+        // A bridge is drawn only while both of its graphs are displayed, and faded:
+        // it leaves the space of both.
+        const from = spheres.get(link.sourceNodeId ?? ""),
+          to = spheres.get(link.targetNodeId ?? "");
+        if (!from || !to) continue;
+        const a = new THREE.Vector3(...from.center),
+          b = new THREE.Vector3(...to.center);
         const mid = a.clone().lerp(b, 0.5);
         mid.y += 1.5 + index * 0.08;
         const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
@@ -329,6 +339,10 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         geometry.setAttribute(
           "aEdge",
           new THREE.BufferAttribute(new Float32Array(n).fill(-2), 1),
+        );
+        geometry.setAttribute(
+          "aFade",
+          new THREE.BufferAttribute(new Float32Array(n).fill(CROSSING_FADE), 1),
         );
         const line = new THREE.Line(geometry, declaredMaterial);
         line.userData.declared_bridge_id = link.id;
@@ -530,10 +544,15 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         points: Vec3[];
         family: RelationshipFamily;
         status: RuntimeStatus;
+        fade: number;
       };
       const drawn: Drawn[] = [];
       let segmentCount = 0;
+      const fadeFor = (source: string, target: string) =>
+        edgeFade(nodes.get(source), nodes.get(target), spheres.has(source), spheres.has(target));
       for (const curve of data.curves) {
+        const fade = fadeFor(curve.canonical_source, curve.canonical_target);
+        if (fade === null) continue;
         const points = samples(
           curve,
           propsRef.current.beta,
@@ -544,6 +563,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         drawn.push({
           id,
           points,
+          fade,
           ...resolveCurveStyle(
             curve as StyledCurveFields,
             Boolean(propsRef.current.violations?.includes(id)),
@@ -553,10 +573,13 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       }
       documentaryLookup = new Map();
       for (const link of data.documentary_links ?? []) {
+        const fade = fadeFor(link.fragment_rep, link.entity_rep);
+        if (fade === null) continue;
         const curve = documentaryCurve(link) as unknown as ViewportFrameData["curves"][number];
         documentaryLookup.set(link.link_id, link);
         drawn.push({
           id: link.link_id,
+          fade,
           points: samples(
             curve,
             propsRef.current.beta,
@@ -587,7 +610,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           "color",
           new THREE.BufferAttribute(new Float32Array(lineCapacity), 3),
         );
-        for (const name of ["aT", "aDist", "aStatus", "aEdge"])
+        for (const name of ["aT", "aDist", "aStatus", "aEdge", "aFade"])
           lines.geometry.setAttribute(
             name,
             new THREE.BufferAttribute(new Float32Array(lineCapacity / 3), 1),
@@ -600,9 +623,10 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         aT = attr("aT"),
         aDist = attr("aDist"),
         aStatus = attr("aStatus"),
-        aEdge = attr("aEdge");
+        aEdge = attr("aEdge"),
+        aFade = attr("aFade");
       let vertex = 0;
-      if (positions && colors && aT && aDist && aStatus && aEdge) {
+      if (positions && colors && aT && aDist && aStatus && aEdge && aFade) {
         const tint = new THREE.Color();
         for (const item of drawn) {
           const { points } = item,
@@ -631,6 +655,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
             aDist.setX(vertex, run[i]);
             aStatus.setX(vertex, code);
             aEdge.setX(vertex, edgeIndex.get(item.id) ?? -1);
+            aFade.setX(vertex, item.fade);
             vertex++;
           };
           for (let i = 0; i < points.length - 1; i++) {
@@ -639,7 +664,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
             segmentIds.push(item.id);
           }
         }
-        for (const a of [positions, colors, aT, aDist, aStatus, aEdge])
+        for (const a of [positions, colors, aT, aDist, aStatus, aEdge, aFade])
           a.needsUpdate = true;
         lines.geometry.setDrawRange(0, segmentIds.length * 2);
         lines.geometry.computeBoundingSphere();
@@ -745,10 +770,6 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
               : "container";
         byBucket[type].push(s);
       }
-      const palette =
-        p.theme === "dark"
-          ? [0xa7b4bc, 0xaaa69a, 0x9faea3, 0xaca6af]
-          : [0x627783, 0x817c6f, 0x708477, 0x847a88];
       for (const [kind, values] of Object.entries(byBucket)) {
         let bucket = buckets[kind];
         if (!bucket || values.length > bucket.capacity) {
@@ -776,14 +797,11 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           matrix.setPosition(...s.center);
           bucket.mesh.setMatrixAt(i, matrix);
           const n = nodes.get(s.node_id);
-          const hash = Array.from(n?.parent_id ?? s.node_id).reduce(
-            (a, c) => a + c.charCodeAt(0),
-            0,
-          );
+          // Colour by content (file type, symbol kind, test/generated); containers stay quiet.
           color.setHex(
             selection.includes(s.node_id)
               ? 0xa7bccd
-              : palette[hash % palette.length],
+              : nodeColour(n, p.theme, n?.parent_id ?? s.node_id),
           );
           bucket.mesh.setColorAt(i, color);
         });
@@ -827,7 +845,9 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           labels.set(id, label);
         }
         const n = nodes.get(id);
-        label.textContent = n ? shortName(n) : id;
+        // Never an internal id: a node not (yet) described has no label rather than a hash.
+        label.textContent = n ? shortName(n) : "";
+        label.hidden = !label.textContent;
         label.dataset.selected = String(id === p.selectedId);
       }
       updateEdges();
@@ -1436,6 +1456,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       props.beta,
       props.lensEnabled,
       props.theme,
+      props.labelKey,
     ],
   );
   return (

@@ -1618,3 +1618,54 @@ dialog input {
   color: inherit;
   border-color: currentColor;
 }
+/* Close (2026-11-17): this library's Geo-Grapher, from its own window. */
+.library-close {
+  font-size: 12px;
+  margin-left: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--secondary);
+  cursor: pointer;
+}
+.library-close:hover,
+.library-close:focus-visible {
+  color: inherit;
+  border-color: currentColor;
+}
+.library-close-error {
+  font-size: 12px;
+  margin-left: 6px;
+  color: var(--danger, #d97a6c);
+}
+.closed-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: var(--bg, #17191c);
+}
+.closed-overlay > div {
+  max-width: 460px;
+  padding: 24px;
+  text-align: center;
+}
+.closed-overlay a {
+  color: var(--accent, #a7bccd);
+}
+.node-legend {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+}
+.node-legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: -1px;
+}

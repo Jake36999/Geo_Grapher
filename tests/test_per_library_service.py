@@ -67,7 +67,7 @@ def test_context_names_the_library_and_a_loopback_librarian_url(tmp_path):
                               library_name="Parallax")
     try:
         data = client.get("/api/workspace/context", headers={"X-Geo-Token": TOKEN}).json()
-        assert data == {"library_name": "Parallax", "librarian_url": "http://127.0.0.1:52206/"}
+        assert data == {"library_name": "Parallax", "librarian_url": "http://127.0.0.1:52206/", "can_close": False}
     finally:
         catalog.close()
     with pytest.raises(ValueError, match="loopback"):
@@ -105,6 +105,58 @@ def test_serve_graphs_binds_port_zero_and_reports_it_in_a_ready_file(tmp_path):
     finally:
         proc.terminate()
         proc.wait(timeout=20)
+
+
+def test_close_is_offered_only_to_a_library_service_and_runs_after_the_reply(tmp_path):
+    """2026-11-17: a clean way to close Geo-Grapher from its own window."""
+    closed = []
+    client, catalog = _client(tmp_path, access_token=TOKEN, library_name="Parallax",
+                              on_close=lambda: closed.append(True))
+    try:
+        head = {"X-Geo-Token": TOKEN}
+        assert client.post("/api/workspace/close", json={}).status_code == 401          # token required
+        assert closed == []
+        assert client.get("/api/workspace/context", headers=head).json()["can_close"] is True
+        reply = client.post("/api/workspace/close", json={}, headers=head)
+        assert reply.status_code == 200 and reply.json()["closing"] is True
+        assert closed == [True]
+    finally:
+        catalog.close()
+    plain, catalog = _client(tmp_path / "standalone", access_token=TOKEN)
+    try:
+        assert plain.post("/api/workspace/close", json={}, headers={"X-Geo-Token": TOKEN}).status_code == 404
+    finally:
+        catalog.close()
+
+
+def test_a_library_service_closed_from_its_window_exits_with_code_zero(tmp_path):
+    from geographer.graph_catalog import GraphCatalog
+    GraphCatalog(tmp_path / "catalog.sqlite").close()
+    ready = tmp_path / "ready.json"
+    env = {**os.environ, "GEOGRAPHER_ACCESS_TOKEN": TOKEN,
+           "PYTHONPATH": os.pathsep.join([str(Path(__file__).resolve().parents[1] / "src"),
+                                          os.environ.get("PYTHONPATH", "")])}
+    proc = subprocess.Popen([sys.executable, "-m", "geographer", "serve-graphs", "--catalog",
+                             str(tmp_path / "catalog.sqlite"), "--transport", "http", "--port", "0",
+                             "--ready-file", str(ready), "--library-name", "Fixture",
+                             "--parent-pid", str(os.getpid())], env=env,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        for _ in range(300):
+            if ready.is_file():
+                break
+            time.sleep(0.1)
+        info = json.loads(ready.read_text(encoding="utf-8"))
+        import urllib.request
+        request = urllib.request.Request(info["url"] + "api/workspace/close", data=b"{}", method="POST",
+                                         headers={"X-Geo-Token": TOKEN, "Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=10) as reply:
+            assert json.loads(reply.read())["closing"] is True
+        assert proc.wait(timeout=30) == 0
+    finally:
+        if proc.poll() is None:
+            proc.terminate()
+            proc.wait(timeout=20)
 
 
 def test_create_catalog_lets_a_new_library_start_with_no_graphs_yet(tmp_path):

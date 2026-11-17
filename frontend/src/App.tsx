@@ -1,4 +1,5 @@
 import { LibraryLink } from "./LibraryLink";
+import { LEGEND, categoryColour } from "./nodeStyle";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QiControl, { type QiMode } from "./QiControl";
 import { frameQI, type QiOptions } from "./api";
@@ -99,6 +100,8 @@ export default function App({
     [theme, setTheme] = useState<"dark" | "light">(
       workspace?.settings?.theme ?? "dark",
     ),
+    // Labels drop the owning library's name once it is known (see compactLabel).
+    [libraryName, setLibraryName] = useState(""),
     [beta, setBeta] = useState(workspace?.settings?.beta ?? 0.8),
     [lens, setLens] = useState(workspace?.settings?.lens ?? false);
   const [contextRadius, setContextRadius] = useState<0 | 1 | 2>(
@@ -1025,7 +1028,7 @@ export default function App({
           Geo Grapher
         </a>
         <span className="local-badge">LOCAL WORKSPACE</span>
-        <LibraryLink />
+        <LibraryLink onContext={(c) => setLibraryName(c.library_name ?? "")} />
         {workspace?.tools}
         <label className="sr-only" htmlFor="snapshot">
           Repository snapshot
@@ -1783,6 +1786,7 @@ export default function App({
               <>
                 <Scene
                   ref={scene}
+                  labelKey={libraryName}
                   frame={composition?.data ?? frame?.data}
                   declaredLinks={composition?.declaredLinks}
                   focusId={
@@ -1924,6 +1928,19 @@ export default function App({
                 )}
                 <div className="legend">
                   <span>○ enclosure / summary</span>
+                  <span className="node-legend" aria-label="Node colour by content">
+                    ● Node colour = content:
+                    {LEGEND.map(([category, label]) => (
+                      <span key={category}>
+                        <i
+                          style={{
+                            background: `#${categoryColour(category, theme).toString(16).padStart(6, "0")}`,
+                          }}
+                        />
+                        {label}
+                      </span>
+                    ))}
+                  </span>
                   <span>
                     → Colour = relationship: orange call/data · violet
                     hierarchy · cyan design rationale · sky describes · teal

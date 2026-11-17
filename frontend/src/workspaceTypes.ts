@@ -11,6 +11,8 @@ export interface WorkspaceGraph {
   availability?: string;
   error?: string;
   repo_ids?: string[];
+  /** Reviewed member folder of each repository id (absolute paths). */
+  repo_roots?: Record<string, string>;
   owned_store?: boolean;
   bridge_count?: number;
   graph_kind?: string;

@@ -7,6 +7,7 @@ import type {
   Filter,
 } from "../../contracts/geographer.wire";
 import visibilityPresets from "../../contracts/visibility-presets.json";
+import { RAW_ID, ownName, repositoryLabel } from "./names";
 import type {
   OperationMap as ActorOperations,
   NodeRecord as ActorNode,
@@ -346,23 +347,32 @@ export function mergeFrame(
   };
 }
 
+export { setLibraryName, compactLabel } from "./names";
+
 export function shortName(node: Node): string {
   if (typeof node.display_label === "string" && node.display_label !== "")
     return node.display_label;
-  if (node.kind === "repository" && graphDisplayLabel() && graphBasePath().includes(node.repo_id)) return graphDisplayLabel()!;
+  if (node.kind === "repository")
+    return repositoryLabel(node.qualified_name, node.repo_id, {
+      label: graphDisplayLabel(),
+      basePath: graphBasePath(),
+    });
+  // The composed view writes "graph label · own name"; the graph is already shown by its
+  // repository bubble, so a node's own label is its own name.
+  const own = ownName(node.qualified_name ?? "");
+  if (RAW_ID.test(own)) return node.kind ? `Unnamed ${node.kind}` : "Unnamed";
   if (node.kind === "residual")
     return `Other contents · ${node.member_count.toLocaleString()}`;
   if (node.kind === "scope_atom") return "Body";
   if (node.kind === "fragment")
     return `Documentation · line ${node.source?.start_line ?? ""}`;
   if (node.kind === "file")
-    return node.source?.rel_path.split("/").at(-1) ?? node.qualified_name;
+    return node.source?.rel_path.split("/").at(-1) ?? own;
   if (["function", "method", "class"].includes(node.kind))
-    return node.qualified_name.split(".").at(-1) ?? node.qualified_name;
-  return (
-    node.qualified_name.split("/").at(-1)?.split(".").at(-1) ??
-    node.qualified_name
-  );
+    return own.split(".").at(-1) ?? own;
+  if (["directory", "package"].includes(node.kind))
+    return own.split("/").at(-1) || own;
+  return own.split("/").at(-1)?.split(".").at(-1) ?? own;
 }
 
 export function shortRevision(revision: string): string {

@@ -204,7 +204,7 @@ def _loopback_url(url):
 
 
 def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui=False,primary_graph_id=None,browse_roots=(),
-                      access_token=None,librarian_url=None,library_name=None):
+                      access_token=None,librarian_url=None,library_name=None,on_close=None):
     """`access_token`: a per-library token set by the owning Librarian Core. Programs send it as
     X-Geo-Token; a browser opens `/?geo_token=...` once and receives an HttpOnly cookie instead,
     so the token leaves the address bar. Without a token the server is unchanged."""
@@ -262,7 +262,15 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         if not resolved.is_dir() or not (resolved==root or resolved.is_relative_to(root)):return None
         return resolved
     async def fs_roots(request):return JSONResponse(dict(roots=[str(r) for r in allowed_roots]))
-    async def workspace_context(request):return JSONResponse(dict(library_name=library_name,librarian_url=librarian_url))
+    async def workspace_context(request):return JSONResponse(dict(library_name=library_name,librarian_url=librarian_url,
+        can_close=on_close is not None))
+    async def workspace_close(request):
+        """Close this library's Geo-Grapher from its own window (owner, 2026-11-17). The reply is
+        sent first; the server then stops accepting work and exits with code 0, which the
+        owning Librarian Core reports as closed (not failed) and can start again."""
+        if on_close is None:return JSONResponse({'error':'This server is not a library service; stop it where it was started'},status_code=404)
+        from starlette.background import BackgroundTask
+        return JSONResponse(dict(closing=True,library_name=library_name,librarian_url=librarian_url),background=BackgroundTask(on_close))
     async def fs_list(request):
         path=browsable(request.query_params.get('path',''))
         if path is None:return JSONResponse({'error':'PATH_NOT_BROWSABLE'},status_code=403)
@@ -431,6 +439,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         Route('/api/graphs/bridge-proposals',proposals_get),Route('/api/graphs/bridge-proposals',proposals_post,methods=['POST']),
         Route('/api/graphs/bridge-proposals/{proposal_id}',proposal_decide,methods=['POST']),
         Route('/api/fs/roots',fs_roots),Route('/api/workspace/context',workspace_context),Route('/api/fs/list',fs_list),
+        Route('/api/workspace/close',workspace_close,methods=['POST']),
         Route('/api/workspace/ingest-preview',ingest_preview,methods=['POST']),Route('/api/workspace/ingest-execute',ingest_execute,methods=['POST']),
         Route('/api/workspace/jobs/{job_id}',job_status),Route('/api/graphs/{graph_id}/prune',prune,methods=['POST']),
         Route('/api/graphs/{graph_id}/copy',copy,methods=['POST']),Route('/api/graphs/{graph_id}',delete,methods=['DELETE']),

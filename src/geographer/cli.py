@@ -198,10 +198,15 @@ def main():
                         # Bind first so --port 0 yields a real port before anything is announced.
                         sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM);sock.bind(('127.0.0.1',args.port))
                         bound=sock.getsockname()[1]
+                        running={}
+                        def close():                 # the Close button of a library's service
+                            if 'server' in running:running['server'].should_exit=True
                         app=create_graph_http(router,port=bound,ui_origin=args.ui_origin,browse_roots=args.browse_root,
                             access_token=os.environ.get('GEOGRAPHER_ACCESS_TOKEN') or None,
-                            librarian_url=args.librarian_url,library_name=args.library_name)
+                            librarian_url=args.librarian_url,library_name=args.library_name,
+                            on_close=close if args.parent_pid else None)
                         server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=bound,log_level='warning'))
+                        running['server']=server
                         if args.ready_file:
                             started=server.startup
                             async def startup(sockets=None):
