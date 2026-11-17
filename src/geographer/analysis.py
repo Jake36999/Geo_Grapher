@@ -63,7 +63,10 @@ class TreeIndex:
         self.root = roots[0]
         for cs in self.children.values():
             cs.sort()
-        self.up = {eid: json.loads(e.ancestors_binary_lifting_json) for eid, e in graph.entities.items()}
+        # The compact view form of a graph (store.view_graph) does not hold the binary-lifting table; its
+        # ancestors come from the parent pointers, which give the same lowest common ancestor.
+        self.up = None if getattr(graph, 'view', False) else \
+            {eid: json.loads(e.ancestors_binary_lifting_json) for eid, e in graph.entities.items()}
         self.leaf_order = []
         self.intervals = {}
         stack = [(self.root, False)]
@@ -99,6 +102,14 @@ class TreeIndex:
 
     def lca(self, x, y):
         e = self.graph.entities
+        if self.up is None:                       # parent walk: at most the tree's depth in steps
+            while e[x].depth > e[y].depth:
+                x = self.parents[x]
+            while e[y].depth > e[x].depth:
+                y = self.parents[y]
+            while x != y:
+                x, y = self.parents[x], self.parents[y]
+            return x
         if e[x].depth < e[y].depth:
             x, y = y, x
         delta = e[x].depth-e[y].depth
@@ -208,9 +219,13 @@ def project(graph, part, view_id, filters=None):
         if r.direction=="symmetric":
             source,target=sorted((source,target))
         buckets[(source,target,r.family,r.subtype,r.direction,r.resolution_status,r.weight_unit)].append(r)
-    evidence=defaultdict(int)
-    for e in graph.evidence.values():
-        evidence[e.relationship_id]+=1
+    counted = getattr(graph, 'evidence_counts', None)       # the compact view form counts in the store
+    if counted is not None:
+        evidence=counted()
+    else:
+        evidence=defaultdict(int)
+        for e in graph.evidence.values():
+            evidence[e.relationship_id]+=1
     rows=[]
     for key,witnesses in sorted(buckets.items()):
         source,target,family,subtype,direction,status,unit=key

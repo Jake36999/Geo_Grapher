@@ -358,6 +358,88 @@ class SnapshotStore:
             g.analyses[r["analysis_id"]] = {"algorithm_version": r["algorithm_version"], "scope": json.loads(r["scope_json"]), "result": json.loads(r["result_json"])}
         return g
 
+    def view_graph(self, sid: str, published_only=True) -> Graph:
+        """The graph in the compact form that answers views (frames, hierarchy, labels).
+
+        Same entities and relationships as `graph()`, held more cheaply: repeated strings are shared, and
+        `ancestors_binary_lifting_json` (up to 1.2 KB an entity) is not kept, so `TreeIndex` walks parent
+        pointers. Evidence, analyses and fingerprints are lazy tables that read the store when a request needs
+        them (see lazygraph). `view` marks the graph for `TreeIndex`."""
+        from sys import intern
+        from .lazygraph import LazyTable, MISSING
+        if published_only:
+            self.require_complete(sid)
+        con = self.connection
+        g = Graph()
+        g.view = True
+        columns = ("entity_id,repo_id,kind,qualified_name,parent_id,sort,language,rel_path,start_line,end_line,depth,"
+                   "is_test,is_generated,is_vendor,is_external,ast_body_hash,wl_3hop_hash,qi_cluster_id")
+        for r in con.execute(f"SELECT {columns} FROM entities WHERE snapshot_id=? ORDER BY entity_id", (sid,)):
+            eid = r[0]
+            g.entities[eid] = Entity(
+                entity_id=eid, repo_id=intern(r[1]), kind=intern(r[2]), qualified_name=r[3], parent_id=r[4],
+                sort=intern(r[5]), language=intern(r[6]) if r[6] else r[6], rel_path=intern(r[7]) if r[7] else r[7],
+                start_line=r[8], end_line=r[9], depth=r[10], is_test=r[11], is_generated=r[12], is_vendor=r[13],
+                is_external=r[14], ast_body_hash=r[15], wl_3hop_hash=r[16], qi_cluster_id=r[17])
+        ids = {eid: eid for eid in g.entities}                 # one string object per id, shared by every reference
+        for e in g.entities.values():
+            if e.parent_id is not None:
+                e.parent_id = ids.get(e.parent_id, e.parent_id)
+        for raw in con.execute("SELECT * FROM relationships WHERE snapshot_id=? ORDER BY relationship_id", (sid,)):
+            record = dict(raw)
+            record.pop("snapshot_id")
+            for key in ("source_id", "target_id", "source_subject_id", "target_subject_id"):
+                record[key] = ids.get(record[key], record[key])
+            for key in ("subtype", "resolution_status", "family", "direction", "weight_unit"):
+                record[key] = intern(record[key])
+            g.relationships[record["relationship_id"]] = Relationship(**record)
+        del ids
+        g.incidences = [{k: v for k, v in dict(r).items() if k != "snapshot_id"} for r in con.execute(
+            "SELECT * FROM documentary_incidences WHERE snapshot_id=? ORDER BY incidence_id,entity_id", (sid,))]
+
+        def evidence_of(raw):
+            record = dict(raw)
+            record.pop("snapshot_id")
+            return Evidence(**record)
+
+        def analysis_of(r):
+            return {"algorithm_version": r["algorithm_version"], "scope": json.loads(r["scope_json"]),
+                    "result": json.loads(r["result_json"])}
+
+        def point(sql, build):
+            def read(key):
+                row = con.execute(sql, (sid, key)).fetchone()
+                return MISSING if row is None else build(row)
+            return read
+
+        g.evidence = LazyTable(
+            keys=lambda: [r[0] for r in con.execute("SELECT evidence_id FROM evidence WHERE snapshot_id=? ORDER BY evidence_id", (sid,))],
+            point=point("SELECT * FROM evidence WHERE snapshot_id=? AND evidence_id=?", evidence_of),
+            fill=lambda: ((r["evidence_id"], evidence_of(r)) for r in con.execute(
+                "SELECT * FROM evidence WHERE snapshot_id=? ORDER BY evidence_id", (sid,))))
+        g.analyses = LazyTable(
+            keys=lambda: [r[0] for r in con.execute("SELECT analysis_id FROM analysis_results WHERE snapshot_id=?", (sid,))],
+            point=point("SELECT * FROM analysis_results WHERE snapshot_id=? AND analysis_id=?", analysis_of),
+            fill=lambda: ((r["analysis_id"], analysis_of(r)) for r in con.execute(
+                "SELECT * FROM analysis_results WHERE snapshot_id=?", (sid,))))
+        g.fingerprints = LazyTable(fill=lambda: iter((self.fingerprints(sid) or {}).items()))
+
+        class Counts(dict):                                  # an absent relationship has no evidence: 0, nothing stored
+            def __missing__(self, key):
+                return 0
+        counts: list = []
+
+        def evidence_counts():
+            """Evidence rows per relationship, which is all a projection needs from the evidence table."""
+            if not counts:
+                counts.append(Counts(con.execute(
+                    "SELECT relationship_id,count(*) FROM evidence WHERE snapshot_id=? GROUP BY relationship_id", (sid,))))
+            return counts[0]
+        g.evidence_counts = evidence_counts
+        g.evidence_rows = lambda relationship_id: [evidence_of(r) for r in con.execute(
+            "SELECT * FROM evidence WHERE snapshot_id=? AND relationship_id=? ORDER BY evidence_id", (sid, relationship_id))]
+        return g
+
     def fingerprints(self, sid: str) -> dict[str, dict] | None:
         """entity_id -> fingerprint fields, or None (not computed) when the table has no rows for the snapshot."""
         try:

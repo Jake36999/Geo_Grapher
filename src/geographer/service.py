@@ -6,6 +6,7 @@ import base64
 from collections import OrderedDict,defaultdict,deque
 import hashlib
 import json
+import os
 import re
 import threading
 from copy import deepcopy
@@ -51,7 +52,10 @@ class QueryService:
                 guidance='Choose snapshot_id and repo_ids explicitly; cross-project similarity requires listing every intended repository. root_entity_id anchors content and architecture queries.',
                 coverage='Only configured supported source files are indexed; experimental datasets and PDFs are not implicitly imported')
 
-    def __init__(self,store,*,rules=(),secret=None,token_directory=None,cursors=None):
+    def __init__(self,store,*,rules=(),secret=None,token_directory=None,cursors=None,view_context=None):
+        # The compact view form of a loaded graph (store.view_graph, lazygraph): on unless
+        # view_context=False or GEOGRAPHER_VIEW_CONTEXT=0 asks for the full eager load.
+        self.view_context=(os.environ.get('GEOGRAPHER_VIEW_CONTEXT','1')!='0') if view_context is None else bool(view_context)
         self.store=store;self.wire=WireContracts();self.token_directory=token_directory
         self.cursors=cursors or CursorPlans(secret=secret);self.packer=GreedyPacker(self.cursors)
         self.rules={r.digest:r for r in rules};self.cache=OrderedDict();self.lock=threading.RLock()
@@ -67,14 +71,45 @@ class QueryService:
         if row is None:raise QueryError('SNAPSHOT_UNAVAILABLE','Snapshot not found')
         if row[0]!='complete':raise QueryError('INCOMPLETE_BUILD','Snapshot is not published')
         if sid not in self.cache:
-            g=self.store.graph(sid)
+            g=self.store.view_graph(sid) if self.view_context else self.store.graph(sid)
             revisions=[dict(r) for r in self.store.connection.execute("SELECT repo_id,revision,digest FROM snapshots WHERE snapshot_id=? AND repo_id<>'@workspace' ORDER BY repo_id",(sid,))]
             revmap={r['repo_id']:r['revision'] for r in revisions}
-            ev=defaultdict(list)
-            for e in g.evidence.values():ev[e.relationship_id].append(e)
-            for values in ev.values():values.sort(key=lambda e:e.evidence_id)
-            sources={(g.entities[v['scope']['entity_id']].repo_id,v['result']['rel_path']):v['result'] for v in g.analyses.values()
-                     if v['algorithm_version']=='source-bytes-v1' and v['scope'].get('entity_id') in g.entities}
+            if self.view_context:
+                from .lazygraph import LazyTable,MISSING
+                con=self.store.connection
+                def evidence_groups():
+                    groups=defaultdict(list)
+                    for e in g.evidence.values():groups[e.relationship_id].append(e)
+                    for values in groups.values():values.sort(key=lambda e:e.evidence_id)
+                    return groups.items()
+                def evidence_of(relationship_id):
+                    rows=g.evidence_rows(relationship_id)
+                    return rows if rows else MISSING
+                def source_entries():
+                    for r in con.execute("SELECT * FROM analysis_results WHERE snapshot_id=? AND algorithm_version='source-bytes-v1'",(sid,)):
+                        scope=json.loads(r['scope_json'])
+                        if scope.get('entity_id') in g.entities:
+                            result=json.loads(r['result_json'])
+                            yield (g.entities[scope['entity_id']].repo_id,result['rel_path']),result
+                def source_of(key):
+                    # A file's bytes by (repository, path): the file entity at that path, then its one source row.
+                    # The last match wins, as in the full scan, which visits source rows in entity-id order.
+                    if not (isinstance(key,tuple) and len(key)==2):return MISSING
+                    found=MISSING
+                    for (eid,) in con.execute('SELECT entity_id FROM entities WHERE snapshot_id=? AND repo_id=? AND rel_path=? ORDER BY entity_id',(sid,key[0],key[1])):
+                        r=con.execute("SELECT scope_json,result_json FROM analysis_results WHERE snapshot_id=? AND analysis_id=? AND algorithm_version='source-bytes-v1'",(sid,'source:'+eid)).fetchone()
+                        if r is not None:
+                            result=json.loads(r['result_json'])
+                            if json.loads(r['scope_json']).get('entity_id')==eid and result.get('rel_path')==key[1]:found=result
+                    return found
+                ev=LazyTable(fill=evidence_groups,point=evidence_of,default_factory=list)
+                sources=LazyTable(fill=source_entries,point=source_of)
+            else:
+                ev=defaultdict(list)
+                for e in g.evidence.values():ev[e.relationship_id].append(e)
+                for values in ev.values():values.sort(key=lambda e:e.evidence_id)
+                sources={(g.entities[v['scope']['entity_id']].repo_id,v['result']['rel_path']):v['result'] for v in g.analyses.values()
+                         if v['algorithm_version']=='source-bytes-v1' and v['scope'].get('entity_id') in g.entities}
             self.cache[sid]=dict(g=g,tree=TreeIndex(g),revisions=revisions,revmap=revmap,evidence=ev,nodes={},sources=sources)
         self.cache.move_to_end(sid)
         while len(self.cache)>4:
