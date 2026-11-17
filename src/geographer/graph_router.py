@@ -17,6 +17,11 @@ from .tokens import TokenCounter
 from copy import deepcopy
 from .provenance import enforce_reader, metadata, stratum, third_party
 
+# A loaded graph is held as Python objects: about 12-14 KB per entity, measured 2026-11-17 (5.4 GB
+# for six Nonlinear Field Lab graphs). Three resident graphs is the default ceiling; the display
+# limits (shared frame, active set, the UI's picker) follow the same number.
+DEFAULT_MAX_LOADED=3
+MAX_LOADED_LIMIT=8
 CODE_OPERATIONS={'search_entities','get_architecture_context','inspect_relationship_witnesses','get_entity_content','find_dependants','check_architecture','find_similar_code','viewport_frame'}
 PAPER_OPERATIONS={'search_documents','get_outline','get_section','get_document','get_concept','find_by_concept','get_related','get_claim','get_annotations','get_corpus_status'}
 
@@ -59,9 +64,17 @@ def _add_citation_handles(node,label):
 
 
 class GraphRouter:
-    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None,semantic=None,consumer_role='lead'):
+    def __init__(self,catalog,allowed=None,max_result_chars=None,tools=None,semantic=None,consumer_role='lead',max_loaded=None):
         self.catalog=catalog;self.services=OrderedDict();self.lock=threading.RLock();self.cond=threading.Condition(self.lock)
         self.leases=Counter();self.retired=set();self.borrowed=set();self.deleting=set()
+        if max_loaded is None:
+            configured=os.environ.get('GEOGRAPHER_MAX_LOADED_GRAPHS')
+            try:max_loaded=int(configured) if configured else DEFAULT_MAX_LOADED
+            except ValueError:raise ValueError(f'GEOGRAPHER_MAX_LOADED_GRAPHS must be an integer from 1 to {MAX_LOADED_LIMIT}') from None
+        if type(max_loaded) is not int or not 1<=max_loaded<=MAX_LOADED_LIMIT:
+            raise ValueError(f'max_loaded must be an integer from 1 to {MAX_LOADED_LIMIT}')
+        self.max_loaded=max_loaded
+        self.on_evict=[]      # callables taking the dropped service key; the HTTP front end drops its child app
         self.offered_tools=offered_tools(tools)
         self.semantic_config=semantic
         if consumer_role not in {'lead', 'research_helper', 'clerk', 'scribe'}:raise ValueError('Unknown consumer_role')
@@ -164,7 +177,33 @@ class GraphRouter:
                     self.retired.add(old);self._close_if_idle(old)
             self.services.move_to_end(key)
             self.services[key][1].graph_provenance = metadata(row)
+            self._evict_idle(keep={key})
             return key,self.services[key][1]
+
+    def _evict_idle(self,keep=()):
+        """Drop the least recently used idle graphs until at most `max_loaded` are resident.
+
+        `services` is kept in use order (`move_to_end` on every open). A graph that is leased is in
+        use and is never dropped, so the cap is soft while requests are in flight and is enforced
+        again at release. A borrowed service is the main service, owned elsewhere: it counts but
+        is not dropped."""
+        with self.lock:
+            while True:
+                live=[k for k in self.services if k not in self.retired]
+                if len(live)<=self.max_loaded:return
+                victim=next((k for k in live if not self.leases[k] and k not in self.borrowed and k not in keep),None)
+                if victim is None:return
+                self._drop(victim)
+
+    def _drop(self,key):
+        store,service=self.services.pop(key)
+        for context in list(service.cache.values()):       # the whole graph lives in these
+            index=context.get('lexical_index')
+            if index is not None:index.close()
+        service.cache.clear()
+        store.close()
+        self.retired.discard(key);self.leases.pop(key,None)
+        for callback in list(self.on_evict):callback(key)
 
     def _close_if_idle(self,key):
         if key in self.retired and not self.leases[key] and key in self.services:
@@ -182,7 +221,7 @@ class GraphRouter:
 
     def release(self,key):
         with self.lock:
-            self.leases[key]-=1;self._close_if_idle(key);self.cond.notify_all()
+            self.leases[key]-=1;self._close_if_idle(key);self._evict_idle();self.cond.notify_all()
 
     def retire_graph(self,graph_id,timeout=10.0):
         """Retire every service generation of a graph and wait until all are closed."""

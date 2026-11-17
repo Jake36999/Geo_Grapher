@@ -5,6 +5,7 @@ import BridgeReview from "./BridgeReview";
 import WorkspaceIngest from "./WorkspaceIngest";
 import GraphActions from "./GraphLifecycle";
 import { getActiveGraphs, setActiveGraphs, setWorkspaceGraph } from "./api";
+import { DEFAULT_MAX_GRAPHS, addGraph, initialSelection } from "./graphSelection";
 import type {
   GraphPick,
   WorkspaceGraph,
@@ -21,6 +22,8 @@ export default function Workspace() {
   const [showBridges, setShowBridges] = useState(true);
   const [activeSet, setActiveSet] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Graphs the server keeps loaded at once (each is held in memory); /api/workspace/context says.
+  const [maxGraphs, setMaxGraphs] = useState(DEFAULT_MAX_GRAPHS);
   const [focus, setFocus] = useState<
     Record<string, { snapshot: string; id: string }>
   >({});
@@ -30,12 +33,21 @@ export default function Workspace() {
       ?.getAttribute("content") ?? undefined;
   useEffect(() => {
     const abort = new AbortController();
-    fetch("/api/graphs", { signal: abort.signal })
-      .then((r) => {
+    Promise.all([
+      fetch("/api/graphs", { signal: abort.signal }).then((r) => {
         if (!r.ok) throw Error("Cannot load graph catalogue");
         return r.json();
-      })
-      .then((data) => {
+      }),
+      fetch("/api/workspace/context", { signal: abort.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ])
+      .then(([data, context]) => {
+        const max =
+          Number.isInteger(context?.max_graphs) && context.max_graphs >= 1
+            ? (context.max_graphs as number)
+            : DEFAULT_MAX_GRAPHS;
+        setMaxGraphs(max);
         const available: WorkspaceGraph[] = data.graphs.filter(
           (g: WorkspaceGraph) => g.availability !== "unavailable",
         );
@@ -44,33 +56,25 @@ export default function Workspace() {
         const first =
           available.find((g) => g.graph_id === (requested ?? primary)) ??
           available[0];
-        let ids = available.map((g) => g.graph_id).slice(0, 19),
-          restored = false;
+        let saved: string[] | null = null;
         try {
-          const saved = JSON.parse(
+          const parsed = JSON.parse(
             localStorage.getItem("geographer.graphs.v1") ?? "null",
           );
-          if (Array.isArray(saved)) {
-            ids = saved
-              .filter((id) => available.some((g) => g.graph_id === id))
-              .slice(0, 19);
-            restored = true;
-          }
+          if (Array.isArray(parsed)) saved = parsed;
         } catch {}
-        if (first) {
-          setActive(first.graph_id);
-          if (
-            !restored ||
-            ((requested || first.graph_id === primary) &&
-              ids.length &&
-              !ids.includes(first.graph_id))
-          )
-            ids = [
-              first.graph_id,
-              ...ids.filter((id) => id !== first.graph_id),
-            ].slice(0, 19);
-        }
-        setSelected(ids);
+        if (first) setActive(first.graph_id);
+        setSelected(
+          initialSelection({
+            available: available.map((g) => g.graph_id),
+            first: first?.graph_id,
+            saved,
+            max,
+            forceFirst: Boolean(
+              first && (requested || first.graph_id === primary),
+            ),
+          }),
+        );
       })
       .catch((e) => {
         if (e.name !== "AbortError") setError(e.message);
@@ -95,7 +99,7 @@ export default function Workspace() {
     const next = activeSet.includes(id)
       ? activeSet.filter((g) => g !== id)
       : [...activeSet, id];
-    if (next.length < 1 || next.length > 4) return;
+    if (next.length < 1 || next.length > maxGraphs) return;
     try {
       const saved = await setActiveGraphs(next);
       setActiveSet(saved.graph_ids);
@@ -133,20 +137,27 @@ export default function Workspace() {
               (g) => g.graph_id === id && g.availability !== "unavailable",
             ),
           )
-          .slice(0, 19),
+          .slice(0, maxGraphs),
       ),
-    [graphs],
+    [graphs, maxGraphs],
   );
   function choose(id: string) {
     setPending(undefined);
     setActive(id);
-    setSelected((old) => (old.includes(id) ? old : [...old, id].slice(0, 19)));
+    setSelected((old) => {
+      const added = addGraph(old, id, maxGraphs);
+      if (!added.full) return added.ids;
+      // Full: the graph being replaced as active gives up its place.
+      return old.includes(active)
+        ? old.map((g) => (g === active ? id : g))
+        : [...old.slice(0, -1), id];
+    });
   }
   function toggle(id: string) {
     setSelected((old) => {
       const next = old.includes(id)
         ? old.filter((g) => g !== id)
-        : [...old, id].slice(0, 19);
+        : addGraph(old, id, maxGraphs).ids;
       if (id === active && !next.includes(id) && next.length)
         setActive(next[0]);
       return next;
@@ -194,6 +205,13 @@ export default function Workspace() {
             Checked graphs share this view. Search, hierarchy and inspector
             follow the active graph; selecting a bubble activates its graph.
           </p>
+          <p role="status">
+            At most {maxGraphs} graphs stay loaded at once, because each one is
+            held in memory.
+            {selected.length >= maxGraphs
+              ? " Uncheck one to show another."
+              : ""}
+          </p>
           {graphs.map((g) => (
             <div className="workspace-graph-choice" key={g.graph_id}>
               <label>
@@ -202,7 +220,8 @@ export default function Workspace() {
                   checked={selected.includes(g.graph_id)}
                   disabled={
                     g.availability === "unavailable" ||
-                    (!selected.includes(g.graph_id) && selected.length >= 19)
+                    (!selected.includes(g.graph_id) &&
+                      selected.length >= maxGraphs)
                   }
                   onChange={() => toggle(g.graph_id)}
                 />
@@ -226,12 +245,13 @@ export default function Workspace() {
                 aria-pressed={activeSet.includes(g.graph_id)}
                 disabled={
                   g.availability === "unavailable" ||
-                  (!activeSet.includes(g.graph_id) && activeSet.length >= 4) ||
+                  (!activeSet.includes(g.graph_id) &&
+                    activeSet.length >= maxGraphs) ||
                   (activeSet.includes(g.graph_id) && activeSet.length <= 1)
                 }
                 onClick={() => toggleActive(g.graph_id)}
                 aria-label={`Active set ${g.label}`}
-                title="Shared scene members (at most 4)"
+                title={`Shared scene members (at most ${maxGraphs})`}
               >
                 Active
               </button>

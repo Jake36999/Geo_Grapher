@@ -213,6 +213,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     from .server import create_http_app
     if librarian_url is not None:librarian_url=_loopback_url(librarian_url)
     mcp=create_graph_mcp(router,host,port);app=mcp.streamable_http_app();children={}
+    router.on_evict.append(lambda key:children.pop(key,None))   # the child app holds its service, so its graph
     security=TransportSecurityMiddleware(mcp.settings.transport_security)
     def _token_ok(value):
         return isinstance(value,str) and bool(value) and hmac.compare_digest(value.encode(),access_token.encode())
@@ -263,7 +264,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         return resolved
     async def fs_roots(request):return JSONResponse(dict(roots=[str(r) for r in allowed_roots]))
     async def workspace_context(request):return JSONResponse(dict(library_name=library_name,librarian_url=librarian_url,
-        can_close=on_close is not None))
+        can_close=on_close is not None,max_graphs=router.max_loaded))
     async def workspace_close(request):
         """Close this library's Geo-Grapher from its own window (owner, 2026-11-17). The reply is
         sent first; the server then stops accepting work and exits with code 0, which the
@@ -368,7 +369,9 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     async def active_put(request):
         try:
             ids=(await request.json())['graph_ids']
-            if not isinstance(ids,list) or not 1<=len(ids)<=4 or len(set(ids))!=len(ids) or any(not isinstance(i,str) for i in ids):raise ValueError('Choose 1..4 distinct graph IDs')
+            cap=router.max_loaded
+            if not isinstance(ids,list) or not 1<=len(ids)<=cap or len(set(ids))!=len(ids) or any(not isinstance(i,str) for i in ids):
+                raise ValueError(f'Choose 1..{cap} distinct graph IDs: at most {cap} graphs stay loaded at once')
             for gid in ids:router.permit(gid);router.catalog.graph(gid)
         except (ValueError,KeyError,TypeError) as exc:return JSONResponse({'error':str(exc) or 'Invalid active graph set'},status_code=400)
         active_graphs[:]=ids

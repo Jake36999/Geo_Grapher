@@ -240,7 +240,8 @@ def test_merge_identity_collision_cannot_replace_project_registration(projects,m
 
 def test_six_graph_frames_occupy_centre_and_five_separate_hex_slots(projects,tmp_path):
     import math
-    catalog,router,ids=projects
+    catalog,_,ids=projects
+    router=GraphRouter(catalog,max_loaded=6)      # the default keeps three graphs resident (test_graph_router_cap.py)
     for name in ('Gamma','Delta','Epsilon','Zeta'):
         root=tmp_path/name;root.mkdir();(root/'app.py').write_text('def entry(): return 1\n',encoding='utf-8')
         ids.append(catalog.import_project(root,Repository.from_directory(root,name),label=name)['graph_id'])
@@ -251,3 +252,4 @@ def test_six_graph_frames_occupy_centre_and_five_separate_hex_slots(projects,tmp
     for i,a in enumerate(result['frames']):
         for b in result['frames'][i+1:]:
             assert math.dist(a['world_center'],b['world_center'])>a['root_radius']+b['root_radius']
+    router.close()

@@ -67,7 +67,8 @@ def test_context_names_the_library_and_a_loopback_librarian_url(tmp_path):
                               library_name="Parallax")
     try:
         data = client.get("/api/workspace/context", headers={"X-Geo-Token": TOKEN}).json()
-        assert data == {"library_name": "Parallax", "librarian_url": "http://127.0.0.1:52206/", "can_close": False}
+        assert data == {"library_name": "Parallax", "librarian_url": "http://127.0.0.1:52206/", "can_close": False,
+                        "max_graphs": 3}
     finally:
         catalog.close()
     with pytest.raises(ValueError, match="loopback"):

@@ -38,7 +38,9 @@ def hex_slots(count,spacing=7.):
 
 
 def compose_frame(router, requests):
-    if not isinstance(requests,list) or not 1<=len(requests)<=19:raise ValueError('Choose 1..19 graph frames explicitly')
+    cap=router.max_loaded
+    if not isinstance(requests,list) or not 1<=len(requests)<=cap:
+        raise ValueError(f'Choose 1..{cap} graph frames explicitly: at most {cap} graphs can be shown at once, because each loaded graph is held in memory')
     if any(not isinstance(r,dict) or not isinstance(r.get('graph_id'),str) for r in requests):raise ValueError('Each frame needs graph_id')
     ids=[r['graph_id'] for r in requests]
     if len(set(ids))!=len(ids):raise ValueError('Duplicate graph frames')
