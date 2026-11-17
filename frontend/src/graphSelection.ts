@@ -25,9 +25,13 @@ export interface InitialSelection {
  */
 export function initialSelection(o: InitialSelection): string[] {
   const known = new Set(o.available);
+  // A saved list longer than the cap can only date from before the cap existed, when the default
+  // was "every graph". Clipping it would pick graphs nobody chose (often the largest), so it is
+  // treated as no saved selection.
+  const saved = o.saved && o.saved.length > o.max ? null : o.saved;
   // Someone who unchecked every graph and reloaded keeps that choice.
-  if (o.saved && o.saved.length === 0) return [];
-  let ids = (o.saved ?? []).filter((id, i, all) => known.has(id) && all.indexOf(id) === i);
+  if (saved && saved.length === 0) return [];
+  let ids = (saved ?? []).filter((id, i, all) => known.has(id) && all.indexOf(id) === i);
   if (!ids.length) {
     if (!o.first) return [];
     return o.available.length <= o.max

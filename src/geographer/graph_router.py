@@ -1,6 +1,6 @@
 """Graph-scoped agent routing. Display composition never creates an analysis graph."""
 from collections import Counter,OrderedDict
-from contextlib import contextmanager
+from contextlib import closing,contextmanager
 from pathlib import Path
 import os
 import threading
@@ -75,6 +75,7 @@ class GraphRouter:
             raise ValueError(f'max_loaded must be an integer from 1 to {MAX_LOADED_LIMIT}')
         self.max_loaded=max_loaded
         self.on_evict=[]      # callables taking the dropped service key; the HTTP front end drops its child app
+        self._counts={}       # (graph_id, snapshot_id) -> entity count, for the catalogue listing
         self.offered_tools=offered_tools(tools)
         self.semantic_config=semantic
         if consumer_role not in {'lead', 'research_helper', 'clerk', 'scribe'}:raise ValueError('Unknown consumer_role')
@@ -164,12 +165,7 @@ class GraphRouter:
             if key not in self.services:
                 from .cursor_secret import persisted_secret
                 path=Path(row['code_database'])
-                if not path.is_file():raise ValueError('Graph store missing')
-                with sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True) as check:
-                    if not check.execute("SELECT 1 FROM sqlite_master WHERE name='snapshots'").fetchone():raise ValueError('Graph store schema missing')
-                    owners={r[0] for r in check.execute("SELECT DISTINCT repo_id FROM snapshots WHERE repo_id<>'@workspace'")}
-                if owners!=set(json.loads(row['profile_json']).get('owner_repo_ids',[graph_id])):
-                    raise ValueError('Store ownership does not match graph_id')
+                self._verify_store(row)
                 store=SnapshotStore(path)
                 self.services[key]=(store,QueryService(store,secret=persisted_secret(path)))
                 # A newer generation supersedes older ones; close each once idle.
@@ -179,6 +175,23 @@ class GraphRouter:
             self.services[key][1].graph_provenance = metadata(row)
             self._evict_idle(keep={key})
             return key,self.services[key][1]
+
+    @staticmethod
+    def _verify_store(row,count_snapshot=None):
+        """Raise ValueError unless the graph's store exists and belongs to this graph.
+
+        Uses a short-lived read-only connection, so it never opens a service, takes a service lock
+        or counts against the loaded-graph cap. With `count_snapshot`, the same connection also
+        returns that snapshot's entity count."""
+        path=Path(row['code_database'])
+        if not path.is_file():raise ValueError('Graph store missing')
+        with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as check:
+            if not check.execute("SELECT 1 FROM sqlite_master WHERE name='snapshots'").fetchone():raise ValueError('Graph store schema missing')
+            owners={r[0] for r in check.execute("SELECT DISTINCT repo_id FROM snapshots WHERE repo_id<>'@workspace'")}
+            if owners!=set(json.loads(row['profile_json']).get('owner_repo_ids',[row['graph_id']])):
+                raise ValueError('Store ownership does not match graph_id')
+            if count_snapshot is not None:
+                return check.execute('SELECT count(*) FROM entities WHERE snapshot_id=?',(count_snapshot,)).fetchone()[0]
 
     def _evict_idle(self,keep=()):
         """Drop the least recently used idle graphs until at most `max_loaded` are resident.
@@ -320,9 +333,14 @@ class GraphRouter:
             if self.allowed is not None and graph['graph_id'] not in self.allowed:continue
             availability='available';error=None;count=None
             try:
-                with self.lease(graph['graph_id']) as service:
-                    with service.lock:
-                        count=service.store.connection.execute('SELECT count(*) FROM entities WHERE snapshot_id=?',(graph['snapshot_id'],)).fetchone()[0]
+                # The listing must answer while a frame request is loading a big graph (which holds
+                # that graph's service lock for up to minutes), so it opens no service at all. The
+                # count of a snapshot never changes, so it is read once.
+                self.permit(graph['graph_id'])
+                if graph['graph_id'] in self.deleting:raise ValueError('GRAPH_BUSY: the graph is being deleted')
+                counted=self._verify_store(graph,None if (graph['graph_id'],graph['snapshot_id']) in self._counts else graph['snapshot_id'])
+                if counted is not None:self._counts[(graph['graph_id'],graph['snapshot_id'])]=counted
+                count=self._counts[(graph['graph_id'],graph['snapshot_id'])]
             except (ValueError,sqlite3.DatabaseError,OSError) as exc:
                 availability='unavailable';error=str(exc)[:300]
             profile=json.loads(graph['profile_json'])

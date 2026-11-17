@@ -150,6 +150,59 @@ def test_composing_the_same_set_twice_does_not_reload_graphs(five):
     assert len(opened) == 3                          # three loads, once each
 
 
+def within(seconds, call):
+    """Run `call` in a thread; a hang fails the test instead of freezing the suite."""
+    import threading
+    box = {}
+
+    def run():
+        try:
+            box['value'] = call()
+        except BaseException as exc:              # noqa: BLE001 - reported to the test
+            box['error'] = exc
+    thread = threading.Thread(target=run, daemon=True)
+    thread.start()
+    thread.join(seconds)
+    assert not thread.is_alive(), f'still running after {seconds}s: probably deadlocked'
+    if 'error' in box:
+        raise box['error']
+    return box['value']
+
+
+def test_listing_more_graphs_than_the_cap_does_not_hang_or_reload(five):
+    catalog, ids, build = five
+    router = build()
+    rows = within(60, router.summary)['graphs']
+    assert [r['graph_id'] for r in rows] == sorted(ids, key=lambda g: catalog.graph(g)['label'])
+    assert all(r['availability'] == 'available' and r['entity_count'] for r in rows)
+    assert len(router.services) <= 3               # listing five graphs left at most three resident
+
+
+def test_listing_while_a_graph_loads_does_not_wait_for_the_load(five):
+    """The catalogue must answer while another request is busy loading a graph."""
+    import threading
+    catalog, ids, build = five
+    router = build()
+    loading, release = threading.Event(), threading.Event()
+    key, service = router.acquire(ids[0])
+    original = service._context
+
+    def slow(sid):
+        loading.set()
+        release.wait(30)
+        return original(sid)
+    service._context = slow
+    worker = threading.Thread(target=lambda: service._context(catalog.graph(ids[0])['snapshot_id']), daemon=True)
+    with service.lock:                             # compose_frame holds this lock while it loads
+        worker.start()
+        assert loading.wait(10)
+        rows = within(30, router.summary)['graphs']   # must not need the busy graph's lock
+    release.set()
+    worker.join(10)
+    router.release(key)
+    assert len(rows) == 5
+
+
 def test_http_reports_the_cap_and_active_set_follows_it(five):
     catalog, ids, build = five
     router = build()
