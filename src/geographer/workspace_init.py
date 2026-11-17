@@ -10,11 +10,10 @@ from geographer.model import digest
 from .credentials import credential_path, refuse_credentials
 from . import folder_inventory
 
-# Source files that make a folder code (2026-11-17: C, Rust and Go repositories counted as
-# "no code", so 16 code repositories were planned into a docs graph).
-CODE_SUFFIXES = (".py", ".js", ".jsx", ".ts", ".tsx", ".ipynb", ".c", ".h", ".cc", ".cpp", ".hpp",
-                 ".cxx", ".rs", ".go", ".java", ".kt", ".rb", ".cs", ".swift", ".php", ".scala",
-                 ".lua", ".sh", ".ps1")
+# Source files whose code Geo-Grapher extracts (source.SUPPORTED, less prose). A folder is code
+# for a graph only when its graph will hold code: C, Rust or Go is read for its docs alone
+# (2026-11-17: no tree-sitter grammar for them is installed).
+CODE_SUFFIXES = (".py", ".js", ".jsx", ".ts", ".tsx", ".ipynb")
 
 
 PLAN_VERSION = "workspace-init-v1"
@@ -344,9 +343,13 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
             "modality": rules.get("modality", default_modality),
         }
 
+        # A third-party folder's modality is its own content, never the project's archetype
+        # (2026-11-17: a notes-vault root made every third-party repository "doc", code or not).
         if role == 'third_party' and part['file_counts'].get('.pdf', 0) > sum(part['file_counts'].values()) / 2:
             part['stratum']['modality'] = 'paper'
-        elif role == 'third_party' and not any(part['file_counts'].get(s, 0) for s in CODE_SUFFIXES):
+        elif role == 'third_party' and any(part['file_counts'].get(s, 0) for s in CODE_SUFFIXES):
+            part['stratum']['modality'] = 'code'
+        elif role == 'third_party':
             part['stratum']['modality'] = 'doc'
         purposes = {'current': 'own-current', 'legacy': 'own-legacy', 'docs': 'own-docs',
                     'third_party': 'third-party', 'research_docs': 'research-docs', 'data': 'data',

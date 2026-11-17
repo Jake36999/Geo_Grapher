@@ -82,12 +82,17 @@ def test_shared_inventory_apply_rejects_a_new_file_before_import(tmp_path):
     assert cat.graphs() == []
 
 
-def test_a_c_or_rust_third_party_repository_is_code_not_docs(tmp_path):
-    """2026-11-17: 16 C/Rust/Go repositories were planned into a docs graph."""
-    for folder, file in [('third_party_research/repos/csitool', 'driver.c'),
-                         ('third_party_research/repos/csitool', 'driver.h'),
-                         ('third_party_research/repos/csitool', 'README.md')]:
-        path = tmp_path / folder / file; path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text('synthetic')
+def test_third_party_modality_is_the_folders_own_content_not_the_projects_archetype(tmp_path):
+    """2026-11-17: in a notes-vault project every third-party repository was "doc", code or not;
+    C, Rust and Go stay doc because only their docs are extracted."""
+    for name in range(30):                                   # make the project a notes vault
+        (tmp_path / 'notes').mkdir(exist_ok=True); (tmp_path / 'notes' / f'n{name}.md').write_text('note')
+    for folder, file in [('third_party_research/pyrepo', 'tool.py'), ('third_party_research/pyrepo', 'README.md')]:
+        path = tmp_path / folder / file; path.parent.mkdir(parents=True, exist_ok=True); path.write_text('synthetic')
     parts = {p['key']: p for p in scan(tmp_path)['partitions']}
     assert parts['third_party_research']['stratum']['modality'] == 'code'
+    for folder, file in [('third_party_research/pyrepo', 'tool.py')]:
+        (tmp_path / folder / file).unlink()
+    (tmp_path / 'third_party_research/pyrepo/driver.c').write_text('int x;')
+    parts = {p['key']: p for p in scan(tmp_path)['partitions']}
+    assert parts['third_party_research']['stratum']['modality'] == 'doc'
