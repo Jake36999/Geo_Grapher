@@ -93,8 +93,12 @@ class CollisionReview(ValueError):
 class GraphCatalog:
     def __init__(self,path):
         self.path=Path(path).resolve();self.path.parent.mkdir(parents=True,exist_ok=True)
-        self.connection=sqlite3.connect(self.path,check_same_thread=False)
+        self.connection=sqlite3.connect(self.path,check_same_thread=False,timeout=5)
         self.connection.row_factory=sqlite3.Row
+        # The serving process and the Core's apply/import subprocesses share this file: readers must
+        # not block a writer, and a writer waits briefly instead of failing (2026-11-17).
+        self.connection.execute('PRAGMA busy_timeout=5000')
+        self.connection.execute('PRAGMA journal_mode=WAL')
         names={r[0] for r in self.connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")}
         if names-CATALOG_TABLES:
             self.connection.close();raise ValueError('This database is not a graph catalog; no tables were added')

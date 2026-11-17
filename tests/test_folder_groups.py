@@ -127,3 +127,70 @@ def test_agent_policy_decisions_from_the_owning_core_apply_but_unvouched_ones_do
                 dict(purpose='own-current', graph='x', accepted_by='model')):
         with pytest.raises(ValueError, match='FOLDER_REVIEW_REQUIRED'):
             apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=card(bad)))
+
+
+def _names(cat, label):
+    from geographer.store import SnapshotStore
+    graph = next(g for g in cat.graphs() if g['label'] == label)
+    with SnapshotStore(Path(graph['code_database'])) as store:
+        return [r[0] for r in store.connection.execute('SELECT qualified_name FROM entities WHERE snapshot_id=?',
+                                                       (graph['snapshot_id'],))]
+
+
+def test_withheld_and_sibling_partition_folders_stay_out_of_the_parents_graph(tmp_path):
+    """2026-11-17: accepting a parent walked into child folders held for a person's review."""
+    from geographer.folder_review import apply_review
+    cat = GraphCatalog(tmp_path / 'catalog/catalog.sqlite'); root = tmp_path / 'source'; root.mkdir()
+    (root / 'own.py').write_text('OUR_CODE = 1\n')
+    for name, constant in [('held', 'HELD_UPSTREAM'), ('partition', 'PARTITION_UPSTREAM')]:
+        (root / name).mkdir(); (root / name / 'm.py').write_text(f'{constant} = 2\n')
+    card = dict(source_root=str(root), path='.', status='accepted',
+                partition=dict(exclude_globs=['partition', 'partition/*']),
+                decision=dict(purpose='own-current', graph='our-system', accepted_by='person'))
+    apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=[card], withheld=[str(root / 'held')]))
+    names = _names(cat, 'our-system')
+    assert any('OUR_CODE' in n for n in names)
+    assert not any('HELD_UPSTREAM' in n or 'PARTITION_UPSTREAM' in n for n in names)
+
+
+def test_withheld_must_be_a_list_of_paths(tmp_path):
+    from geographer.folder_review import apply_review
+    cat = GraphCatalog(tmp_path / 'catalog/catalog.sqlite')
+    with pytest.raises(ValueError, match='FOLDER_WITHHELD'):
+        apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=[], withheld=[3]))
+
+
+def test_secret_store_names_are_refused_like_the_librarian_refuses_them():
+    from geographer.credentials import credential_path
+    for name in ('x.sqlite.cursor-secret', 'api_secret', 'secrets.json', '.netrc', 'sub/credentials.json', '.pgpass'):
+        assert credential_path(name), name
+    for name in ('credentials.py', 'secret_sharing.pdf', 'docs/secrets-of-csi.md'):
+        assert not credential_path(name), name
+
+
+def test_common_words_do_not_link_prose_to_symbols_unless_marked_as_code():
+    """2026-11-17: symbols named `to`, `which`, `set` drew thousands of false incidences."""
+    from geographer.extract import mention_tokens
+    tokens = mention_tokens("Set the value to which we run, then call `set` and run() and the open method; target_fn too.")
+    assert {"set", "run", "open", "target_fn"} <= tokens                      # marked, or not common
+    assert not {"Set", "the", "value", "to", "which", "we", "then", "call", "and"} & tokens
+    assert "pkg.to" in mention_tokens("see pkg.to for details")              # dotted names always link
+
+
+def test_a_run_of_comment_lines_is_one_fragment():
+    """2026-11-17: every `#` line became its own entity."""
+    from geographer.pipeline import ingest
+    from geographer.source import Repository
+    from geographer.store import SnapshotStore
+    code = b'# first line of a note\n# second line\n# third line\nVALUE = 1\n\n\n# a separate note\ndef f():\n    return VALUE\n'
+    with SnapshotStore() as store:
+        sid = ingest(store, [Repository('r', 'rev', {'m.py': code})], stage=3)['snapshot_id']
+        rows = store.connection.execute(
+            "SELECT start_line, end_line FROM entities WHERE snapshot_id=? AND kind='fragment' ORDER BY start_line", (sid,)).fetchall()
+    assert [tuple(r) for r in rows] == [(1, 3), (7, 7)]
+
+
+def test_the_catalogue_uses_a_write_ahead_log_and_waits_for_a_busy_writer(tmp_path):
+    cat = GraphCatalog(tmp_path / 'catalog/catalog.sqlite')
+    assert cat.connection.execute('PRAGMA journal_mode').fetchone()[0].lower() == 'wal'
+    assert cat.connection.execute('PRAGMA busy_timeout').fetchone()[0] == 5000

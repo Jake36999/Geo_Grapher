@@ -57,7 +57,9 @@ def test_full_preceding_comment_block_is_constant_documentation(extract):
     def lines(name):
         return {fragments[i['fragment_id']].start_line for i in graph.incidences
                 if i['entity_id'] == constants[name].entity_id and i['role'] == 'rationale_for'}
-    assert lines('BUFFER_LIMIT') == {1, 2}
+    # The two comment lines are one block fragment, spanning lines 1-2 (2026-11-17).
+    assert lines('BUFFER_LIMIT') == {1}
+    assert {(f.start_line, f.end_line) for f in fragments.values() if f.start_line == 1} == {(1, 2)}
     assert 6 not in lines('NEXT')
     index = LexicalIndex(graph)
     try:

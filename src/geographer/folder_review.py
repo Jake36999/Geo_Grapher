@@ -56,6 +56,11 @@ def _reviewed(decision):
 def apply_review(catalog, request):
     library = str(Path(request['library']).resolve()); groups = defaultdict(list)
     decisions = request['decisions']; roots = []
+    # Folders the Librarian still withholds (undecided, or held for a person's review). They are
+    # never read into any graph until decided (2026-11-17: accepting a parent walked into them).
+    if not isinstance(request.get('withheld', []), list) or not all(isinstance(p, str) for p in request.get('withheld', [])):
+        raise ValueError('FOLDER_WITHHELD: withheld folders are a list of paths')
+    withheld = [Path(p).resolve() for p in request.get('withheld', [])]
     for card in decisions:
         decision = card['decision']; relative = card['path']
         if (card.get('status') != 'accepted' or not _reviewed(decision)
@@ -101,8 +106,13 @@ def apply_review(catalog, request):
                 members.append((target, dict(decision=members[0][1]['decision'])))
         repositories = []; sources = []; estimated = 100 * 1024 * 1024
         for target, card in sorted(members, key=lambda item: str(item[0])):
-            excludes = [value for child, _ in roots if child != target and child.is_relative_to(target)
+            children = [child for child, _ in roots if child != target and child.is_relative_to(target)]
+            children += [child for child in withheld if child != target and child.is_relative_to(target)]
+            excludes = [value for child in children
                         for value in (child.relative_to(target).as_posix(), child.relative_to(target).as_posix() + '/*')]
+            # The survey's own partition excludes: a parent's partition leaves out its sibling
+            # partitions, each a separate decision (relative to this partition's own root).
+            excludes += [g for g in (card.get('partition') or {}).get('exclude_globs', []) if isinstance(g, str)]
             excludes += ['librarian-app', 'librarian-app/*', 'test-results', 'test-results/*', '*.log', '*.blend*']
             original = next((r for r in retained if Path(r['root']).resolve() == target), {})
             excludes += original.get('exclude_globs', [])

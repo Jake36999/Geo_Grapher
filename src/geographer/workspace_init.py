@@ -10,6 +10,12 @@ from geographer.model import digest
 from .credentials import credential_path, refuse_credentials
 from . import folder_inventory
 
+# Source files that make a folder code (2026-11-17: C, Rust and Go repositories counted as
+# "no code", so 16 code repositories were planned into a docs graph).
+CODE_SUFFIXES = (".py", ".js", ".jsx", ".ts", ".tsx", ".ipynb", ".c", ".h", ".cc", ".cpp", ".hpp",
+                 ".cxx", ".rs", ".go", ".java", ".kt", ".rb", ".cs", ".swift", ".php", ".scala",
+                 ".lua", ".sh", ".ps1")
+
 
 PLAN_VERSION = "workspace-init-v1"
 HYGIENE_DIRS = source.EXCLUDED | {
@@ -300,7 +306,7 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
             all_file_counts[suffix] = all_file_counts.get(suffix, 0) + count
 
     # Archetype determination
-    code_count = sum(all_file_counts.get(s, 0) for s in (".py", ".js", ".jsx", ".ts", ".tsx", ".ipynb"))
+    code_count = sum(all_file_counts.get(s, 0) for s in CODE_SUFFIXES)
     paper_count = sum(all_file_counts.get(s, 0) for s in (".pdf", ".tex", ".bib"))
     doc_count = sum(all_file_counts.get(s, 0) for s in (".md", ".txt"))
     total = code_count + paper_count + doc_count
@@ -340,7 +346,7 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
 
         if role == 'third_party' and part['file_counts'].get('.pdf', 0) > sum(part['file_counts'].values()) / 2:
             part['stratum']['modality'] = 'paper'
-        elif role == 'third_party' and not any(part['file_counts'].get(s, 0) for s in ('.py','.js','.ts','.tsx','.jsx','.ipynb')):
+        elif role == 'third_party' and not any(part['file_counts'].get(s, 0) for s in CODE_SUFFIXES):
             part['stratum']['modality'] = 'doc'
         purposes = {'current': 'own-current', 'legacy': 'own-legacy', 'docs': 'own-docs',
                     'third_party': 'third-party', 'research_docs': 'research-docs', 'data': 'data',

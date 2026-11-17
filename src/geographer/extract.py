@@ -21,6 +21,33 @@ from .incremental import PARSES
 from .dispatch import StaticDispatch
 from .claims import static_details, validate_details
 
+# A bare word links prose to a symbol only when it could plausibly mean that symbol: at least four
+# characters and not an everyday word. A dotted name (`mod.symbol`) or a backticked one always
+# links (2026-11-17: symbols named `to`, `which`, `set` and `run` drew thousands of false
+# documentary incidences each).
+MENTION_MIN_CHARS = 4
+MENTION_STOP_WORDS = frozenset("""
+a an and are as at be been but by can could did do does for from had has have how if in into is it
+its just may might more most must no not of on only or other our out over same should so some such
+than that the their them then there these they this those to too under up use used uses using very
+was we were what when where which while who why will with would you your all any each every few
+many much own also back data model number address name names type value values item items list
+never always run runs set sets get gets make made new old one two first last next file files line
+lines path text note notes test tests main self time step steps part parts end start state info call calls called return returns
+""".split())
+
+
+def mention_tokens(text):
+    """The tokens of `text` that may name a symbol, and the backticked ones that surely do."""
+    tokens = set(re.findall(r"[A-Za-z_][A-Za-z0-9_.]*", text))
+    # Marked as code: backticked, called (`run(`), or named as one ("the run function").
+    quoted = set(re.findall(r"`([A-Za-z_][A-Za-z0-9_.]*)`", text))
+    quoted |= set(re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\(", text))
+    quoted |= set(re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s+(?:function|method|class|constant|module)\b", text, re.I))
+    quoted |= set(re.findall(r"\b(?:function|method|class|def|constant)\s+`?([A-Za-z_][A-Za-z0-9_]*)", text, re.I))
+    return {t for t in tokens if t in quoted or "." in t.strip(".")
+            or (len(t) >= MENTION_MIN_CHARS and t.casefold() not in MENTION_STOP_WORDS)}
+
 
 @dataclass
 class Binding:
@@ -657,8 +684,7 @@ class PythonExtractor(StaticDispatch):
         return fid
 
     def mentions(self, text, default):
-        tokens = set(re.findall(r"[A-Za-z_][A-Za-z0-9_.]*", text))
-        return {default} | {eid for token in tokens for eid in self.mention_index.get(token,())}
+        return {default} | {eid for token in mention_tokens(text) for eid in self.mention_index.get(token,())}
 
     def extract_code_documents(self, unit):
         for scope in unit.scopes.scopes:
@@ -686,6 +712,10 @@ class PythonExtractor(StaticDispatch):
             for cell in notebook.cells:
                 skip_lines.add(cell.start_line)
                 if cell.cell_type == "code":
+                    if cell.index in notebook.unparsed:
+                        # An unparsed cell is commented out in the virtual source: its lines are
+                        # code, not comments, and never become comment fragments.
+                        skip_lines.update(range(cell.start_line, cell.end_line + 1))
                     continue
                 skip_lines.update(range(cell.start_line, cell.end_line + 1))
                 text = notebook.cell_text(cell.index)
@@ -700,18 +730,40 @@ class PythonExtractor(StaticDispatch):
                     "literal_start_line": cell.start_line + 1, "literal_end_line": cell.end_line, **parsed})
         from .comment_blocks import constant_comment_lines
         constant_lines=constant_comment_lines(unit.text,((eid,self.graph.entities[eid].start_line,self.graph.entities[eid].end_line) for eid in unit.constants.values()))
+        # This file's possible owners, once (2026-11-17: each comment scanned every entity in the
+        # graph, which made large notebooks take thousands of seconds).
+        owners_here = [e for e in self.graph.entities.values() if e.repo_id == unit.repo.repo_id and e.rel_path == unit.path
+                       and e.kind in {"file", "function", "method", "class"}]
+
+        def owner_of(line):
+            candidates = [e for e in owners_here if e.start_line <= line <= e.end_line]
+            return min(candidates, key=lambda e: (e.end_line - e.start_line, e.entity_id)).entity_id if candidates else unit.file_id
+
+        block = []                                        # consecutive comment lines, one owner
+
+        def flush():
+            if not block:
+                return
+            first, last = block[0][0], block[-1][0]
+            text = "\n".join(t for _, t, _ in block)
+            owner = block[0][2]
+            adjacent = set().union(*(constant_lines.get(line, set()) for line, _, _ in block))
+            self.fragment(unit.repo, unit.path, owner, text, first, last, self.mentions(text, owner) | adjacent, "rationale_for")
+            block.clear()
+
         try:
             for token in tokenize.generate_tokens(io.StringIO(unit.text).readline):
                 if token.type != tokenize.COMMENT or token.start[0] in skip_lines:
                     continue
-                # Attach to the narrowest containing entity; references form a hyperedge.
-                candidates = [e for e in self.graph.entities.values() if e.repo_id == unit.repo.repo_id and e.rel_path == unit.path and
-                              e.kind in {"file", "function", "method", "class"} and e.start_line <= token.start[0] <= e.end_line]
-                owner = min(candidates, key=lambda e: (e.end_line - e.start_line, e.entity_id)).entity_id if candidates else unit.file_id
-                adjacent=constant_lines.get(token.start[0],set())
-                self.fragment(unit.repo, unit.path, owner, token.string, token.start[0], token.end[0], self.mentions(token.string, owner)|adjacent, "rationale_for")
+                line = token.start[0]
+                owner = owner_of(line)
+                # A run of comment lines is one fragment: one note, not one entity per line.
+                if block and (line != block[-1][0] + 1 or owner != block[-1][2]):
+                    flush()
+                block.append((line, token.string, owner))
         except tokenize.TokenError:
             pass  # Syntax parsing already records invalid inputs; token streams can end in comments.
+        flush()
         for scope in unit.scopes.scopes:
             body=getattr(scope.node,'body',None)
             if not isinstance(scope.node,(ast.Module,ast.ClassDef)) or not isinstance(body,list):continue
