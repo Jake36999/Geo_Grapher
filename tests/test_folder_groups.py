@@ -194,3 +194,35 @@ def test_the_catalogue_uses_a_write_ahead_log_and_waits_for_a_busy_writer(tmp_pa
     cat = GraphCatalog(tmp_path / 'catalog/catalog.sqlite')
     assert cat.connection.execute('PRAGMA journal_mode').fetchone()[0].lower() == 'wal'
     assert cat.connection.execute('PRAGMA busy_timeout').fetchone()[0] == 5000
+
+
+
+def test_a_multi_repository_graph_is_searched_whole_by_agents_and_federation(tmp_path):
+    """2026-11-18: agent search and federated search sent an empty repository scope, which the
+    engine refuses for a multi-repository snapshot, so every reviewed third-party folder
+    group was dropped ('Select repo_ids explicitly')."""
+    from geographer.folder_review import apply_review
+    from geographer.graph_router import GraphRouter
+    from geographer.source import Repository
+    from geographer import agent_requests
+    cat = GraphCatalog(tmp_path / 'catalog/catalog.sqlite')
+    root = tmp_path / 'source'; root.mkdir(); cards = []
+    for name in ['vendor-a', 'vendor-b']:
+        folder = root / name; folder.mkdir()
+        (folder / 'm.py').write_text(f'def capture_{name[-1]}(packet):\n    return packet\n')
+        cards.append(dict(source_root=str(root), path=name, status='accepted',
+            decision=dict(purpose='third-party', graph='library-third-party', accepted_by='person')))
+    apply_review(cat, dict(library=str(tmp_path / 'vault'), decisions=cards))
+    own = tmp_path / 'own'; own.mkdir(); (own / 'n.py').write_text('def capture(packet):\n    return packet\n')
+    cat.import_project(own, Repository.from_directory(own, 'own'), label='own')
+    router = GraphRouter(cat)
+    try:
+        third = next(g['label'] for g in cat.graphs() if g['label'] != 'own')
+        found = agent_requests.call_code(router, 'search_entities', {'graph_id': third, 'query': 'capture packet'})
+        names = {e.get('qualified_name') or '' for e in found['entities']}
+        assert any('capture_a' in n for n in names) and any('capture_b' in n for n in names)
+        both = router.federated_search(['own', third], 'capture packet', limit_tokens=8192, mode='lexical', agent=True)
+        assert not [o for o in both['omitted'] if o.get('reason') == 'GRAPH_UNAVAILABLE']
+        assert {r['graph_label'] for r in both['results']} == {'own', third}
+    finally:
+        router.close(); cat.close()

@@ -182,6 +182,12 @@ def profile_budget(router,arguments,default=32768):
     return profile,min(asked,ceiling),asked>ceiling
 
 
+def whole_graph(ctx):
+    """Every repository of a snapshot when it holds more than one, else [] (the single-repository default)."""
+    repos=sorted({r['repo_id'] for r in ctx['revisions']})
+    return repos if len(repos)>1 else []
+
+
 def call_code(router,op,args):
     gid=router.resolve(args.get('graph_id'));router.permit(gid)
     profile,limit,clamped=profile_budget(router,args)
@@ -216,7 +222,10 @@ def call_code(router,op,args):
         coverage_range=None;context_ranges=None;context_omitted=0;constant_cards=None;constants_omitted=0;omit_content_summary=False
         from .agent_scent import scent
         descriptions=scent(svc._context(sid))
-        if op=='search_entities':request.update(query=args['query'],mode='hybrid',repo_ids=[],kinds=args.get('kinds',[]),limit=args.get('limit',8))
+        # A graph is the scope an agent chose: search all of its repositories, as the strict
+        # engine requires for a multi-repository snapshot (2026-11-18: every reviewed
+        # third-party folder group was refused with 'Select repo_ids explicitly').
+        if op=='search_entities':request.update(query=args['query'],mode='hybrid',repo_ids=whole_graph(svc._context(sid)),kinds=args.get('kinds',[]),limit=args.get('limit',8))
         elif op=='get_entity_content':
             eid=entity('entity_id');e=g.entities[eid]
             a,b=args.get('start_line'),args.get('end_line')
@@ -238,7 +247,11 @@ def call_code(router,op,args):
             pins=args.get('pins',[]),filter=deepcopy(DEFAULT_FILTER),qi=dict(enabled=args.get('qi',False),max_diameter=2,
                 algorithm=args.get('algorithm','helper_tree_balls_v1')))
         elif op=='find_dependants':request.update(entity_id=entity('entity_id'),direction='incoming',filter=deepcopy(DEFAULT_FILTER),max_depth=args.get('max_depth',1),max_results=20)
-        elif op=='find_similar_code':request.update(entity_id=entity('entity_id'),mode='exact_normalized_ast',repo_ids=[],limit=args.get('limit',5))
+        elif op=='find_similar_code':
+            # Similarity stays inside the focus's own repository unless asked (the engine's rule).
+            focus=entity('entity_id')
+            request.update(entity_id=focus,mode='exact_normalized_ast',limit=args.get('limit',5),
+                repo_ids=[g.entities[focus].repo_id] if whole_graph(svc._context(sid)) else [])
         elif op=='check_architecture':
             models=sorted(svc.rules)
             if not models:

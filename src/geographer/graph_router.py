@@ -534,6 +534,10 @@ class GraphRouter:
         from .task_packets import compile_packet
         return compile_packet(self,graph_id,anchors,instruction,profile=profile,upstream=upstream)
 
+    def _whole(self,gid,sid):
+        from .agent_requests import whole_graph
+        with self.lease(gid) as service:return whole_graph(service._context(sid))
+
     def federated_search(self,graph_ids,query,*,limit_tokens=8192,mode='documentation',profile=None,agent=False):
         from .task_packets import check_profile
         check_profile(profile,limit_tokens)
@@ -559,10 +563,13 @@ class GraphRouter:
             # One unavailable graph must not hide the healthy graphs' results.
             try:
                 tiers={}
+                # Each graph is searched whole: a reviewed folder group holds several
+                # repositories, and an empty scope is refused there (2026-11-18).
+                scope=self._whole(gid,graph['snapshot_id'])
                 for tier,limit in (('full',5),('compact',2)):
                     req=dict(schema_version='1.1',request_id='federated-search',snapshot_id=graph['snapshot_id'],
                         budget=dict(limit_tokens=per_graph,tokenizer='o200k_base',allow_byte_fallback=False),query=query,
-                        mode=mode,repo_ids=[],kinds=[],limit=limit,cursor=None)
+                        mode=mode,repo_ids=scope,kinds=[],limit=limit,cursor=None)
                     if agent:req['identity_mode']='canonical_map'
                     envelope=self.query(gid,'search_entities',req)
                     # The router nests a service error under `result`; it is never "no hits".
@@ -651,7 +658,7 @@ class GraphRouter:
                 graph=self.catalog.graph(gid)
                 req=dict(schema_version='1.1',request_id='federated-size-fit',snapshot_id=graph['snapshot_id'],
                     budget=dict(limit_tokens=envelope['routing_budget']['limit_tokens'],tokenizer='o200k_base',allow_byte_fallback=False),
-                    query=query,mode=mode,repo_ids=[],kinds=[],limit=len(hits)-1,cursor=None)
+                    query=query,mode=mode,repo_ids=self._whole(gid,graph['snapshot_id']),kinds=[],limit=len(hits)-1,cursor=None)
                 if agent:req['identity_mode']='canonical_map'
                 smaller=self.query(gid,'search_entities',req)
                 if self._nested_error(smaller):
