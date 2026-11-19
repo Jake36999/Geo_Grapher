@@ -3,6 +3,21 @@ import { LEGEND, categoryColour } from "./nodeStyle";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QiControl, { type QiMode } from "./QiControl";
 import { useDismissPopovers } from "./useDismiss";
+import {
+  IconBack,
+  IconFit,
+  IconGraphs,
+  IconHierarchy,
+  IconHome,
+  IconInspector,
+  IconMinus,
+  IconMoon,
+  IconPlus,
+  IconPin,
+  IconSettings,
+  IconSun,
+  IconUp,
+} from "./icons";
 import { frameQI, type QiOptions } from "./api";
 import type {
   Filter,
@@ -72,6 +87,10 @@ type Frame = {
   navigation: string;
   scope: string;
 };
+// Zoom slider range, in doublings from the fitted view: out to 1/8, in to 32x.
+const ZOOM_MIN = -3;
+const ZOOM_MAX = 5;
+
 export default function App({
   workspace,
 }: { workspace?: WorkspaceControls } = {}) {
@@ -157,6 +176,25 @@ export default function App({
     pruneGraph = () => workspace?.active ?? graphBasePath().match(/^\/graphs\/(g_[0-9a-f]{24})\//)?.[1],
     [pruneDraft, setPruneDraft] = useState<{ paths: string[]; label: string; graph?: string; busy?: boolean; message?: string }>(),
     [drawer, setDrawer] = useState<"hierarchy" | "inspector" | null>(null);
+  // The right-hand panel shows the selected thing (Inspect) or the workspace (Graphs: which graph,
+  // which revision, saved views). The choice is kept for the tab, so switching graphs, which
+  // remounts this component, does not drop a person back to Inspect.
+  const [panelMode, setPanelModeState] = useState<"inspect" | "graphs">(() => {
+      try {
+        return sessionStorage.getItem("geographer.panel") === "graphs" ? "graphs" : "inspect";
+      } catch {
+        return "inspect";
+      }
+    }),
+    [zoomLevel, setZoomLevel] = useState(0);
+  const setPanelMode = useCallback((mode: "inspect" | "graphs") => {
+    setPanelModeState(mode);
+    try {
+      sessionStorage.setItem("geographer.panel", mode);
+    } catch {
+      /* a private window: the choice just is not kept */
+    }
+  }, []);
   const [search, setSearch] = useState(""),
     [results, setResults] = useState<Node[]>([]),
     [searching, setSearching] = useState(false),
@@ -731,6 +769,7 @@ export default function App({
     };
   }, [search, snapshotId, navExternal, searchMode, activeSearchProject]);
   async function select(id: string) {
+    setPanelMode("inspect");
     setInspectionFrame(undefined);
     setSelected(id);
     setSelectedEdge("");
@@ -825,6 +864,7 @@ export default function App({
     setNavigation((n) => n + 1);
   }
   function pick(ids: string[], _position?: unknown, edge = false) {
+    setPanelMode("inspect");
     if (
       composition &&
       workspace &&
@@ -1017,6 +1057,61 @@ export default function App({
   ) {
     setFilter((old) => ({ ...old, [key]: !old[key] }));
   }
+  const graphsPanel = (
+    <section
+      id="panel-mode-graphs"
+      role="tabpanel"
+      aria-labelledby="mode-graphs"
+      className="graphs-panel"
+    >
+      {workspace?.tools}
+      <label className="stacked-field" htmlFor="snapshot">
+        Repository snapshot
+      </label>
+      <select
+        id="snapshot"
+        value={snapshotId}
+        onChange={(e) => {
+          const s = boot?.snapshots.find((x) => x.snapshot_id === e.target.value);
+          if (s) chooseSnapshot(s);
+        }}
+      >
+        {boot?.snapshots.map((s) => (
+          <option key={s.snapshot_id} value={s.snapshot_id}>
+            {graphDisplayLabel() ??
+              s.revisions.map((r) => r.repo_id).join(" + ")}{" "}
+            · {shortRevision(s.revisions[0]?.revision ?? "")} ·{" "}
+            {s.snapshot_id.slice(-6)}
+          </option>
+        ))}
+      </select>
+      <h3>Views</h3>
+      <div className="views-row">
+        <button
+          onClick={() => {
+            setSaveName("");
+            setSaveOpen(true);
+          }}
+          disabled={!snapshot || !frameCurrent}
+        >
+          Save view
+        </button>
+        <label className="sr-only" htmlFor="saved-views">
+          Restore saved view
+        </label>
+        <select
+          id="saved-views"
+          value=""
+          onChange={(e) => void restore(e.target.value)}
+        >
+          <option value="">Saved views</option>
+          {saved.map((v) => (
+            <option key={v.name}>{v.name}</option>
+          ))}
+        </select>
+      </div>
+    </section>
+  );
   return (
     <div
       className={`application${graphBasePath() !== "/" ? " graph-pane" : ""}${workspace ? " integrated-workspace" : ""}`}
@@ -1038,64 +1133,65 @@ export default function App({
         >
           <span className="brand-mark" aria-hidden="true">
             ◉
-          </span>{" "}
-          Geo Grapher
+          </span>
+          <span className="brand-name"> Geo Grapher</span>
         </a>
-        <span className="local-badge">LOCAL WORKSPACE</span>
         <LibraryLink onContext={(c) => setLibraryName(c.library_name ?? "")} />
-        {workspace?.tools}
-        <label className="sr-only" htmlFor="snapshot">
-          Repository snapshot
-        </label>
-        <select
-          id="snapshot"
-          value={snapshotId}
-          onChange={(e) => {
-            const s = boot?.snapshots.find(
-              (x) => x.snapshot_id === e.target.value,
-            );
-            if (s) chooseSnapshot(s);
-          }}
+        <div
+          className="nav-cluster"
+          role="group"
+          aria-label="Workspace navigation"
         >
-          {boot?.snapshots.map((s) => (
-            <option key={s.snapshot_id} value={s.snapshot_id}>
-              {graphDisplayLabel() ??
-                s.revisions.map((r) => r.repo_id).join(" + ")}{" "}
-              · {shortRevision(s.revisions[0]?.revision ?? "")} ·{" "}
-              {s.snapshot_id.slice(-6)}
-            </option>
-          ))}
-        </select>
-        {snapshot && snapshot.repositories.length > 1 && (
-          <label className="search-intent">
-            Search project
-            <select
-              aria-label="Search project"
-              value={activeSearchProject}
-              onChange={(e) => setSearchProject(e.target.value)}
-            >
-              {snapshot.repositories.map((n) => (
-                <option key={n.id} value={n.repo_id}>
-                  {n.repo_id}
-                </option>
-              ))}
-              <option value="@all">All projects (explicit)</option>
-            </select>
-          </label>
-        )}
-        <label className="search-intent">
-          Search intent
-          <select
-            aria-label="Search intent"
-            disabled={!snapshot}
-            value={searchMode}
-            onChange={(e) => setSearchMode(e.target.value as typeof searchMode)}
+          <button
+            className="icon-button"
+            onClick={back}
+            disabled={!history.length}
+            aria-label="Navigate back"
+            title="Back"
           >
-            <option value="lexical">Symbols / paths</option>
-            <option value="hybrid">Code + documents</option>
-            <option value="documentation">Documents</option>
-          </select>
-        </label>
+            <IconBack />
+          </button>
+          <button
+            className="icon-button"
+            onClick={() => focusNode?.parent_id && enter(focusNode.parent_id)}
+            disabled={!focusNode?.parent_id}
+            aria-label="Enter parent container"
+            title="Up one level"
+          >
+            <IconUp />
+          </button>
+          <button
+            className="icon-button"
+            onClick={() =>
+              snapshot &&
+              enter(
+                snapshot.repositories.length > 1
+                  ? snapshot.root.id
+                  : (snapshot.repositories[0]?.id ?? snapshot.root.id),
+              )
+            }
+            disabled={!snapshot}
+            aria-label="Home"
+            title="Home: the top of the workspace"
+          >
+            <IconHome />
+          </button>
+        </div>
+        <nav className="breadcrumbs" aria-label="Containment path">
+          {ancestors.map((n, i) => (
+            <span key={n.id}>
+              {i > 0 && <span aria-hidden="true"> / </span>}
+              <button
+                onClick={() => enter(n.id)}
+                aria-current={n.id === focus ? "location" : undefined}
+                title={shortName(n)}
+              >
+                {shortName(n)}
+              </button>
+            </span>
+          ))}
+        </nav>
+        <div className="search-bar">
         <div className="search-wrap">
           <label className="sr-only" htmlFor="search">
             Search entities
@@ -1160,81 +1256,41 @@ export default function App({
             </div>
           )}
         </div>
-        <button
-          className="theme-button"
-          onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-          aria-label={`Use ${theme === "dark" ? "light" : "dark"} theme`}
-        >
-          {theme === "dark" ? "Light" : "Dark"}
-        </button>
-        <button
-          onClick={() => {
-            setSaveName("");
-            setSaveOpen(true);
-          }}
-          disabled={!snapshot || !frameCurrent}
-        >
-          Save view
-        </button>
-        <label className="sr-only" htmlFor="saved-views">
-          Restore saved view
-        </label>
-        <select
-          id="saved-views"
-          value=""
-          onChange={(e) => void restore(e.target.value)}
-        >
-          <option value="">Saved views</option>
-          {saved.map((v) => (
-            <option key={v.name}>{v.name}</option>
-          ))}
-        </select>
-      </header>
-      <div
-        className="navigation-bar"
-        role="region"
-        aria-label="Workspace navigation"
-      >
-        <button
-          onClick={back}
-          disabled={!history.length}
-          aria-label="Navigate back"
-        >
-          ←
-        </button>
-        <button
-          onClick={() => focusNode?.parent_id && enter(focusNode.parent_id)}
-          disabled={!focusNode?.parent_id}
-          aria-label="Enter parent container"
-        >
-          ↑
-        </button>
-        <button
-          onClick={() =>
-            snapshot &&
-            enter(
-              snapshot.repositories.length > 1
-                ? snapshot.root.id
-                : (snapshot.repositories[0]?.id ?? snapshot.root.id),
-            )
-          }
-          disabled={!snapshot}
-        >
-          Home
-        </button>
-        <nav className="breadcrumbs" aria-label="Containment path">
-          {ancestors.map((n, i) => (
-            <span key={n.id}>
-              {i > 0 && <span aria-hidden="true"> / </span>}
-              <button
-                onClick={() => enter(n.id)}
-                aria-current={n.id === focus ? "location" : undefined}
+          {snapshot && snapshot.repositories.length > 1 && (
+            <label className="search-intent compact">
+              <span className="sr-only">Search project</span>
+              <select
+                aria-label="Search project"
+                title="Which project to search"
+                value={activeSearchProject}
+                onChange={(e) => setSearchProject(e.target.value)}
               >
-                {shortName(n)}
-              </button>
-            </span>
-          ))}
-        </nav>
+                {snapshot.repositories.map((n) => (
+                  <option key={n.id} value={n.repo_id}>
+                    {n.repo_id}
+                  </option>
+                ))}
+                <option value="@all">All projects (explicit)</option>
+              </select>
+            </label>
+          )}
+          <label className="search-intent compact">
+            <span className="sr-only">Search intent</span>
+            <select
+              aria-label="Search intent"
+              title="What to search"
+              disabled={!snapshot}
+              value={searchMode}
+              onChange={(e) =>
+                setSearchMode(e.target.value as typeof searchMode)
+              }
+            >
+              <option value="lexical">Symbols / paths</option>
+              <option value="hybrid">Code + documents</option>
+              <option value="documentation">Documents</option>
+            </select>
+          </label>
+        </div>
         <span className="static-badge" role="note" aria-label="Analysis mode">
           {filter.families.includes("runtime")
             ? filter.families.includes("static")
@@ -1244,27 +1300,86 @@ export default function App({
               ? "STATIC ANALYSIS"
               : "CONTAINMENT ONLY"}
         </span>
-      </div>
-      <div className="mobile-navigation">
-        <button
-          data-drawer-toggle="hierarchy"
-          aria-expanded={drawer === "hierarchy"}
-          onClick={() =>
-            setDrawer((d) => (d === "hierarchy" ? null : "hierarchy"))
-          }
-        >
-          Hierarchy
-        </button>
-        <button
-          data-drawer-toggle="inspector"
-          aria-expanded={drawer === "inspector"}
-          onClick={() =>
-            setDrawer((d) => (d === "inspector" ? null : "inspector"))
-          }
-        >
-          Inspector
-        </button>
-      </div>
+        <div className="mobile-navigation">
+          <button
+            className="icon-button"
+            data-drawer-toggle="hierarchy"
+            aria-expanded={drawer === "hierarchy"}
+            aria-label="Hierarchy"
+            title="Hierarchy"
+            onClick={() =>
+              setDrawer((d) => (d === "hierarchy" ? null : "hierarchy"))
+            }
+          >
+            <IconHierarchy />
+          </button>
+          <button
+            className="icon-button"
+            data-drawer-toggle="inspector"
+            aria-expanded={drawer === "inspector"}
+            aria-label="Inspector"
+            title="Inspector"
+            onClick={() =>
+              setDrawer((d) => (d === "inspector" ? null : "inspector"))
+            }
+          >
+            <IconInspector />
+          </button>
+        </div>
+        <details className="popover settings-menu">
+          <summary aria-label="Settings" title="Settings">
+            <IconSettings />
+          </summary>
+          <div className="settings-popover" role="group" aria-label="Settings">
+            <h2>Settings</h2>
+            <div className="settings-row">
+              <span id="theme-label">Theme</span>
+              <div className="segmented" role="group" aria-labelledby="theme-label">
+                <button
+                  aria-pressed={theme === "dark"}
+                  aria-label="Use dark theme"
+                  onClick={() => setTheme("dark")}
+                >
+                  <IconMoon /> Dark
+                </button>
+                <button
+                  aria-pressed={theme === "light"}
+                  aria-label="Use light theme"
+                  onClick={() => setTheme("light")}
+                >
+                  <IconSun /> Light
+                </button>
+              </div>
+            </div>
+            <label className="settings-row">
+              Hierarchy width
+              <input
+                aria-label="Hierarchy panel width"
+                type="range"
+                min="190"
+                max="340"
+                value={panelSizes[0]}
+                onChange={(e) =>
+                  setPanelSizes([Number(e.target.value), panelSizes[1]])
+                }
+              />
+            </label>
+            <label className="settings-row">
+              Inspector width
+              <input
+                aria-label="Inspector panel width"
+                type="range"
+                min="290"
+                max="440"
+                value={panelSizes[1]}
+                onChange={(e) =>
+                  setPanelSizes([panelSizes[0], Number(e.target.value)])
+                }
+              />
+            </label>
+          </div>
+        </details>
+      </header>
       <div className="workspace">
         <aside
           className={`hierarchy-panel side-panel ${drawer === "hierarchy" ? "drawer-open" : ""}`}
@@ -1317,7 +1432,6 @@ export default function App({
         <main id="main-view" className="main-view" tabIndex={-1}>
           <div className="workspace-heading">
             <div>
-              <span className="eyebrow">ARCHITECTURE AT A GLANCE</span>
               <h1>
                 {focusNode ? shortName(focusNode) : "Repository workspace"}
               </h1>
@@ -1398,11 +1512,6 @@ export default function App({
                 ))}
               </select>
             </label>
-            {view === "spatial" && <QiControl mode={qiMode} enabled={qiEligible}
-              report={frameCurrent ? frameQI(frame?.data) : undefined}
-              groups={frameCurrent ? frame?.data.nodes.filter(n => n.kind === "qi") ?? [] : []}
-              onChange={value => { captureCamera(); setQiMode(value); setQiExpanded([]); setNavigation(n => n + 1); }}
-              onExpand={id => { void expandQi(id); }} />}
             <div role="group" aria-label="Context breadth">
               {(["Path", "Nearby", "Wider"] as const).map((label, i) => (
                 <button
@@ -1414,12 +1523,6 @@ export default function App({
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => setRulesOpen(!rulesOpen)}
-              aria-expanded={rulesOpen}
-            >
-              Configure rules
-            </button>
             {rulesOpen && (
               <section
                 className="rules-editor"
@@ -1714,21 +1817,51 @@ export default function App({
                     )}
                   </section>
                 )}
+                {view === "spatial" && (
+                  <fieldset className="advanced-scope">
+                    <legend>Advanced</legend>
+                    <QiControl
+                      mode={qiMode}
+                      enabled={qiEligible}
+                      report={frameCurrent ? frameQI(frame?.data) : undefined}
+                      groups={
+                        frameCurrent
+                          ? (frame?.data.nodes.filter((n) => n.kind === "qi") ?? [])
+                          : []
+                      }
+                      onChange={(value) => {
+                        captureCamera();
+                        setQiMode(value);
+                        setQiExpanded([]);
+                        setNavigation((n) => n + 1);
+                      }}
+                      onExpand={(id) => {
+                        void expandQi(id);
+                      }}
+                    />
+                  </fieldset>
+                )}
+                <button
+                  aria-expanded={rulesOpen}
+                  onClick={(e) => {
+                    setRulesOpen(!rulesOpen);
+                    // the panel gets out of the way of the editor it opens
+                    const panel = e.currentTarget.closest("details");
+                    if (panel) panel.open = false;
+                  }}
+                >
+                  Configure rules
+                </button>
               </div>
             </details>
-            <span>
-              {filter.include_tests ? "All code" : "Production"} ·{" "}
-              {filter.families.includes("static")
-                ? filter.resolution_statuses.some(
-                    (s) => s === "candidate" || s === "unresolved",
-                  )
-                  ? "uncertainty included"
-                  : "exact dependencies"
-                : ""}
-              {filter.families.includes("runtime") ? " · observed calls" : ""}
-            </span>
             <button
-              className="pin-action"
+              className="pin-action icon-button"
+              aria-label={pins.includes(selected) ? "Unpin" : "Pin selection"}
+              title={
+                pins.includes(selected)
+                  ? "Unpin: let this entity go back to being ordinary"
+                  : "Pin selection: keep this entity in view while you move around"
+              }
               disabled={!current?.entity_id}
               aria-pressed={pins.includes(selected)}
               onClick={() =>
@@ -1739,18 +1872,8 @@ export default function App({
                 )
               }
             >
-              {pins.includes(selected) ? "Unpin" : "Pin selection"}
+              <IconPin />
             </button>
-            <span className="filter-count">
-              {composition?.data.spheres.length ??
-                frame?.data.spheres.length ??
-                0}{" "}
-              groups ·{" "}
-              {composition?.data.curves.length ??
-                frame?.data.curves.length ??
-                0}{" "}
-              curves
-            </span>
           </div>
           {error && (
             <div className="error-banner" role="alert">
@@ -1800,6 +1923,7 @@ export default function App({
               <>
                 <Scene
                   ref={scene}
+                  onZoomLevel={setZoomLevel}
                   labelKey={libraryName}
                   frame={composition?.data ?? frame?.data}
                   declaredLinks={composition?.declaredLinks}
@@ -2003,6 +2127,42 @@ export default function App({
                     </button>
                   )}
                   <button
+                    className="icon-button"
+                    onClick={() => scene.current?.zoom(1.25)}
+                    aria-label="Zoom out"
+                    title="Zoom out"
+                  >
+                    <IconMinus />
+                  </button>
+                  <input
+                    className="zoom-slider"
+                    type="range"
+                    aria-label="Zoom"
+                    min={ZOOM_MIN}
+                    max={ZOOM_MAX}
+                    step="0.05"
+                    value={Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomLevel))}
+                    aria-valuetext={`${(2 ** zoomLevel).toFixed(2)} times the fitted size`}
+                    title={`Zoom: ${(2 ** zoomLevel).toFixed(1)}× the fitted size`}
+                    onChange={(e) => {
+                      // Set the slider's own state as well as the camera: otherwise React puts the
+                      // old value back before the browser's "change" event, which then sets the
+                      // camera back to it (a key press moved nothing).
+                      const level = Number(e.target.value);
+                      setZoomLevel(level);
+                      scene.current?.setZoomLevel(level);
+                    }}
+                  />
+                  <button
+                    className="icon-button"
+                    onClick={() => scene.current?.zoom(0.8)}
+                    aria-label="Zoom in"
+                    title="Zoom in"
+                  >
+                    <IconPlus />
+                  </button>
+                  <button
+                    className="icon-button"
                     onClick={() => scene.current?.fit()}
                     aria-label={
                       composition
@@ -2011,20 +2171,9 @@ export default function App({
                           ? "Fit focused container"
                           : "Fit displayed groups"
                     }
+                    title="Fit everything in view"
                   >
-                    Fit
-                  </button>
-                  <button
-                    onClick={() => scene.current?.zoom(0.8)}
-                    aria-label="Zoom in"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => scene.current?.zoom(1.25)}
-                    aria-label="Zoom out"
-                  >
-                    −
+                    <IconFit />
                   </button>
                 </div>
               </>
@@ -2091,39 +2240,6 @@ export default function App({
               </div>
             )}
           </div>
-          {(view === "spatial" || cursor.current) && (
-            <div className="scene-controls">
-              {view === "spatial" && (
-                <>
-                  <label htmlFor="bundling">
-                    Bundling <output>{beta.toFixed(2)}</output>
-                  </label>
-                  <input
-                    id="bundling"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step=".01"
-                    value={beta}
-                    onChange={(e) => setBeta(Number(e.target.value))}
-                  />
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={lens}
-                      onChange={(e) => setLens(e.target.checked)}
-                    />
-                    Local EdgeLens
-                  </label>
-                </>
-              )}
-              {cursor.current && (
-                <button disabled={loading} onClick={() => void more()}>
-                  Load more detail
-                </button>
-              )}
-            </div>
-          )}
           {pathProjection && (
             <section aria-label="Highlighted witness path">
               <p>
@@ -2160,6 +2276,40 @@ export default function App({
               </button>
             </section>
           )}
+          <div className="canvas-footer">
+          {(view === "spatial" || cursor.current) && (
+            <div className="scene-controls">
+              {view === "spatial" && (
+                <>
+                  <label htmlFor="bundling">
+                    Bundling <output>{beta.toFixed(2)}</output>
+                  </label>
+                  <input
+                    id="bundling"
+                    type="range"
+                    min="0"
+                    max="1"
+                    step=".01"
+                    value={beta}
+                    onChange={(e) => setBeta(Number(e.target.value))}
+                  />
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={lens}
+                      onChange={(e) => setLens(e.target.checked)}
+                    />
+                    Local EdgeLens
+                  </label>
+                </>
+              )}
+              {cursor.current && (
+                <button disabled={loading} onClick={() => void more()}>
+                  Load more detail
+                </button>
+              )}
+            </div>
+          )}
           <div className="scope-note">
             {composition?.loading && (
               <span role="status">Loading selected graphs…</span>
@@ -2195,6 +2345,9 @@ export default function App({
                   rather than guessed.
                 </p>
                 <p>
+                  Internal relationships remain in the inspector and matrix.
+                </p>
+                <p>
                   {snapshot?.statuses.exact ?? 0} exact ·{" "}
                   {snapshot?.statuses.candidate ?? 0} candidate ·{" "}
                   {snapshot?.statuses.unresolved ?? 0} unresolved relationships
@@ -2218,56 +2371,49 @@ export default function App({
                   orientation shells, including when excluded by the dependency
                   filter.
                 </p>
-                <label>
-                  Hierarchy width
-                  <input
-                    aria-label="Hierarchy panel width"
-                    type="range"
-                    min="190"
-                    max="340"
-                    value={panelSizes[0]}
-                    onChange={(e) =>
-                      setPanelSizes([Number(e.target.value), panelSizes[1]])
-                    }
-                  />
-                </label>
-                <label>
-                  Inspector width
-                  <input
-                    aria-label="Inspector panel width"
-                    type="range"
-                    min="290"
-                    max="440"
-                    value={panelSizes[1]}
-                    onChange={(e) =>
-                      setPanelSizes([panelSizes[0], Number(e.target.value)])
-                    }
-                  />
-                </label>
                 <button onClick={() => setCoverageOpen(false)}>
                   Close coverage
                 </button>
               </div>
             )}
-            {frame && (
-              <>
+            {frame &&
+              (frame.data.scene_completeness.omitted_spheres > 0 ||
+                frame.data.scene_completeness.omitted_curves > 0) && (
                 <span>
                   {frame.data.scene_completeness.omitted_spheres.toLocaleString()}{" "}
                   groups and{" "}
                   {frame.data.scene_completeness.omitted_curves.toLocaleString()}{" "}
                   curves omitted by scope or budget.
-                </span>{" "}
-                <span>
-                  Internal relationships remain in the inspector and matrix.
                 </span>
-              </>
-            )}
+              )}
+            <span className="scope-summary">
+              {filter.include_tests ? "All code" : "Production"} ·{" "}
+              {filter.families.includes("static")
+                ? filter.resolution_statuses.some(
+                    (s) => s === "candidate" || s === "unresolved",
+                  )
+                  ? "uncertainty included"
+                  : "exact dependencies"
+                : ""}
+              {filter.families.includes("runtime") ? " · observed calls" : ""}
+            </span>
+            <span className="filter-count">
+              {composition?.data.spheres.length ??
+                frame?.data.spheres.length ??
+                0}{" "}
+              groups ·{" "}
+              {composition?.data.curves.length ??
+                frame?.data.curves.length ??
+                0}{" "}
+              curves
+            </span>
             {snapshot && (
               <span>
-                {snapshot.counts.entities.toLocaleString()} source entities ·
-                revision {snapshot.revisions[0]?.revision.slice(0, 12)}
+                {snapshot.counts.entities.toLocaleString()} entities ·{" "}
+                {snapshot.revisions[0]?.revision.slice(0, 12)}
               </span>
             )}
+          </div>
           </div>
         </main>
         <aside
@@ -2277,7 +2423,37 @@ export default function App({
           <button className="drawer-dismiss" onClick={() => setDrawer(null)}>
             Close inspector
           </button>
-          {snapshot && (
+          <div className="panel-modes" role="tablist" aria-label="Right panel">
+            {(
+              [
+                ["inspect", "Inspect", null],
+                ["graphs", "Graphs", <IconGraphs key="g" />],
+              ] as const
+            ).map(([key, label, glyph]) => (
+              <button
+                key={key}
+                role="tab"
+                id={`mode-${key}`}
+                aria-selected={panelMode === key}
+                aria-controls={key === "graphs" ? "panel-mode-graphs" : undefined}
+                tabIndex={panelMode === key ? 0 : -1}
+                onClick={() => setPanelMode(key)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    const next = key === "inspect" ? "graphs" : "inspect";
+                    setPanelMode(next);
+                    document.getElementById(`mode-${next}`)?.focus();
+                  }
+                }}
+              >
+                {glyph} {label}
+              </button>
+            ))}
+          </div>
+          {panelMode === "graphs" ? (
+            graphsPanel
+          ) : snapshot && (
             <Inspector
               snapshot={snapshot}
               node={current}

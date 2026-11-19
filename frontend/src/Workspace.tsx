@@ -176,7 +176,7 @@ export default function Workspace() {
   setWorkspaceGraph(active, graph.label, primary);
   const tools = (
     <>
-      <label className="search-intent">
+      <label className="stacked-field">
         Active graph{" "}
         <select
           aria-label="Active graph"
@@ -195,7 +195,7 @@ export default function Workspace() {
         </select>
       </label>
       <details
-        className="workspace-graph-picker popover"
+        className="workspace-graph-picker"
         open={pickerOpen}
         onToggle={(e) => setPickerOpen(e.currentTarget.open)}
       >

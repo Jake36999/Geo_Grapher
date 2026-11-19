@@ -1,4 +1,5 @@
 const {test,expect}=require('@playwright/test');
+const {showGraphsMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
 const fs=require('node:fs'),ts=require('typescript');
 async function editing(){
  const js=ts.transpile(fs.readFileSync('frontend/src/layoutEditing.ts','utf8'),{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext});
@@ -58,7 +59,7 @@ test('drag box selects a group; held wheel and drag edit it together; keyboard c
  await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false');
  await expect(page.locator('.filter-count')).toHaveText(/[1-9]\d* groups/);
  await canvas.scrollIntoViewIfNeeded();const bounds=await canvas.boundingBox();
- await page.mouse.move(bounds.x+12,bounds.y+75);await page.keyboard.down('Shift');await page.mouse.down();
+ await page.mouse.move(bounds.x+64,bounds.y+75);await page.keyboard.down('Shift');await page.mouse.down();
  await page.mouse.move(bounds.x+bounds.width-12,bounds.y+bounds.height-45,{steps:8});await page.mouse.up();await page.keyboard.up('Shift');
  await expect.poll(async()=>Number((await scene.getByTestId('layout-selection-status').textContent()).split(' ')[0])).toBeGreaterThan(1);
  const selected=scene.getByTestId('layout-selection');await expect(selected).toBeVisible();
@@ -85,12 +86,12 @@ test('the integrated main workspace keeps box editing and light-theme controls',
  await expect.poll(async()=> (await targets(canvas)).length).toBeGreaterThan(1);
  const box=await canvas.boundingBox();
  await page.getByRole('button',{name:'Box select',exact:true}).click();
- await page.mouse.move(box.x+12,box.y+80);await page.mouse.down();
+ await page.mouse.move(box.x+64,box.y+80);await page.mouse.down();
  await page.mouse.move(box.x+box.width-12,box.y+box.height-48,{steps:5});await page.mouse.up();
  await expect(page.getByTestId('layout-selection-status')).not.toHaveText('0 selected');
  await page.getByRole('button',{name:'Size +: enlarge selected nodes',exact:true}).click();
  await page.getByRole('button',{name:'Reset layout',exact:true}).click();
- await page.getByRole('button',{name:'Use light theme',exact:true}).click();
+ await useTheme(page,'light');
  const results=await new AxeBuilder({page}).include('.scene-host').analyze();
  expect(results.violations).toEqual([]);
 });

@@ -1,5 +1,6 @@
 const {test,expect}=require('@playwright/test');
-async function graphsMenu(page){const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
+const {showGraphsMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
+async function graphsMenu(page){await showGraphsMode(page);const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
 // Other specs expect only the fixture's Alpha/Beta graphs: delete every graph this file creates.
 let baseline=null;
 test.beforeAll(async({request})=>{baseline=new Set((await(await request.get('/api/graphs')).json()).graphs.map(g=>g.graph_id));});
@@ -35,7 +36,7 @@ test('box-select nodes, prune: a derived graph appears and the source is unchang
  await page.getByRole('button',{name:'Wider',exact:true}).click();
  const canvas=page.locator('canvas');await canvas.scrollIntoViewIfNeeded();const box=await canvas.boundingBox();
  await page.getByRole('button',{name:'Box select',exact:true}).click();
- await page.mouse.move(box.x+12,box.y+80);await page.mouse.down();
+ await page.mouse.move(box.x+64,box.y+80);await page.mouse.down();
  await page.mouse.move(box.x+box.width-12,box.y+box.height-48,{steps:5});await page.mouse.up();
  await expect(page.getByTestId('layout-selection-status')).not.toHaveText('0 selected');
  await page.getByRole('button',{name:'Prune selection…'}).click();

@@ -54,7 +54,8 @@ export function LibraryLink({ onContext }: { onContext?: (c: Context) => void })
         title={`Return to the Librarian for ${name}`}
         aria-label={`Back to Librarian: ${name}`}
       >
-        ← Librarian · {name}
+        <span aria-hidden="true">← </span>Librarian
+        <span className="library-link-name"> · {name}</span>
       </a>
       {context.can_close && (
         <button

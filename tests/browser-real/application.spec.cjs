@@ -1,4 +1,5 @@
 const {test,expect}=require('@playwright/test');
+const {showGraphsMode,openScope}=require('../browser/panel-helpers.cjs');
 const path=require('path');
 const root=path.resolve(process.env.QA_REAL_ROOT||'output/phase67-gates/wave4/application-r1');
 let baseline=[];
@@ -21,6 +22,7 @@ test.afterEach(async({page},info)=>{
 async function open(page,label='ToolSet'){
  const g=baseline.find(g=>g.label===label);expect(g).toBeTruthy();
  await page.goto('/?graph='+g.graph_id);
+ await showGraphsMode(page);
  await expect(page.getByRole('combobox',{name:'Active graph',exact:true})).toBeVisible();
  await page.getByRole('combobox',{name:'Active graph',exact:true}).selectOption(g.graph_id);
  await expect(page.getByTestId('spatial-scene')).toBeVisible();
@@ -28,6 +30,7 @@ async function open(page,label='ToolSet'){
  return g;
 }
 async function menu(page){
+ await showGraphsMode(page);
  const m=page.locator('.workspace-graph-picker');
  if(!await m.evaluate(e=>e.open))await m.locator(':scope > summary').click();
  return m;
@@ -49,6 +52,7 @@ test('real ToolSet spatial view exposes directed QI and renders QI groups',async
  await open(page);
  await only(page,'ToolSet');
  const control=page.getByRole('combobox',{name:'QI algorithm'});
+ await openScope(page);
  await expect(control).toBeDisabled();
  await expect(page.getByText('Requires atomic grouping and exact static relationships.')).toBeVisible();
  const when=predicate=>page.waitForResponse(r=>r.url().endsWith('/viewport/frame')&&r.request().method()==='POST'&&predicate(r.request().postDataJSON()));
@@ -56,8 +60,10 @@ test('real ToolSet spatial view exposes directed QI and renders QI groups',async
  await page.getByLabel('Abstraction grouping').selectOption('atomic');
  const original=(await(await atomic).json()).data.partition_digest;
  await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
+ await openScope(page);
  await expect(control).toBeEnabled();
  const directed=when(q=>q.qi?.enabled&&q.qi.algorithm==='directed-helper-condensation-v1');
+ await openScope(page);
  await control.selectOption('directed-helper-condensation-v1');
  const data=(await(await directed).json()).data;
  expect(data.qi.directed_reachability_preserved).toBe(true);expect(data.qi.group_count).toBeGreaterThan(1);
@@ -65,20 +71,24 @@ test('real ToolSet spatial view exposes directed QI and renders QI groups',async
  await expect(page.getByTestId('qi-certificate')).toContainText('reachability preserved (existential)');
  await expect.poll(async()=>Number(await page.getByTestId('spatial-scene').getAttribute('data-qi-group-count'))).toBeGreaterThan(1);
  await page.screenshot({path:process.env.QA_REAL_SCREENSHOT||'output/qa-real/review2-directed-visible.png'});
+ await openScope(page);
  await page.locator('.qi-blocks > summary').click();
  const button=page.locator('[data-qi-group]').first();await expect(button).toBeVisible();
  const old=await button.getAttribute('data-qi-group');const expanded=when(q=>q.qi?.enabled&&q.pins.length>0);
  await button.click();expect((await expanded).ok()).toBe(true);
  await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
  expect(await page.locator('[data-qi-group]').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-qi-group')))).not.toContain(old);
+ await openScope(page);
  const off=when(q=>!q.qi?.enabled);await control.selectOption('off');
  expect((await(await off).json()).data.partition_digest).toBe(original);
  await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
  await expect(page.getByTestId('spatial-scene')).toHaveAttribute('data-qi-group-count','0');
  const helpers=when(q=>q.qi?.enabled&&q.qi.algorithm==='helper_tree_balls_v1');
+ await openScope(page);
  await control.selectOption('helper_tree_balls_v1');expect((await(await helpers).json()).data.qi.mode).toBe('helper_tree_balls_v1');
  await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false',{timeout:60000});
  await expect(page.getByTestId('qi-certificate')).toContainText('undirected hop bound');
+ await openScope(page);
  await control.selectOption('off');
 });
 test('real ToolSet box selection prunes a copy and preserves source snapshot',async({page,request})=>{

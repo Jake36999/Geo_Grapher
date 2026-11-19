@@ -1,7 +1,7 @@
 const { defineConfig } = require('@playwright/test');
 const path = require('node:path');
 module.exports=defineConfig({
-  testDir:'tests/browser-graphs',testMatch:['integrated-workspace.spec.cjs','layout-editing.spec.cjs','edge-chromatics.spec.cjs','lifecycle.spec.cjs','bridge-review.spec.cjs','ingest-and-prune.spec.cjs','popover-dismiss.spec.cjs'],workers:1,
+  testDir:'tests/browser-graphs',testMatch:['integrated-workspace.spec.cjs','layout-editing.spec.cjs','edge-chromatics.spec.cjs','lifecycle.spec.cjs','bridge-review.spec.cjs','ingest-and-prune.spec.cjs','popover-dismiss.spec.cjs','topbar-rail.spec.cjs'],workers:1,
   timeout:60000,expect:{timeout:15000},outputDir:'output/integrated-workspace/browser-artifacts',
   reporter:[['list'],['json',{outputFile:'output/integrated-workspace/browser-results.json'}]],
   use:{baseURL:'http://127.0.0.1:8775',browserName:'chromium',channel:'msedge',viewport:{width:1440,height:1000},reducedMotion:'reduce',trace:'retain-on-failure',screenshot:'only-on-failure'},

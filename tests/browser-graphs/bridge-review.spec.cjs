@@ -1,5 +1,6 @@
 const {test,expect}=require('@playwright/test');
-async function graphsMenu(page){const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
+const {showGraphsMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
+async function graphsMenu(page){await showGraphsMode(page);const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
 
 test('review bridge candidates: accept one with a rationale creates exactly one bridge',async({page,request})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});

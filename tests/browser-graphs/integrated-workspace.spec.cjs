@@ -1,15 +1,16 @@
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),ts=require('typescript');
 const AxeBuilder=require('@axe-core/playwright').default;
+const {showGraphsMode,showInspectMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
 async function ready(page){await expect(page.getByRole('searchbox',{name:'Search entities'})).toBeEnabled();await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false');await expect(page.getByText('Loading selected graphs…',{exact:true})).toHaveCount(0);await expect(page.getByRole('alert')).toHaveCount(0);await expect(page.locator('.filter-count')).toHaveText(/[1-9]\d* groups/);}
-async function graphs(page){const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
+async function graphs(page){await showGraphsMode(page);const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
 
 test('original workspace shell contains all graph modes, filters and inspector on one page',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');await ready(page);
  await expect(page.getByRole('link',{name:'Geo Grapher home'})).toBeVisible();
  await expect(page.getByRole('complementary',{name:'Repository hierarchy'})).toBeVisible();
  await expect(page.getByRole('complementary',{name:'Entity details'})).toBeVisible();
- await expect(page.getByRole('combobox',{name:'Repository snapshot'})).toBeVisible();
+ await expect((await showGraphsMode(page)).getByRole('combobox',{name:'Repository snapshot'})).toBeVisible();
  await expect(page.getByRole('combobox',{name:'Abstraction grouping'})).toBeVisible();
  await expect(page.locator('iframe')).toHaveCount(0);
  await page.getByRole('button',{name:'List',exact:true}).click();
@@ -26,12 +27,12 @@ test('list and matrix selections activate their graph and use the existing inspe
  const data=(await(await request.get('/api/graphs')).json()).graphs,beta=data.find(g=>g.label==='Beta');
  await page.goto('/');await ready(page);await page.getByRole('button',{name:'List',exact:true}).click();
  await page.locator('.list-entity').filter({hasText:'Beta'}).click();
- await expect(page.getByRole('combobox',{name:'Active graph'})).toHaveValue(beta.graph_id);
+ await expect((await showGraphsMode(page)).getByRole('combobox',{name:'Active graph'})).toHaveValue(beta.graph_id);
  await expect(page.getByRole('button',{name:'List',exact:true})).toHaveAttribute('aria-pressed','true');
- await expect(page.getByRole('tablist',{name:'Entity inspector'})).toBeVisible();
+ await showInspectMode(page);await expect(page.getByRole('tablist',{name:'Entity inspector'})).toBeVisible();
  await page.getByRole('button',{name:'Matrix',exact:true}).click();
  await page.getByRole('button',{name:/Alpha to Alpha: [1-9]/}).click();
- await expect(page.getByRole('combobox',{name:'Active graph'})).toHaveValue(data.find(g=>g.label==='Alpha').graph_id);
+ await expect((await showGraphsMode(page)).getByRole('combobox',{name:'Active graph'})).toHaveValue(data.find(g=>g.label==='Alpha').graph_id);
  await expect(page.getByRole('button',{name:'Matrix',exact:true})).toHaveAttribute('aria-pressed','true');
  await expect(page.locator('iframe')).toHaveCount(0);
  await expect(page.getByRole('alert')).toHaveCount(0);
@@ -70,14 +71,14 @@ test('reviewed merge remains an integrated tool; stale source plans are rejected
  await expect(page.getByRole('alert').filter({hasText:'Merge plan changed'})).toBeVisible();
  await page.getByRole('button',{name:'Review merge plan'}).click();await page.getByLabel('I reviewed these sources and want a new merged graph.').check();await page.getByRole('button',{name:'Create reviewed merged graph'}).click();
  await expect.poll(async()=> (await(await request.get('/api/graphs')).json()).graphs.find(g=>g.label==='Integrated union')?.graph_id).toBeTruthy();
- await expect(page.getByRole('combobox',{name:'Active graph'})).toHaveValue((await(await request.get('/api/graphs')).json()).graphs.find(g=>g.label==='Integrated union').graph_id);
- await expect(page.locator('iframe')).toHaveCount(0);await expect(page.getByRole('combobox',{name:'Repository snapshot'})).toBeVisible();
+ await expect((await showGraphsMode(page)).getByRole('combobox',{name:'Active graph'})).toHaveValue((await(await request.get('/api/graphs')).json()).graphs.find(g=>g.label==='Integrated union').graph_id);
+ await expect(page.locator('iframe')).toHaveCount(0);await expect((await showGraphsMode(page)).getByRole('combobox',{name:'Repository snapshot'})).toBeVisible();
 });
 
 test('old viewer links resolve to the same root workspace',async({page,request})=>{
  const alpha=(await(await request.get('/api/graphs')).json()).graphs.find(g=>g.label==='Alpha');
  await page.goto('/graphs/'+alpha.graph_id+'/?debug');await ready(page);
- expect(new URL(page.url()).pathname).toBe('/');await expect(page.getByRole('combobox',{name:'Active graph'})).toHaveValue(alpha.graph_id);
+ expect(new URL(page.url()).pathname).toBe('/');await expect((await showGraphsMode(page)).getByRole('combobox',{name:'Active graph'})).toHaveValue(alpha.graph_id);
 });
 
 test('saved views restore graph selection and search remains scoped to the active graph',async({page,request})=>{
@@ -86,13 +87,13 @@ test('saved views restore graph selection and search remains scoped to the activ
   const text=await choice.evaluate(e=>e.closest('label').textContent);if(!text.includes('Alpha')&&!text.includes('bridges'))await choice.uncheck();
  }
  await page.locator('.workspace-graph-picker > summary').click();
- await page.getByRole('button',{name:'Save view',exact:true}).click();await page.getByLabel('View name').fill('Only Alpha');
+ await (await showGraphsMode(page)).getByRole('button',{name:'Save view',exact:true}).click();await page.getByLabel('View name').fill('Only Alpha');
  await page.getByRole('button',{name:'Save',exact:true}).click();menu=await graphs(page);await menu.getByRole('checkbox',{name:'Beta',exact:true}).check();
- await page.locator('.workspace-graph-picker > summary').click();await page.getByRole('combobox',{name:'Restore saved view'}).selectOption('Only Alpha');
+ await page.locator('.workspace-graph-picker > summary').click();await (await showGraphsMode(page)).getByRole('combobox',{name:'Restore saved view'}).selectOption('Only Alpha');
  menu=await graphs(page);await expect(menu.getByRole('checkbox',{name:'Beta',exact:true})).not.toBeChecked();
  await page.locator('.workspace-graph-picker > summary').click();
  const beta=(await(await request.get('/api/graphs')).json()).graphs.find(g=>g.label==='Beta');
- await page.getByRole('combobox',{name:'Active graph'}).selectOption(beta.graph_id);
+ await (await showGraphsMode(page)).getByRole('combobox',{name:'Active graph'}).selectOption(beta.graph_id);
  const response=page.waitForResponse(r=>r.url().includes('/graphs/'+beta.graph_id+'/api/v1/search_entities'));
  await expect(page.getByRole('searchbox',{name:'Search entities'})).toBeEnabled();await page.getByRole('searchbox',{name:'Search entities'}).fill('entry');
  const data=await(await response).json();expect(data.data.nodes.every(n=>n.repo_id===beta.graph_id)).toBeTruthy();

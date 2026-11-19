@@ -1719,3 +1719,444 @@ dialog input {
 .legend[hidden] {
   display: none;
 }
+
+
+/* ---- One top bar, a tool rail on the canvas, a zoom slider, and a right panel with modes ----------
+   Back, up, home and the path moved into the header (the separate navigation bar is gone), search
+   takes the width that is left, and the canvas tools are an icon rail down its left edge. */
+.icon-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+.icon-button svg {
+  display: block;
+}
+.nav-cluster {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+.nav-cluster .icon-button {
+  border-color: transparent;
+  background: transparent;
+}
+.nav-cluster .icon-button:hover:not(:disabled) {
+  background: var(--raised);
+  border-color: var(--accent);
+}
+.app-header .breadcrumbs {
+  flex: 0 1 auto;
+  max-width: 42%;
+  min-width: 60px;
+  margin-left: 4px;
+  display: flex;
+  overflow: hidden;
+}
+.breadcrumbs > span {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.breadcrumbs button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.search-bar {
+  flex: 1 1 260px;
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.search-bar .search-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 0;
+}
+.search-intent.compact {
+  flex: none;
+}
+.search-intent.compact select {
+  max-width: 150px;
+}
+.app-header .static-badge {
+  display: none;
+}
+.app-header .mobile-navigation {
+  padding: 0;
+  border: 0;
+  background: none;
+  gap: 2px;
+}
+.settings-menu {
+  position: relative;
+  flex: none;
+}
+.settings-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--control);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.settings-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.settings-menu[open] > summary {
+  border-color: var(--accent);
+}
+.settings-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  width: min(300px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px #0006;
+}
+.settings-popover h2 {
+  margin: 0;
+  font-size: 14px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+.settings-row input[type="range"] {
+  width: 140px;
+}
+.segmented {
+  display: flex;
+}
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 0;
+  font-size: 12px;
+  padding: 5px 10px;
+}
+.segmented button:first-child {
+  border-radius: 5px 0 0 5px;
+}
+.segmented button:last-child {
+  border-radius: 0 5px 5px 0;
+}
+@media (min-width: 721px) {
+  .app-header {
+    height: auto;
+    min-height: 48px;
+    padding: 6px 12px;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+  .graph-pane .app-header {
+    flex-wrap: nowrap;
+    min-height: 48px;
+    padding: 6px 12px;
+    gap: 6px;
+  }
+}
+@media (max-width: 1100px) {
+  .brand-name {
+    display: none;
+  }
+}
+@media (min-width: 1440px) {
+  .app-header .static-badge {
+    display: inline;
+  }
+}
+@media (max-width: 720px) {
+  /* A phone: three short rows (identity and tools, the path, search) instead of a tall block. */
+  .app-header,
+  .graph-pane .app-header {
+    min-height: 0;
+    padding: 6px 8px;
+    gap: 4px 6px;
+    flex-wrap: wrap;
+  }
+  .app-header .breadcrumbs {
+    order: 4;
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+  .app-header .search-bar {
+    order: 5;
+    flex: 1 1 100%;
+  }
+  .app-header .search-bar .search-wrap {
+    order: 0;
+    flex: 1 1 auto;
+  }
+  .app-header .mobile-navigation {
+    margin-left: auto;
+  }
+  .library-link-name {
+    display: none;
+  }
+}
+
+/* the canvas tools: an icon rail down the left edge; the selection tools appear with a selection */
+.scene-layout-tools {
+  right: auto;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: center;
+  gap: 3px;
+  max-height: calc(100% - 16px);
+  padding: 3px;
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.scene-layout-tools .rail-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+}
+.scene-layout-tools .rail-count {
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 4px;
+  white-space: nowrap;
+}
+.camera-tools {
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.camera-tools .icon-button {
+  border-color: transparent;
+  background: transparent;
+}
+.camera-tools .icon-button:hover:not(:disabled) {
+  background: var(--raised);
+  border-color: var(--accent);
+}
+.zoom-slider {
+  width: 120px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.scene-edit-help {
+  right: 240px;
+}
+.legend-toggle {
+  top: 8px;
+  left: 56px;
+}
+.legend {
+  top: 44px;
+  left: 56px;
+}
+@media (max-width: 720px) {
+  .zoom-slider {
+    width: 80px;
+  }
+}
+
+/* the right-hand panel: Inspect (the selected thing) or Graphs (the workspace) */
+.panel-modes {
+  display: flex;
+  gap: 4px;
+  padding: 8px 8px 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.panel-modes button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+.panel-modes button[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  background: transparent;
+}
+.graphs-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+}
+.graphs-panel h3 {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--secondary);
+}
+.graphs-panel select {
+  width: 100%;
+}
+.stacked-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--secondary);
+}
+.stacked-field select {
+  color: var(--text);
+}
+.views-row {
+  display: flex;
+  gap: 8px;
+}
+.views-row select {
+  flex: 1;
+}
+/* the graph checklist is a plain section in the panel now, not a floating menu */
+.graphs-panel .workspace-graph-picker > div {
+  position: static;
+  width: auto;
+  max-height: none;
+  margin-top: 8px;
+  box-shadow: none;
+  padding: 8px 0 0;
+  border: 0;
+  background: transparent;
+}
+
+
+/* ---- The graph first -----------------------------------------------------------------------------
+   People come here for the graph. The heading is one slim line (no eyebrow, caption beside the
+   title), the filter bar is tighter, the rules editor opens over the canvas instead of pushing it
+   down, and the bundling controls share one row with the scope note. */
+.workspace-heading {
+  min-height: 40px;
+  padding: 6px 16px;
+  gap: 12px;
+}
+.workspace-heading > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.workspace-heading h1 {
+  margin: 0;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+}
+.workspace-scope-caption {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--secondary);
+}
+.filter-bar {
+  padding: 6px 16px;
+  gap: 6px 10px;
+}
+.filter-bar > .rules-editor {
+  position: absolute;
+  top: 100%;
+  left: 16px;
+  right: 16px;
+  z-index: 30;
+  flex-basis: auto;
+  max-height: 60vh;
+  border-color: var(--control);
+  box-shadow: 0 10px 24px #0005;
+}
+.filter-bar > label select {
+  width: 10.5rem;
+  text-overflow: ellipsis;
+}
+.pin-action.icon-button {
+  margin-left: auto;
+}
+.advanced-scope {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 6px 10px 10px;
+  margin: 0;
+}
+.advanced-scope legend {
+  font-size: 11px;
+  color: var(--secondary);
+  padding: 0 4px;
+}
+.advanced-scope .qi-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.canvas-footer input[type="range"] {
+  min-height: 24px;
+}
+.canvas-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 16px;
+  min-height: 0;
+  padding: 0 16px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+.canvas-footer .scene-controls {
+  min-height: 0;
+  padding: 2px 0;
+  gap: 12px;
+  border-top: 0;
+  background: transparent;
+}
+.canvas-footer .scope-note {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: 2px 12px;
+  padding: 2px 0;
+  background: transparent;
+  font-size: 11px;
+}
+.canvas-footer .scope-note > .text-button {
+  order: 10;
+  font-size: 11px;
+}
+.canvas-footer .filter-count {
+  margin-left: 0;
+}
+.coverage-popover {
+  bottom: 44px;
+}

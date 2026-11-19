@@ -12,6 +12,6 @@ const fs=require('fs');
  await page.waitForTimeout(1200);await page.screenshot({path:'output/browser/desktop-dark.png',fullPage:true});
  const dark=await new AxeBuilder({page}).analyze();
  console.log(JSON.stringify({errors,external,axe:dark.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.map(n=>n.target)})),metrics:await page.evaluate(()=>window.__geographerMetrics)},null,2));
- await page.getByRole('button',{name:'Use light theme'}).click();await page.screenshot({path:'output/browser/desktop-light.png',fullPage:true});
+ await page.locator('.settings-menu > summary').click();await page.getByRole('button',{name:'Use light theme'}).click();await page.keyboard.press('Escape');await page.screenshot({path:'output/browser/desktop-light.png',fullPage:true});
  await browser.close();
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -8,6 +8,17 @@ import {
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { Vec3, ViewportFrameData } from "../../contracts/geographer.wire";
+import {
+  IconBoxSelect,
+  IconGrow,
+  IconLeft,
+  IconNudgeDown,
+  IconNudgeUp,
+  IconPrune,
+  IconResetLayout,
+  IconRight,
+  IconShrink,
+} from "./icons";
 import { shortName, type DocumentaryLink, type Node } from "./api";
 import {
   ALPHA_SLOPE,
@@ -42,6 +53,9 @@ export interface SceneHandle {
   capture: () => CameraState | undefined;
   fit: () => void;
   zoom: (factor: number) => void;
+  /** log2 of (distance when fitted / distance now): 0 at Fit, positive when closer. */
+  zoomLevel: () => number;
+  setZoomLevel: (level: number) => void;
 }
 export type SceneData = Pick<
   ViewportFrameData,
@@ -140,6 +154,8 @@ interface Props {
   ) => void;
   onEnter: (id: string) => void;
   onFailure: (reason: string) => void;
+  /** Where the camera is, as a zoom level (0 = fitted): keeps the zoom slider in step. */
+  onZoomLevel?: (level: number) => void;
   /** Called with (node id, source path) for every box-selected node and its descendants. */
   onPrune?: (selected: { id: string; rel_path: string }[]) => void;
 }
@@ -170,6 +186,8 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           capture: () => CameraState;
           fit: () => void;
           zoom: (f: number) => void;
+          zoomLevel: () => number;
+          setZoomLevel: (level: number) => void;
           update: () => void;
           resetLayout: () => void;
           scaleSelection: (factor: number) => void;
@@ -190,6 +208,8 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       capture: () => controller.current?.capture(),
       fit: () => controller.current?.fit(),
       zoom: (f) => controller.current?.zoom(f),
+      zoomLevel: () => controller.current?.zoomLevel() ?? 0,
+      setZoomLevel: (level) => controller.current?.setZoomLevel(level),
     }),
     [],
   );
@@ -220,6 +240,13 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     controls.enableDamping = true;
     controls.dampingFactor = 0.09;
     const edits = new Map<string, Affine>();
+    // The camera distance Fit settled on: the zoom slider's zero, so "1x" always means "fitted".
+    let fitDistance = 0,
+      reportedZoom = Number.NaN;
+    const currentZoomLevel = () => {
+      const now = camera.position.distanceTo(controls.target);
+      return fitDistance && now ? Math.log2(fitDistance / now) : 0;
+    };
     let sceneRevision = 0;
     let displayData: SceneData | undefined,
       selection: string[] = [];
@@ -492,6 +519,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         );
       const target = new THREE.Vector3(...sphere.center),
         distance = (sphere.radius / Math.sin(half)) * 1.25;
+      fitDistance = distance;
       const direction = new THREE.Vector3(1.25, 0.72, 1.55).normalize(),
         eye = target.clone().addScaledVector(direction, distance);
       camera.near = Math.max(0.001, sphere.radius / 1000);
@@ -859,6 +887,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           camera.position.set(...p.initialCamera.eye);
           controls.target.set(...p.initialCamera.target);
           controls.update();
+          fitDistance = camera.position.distanceTo(controls.target);
         } else fit();
         hasFramed = true;
         lastNavigation = p.navigationKey;
@@ -901,6 +930,14 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           .sub(controls.target)
           .multiplyScalar(factor)
           .add(controls.target);
+        controls.update();
+      },
+      zoomLevel: () => currentZoomLevel(),
+      setZoomLevel: (level) => {
+        if (!fitDistance) return;
+        const offset = camera.position.clone().sub(controls.target);
+        offset.setLength(fitDistance / 2 ** level);
+        camera.position.copy(controls.target).add(offset);
         controls.update();
       },
       update,
@@ -1345,6 +1382,14 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         if (t === 1) tween = undefined;
       }
       if (controls.enabled) controls.update();
+      {
+        // Tell the zoom slider where the camera is, when it has moved enough to matter.
+        const level = currentZoomLevel();
+        if (!(Math.abs(level - reportedZoom) < 0.02)) {
+          reportedZoom = level;
+          propsRef.current.onZoomLevel?.(level);
+        }
+      }
       camera.updateMatrixWorld();
       lineMaterial.uniforms.uTime.value = reduced.matches ? 0 : now / 1000;
       drawSelection();
@@ -1467,75 +1512,103 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         role="group"
         aria-label="Layout tools"
       >
-        <button aria-pressed={boxMode} onClick={() => setBoxMode((v) => !v)}>
-          Box select
+        <button
+          className="rail-button"
+          aria-pressed={boxMode}
+          aria-label="Box select"
+          title="Box select: drag a rectangle to pick a group"
+          onClick={() => setBoxMode((v) => !v)}
+        >
+          <IconBoxSelect />
         </button>
-        <span data-testid="layout-selection-status" aria-live="polite">
+        {/* Always in the page for screen readers and tests; seen once something is selected. */}
+        <span
+          data-testid="layout-selection-status"
+          aria-live="polite"
+          className={editCount ? "rail-count" : "sr-only"}
+        >
           {editCount} selected
         </span>
-        {props.onPrune && (
-          <button
-            disabled={!editCount}
-            onClick={() => {
-              const frame = props.frame;
-              if (!frame) return;
-              // Box selection keeps only enclosure roots; prune by every file beneath them.
-              const ids = descendants(frame, controller.current?.selectedIds() ?? []);
-              props.onPrune?.(
-                frame.nodes
-                  .filter((n) => ids.has(n.id) && n.source?.rel_path)
-                  .map((n) => ({ id: n.id, rel_path: n.source!.rel_path! }))
-                  .sort((a, b) => a.id.localeCompare(b.id)),
-              );
-            }}
-          >
-            Prune selection…
-          </button>
+        {editCount > 0 && (
+          <>
+            {props.onPrune && (
+              <button
+                className="rail-button"
+                aria-label="Prune selection…"
+                title="Prune selection…: make a new graph from what is selected"
+                onClick={() => {
+                  const frame = props.frame;
+                  if (!frame) return;
+                  // Box selection keeps only enclosure roots; prune by every file beneath them.
+                  const ids = descendants(frame, controller.current?.selectedIds() ?? []);
+                  props.onPrune?.(
+                    frame.nodes
+                      .filter((n) => ids.has(n.id) && n.source?.rel_path)
+                      .map((n) => ({ id: n.id, rel_path: n.source!.rel_path! }))
+                      .sort((a, b) => a.id.localeCompare(b.id)),
+                  );
+                }}
+              >
+                <IconPrune />
+              </button>
+            )}
+            <button
+              className="rail-button"
+              onClick={() => controller.current?.scaleSelection(1.15)}
+              aria-label="Size +: enlarge selected nodes"
+              title="Make the selected nodes larger"
+            >
+              <IconGrow />
+            </button>
+            <button
+              className="rail-button"
+              onClick={() => controller.current?.scaleSelection(1 / 1.15)}
+              aria-label="Size −: shrink selected nodes"
+              title="Make the selected nodes smaller"
+            >
+              <IconShrink />
+            </button>
+            <button
+              className="rail-button"
+              onClick={() => controller.current?.moveSelection(-1, 0)}
+              aria-label="Move selected nodes left"
+              title="Move the selected nodes left"
+            >
+              <IconLeft />
+            </button>
+            <button
+              className="rail-button"
+              onClick={() => controller.current?.moveSelection(1, 0)}
+              aria-label="Move selected nodes right"
+              title="Move the selected nodes right"
+            >
+              <IconRight />
+            </button>
+            <button
+              className="rail-button"
+              onClick={() => controller.current?.moveSelection(0, 1)}
+              aria-label="Move selected nodes up"
+              title="Move the selected nodes up"
+            >
+              <IconNudgeUp />
+            </button>
+            <button
+              className="rail-button"
+              onClick={() => controller.current?.moveSelection(0, -1)}
+              aria-label="Move selected nodes down"
+              title="Move the selected nodes down"
+            >
+              <IconNudgeDown />
+            </button>
+          </>
         )}
         <button
-          disabled={!editCount}
-          onClick={() => controller.current?.scaleSelection(1.15)}
-          aria-label="Size +: enlarge selected nodes"
+          className="rail-button"
+          aria-label="Reset layout"
+          title="Reset layout: put every moved or resized node back"
+          onClick={() => controller.current?.resetLayout()}
         >
-          Size +
-        </button>
-        <button
-          disabled={!editCount}
-          onClick={() => controller.current?.scaleSelection(1 / 1.15)}
-          aria-label="Size −: shrink selected nodes"
-        >
-          Size −
-        </button>
-        <button
-          disabled={!editCount}
-          onClick={() => controller.current?.moveSelection(-1, 0)}
-          aria-label="Move selected nodes left"
-        >
-          ←
-        </button>
-        <button
-          disabled={!editCount}
-          onClick={() => controller.current?.moveSelection(1, 0)}
-          aria-label="Move selected nodes right"
-        >
-          →
-        </button>
-        <button
-          disabled={!editCount}
-          onClick={() => controller.current?.moveSelection(0, 1)}
-          aria-label="Move selected nodes up"
-        >
-          ↑
-        </button>
-        <button
-          disabled={!editCount}
-          onClick={() => controller.current?.moveSelection(0, -1)}
-          aria-label="Move selected nodes down"
-        >
-          ↓
-        </button>
-        <button onClick={() => controller.current?.resetLayout()}>
-          Reset layout
+          <IconResetLayout />
         </button>
       </div>
       <p

@@ -3,6 +3,7 @@ const os = require("os");
 const pageEvidence = new WeakMap();
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
+const { showGraphsMode, showInspectMode, openScope, useTheme } = require("./panel-helpers.cjs");
 
 test("P5.4 recorded collection overlay separates observations and restores the static preset", async ({
   page,
@@ -107,7 +108,7 @@ test("P5.4 collection selection, evidence and saved runtime scope round-trip", a
   );
   await save(page, "Observed b");
   await page.reload();
-  await page.getByLabel("Restore saved view").selectOption("Observed b");
+  await (await showGraphsMode(page)).getByLabel("Restore saved view").selectOption("Observed b");
   await expect(page.locator(".view-content")).toHaveAttribute(
     "aria-busy",
     "false",
@@ -153,11 +154,11 @@ test("P5.4 switching to a source-only snapshot disables runtime without a stale 
     "false",
   );
   await page.getByText("Scope & filters", { exact: true }).click();
-  const options = page.getByLabel("Repository snapshot").getByRole("option");
+  const options = (await showGraphsMode(page)).getByLabel("Repository snapshot").getByRole("option");
   const base = await options
     .filter({ hasText: "fixture-v1" })
     .getAttribute("value");
-  await page.getByLabel("Repository snapshot").selectOption(base);
+  await (await showGraphsMode(page)).getByLabel("Repository snapshot").selectOption(base);
   await expect(page.locator(".view-content")).toHaveAttribute(
     "aria-busy",
     "false",
@@ -217,7 +218,7 @@ test("P5.3 every abstraction and breadth preserves a usable workspace and saved 
   );
   await save(page, "File-level wider");
   await page.reload();
-  await page.getByLabel("Restore saved view").selectOption("File-level wider");
+  await (await showGraphsMode(page)).getByLabel("Restore saved view").selectOption("File-level wider");
   await expect(page.getByLabel("Abstraction grouping")).toHaveValue("file");
   await expect(
     page.getByRole("button", { name: "Wider", exact: true }),
@@ -228,9 +229,7 @@ test("P5.3 live rules reject malformed reload and retain prior versions", async 
   page,
 }) => {
   await ready(page);
-  await page
-    .getByRole("button", { name: "Configure rules", exact: true })
-    .click();
+  await (await openScope(page)).getByRole("button", { name: "Configure rules", exact: true }).click();
   const previous = await page.getByLabel("Selected rules model").inputValue();
   await page
     .getByLabel("Rules YAML", { exact: true })
@@ -384,7 +383,7 @@ test("P5.3 subtype and family scope persist without admitting hidden relationshi
   );
   await save(page, "No dependency families");
   await page.reload();
-  await page
+  await (await showGraphsMode(page))
     .getByLabel("Restore saved view")
     .selectOption("No dependency families");
   await page.getByText("Scope & filters", { exact: true }).click();
@@ -448,9 +447,7 @@ test("P5.3 conceptual controls and investigation remain accessible in a narrow l
     "aria-busy",
     "false",
   );
-  await page
-    .getByRole("button", { name: "Use light theme", exact: true })
-    .click();
+  await useTheme(page, "light");
   await page.screenshot({
     path: "output/qa/p53-conceptual-light.png",
     fullPage: true,
@@ -497,12 +494,12 @@ test("relationship visibility presets apply and survive a saved view", async ({
   await save(page, "Internal candidate scope");
   await preset.selectOption("all_uncertainty");
   await expect(preset).toHaveValue("all_uncertainty");
-  await page
+  await (await showGraphsMode(page))
     .getByLabel("Restore saved view")
     .selectOption("Internal candidate scope");
   await expect(preset).toHaveValue("internal_candidates");
   await page.reload();
-  await page
+  await (await showGraphsMode(page))
     .getByLabel("Restore saved view")
     .selectOption("Internal candidate scope");
   await expect(preset).toHaveValue("internal_candidates");
@@ -558,7 +555,7 @@ test("pending scope changes cannot act on the previous frame", async ({
       "true",
     );
     await expect(
-      page.getByRole("button", { name: "Save view", exact: true }),
+      (await showGraphsMode(page)).getByRole("button", { name: "Save view", exact: true }),
     ).toBeDisabled();
   } finally {
     release();
@@ -566,7 +563,7 @@ test("pending scope changes cannot act on the previous frame", async ({
   await received;
   await expect(page.locator(".view-content")).not.toHaveAttribute("inert", "");
   await expect(
-    page.getByRole("button", { name: "Save view", exact: true }),
+    (await showGraphsMode(page)).getByRole("button", { name: "Save view", exact: true }),
   ).toBeEnabled();
   await expect(page.getByRole("table")).toBeVisible();
 });
@@ -770,7 +767,7 @@ test("snapshot options remain distinguishable across revisions", async ({
   page,
 }) => {
   await ready(page);
-  const labels = await page
+  const labels = await (await showGraphsMode(page))
     .getByLabel("Repository snapshot", { exact: true })
     .getByRole("option")
     .allTextContents();
@@ -793,7 +790,7 @@ test("empty snapshots explain the next action and refresh after ingestion", asyn
     page.getByRole("heading", { name: "No repository snapshots", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Save view", exact: true }),
+    (await showGraphsMode(page)).getByRole("button", { name: "Save view", exact: true }),
   ).toBeDisabled();
   empty = false;
   await page
@@ -846,7 +843,7 @@ for (const viewport of [
     await ready(page);
     for (const theme of ["dark", "light"]) {
       if (theme === "light")
-        await page.getByRole("button", { name: "Use light theme" }).click();
+        await useTheme(page, "light");
       const scan = await new AxeBuilder({ page }).analyze();
       expect(
         scan.violations.map((v) => ({
@@ -1042,7 +1039,7 @@ test("a failed viewport preserves the previous scene and offers a working retry"
     .click();
   await expect(page.locator(".view-content")).not.toHaveAttribute("inert", "");
   await expect(
-    page.getByRole("button", { name: "Save view", exact: true }),
+    (await showGraphsMode(page)).getByRole("button", { name: "Save view", exact: true }),
   ).toBeEnabled();
 });
 
@@ -1097,16 +1094,17 @@ async function searchSelect(page, name, qualified) {
   await page.getByRole("button", { name: qualified, exact: true }).click();
 }
 async function save(page, name) {
-  await page.getByRole("button", { name: "Save view", exact: true }).click();
+  await (await showGraphsMode(page)).getByRole("button", { name: "Save view", exact: true }).click();
   await page.getByLabel("View name", { exact: true }).fill(name);
   await page.getByRole("button", { name: "Save", exact: true }).click();
+  await showInspectMode(page); // saving leaves the panel where the test was working
 }
 
 test("save dialog has an accessible name and returns keyboard focus", async ({
   page,
 }) => {
   await ready(page);
-  const trigger = page.getByRole("button", { name: "Save view", exact: true });
+  const trigger = (await showGraphsMode(page)).getByRole("button", { name: "Save view", exact: true });
   await trigger.click();
   await expect(page.getByRole("dialog")).toHaveAccessibleName(
     "Save this workspace",
@@ -1146,7 +1144,7 @@ test("saving from the matrix preserves the spatial camera through reload", async
   expect(entry.camera).toBeDefined();
   expect(entry.camera.eye).toHaveLength(3);
   await page.reload();
-  await page.getByLabel("Restore saved view").selectOption("Camera retained");
+  await (await showGraphsMode(page)).getByLabel("Restore saved view").selectOption("Camera retained");
   await expect(
     page.getByRole("button", { name: "Matrix", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -1329,16 +1327,16 @@ test("pinned scope, filters, theme and original snapshot survive saved-view relo
   await page.getByText("Scope & filters", { exact: true }).click();
   await page.getByRole("checkbox", { name: "tests", exact: true }).check();
   await page.getByText("Scope & filters", { exact: true }).click();
-  await page.getByRole("button", { name: "Use light theme" }).click();
+  await useTheme(page, "light");
   await save(page, "Pinned scope");
   const saved = await page.evaluate(
     () => JSON.parse(localStorage.getItem("geographer.views.v1"))[0],
   );
   expect(saved.pins).toHaveLength(1);
   await page.reload();
-  await page.getByLabel("Repository snapshot").selectOption({ index: 1 });
-  await page.getByLabel("Restore saved view").selectOption("Pinned scope");
-  await expect(page.getByLabel("Repository snapshot")).toHaveValue(
+  await (await showGraphsMode(page)).getByLabel("Repository snapshot").selectOption({ index: 1 });
+  await (await showGraphsMode(page)).getByLabel("Restore saved view").selectOption("Pinned scope");
+  await expect((await showGraphsMode(page)).getByLabel("Repository snapshot")).toHaveValue(
     saved.snapshot_id,
   );
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("transform");
