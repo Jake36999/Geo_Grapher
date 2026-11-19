@@ -139,6 +139,24 @@ class GraphRouter:
         p=self.catalog.proposal(proposal_id);self.permit(p['source_graph']);self.permit(p['target_graph'])
         return self.catalog.review_proposal(proposal_id,decision,rationale)
 
+    def declare_link(self,source_graph,source_ref,target_graph,target_ref,kind,rationale):
+        """A person declares how two graphs relate. It is a bridge: kept apart from extracted facts, never
+        an edit to either graph. The operator's own action is the owner decision a third-party boundary asks for."""
+        a,b=self.resolve(source_graph),self.resolve(target_graph);self.permit(a);self.permit(b)
+        if kind not in {'reference','concept_equivalence','document_identity'}:raise ValueError('Unknown bridge kind')
+        bid=self.catalog.add_bridge(a,source_ref,b,target_ref,kind,rationale,
+            [{'declared_by':'operator','via':'workspace','owner_decision':True}],owner_decision=True)
+        return {**self.catalog.bridge(bid),'state':self.catalog.bridge_state(bid)}
+
+    def remove_link(self,bridge_id):
+        row=self.catalog.bridge(bridge_id);self.permit(row['source_graph']);self.permit(row['target_graph'])
+        return self.catalog.remove_bridge(bridge_id)
+
+    def compare(self,graph_a,graph_b):
+        from .cross_graph import compare_graphs
+        a,b=self.resolve(graph_a),self.resolve(graph_b);self.permit(a);self.permit(b)
+        return compare_graphs(self.catalog,a,b)
+
     def close(self):
         with self.lock:
             for key,(store,_) in self.services.items():

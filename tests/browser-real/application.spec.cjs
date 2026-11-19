@@ -105,13 +105,16 @@ test('real ToolSet box selection prunes a copy and preserves source snapshot',as
  const box=await canvas.boundingBox();expect(box).toBeTruthy();
  await page.mouse.move(box.x+12,box.y+80);await page.mouse.down();
  await page.mouse.move(box.x+box.width-12,box.y+box.height-48,{steps:12});await page.mouse.up();
- await page.getByRole('button',{name:/Prune selection/}).click();
- await page.getByRole('textbox',{name:'New graph label'}).fill('qa-real-pruned');
- await expect(page.getByRole('button',{name:'Create pruned graph',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:/Keep only or remove selection/}).click();
+ const derive=page.getByRole('form',{name:'Keep only or remove the selection'});
+ await derive.getByRole('radio',{name:'Remove these'}).check(); // what the earlier prune did
+ await expect(derive.getByTestId('derive-preview')).toContainText(/^Removes \d+ of \d+ files/,{timeout:90000});
+ await derive.getByRole('textbox',{name:'New graph name'}).fill('qa-real-pruned');
+ await expect(derive.getByRole('button',{name:'Create graph without these',exact:true})).toBeEnabled();
  const created=page.waitForResponse(r=>r.url().endsWith('/prune')&&r.request().method()==='POST',{timeout:90000});
- await page.getByRole('button',{name:'Create pruned graph',exact:true}).click();
+ await derive.getByRole('button',{name:'Create graph without these',exact:true}).click();
  const response=await created;expect(response.ok(),await response.text()).toBe(true);
- await expect(page.getByRole('status').filter({hasText:'Created derived graph'})).toBeVisible({timeout:90000});
+ await expect(derive.getByRole('status').filter({hasText:'Made “qa-real-pruned”'})).toBeVisible({timeout:90000});
  const rows=(await(await request.get('/api/graphs')).json()).graphs;
  expect(rows.some(r=>r.label==='qa-real-pruned')).toBe(true);
  expect(rows.find(r=>r.graph_id===g.graph_id).snapshot_id).toBe(g.snapshot_id);

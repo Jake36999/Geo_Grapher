@@ -19,6 +19,7 @@ with tempfile.TemporaryDirectory(prefix='geographer-merge-qa-',ignore_cleanup_er
         root=base/name;root.mkdir()
         (root/'app.py').write_text('def helper():\n    """Project local helper."""\n    return 1\n\ndef entry():\n    return helper()\n',encoding='utf-8')
         (root/'README.md').write_text(name+' graph research documentation.',encoding='utf-8')
+        if name=='Alpha':(root/'util.py').write_text('def util():\n    return 3\n',encoding='utf-8')  # a second module, so a selection can be a part of the graph
         catalog.import_project(root,Repository.from_directory(root,name),label=name)
     graph_ids=[g['graph_id'] for g in catalog.graphs()]
     catalog.add_bridge(graph_ids[0],'root',graph_ids[1],'root','reference','Synthetic QA reference, not a code dependency',[{'source':'test fixture'}])

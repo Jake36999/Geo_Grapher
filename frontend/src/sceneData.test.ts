@@ -118,3 +118,41 @@ test("canonicalActor decodes documentary link endpoints", () => {
   assert.equal(l.fragment_rep, "frag-id");
   assert.equal(l.entity_rep, "ent-id");
 });
+
+test("composeScene marks only a graph's own enclosures with its accent", () => {
+  const n = (id: string, kind: string, parent: string | null) => ({ ...node(id), kind, parent_id: parent });
+  const frame = (nodes: ReturnType<typeof n>[]) => ({ nodes, relationships: [], spheres: [], curves: [] });
+  const result = composeScene(
+    {
+      version: "v",
+      composition: "display_only",
+      frames: [
+        {
+          graph_id: "a",
+          label: "A",
+          snapshot_id: "s1",
+          root_id: "root",
+          transform: { scale: 1, translation: [0, 0, 0] },
+          frame: frame([n("root", "workspace", null), n("repo", "repository", "root"), n("dir", "directory", "repo"), n("deep", "repository", "dir")]),
+        },
+        {
+          graph_id: "b",
+          label: "B",
+          snapshot_id: "s2",
+          root_id: "root",
+          transform: { scale: 1, translation: [0, 0, 0] },
+          frame: frame([n("root", "workspace", null), n("repo", "repository", "root")]),
+        },
+      ] as never,
+    },
+    { a: { dark: 0x111111, light: 0x222222 } },
+  );
+  const accents = result.data.accents!;
+  const key = (g: string, s: string, id: string) => renderId(g, s, "node", id);
+  assert.deepEqual(accents[key("a", "s1", "root")], [0x111111, 0x222222]);
+  assert.deepEqual(accents[key("a", "s1", "repo")], [0x111111, 0x222222]);
+  assert.equal(accents[key("a", "s1", "dir")], undefined, "what is inside keeps the colour of its content");
+  assert.equal(accents[key("a", "s1", "deep")], undefined, "a nested repository is not the graph's own enclosure");
+  assert.equal(Object.keys(accents).some((k) => k.includes('"b"')), false, "a graph with no accent is left as it was");
+  assert.equal(composeScene({ version: "v", composition: "display_only", frames: [] }).data.accents, undefined);
+});

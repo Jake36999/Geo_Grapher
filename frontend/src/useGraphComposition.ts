@@ -13,6 +13,7 @@ import {
 } from "./composition";
 import type { WorkspaceControls } from "./workspaceTypes";
 import type { QiMode } from "./QiControl";
+import { linkStateLabel } from "./buildOps";
 
 export function useGraphComposition(
   workspace: WorkspaceControls | undefined,
@@ -37,7 +38,14 @@ export function useGraphComposition(
       workspace.selected[0] !== workspace.active),
   );
   const [bridges, setBridges] = useState<
-    { bridge_id: string; source_graph: string; target_graph: string }[]
+    {
+      bridge_id: string;
+      source_graph: string;
+      target_graph: string;
+      kind?: string;
+      rationale?: string;
+      state?: string;
+    }[]
   >([]);
   useEffect(() => {
     const abort = new AbortController();
@@ -57,7 +65,7 @@ export function useGraphComposition(
         if (e.name !== "AbortError") setError(e.message);
       });
     return () => abort.abort();
-  }, [workspace?.selected.join()]);
+  }, [workspace?.selected.join(), workspace?.linksVersion]);
   const requests =
     workspace?.selected
       .filter((id) => id !== workspace.active)
@@ -197,11 +205,14 @@ export function useGraphComposition(
       }
       frames.push(frame);
     }
-    const result = composeScene({
-      version: "graph-composition-v1",
-      composition: "display_only",
-      frames,
-    });
+    const result = composeScene(
+      {
+        version: "graph-composition-v1",
+        composition: "display_only",
+        frames,
+      },
+      workspace.accents,
+    );
     for (const node of result.data.nodes) {
       const origin = result.origins.get(node.id)!;
       const graph = workspace.graphs.find(
@@ -235,6 +246,14 @@ export function useGraphComposition(
                 target: target.world_center,
                 sourceNodeId: anchor(source),
                 targetNodeId: anchor(target),
+                label: [
+                  `${workspace.graphs.find((g) => g.graph_id === b.source_graph)?.label ?? b.source_graph} → ${workspace.graphs.find((g) => g.graph_id === b.target_graph)?.label ?? b.target_graph}`,
+                  `declared ${(b.kind ?? "link").replace(/_/g, " ")}`,
+                  linkStateLabel(b.state ?? "accepted"),
+                  b.rationale ?? "",
+                ]
+                  .filter(Boolean)
+                  .join(" · "),
               },
             ]
           : [];
@@ -264,5 +283,6 @@ export function useGraphComposition(
     loading,
     error,
     bridges,
+    workspace?.accents,
   ]);
 }

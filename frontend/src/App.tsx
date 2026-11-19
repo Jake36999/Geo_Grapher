@@ -58,6 +58,7 @@ import Matrix, { EntityList } from "./Matrix";
 import Inspector from "./Inspector";
 import type { WorkspaceControls } from "./workspaceTypes";
 import { useGraphComposition } from "./useGraphComposition";
+import { BuildContext, type DeriveRequest, type Endpoint } from "./buildContext";
 import { renderId } from "./composition";
 
 type View = "spatial" | "list" | "matrix";
@@ -175,7 +176,8 @@ export default function App({
     [status, setStatus] = useState("Opening the local workspace…"),
     [error, setError] = useState(""),
     pruneGraph = () => workspace?.active ?? graphBasePath().match(/^\/graphs\/(g_[0-9a-f]{24})\//)?.[1],
-    [pruneDraft, setPruneDraft] = useState<{ paths: string[]; label: string; graph?: string; busy?: boolean; message?: string }>(),
+    // Files or folders selected on the canvas, waiting in the Build tab for "keep only" or "remove".
+    [derive, setDerive] = useState<DeriveRequest>(),
     [drawer, setDrawer] = useState<"hierarchy" | "inspector" | null>(null);
   // The right-hand panel shows the selected thing (Inspect) or the workspace (Graphs: which graph,
   // which revision, saved views). The choice is kept for the tab, so switching graphs, which
@@ -1069,6 +1071,11 @@ export default function App({
     ...(buildTools ? ([["build", "Build", <IconBuild key="b" />]] as const) : []),
   ] as readonly (readonly [PanelMode, string, React.ReactNode])[];
   const mode: PanelMode = panelMode === "build" && !buildTools ? "inspect" : panelMode;
+  // The item selected in the active graph, as something a declared link can point at.
+  const linkSelection: Endpoint | undefined =
+    workspace && current?.entity_id
+      ? { graph_id: workspace.active, ref: `entity:${current.entity_id}`, label: shortName(current) }
+      : undefined;
   const buildPanel = (
     <section
       id="panel-mode-build"
@@ -1080,7 +1087,16 @@ export default function App({
         Make something new from your graphs. Sources are never changed: each result is a new graph or a declared
         link.
       </p>
-      {buildTools}
+      <BuildContext.Provider
+        value={{
+          selection: linkSelection,
+          derive,
+          clearDerive: () => setDerive(undefined),
+          derived: () => void workspace?.reloadGraphs(),
+        }}
+      >
+        {buildTools}
+      </BuildContext.Provider>
     </section>
   );
   const graphsPanel = (
@@ -2036,60 +2052,16 @@ export default function App({
                           .map((s) => s.rel_path),
                       ),
                     ].sort();
-                    setPruneDraft(
+                    setDerive(
                       graph && paths.length
-                        ? { paths, label: "", graph }
-                        : { paths: [], label: "", message: "The selection holds no files of this graph." },
+                        ? { paths, graph }
+                        : { paths: [], graph: graph ?? "", message: "The selection holds no files of this graph." },
                     );
+                    // The choice (keep only or remove, with its counts) is made in the Build tab.
+                    setPanelMode("build");
+                    setDrawer("inspector");
                   }}
                 />
-                {pruneDraft && (
-                  <form
-                    className="prune-dialog"
-                    aria-label="Prune selection"
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setPruneDraft({ ...pruneDraft, busy: true, message: "" });
-                      try {
-                        const out = await json<{ graph_id: string }>(
-                          `/api/graphs/${encodeURIComponent(pruneDraft.graph ?? "")}/prune`,
-                          { exclude_rel_paths: pruneDraft.paths, label: pruneDraft.label.trim() },
-                        );
-                        await workspace?.reloadGraphs();
-                        setPruneDraft({ ...pruneDraft, busy: false, message: `Created derived graph ${out.graph_id}` });
-                      } catch (err) {
-                        setPruneDraft({ ...pruneDraft, busy: false, message: (err as Error).message });
-                      }
-                    }}
-                  >
-                    <p>
-                      Create a new graph without {pruneDraft.paths.length} path(s). The current graph is unchanged.
-                    </p>
-                    <ul>
-                      {pruneDraft.paths.map((p) => (
-                        <li key={p}>
-                          <code>{p}</code>
-                        </li>
-                      ))}
-                    </ul>
-                    <label>
-                      New graph label{" "}
-                      <input
-                        value={pruneDraft.label}
-                        maxLength={120}
-                        disabled={pruneDraft.busy}
-                        onChange={(e) => setPruneDraft({ ...pruneDraft, label: e.target.value })}
-                      />
-                    </label>{" "}
-                    <button type="submit" disabled={pruneDraft.busy || !pruneDraft.graph || !pruneDraft.label.trim() || !pruneDraft.paths.length}>
-                      Create pruned graph
-                    </button>{" "}
-                    <button type="button" onClick={() => setPruneDraft(undefined)}>
-                      Close
-                    </button>
-                    {pruneDraft.message && <p role="status">{pruneDraft.message}</p>}
-                  </form>
-                )}
                 <button
                   type="button"
                   className="legend-toggle"

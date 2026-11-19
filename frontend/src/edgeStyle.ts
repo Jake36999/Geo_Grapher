@@ -81,8 +81,8 @@ export function contrastRatio(hexA: string, hexB: string): number {
 }
 
 // Shifts OkLab L in steps of `step` (negative darkens, positive lightens)
-// until `hex` reaches MIN_CONTRAST on `background`. Used only to derive the
-// frozen constants below; the unit test proves the constants hold.
+// until `hex` reaches MIN_CONTRAST on `background`. A tool for choosing stops;
+// the unit test proves the frozen constants below hold.
 export function shiftUntilContrast(
   hex: string,
   background: string,
@@ -95,29 +95,32 @@ export function shiftUntilContrast(
   return out;
 }
 
-// Frozen stops: [source, target] per family. Dark values are master G9. Three
-// G9 targets (hierarchy, doc_rationale, violation) measure 4.26:1 on #17191C,
-// below the 4.5:1 the same section requires, so they are lightened in OkLab L
-// in 0.02 steps until they pass. Light stops darken the dark stop in OkLab L
-// in 0.02 steps until they pass on #F3F2EF.
+// Frozen stops: [source, target] per family. Each family is ONE colour. Direction is carried by the fade
+// away from the source end (alphaAt), not by a hue change, so a thread reads as a single colour thinning out
+// from the node it leaves, never as a blend of the two nodes' colours. Owner direction 2026-11-19: the
+// threads are thin and sat matte against the nodes, so the dark colours are neon (saturated and bright);
+// the light colours are the same hues deepened until they hold 4.5:1 on #F3F2EF (neon cannot be bright on
+// a light page). The target equals the source; the pair is kept so a family could be given a deliberate
+// second tone later. Every stop keeps the 4.5:1 contrast the master G9 section requires; the unit test
+// proves it, along with the chroma and the single hue.
 const STOPS: Record<Theme, Record<RelationshipFamily, [string, string]>> = {
   dark: {
-    call_or_data: ["#FF8A1F", "#FFC46B"],
-    hierarchy: ["#C77DFF", "#9D66E8"],
-    doc_rationale: ["#00E5FF", "#2589CA"],
-    doc_describes: ["#7FD7FF", "#4F9BD9"],
-    doc_cites: ["#00F5D4", "#00BB9E"],
-    catalog_bridge: ["#FFE66D", "#F4A261"],
-    violation: ["#FF2A55", "#DE545A"],
+    call_or_data: ["#FF6A00", "#FF6A00"],
+    hierarchy: ["#E040FF", "#E040FF"],
+    doc_rationale: ["#00F0FF", "#00F0FF"],
+    doc_describes: ["#3FA9FF", "#3FA9FF"],
+    doc_cites: ["#00FFC8", "#00FFC8"],
+    catalog_bridge: ["#FFE600", "#FFE600"],
+    violation: ["#FF1744", "#FF1744"],
   },
   light: {
-    call_or_data: ["#BA4A00", "#966100"],
-    hierarchy: ["#954AC8", "#854DCD"],
-    doc_rationale: ["#007891", "#0071AF"],
-    doc_describes: ["#037397", "#1F70AB"],
-    doc_cites: ["#007A60", "#007C63"],
-    catalog_bridge: ["#806800", "#A45808"],
-    violation: ["#DA0038", "#C23943"],
+    call_or_data: ["#B84300", "#B84300"],
+    hierarchy: ["#A52FD6", "#A52FD6"],
+    doc_rationale: ["#007489", "#007489"],
+    doc_describes: ["#0068B0", "#0068B0"],
+    doc_cites: ["#007A64", "#007A64"],
+    catalog_bridge: ["#7C6400", "#7C6400"],
+    violation: ["#D8002F", "#D8002F"],
   },
 };
 

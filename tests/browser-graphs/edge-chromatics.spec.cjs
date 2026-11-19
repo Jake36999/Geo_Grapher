@@ -32,3 +32,28 @@ test('edge legend explains colour, direction, pattern and size laws; edges show 
  await expect.poll(()=>hueBins(page,8),{timeout:15000}).toBeGreaterThanOrEqual(2);
  expect(errors).toEqual([]);
 });
+
+test('hovering a declared link between two graphs says who it joins, how, and why',async({page})=>{
+ await page.goto('/?view=spatial&debug');await ready(page);
+ const canvas=page.locator('canvas').first();
+ // the debug build reports where each declared thread is on screen (its middle)
+ await expect.poll(async()=>JSON.parse(await canvas.getAttribute('data-declared-threads')||'[]').length,{timeout:20000}).toBeGreaterThan(0);
+ const threads=JSON.parse(await canvas.getAttribute('data-declared-threads'));
+ const tooltip=page.locator('.scene-tooltip');
+ // the thread is thin, so look for it a few pixels either side of its middle
+ let shown=false;
+ for(const dy of [0,-3,3,-6,6,-9,9]){
+  await page.mouse.move(threads[0].x-40,threads[0].y+dy);await page.mouse.move(threads[0].x,threads[0].y+dy,{steps:3});
+  await page.waitForTimeout(120);
+  if(await tooltip.isVisible()){shown=true;break;}
+ }
+ expect(shown,'hovering the declared thread shows its words').toBe(true);
+ // who it joins, how, and why: the same kind of line every other thread gives
+ await expect(tooltip).toContainText('Alpha → Beta');
+ await expect(tooltip).toContainText('declared reference');
+ await expect(tooltip).toContainText('in force');
+ await expect(tooltip).toContainText('Synthetic QA reference');
+ // leaving the thread takes the words away
+ await page.mouse.move(threads[0].x,threads[0].y+300);await page.waitForTimeout(150);
+ await expect(tooltip).toBeHidden();
+});

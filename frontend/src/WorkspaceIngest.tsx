@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { json } from "./api";
 import IngestSheet, { type SheetPlan } from "./IngestSheet";
+import { activeOverrides, type RoleOverrides } from "./ingestMap";
 
 type Plan = SheetPlan & { plan_id: string; plan_version: string };
 type Job = { state: "queued" | "running" | "done" | "failed"; reports: unknown[]; error: string | null };
@@ -17,6 +18,7 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
     [dirs, setDirs] = useState<string[]>([]);
   const [plan, setPlan] = useState<Plan>(),
     [approved, setApproved] = useState<Record<string, boolean>>({}),
+    [roles, setRoles] = useState<RoleOverrides>({}),
     [sheet, setSheet] = useState(false);
   const [job, setJob] = useState<Job>(),
     [error, setError] = useState(""),
@@ -59,6 +61,7 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
       // Every part starts ticked, unlicensed ones included: they are ingested and copied like any
       // other; the sheet only labels them as cited, not published as our own.
       setApproved(Object.fromEntries(p.partitions.map((x) => [x.key, true])));
+      setRoles({});
       setSheet(true);
     } catch (e) {
       setError((e as Error).message);
@@ -75,6 +78,7 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
       const started = await json<{ job_id: string }>("/api/workspace/ingest-execute", {
         plan_id: plan.plan_id,
         approved_keys: plan.partitions.filter((p) => approved[p.key]).map((p) => p.key),
+        role_overrides: activeOverrides(plan, roles, approved),
       });
       window.clearInterval(poll.current);
       poll.current = window.setInterval(async () => {
@@ -157,8 +161,10 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
         <IngestSheet
           plan={plan}
           approved={approved}
+          roles={roles}
           busy={busy}
           onApprove={(key, on) => setApproved((a) => ({ ...a, [key]: on }))}
+          onRole={(key, role) => setRoles((r) => ({ ...r, [key]: role }))}
           onApply={apply}
           onClose={() => setSheet(false)}
         />

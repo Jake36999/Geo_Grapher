@@ -4,6 +4,7 @@ import type {
   ViewportFrameData,
 } from "../../contracts/geographer.wire";
 import type { GroupMode } from "./api";
+import type { Accent } from "./accents";
 export interface WorkspaceGraph {
   graph_id: string;
   label: string;
@@ -47,6 +48,10 @@ export interface WorkspaceControls {
   build?: ReactNode;
   settings?: WorkspaceSettings;
   showBridges: boolean;
+  /** The colour that marks each graph's own enclosure when several are shown. */
+  accents: Record<string, Accent>;
+  /** Bumped when a link is declared or taken back, so the scene reads the declared links again. */
+  linksVersion: number;
   restoreGraphs: (ids: string[]) => void;
   reloadGraphs: () => Promise<unknown>;
   pending?: GraphPick;

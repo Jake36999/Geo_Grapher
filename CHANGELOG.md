@@ -5,6 +5,11 @@
 - UI: one top bar, a canvas tool rail, a zoom slider, and a right panel with Inspect, Graphs and **Build** modes.
 - Build mode: Add a folder (with a folder map and a Copy as ASCII text version), Combine graphs and Link graphs now live in the Build tab. The ingest review is a wide sheet that shows how the folder was read down to the depth it is split into separate graphs.
 - Ingest policy: a source with no licence file is labelled "cited, not published as our own work" and still ingested and copied like any other. It is a label, never a gate. See [the ingestion policy](docs/INGESTION_POLICY.md).
+- Build mode, operators: **Keep only or remove** (select on the canvas, press the scissors, then choose in the Build tab; the counts of what stays and what is dropped come first), **Compare graphs** (what two graphs share and what only one has; read-only), and **Link graphs** (declare a link between two graphs from the whole graph, the selected item or a typed reference, and take it back). See [Build operators](docs/BUILD_OPERATORS.md).
+- Ingest review: the role the scan guessed for a part can be corrected in the sheet. A correction changes the label and the stratum, never what is read.
+- Each graph has its own accent colour, shown beside its name and on its enclosure when several graphs are shown; it can be changed and is remembered for the browser.
+- Threads: each relationship family is one neon colour (dark theme) that fades away from the node it leaves, so direction reads from the fade and never from a blend of two colours. A link declared between two graphs now behaves like every other thread: the same single-colour fade, and hovering it shows who it joins, how, and why, with the end bubbles ringed and the other threads dimmed.
+- API: `POST /api/graphs/{id}/derive-preview`, `POST /api/graphs/{id}/prune` accepts `keep_rel_paths`, `POST /api/graphs/compare`, `POST /api/graphs/links`, `DELETE /api/graphs/links/{bridge_id}`, and `role_overrides` on `POST /api/workspace/ingest-execute`.
 
 ## 0.2.0 — prepared 2026-11-14, awaiting owner acceptance
 

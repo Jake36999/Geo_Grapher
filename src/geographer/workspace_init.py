@@ -28,6 +28,46 @@ HYGIENE_DIRS = source.EXCLUDED | {
 # status is worth showing: code-like third-party folders (a paper has no licence file to look for).
 REFERENCE_ROLES = frozenset({'third_party', 'external_reference', 'research_docs'})
 LICENCE_ROLES = frozenset({'third_party', 'external_reference'})
+# Every role a part can be given. The scan suggests one; a person may override it in the review sheet.
+ROLES = ('current', 'legacy', 'docs', 'transcripts', 'data', 'third_party', 'external_reference', 'research_docs')
+
+
+def role_policy() -> dict:
+    """What each role means for publication and licence labels: one source for the scan and the review sheet."""
+    return {r: {'publication': 'reference' if r in REFERENCE_ROLES else 'own', 'licence_applicable': r in LICENCE_ROLES}
+            for r in ROLES}
+
+
+def stratum_defaults(archetype: str) -> tuple:
+    """(trust tier, modality) a part gets when its role says nothing more specific."""
+    code = archetype in ('software_engineering', 'research_lab')
+    return ('gold' if code else 'silver'), ('code' if code else 'doc')
+
+
+def stratum_for(role: str, file_counts: dict, archetype: str) -> dict:
+    """The federation stratum of one part, from its role, its content and the project archetype."""
+    default_trust_tier, default_modality = stratum_defaults(archetype)
+    rules = {
+        'current': (default_trust_tier, default_modality),
+        'legacy': ('bronze', default_modality),
+        'external_reference': ('silver', default_modality),
+        'transcripts': ('bronze_transcript', 'transcript'),
+        'docs': ('silver', 'doc'),
+        'third_party': ('bronze', default_modality),
+        'research_docs': ('bronze', 'paper'),
+        'data': ('bronze', 'doc'),
+    }
+    trust_tier, modality = rules.get(role, (default_trust_tier, default_modality))
+    # A third-party folder's modality is its own content, never the project's archetype
+    # (2026-11-17: a notes-vault root made every third-party repository "doc", code or not).
+    if role == 'third_party':
+        if file_counts.get('.pdf', 0) > sum(file_counts.values()) / 2:
+            modality = 'paper'
+        elif any(file_counts.get(s, 0) for s in CODE_SUFFIXES):
+            modality = 'code'
+        else:
+            modality = 'doc'
+    return {'role': role, 'trust_tier': trust_tier, 'modality': modality}
 
 
 def _is_licence_name(name: str) -> bool:
@@ -335,37 +375,9 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
             archetype = "research_lab"
 
     # Stratum assignment
-    default_modality = "code" if archetype in ("software_engineering", "research_lab") else "doc"
-    default_trust_tier = "gold" if archetype in ("software_engineering", "research_lab") else "silver"
-
-    stratum_rules = {
-        "current": {"trust_tier": default_trust_tier, "modality": default_modality},
-        "legacy": {"trust_tier": "bronze", "modality": default_modality},
-        "external_reference": {"trust_tier": "silver", "modality": default_modality},
-        "transcripts": {"trust_tier": "bronze_transcript", "modality": "transcript"},
-        "docs": {"trust_tier": "silver", "modality": "doc"},
-        "third_party": {"trust_tier": "bronze", "modality": default_modality},
-        "research_docs": {"trust_tier": "bronze", "modality": "paper"},
-        "data": {"trust_tier": "bronze", "modality": "doc"},
-    }
-
     for part in partitions.values():
         role = part["role"]
-        rules = stratum_rules.get(role, {})
-        part["stratum"] = {
-            "role": role,
-            "trust_tier": rules.get("trust_tier", default_trust_tier),
-            "modality": rules.get("modality", default_modality),
-        }
-
-        # A third-party folder's modality is its own content, never the project's archetype
-        # (2026-11-17: a notes-vault root made every third-party repository "doc", code or not).
-        if role == 'third_party' and part['file_counts'].get('.pdf', 0) > sum(part['file_counts'].values()) / 2:
-            part['stratum']['modality'] = 'paper'
-        elif role == 'third_party' and any(part['file_counts'].get(s, 0) for s in CODE_SUFFIXES):
-            part['stratum']['modality'] = 'code'
-        elif role == 'third_party':
-            part['stratum']['modality'] = 'doc'
+        part["stratum"] = stratum_for(role, part["file_counts"], archetype)
         purposes = {'current': 'own-current', 'legacy': 'own-legacy', 'docs': 'own-docs',
                     'third_party': 'third-party', 'research_docs': 'research-docs', 'data': 'data',
                     'transcripts': 'logs/transcripts', 'external_reference': 'third-party'}
@@ -408,6 +420,7 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
         "shared_survey_fingerprint": inventory['fingerprint'],
         "inventory_fingerprint": digest(inventory['entries']),
         "credential_refusals": {"count": len(credential_refusals), "paths": sorted(credential_refusals)},
+        "role_policy": role_policy(),
     }
 
     # Add plan_id
@@ -416,8 +429,30 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
     return plan_dict
 
 
-def apply(catalog, plan: dict, *, approved_keys: set[str], inventory=None) -> list[dict]:
-    """Apply an approved plan to ingest partitions."""
+def validate_role_overrides(plan: dict, approved_keys: set, role_overrides) -> dict:
+    """Overrides are a person's correction of a suggested role: known parts, known roles, nothing else."""
+    if role_overrides in (None, {}):
+        return {}
+    if not isinstance(role_overrides, dict):
+        raise ValueError('role_overrides must be an object of part key to role')
+    keys = {p['key'] for p in plan['partitions']}
+    clean = {}
+    for key, role in role_overrides.items():
+        if key not in keys:
+            raise ValueError(f'role_overrides names an unknown part: {str(key)[:80]!r}')
+        if role not in ROLES:
+            raise ValueError(f'Unknown role {str(role)[:40]!r}; choose one of {", ".join(ROLES)}')
+        if key in approved_keys:
+            clean[key] = role
+    return clean
+
+
+def apply(catalog, plan: dict, *, approved_keys: set[str], inventory=None, role_overrides=None) -> list[dict]:
+    """Apply an approved plan to ingest partitions.
+
+    `role_overrides` maps a part key to the role a person chose instead of the suggested one. The part is
+    ingested the same way; only its federation stratum (role, trust tier, modality) follows the chosen role."""
+    overrides = validate_role_overrides(plan, approved_keys, role_overrides)
     # Rescan and check staleness
     if inventory is not None:folder_inventory.check_current(Path(plan['root']).resolve(), inventory)
     new_plan = scan(plan["root"], inventory=inventory)
@@ -448,6 +483,8 @@ def apply(catalog, plan: dict, *, approved_keys: set[str], inventory=None) -> li
         )
         report = catalog.import_project(part_root, repo, label=label, decision="keep_separate")
         stratum = partition["stratum"]
+        if key in overrides:
+            stratum = stratum_for(overrides[key], partition["file_counts"], plan["archetype"])
         catalog.set_stratum(
             report["graph_id"],
             stratum["role"],
@@ -459,6 +496,8 @@ def apply(catalog, plan: dict, *, approved_keys: set[str], inventory=None) -> li
             "graph_id": report["graph_id"],
             "root": str(part_root),
             "snapshot_id": report["ingestion"]["snapshot_id"],
+            "role": stratum["role"],
+            "role_suggested": partition["role"],
         })
 
     return results

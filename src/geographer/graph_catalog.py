@@ -332,33 +332,87 @@ class GraphCatalog:
             except (ValueError,OSError,sqlite3.Error) as exc:result['lineage']=dict(error=f'LINEAGE_SWEEP_FAILED: {str(exc)[:300]}')
         return result
 
-    def derive_graph(self,source_graph_id,*,exclude_rel_paths,label):
-        """Prune by derivation (master G8): re-ingest the source root into a NEW graph with extra excludes.
-
-        The source graph, its snapshots and its profile are unchanged. The derived graph skips root
-        overlap review because it is explicitly derived (its profile says so); its id is deterministic,
-        so deriving the same exclusion again refreshes it instead of duplicating it.
-        """
+    @staticmethod
+    def _derivation_paths(exclude_rel_paths,keep_rel_paths):
+        """(mode, clean relative paths) for a derivation: remove these paths, or keep only these paths."""
         import re as _re
-        if not isinstance(exclude_rel_paths,list) or not 1<=len(exclude_rel_paths)<=500:raise ValueError('exclude_rel_paths must list 1..500 relative paths')
+        if (exclude_rel_paths is None)==(keep_rel_paths is None):raise ValueError('Give exclude_rel_paths or keep_rel_paths, not both and not neither')
+        mode,name,paths=('exclude','exclude_rel_paths',exclude_rel_paths) if keep_rel_paths is None else ('keep','keep_rel_paths',keep_rel_paths)
+        if not isinstance(paths,list) or not 1<=len(paths)<=500:raise ValueError(f'{name} must list 1..500 relative paths')
         clean=set()
-        for raw in exclude_rel_paths:
-            if not isinstance(raw,str):raise ValueError('exclude_rel_paths must be strings')
+        for raw in paths:
+            if not isinstance(raw,str):raise ValueError(f'{name} must be strings')
             rel=raw.replace('\\','/').strip().rstrip('/')  # a leading '/' stays: absolute paths are refused below
             if not rel or len(rel)>400 or rel.startswith(('/','~')) or _re.match(r'^[A-Za-z]:',rel) or any(part in ('','.','..') for part in rel.split('/')):
                 raise ValueError(f'Invalid relative path {raw[:80]!r}')
             clean.add(rel)
-        if not isinstance(label,str) or not label.strip() or len(label)>120:raise ValueError('A label of 1..120 characters is required')
+        return mode,clean
+
+    def _derivable(self,source_graph_id,mode):
         source=self.graph(source_graph_id);profile=json.loads(source['profile_json'])
         if profile.get('graph_kind') in ('registered_store','copy') or profile.get('existing_store'):
             raise ValueError('Only graphs ingested from a project root can be pruned by derivation')
+        if mode=='keep' and tuple(profile.get('include_globs',['*']) or ['*'])!=('*',):
+            raise ValueError('KEEP_UNSUPPORTED: this graph already limits what it includes; remove paths instead')
+        return source,profile
+
+    def derive_preview(self,source_graph_id,*,exclude_rel_paths=None,keep_rel_paths=None):
+        """What a derivation would keep and drop, counted from the source snapshot. Writes nothing.
+
+        The counts are the source graph's own files, entities and relationships split by the same path
+        rules the derivation uses; the new graph's re-ingest can differ a little (for example external
+        symbols), which the answer says."""
+        from fnmatch import fnmatchcase
+        mode,clean=self._derivation_paths(exclude_rel_paths,keep_rel_paths)
+        source,profile=self._derivable(source_graph_id,mode)
+        if not source['snapshot_id']:raise ValueError('The source graph has no code snapshot to count')
+        globs=sorted({g for rel in clean for g in (rel,rel+'/*')})
+        listed=lambda path:any(fnmatchcase(path,g) for g in globs)
+        kept=(lambda path:listed(path)) if mode=='keep' else (lambda path:not listed(path))
+        with SnapshotStore(source['code_database']) as store:
+            sid=source['snapshot_id'];con=store.connection
+            # A directory is only a container: it exists in the new graph when a kept file lies beneath it,
+            # so it is neither counted nor treated as removed. Everything else with a source path is counted.
+            files={};removed_ids=set();entities=[0,0]
+            for entity_id,rel,kind in con.execute("SELECT entity_id,rel_path,kind FROM entities WHERE snapshot_id=? AND rel_path IS NOT NULL AND kind<>'directory'",(sid,)):
+                ok=kept(rel)
+                if kind=='file':files[rel]=ok
+                if ok:entities[0]+=1
+                else:entities[1]+=1;removed_ids.add(entity_id)
+            relationships=[0,0]
+            for source_id,target_id in con.execute('SELECT source_subject_id,target_subject_id FROM relationships WHERE snapshot_id=?',(sid,)):
+                if source_id in removed_ids or target_id in removed_ids:relationships[1]+=1
+                else:relationships[0]+=1
+        kept_files=sum(1 for v in files.values() if v)
+        unmatched=sorted(rel for rel in clean if not any(fnmatchcase(path,g) for path in files for g in (rel,rel+'/*')))
+        return dict(mode=mode,source_graph=source_graph_id,
+            files=dict(total=len(files),kept=kept_files,removed=len(files)-kept_files),
+            entities=dict(total=sum(entities),kept=entities[0],removed=entities[1]),
+            relationships=dict(total=sum(relationships),kept=relationships[0],dropped=relationships[1]),
+            paths=len(clean),unmatched_paths=unmatched[:50],
+            note='Counted from the source graph. The new graph is read again from the folder, so its totals can differ slightly.')
+
+    def derive_graph(self,source_graph_id,*,exclude_rel_paths=None,keep_rel_paths=None,label):
+        """Derive a NEW graph from a source graph (master G8): re-ingest the source root without some
+        paths ("remove these") or with only some paths ("keep only these").
+
+        The source graph, its snapshots and its profile are unchanged. The derived graph skips root
+        overlap review because it is explicitly derived (its profile says so); its id is deterministic,
+        so deriving the same selection again refreshes it instead of duplicating it.
+        """
+        mode,clean=self._derivation_paths(exclude_rel_paths,keep_rel_paths)
+        if not isinstance(label,str) or not label.strip() or len(label)>120:raise ValueError('A label of 1..120 characters is required')
+        source,profile=self._derivable(source_graph_id,mode)
         root=Path(source['root_path'])
         if not root.is_dir():raise ValueError('Source root is not available for re-ingestion')
-        new_id='g_'+digest('derived-v1',source_graph_id,sorted(clean))[:24]
+        new_id='g_'+digest('derived-v1' if mode=='exclude' else 'derived-keep-v1',source_graph_id,sorted(clean))[:24]
         globs=sorted({g for rel in clean for g in (rel,rel+'/*')})
-        excludes=sorted(set(profile.get('exclude_globs',[]))|set(globs))
+        if mode=='exclude':
+            excludes=sorted(set(profile.get('exclude_globs',[]))|set(globs));includes=tuple(profile.get('include_globs',['*'])) or ('*',)
+        else:
+            excludes=sorted(set(profile.get('exclude_globs',[])));includes=tuple(globs)
         repository=Repository.from_directory(root,new_id,source_roots=tuple(profile.get('source_roots',[''])) or ('',),
-            include_globs=tuple(profile.get('include_globs',['*'])) or ('*',),exclude_globs=tuple(excludes))
+            include_globs=includes,exclude_globs=tuple(excludes))
         repository.repo_id=new_id;repository.resolution_group=None
         database=self.path.parent/'graphs'/new_id/'code.sqlite';database.parent.mkdir(parents=True,exist_ok=True)
         with self.import_lock,SnapshotStore(database) as store:
@@ -367,14 +421,16 @@ class GraphCatalog:
                 "WHERE s.repo_id=? AND s.digest=? AND ss.status='complete' ORDER BY ss.created_at DESC LIMIT 1",(new_id,repository.content_digest)).fetchone()
             report=dict(snapshot_id=row[0],status='reused') if row else ingest(store,[repository],stage=3)
         derived=dict(graph_kind='derived',derived_from=source_graph_id,source_roots=list(repository.source_roots),
-            include_globs=list(repository.include_globs),exclude_globs=excludes,owner_repo_ids=[new_id])
+            include_globs=list(repository.include_globs),exclude_globs=excludes,owner_repo_ids=[new_id],
+            derived_how=dict(mode=mode,paths=sorted(clean)))
         if 'stratum' in profile:derived['stratum']=profile['stratum']
         now=datetime.now(timezone.utc).isoformat()
         with self.lock,self.connection:
             self.connection.execute('BEGIN IMMEDIATE')
             self.connection.execute('INSERT INTO graphs VALUES(?,?,?,?,?,NULL,?,?,?) ON CONFLICT(graph_id) DO UPDATE SET label=excluded.label,snapshot_id=excluded.snapshot_id,profile_json=excluded.profile_json',
                 (new_id,'derived:'+new_id,str(root),label.strip(),str(database),report['snapshot_id'],canonical(derived),now))
-        return dict(graph_id=new_id,derived_from=source_graph_id,exclude_globs=globs,ingestion=report)
+        return dict(graph_id=new_id,derived_from=source_graph_id,mode=mode,exclude_globs=globs if mode=='exclude' else [],
+            include_globs=globs if mode=='keep' else [],ingestion=report)
 
     def attach_papers(self,graph_id,path):
         path=Path(path).resolve()
@@ -434,6 +490,23 @@ class GraphCatalog:
                 if owned:self.connection.rollback()
                 raise
             return bid
+
+    def bridge(self,bridge_id):
+        with self.lock:
+            row=self.connection.execute('SELECT * FROM bridges WHERE bridge_id=?',(bridge_id,)).fetchone()
+        if row is None:raise ValueError('Unknown bridge_id')
+        return dict(row)
+
+    def remove_bridge(self,bridge_id):
+        """Retract a declared link. Only the link goes: both graphs, and every extracted fact, are untouched."""
+        with self.lock,self.connection:
+            self.connection.execute('BEGIN IMMEDIATE')
+            row=self.connection.execute('SELECT * FROM bridges WHERE bridge_id=?',(bridge_id,)).fetchone()
+            if row is None:raise ValueError('Unknown bridge_id')
+            self.connection.execute('DELETE FROM bridges WHERE bridge_id=?',(bridge_id,))
+            self.connection.execute('DELETE FROM artifact_justifications WHERE artifact_id=?',(bridge_id,))
+            self.connection.execute('DELETE FROM artifact_states WHERE artifact_id=?',(bridge_id,))
+            return dict(removed=bridge_id,source_graph=row['source_graph'],target_graph=row['target_graph'])
 
     def _bind_legacy_bridges(self):
         """Bridges created before bindings existed: bind both sides to the graph's current snapshot, empty fingerprint."""

@@ -1580,29 +1580,6 @@ dialog input {
 .shared-graph-canvas {height:max(420px,calc(100dvh - 360px));}
 @media(max-width:600px){.shared-graph-canvas {height:360px;}.graph-workspace {padding:12px;}}
 
-/* Prune-by-derivation confirmation (wave 3 Task 7): floats above the scene, never under the canvas. */
-.prune-dialog {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  z-index: 5;
-  max-width: 360px;
-  max-height: 50%;
-  overflow: auto;
-  padding: 12px;
-  border: 1px solid var(--border, #8884);
-  border-radius: 8px;
-  background: var(--panel, var(--background, #fff));
-  color: var(--text, inherit);
-  pointer-events: auto;
-}
-.prune-dialog ul {
-  margin: 4px 0;
-  padding-left: 18px;
-  max-height: 120px;
-  overflow: auto;
-}
-
 /* Way back to the owning library's Librarian (per-library service). */
 .library-link {
   font-size: 12px;
@@ -2191,6 +2168,135 @@ dialog input {
 .build-panel details > summary {
   cursor: pointer;
 }
+.build-panel .muted {
+  margin: 4px 0;
+  font-size: 12px;
+  color: var(--secondary);
+}
+/* Keep only / remove, compare, and links share one form language: a bordered group per choice */
+.derive-form,
+.link-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.derive-form fieldset,
+.link-end {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.derive-form legend,
+.link-end legend {
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--secondary);
+}
+.derive-form fieldset label {
+  display: block;
+}
+.derive-paths,
+.compare-list {
+  max-height: 11rem;
+  margin: 6px 0;
+  padding-left: 16px;
+  overflow: auto;
+  font-size: 12px;
+}
+.derive-preview {
+  margin: 2px 0;
+  font-weight: 500;
+}
+.derive-actions,
+.link-end-choices,
+.compare-pickers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px;
+}
+.compare-pickers label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 12px;
+}
+.compare-pickers select {
+  max-width: 11rem;
+}
+.compare-headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 10px 0 2px;
+  font-weight: 600;
+}
+.compare-counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin: 6px 0;
+  padding: 0;
+  list-style: none;
+}
+.link-end label {
+  display: block;
+  margin-top: 6px;
+}
+.link-end input[type="text"],
+.link-end input:not([type]),
+.link-form > label input {
+  width: 100%;
+}
+.link-end-choices button[aria-pressed="true"] {
+  border-color: var(--accent);
+}
+.link-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.link-list li {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.link-ends {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.link-why {
+  margin: 4px 0;
+  font-size: 12px;
+  color: var(--secondary);
+}
+/* A graph's accent: a dot beside its name, in the colour its enclosure wears in the scene */
+.graph-swatch {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--sw-dark);
+}
+:root[data-theme="light"] .graph-swatch {
+  background: var(--sw-light);
+}
+.accent-select {
+  max-width: 6.5rem;
+  font-size: 12px;
+}
 .build-panel .workspace-ingest ul[aria-label="Folders"] {
   list-style: none;
   margin: 0;
@@ -2292,6 +2398,23 @@ dialog input {
 }
 .map-tag-cited {
   border-style: dashed;
+}
+/* The role is the one tag a person can correct, so it is a select that looks like the tags around it */
+.map-role {
+  font: inherit;
+  font-size: 11px;
+  min-height: 24px;
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--raised);
+  color: inherit;
+}
+.ingest-changed {
+  margin-right: auto;
+  align-self: center;
+  font-size: 12px;
+  color: var(--secondary);
 }
 .map-tag-nolicence {
   border-color: var(--accent);

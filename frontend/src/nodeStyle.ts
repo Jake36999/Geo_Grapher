@@ -128,6 +128,11 @@ export function categoryColour(category: NodeCategory, theme: "dark" | "light"):
  * displayed"). */
 export const CROSSING_FADE = 0.4;
 
+/** How strongly a declared link between two graphs is drawn. A declared link is something a person asserted, so
+ * it is softer than a thread inside a graph but, unlike a crossing relationship, must stay readable along its
+ * whole length: the fade away from the source end is what shows which way it points. */
+export const DECLARED_FADE = 0.75;
+
 /** The fade for one relationship, or null when it is not drawn. A relationship whose
  * end is not displayed is not drawn; one between two repositories (graphs or reviewed
  * folders) is drawn faded; one inside a repository is drawn as before. */

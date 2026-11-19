@@ -6,6 +6,9 @@ import {
   contrastRatio,
   dashFor,
   familyStops,
+  hexToRgb,
+  rgbToHex,
+  srgbToOkLab,
   type RelationshipFamily,
 } from "./edgeStyle.ts";
 
@@ -29,12 +32,38 @@ test("every family stop has WCAG contrast >= 4.5 on both theme backgrounds", () 
     }
 });
 
-test("dark stops are the master G9 palette", () => {
-  assert.deepEqual(familyStops("call_or_data", "dark"), ["#FF8A1F", "#FFC46B"]);
-  // Targets of hierarchy, doc_rationale and violation are lightened (G9 lists
-  // 4.26:1 values) so the 4.5:1 requirement holds; sources are untouched.
-  assert.equal(familyStops("hierarchy", "dark")[0], "#C77DFF");
-  assert.equal(familyStops("violation", "dark")[0], "#FF2A55");
+test("dark stops are neon, and each thread is one colour: direction is the fade, not a hue change", () => {
+  const lab = (hex: string) => srgbToOkLab(hexToRgb(hex));
+  const chroma = (hex: string) => Math.hypot(lab(hex)[1], lab(hex)[2]);
+  const hue = (hex: string) => (Math.atan2(lab(hex)[2], lab(hex)[1]) * 180) / Math.PI;
+  const gap = (x: number, y: number) => Math.abs(((x - y + 540) % 360) - 180);
+  for (const theme of ["dark", "light"] as const)
+    for (const f of families) {
+      const [a, b] = familyStops(f, theme);
+      assert(gap(hue(a), hue(b)) <= 10, `${f}/${theme} is one colour, not a blend: ${a} ${b}`);
+    }
+  for (const f of families) {
+    const [a, b] = familyStops(f, "dark");
+    assert(chroma(a) >= 0.14 && chroma(b) >= 0.14, `${f} is neon (saturated): ${a} ${b}`);
+  }
+  // the whole thread is that one colour: the midpoint is the same hue as the ends
+  for (const f of families) {
+    const mid = rgbToHex(colourAt(f, "dark", 0.5));
+    assert(gap(hue(mid), hue(familyStops(f, "dark")[0])) <= 10, `${f} midpoint stays the same colour`);
+  }
+});
+
+test("light stops keep the hue of their dark stop and still hold 4.5:1", () => {
+  const hue = (hex: string) => {
+    const [, a, b] = srgbToOkLab(hexToRgb(hex));
+    return (Math.atan2(b, a) * 180) / Math.PI;
+  };
+  const gap = (x: number, y: number) => Math.abs(((x - y + 540) % 360) - 180);
+  for (const f of families) {
+    const [dark] = familyStops(f, "dark"),
+      [light] = familyStops(f, "light");
+    assert(gap(hue(dark), hue(light)) <= 50, `${f}: light ${light} keeps the hue of ${dark}`);
+  }
 });
 
 test("alpha law is 0.95 - 0.60 t and monotone decreasing", () => {

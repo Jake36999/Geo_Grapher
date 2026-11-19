@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import App from "./App";
 import GraphMergeReview from "./GraphMergeReview";
 import BridgeReview from "./BridgeReview";
 import WorkspaceIngest from "./WorkspaceIngest";
 import GraphActions from "./GraphLifecycle";
+import DeriveSection from "./DeriveSection";
+import CompareSection, { emptyCompare, type CompareState } from "./CompareSection";
+import LinkSection, { emptyLink, type LinkDraft } from "./LinkSection";
+import GraphSwatch from "./GraphSwatch";
+import { ACCENTS, assignAccents, loadAccentChoices, saveAccentChoices } from "./accents";
 import { getActiveGraphs, setActiveGraphs, setWorkspaceGraph } from "./api";
 import { DEFAULT_MAX_GRAPHS, addGraph, initialSelection } from "./graphSelection";
 import type {
@@ -22,6 +27,16 @@ export default function Workspace() {
   const [showBridges, setShowBridges] = useState(true);
   const [activeSet, setActiveSet] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // What the Build tab is in the middle of. It lives here, not in the canvas view, because choosing something
+  // on the canvas can make another graph the active one, and the canvas view then starts over.
+  const [compare, setCompare] = useState<CompareState>(emptyCompare),
+    [linkDraft, setLinkDraft] = useState<LinkDraft>(emptyLink),
+    [linksVersion, setLinksVersion] = useState(0);
+  const [accentChoices, setAccentChoices] = useState(loadAccentChoices);
+  const accents = useMemo(
+    () => assignAccents(graphs.map((g) => g.graph_id), accentChoices),
+    [graphs.map((g) => g.graph_id).join(), accentChoices],
+  );
   // Graphs the server keeps loaded at once (each is held in memory); /api/workspace/context says.
   const [maxGraphs, setMaxGraphs] = useState(DEFAULT_MAX_GRAPHS);
   const [focus, setFocus] = useState<
@@ -215,6 +230,7 @@ export default function Workspace() {
           {graphs.map((g) => (
             <div className="workspace-graph-choice" key={g.graph_id}>
               <label>
+                <GraphSwatch accent={accents[g.graph_id]} />
                 <input
                   type="checkbox"
                   checked={selected.includes(g.graph_id)}
@@ -255,6 +271,25 @@ export default function Workspace() {
               >
                 Active
               </button>
+              <select
+                className="accent-select"
+                aria-label={`Colour of ${g.label}`}
+                title="The colour that marks this graph when several are shown"
+                value={accents[g.graph_id]?.id ?? ""}
+                onChange={(e) =>
+                  setAccentChoices((old) => {
+                    const next = { ...old, [g.graph_id]: e.target.value };
+                    saveAccentChoices(next);
+                    return next;
+                  })
+                }
+              >
+                {ACCENTS.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
               <GraphActions
                 graph={g}
                 onCopied={() => reloadGraphs().catch((e) => setError(e.message))}
@@ -286,6 +321,7 @@ export default function Workspace() {
       </details>
     </>
   );
+  const labels = Object.fromEntries(graphs.map((g) => [g.graph_id, g.label]));
   // The Build tab of the right-hand panel: what makes something new. Each result is a new graph or a
   // declared link; the source graphs are never changed.
   const build = (
@@ -304,6 +340,7 @@ export default function Workspace() {
           }}
         />
       </section>
+      <DeriveSection />
       <section aria-labelledby="build-combine">
         <h2 id="build-combine">Combine graphs</h2>
         <p className="build-hint">
@@ -323,15 +360,24 @@ export default function Workspace() {
           }}
         />
       </section>
-      <section aria-labelledby="build-link">
-        <h2 id="build-link">Link graphs</h2>
-        <p className="build-hint">Declare how two checked graphs relate. Links are kept apart from extracted facts.</p>
-        <BridgeReview
-          graphIds={selected}
-          labels={Object.fromEntries(graphs.map((g) => [g.graph_id, g.label]))}
-          onDecided={() => setSelected((s) => [...s])}
-        />
-      </section>
+      <CompareSection
+        graphIds={selected}
+        labels={labels}
+        accents={accents}
+        state={compare}
+        setState={setCompare}
+      />
+      <LinkSection
+        graphIds={selected}
+        labels={labels}
+        accents={accents}
+        draft={linkDraft}
+        setDraft={setLinkDraft}
+        version={linksVersion}
+        onChanged={() => setLinksVersion((v) => v + 1)}
+      >
+        <BridgeReview graphIds={selected} labels={labels} onDecided={() => setLinksVersion((v) => v + 1)} />
+      </LinkSection>
       {error && <p role="alert">{error}</p>}
     </>
   );
@@ -352,6 +398,8 @@ export default function Workspace() {
         focus,
         remember,
         showBridges,
+        accents,
+        linksVersion,
         restoreGraphs,
         reloadGraphs,
       }}

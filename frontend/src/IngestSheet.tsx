@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  ROLE_ORDER,
+  activeOverrides,
   asciiMap,
   buildMap,
   filesLabel,
@@ -9,6 +11,7 @@ import {
   type MapNode,
   type MapPartition,
   type MapPlan,
+  type RoleOverrides,
 } from "./ingestMap";
 
 export type SheetPlan = MapPlan & {
@@ -21,20 +24,26 @@ export type SheetPlan = MapPlan & {
  * How a folder was read, as a wide sheet over the canvas. The tree is the working view (tick what
  * to bring in); the text version beside it is for pasting. It goes only as deep as the folder is
  * split into separate graphs. Suggestions are never decided for the person: every part is theirs to
- * tick, and a source without a licence file is labelled, not blocked.
+ * tick, the role the scan guessed is theirs to correct, and a source without a licence file is labelled,
+ * not blocked.
  */
 export default function IngestSheet({
   plan,
   approved,
+  roles,
   busy,
   onApprove,
+  onRole,
   onApply,
   onClose,
 }: {
   plan: SheetPlan;
   approved: Record<string, boolean>;
+  /** The roles a person chose instead of the suggested ones. */
+  roles: RoleOverrides;
   busy: boolean;
   onApprove: (key: string, on: boolean) => void;
+  onRole: (key: string, role: string) => void;
   onApply: () => void;
   onClose: () => void;
 }) {
@@ -47,7 +56,7 @@ export default function IngestSheet({
       if (element?.open) element.close();
     };
   }, []);
-  const text = asciiMap(plan);
+  const text = asciiMap(plan, roles);
   async function copy() {
     try {
       await navigator.clipboard.writeText(text);
@@ -65,8 +74,9 @@ export default function IngestSheet({
       setCopied("Select and copy the text above.");
     }
   }
-  const root = buildMap(plan);
+  const root = buildMap(plan, roles);
   const chosen = plan.partitions.filter((p) => approved[p.key]).length;
+  const changed = Object.keys(activeOverrides(plan, roles, approved)).length;
   // In the page body, not inside the right panel: at narrow widths that panel is a drawer that can
   // be hidden, and a sheet that is mid-review must not go with it.
   return createPortal(
@@ -94,10 +104,11 @@ export default function IngestSheet({
       <p className="ingest-policy">
         Each part becomes its own graph, so you can keep them apart. Tick what to bring in. A source with no
         licence file is still brought in and copied; it is cited and kept out of anything published as our own
-        work.
+        work. If the scan guessed a role wrong, change it in the list: the part is read the same way, and only how
+        it is labelled changes.
       </p>
       <ul className="folder-map" aria-label="Folder map">
-        <MapRow node={root} approved={approved} busy={busy} onApprove={onApprove} top />
+        <MapRow node={root} approved={approved} roles={roles} busy={busy} onApprove={onApprove} onRole={onRole} top />
       </ul>
       {plan.manual_steps.length > 0 && (
         <p className="ingest-note">
@@ -121,6 +132,11 @@ export default function IngestSheet({
         <span role="status">{copied}</span>
       </details>
       <footer className="ingest-sheet-actions">
+        {changed > 0 && (
+          <span className="ingest-changed" role="status">
+            {changed} role{changed === 1 ? "" : "s"} changed by you
+          </span>
+        )}
         <button type="button" onClick={onClose}>
           Cancel
         </button>
@@ -136,14 +152,18 @@ export default function IngestSheet({
 function MapRow({
   node,
   approved,
+  roles,
   busy,
   onApprove,
+  onRole,
   top = false,
 }: {
   node: MapNode;
   approved: Record<string, boolean>;
+  roles: RoleOverrides;
   busy: boolean;
   onApprove: (key: string, on: boolean) => void;
+  onRole: (key: string, role: string) => void;
   top?: boolean;
 }) {
   const part = node.partition;
@@ -162,7 +182,15 @@ function MapRow({
           <span className="map-spacer" aria-hidden="true" />
         )}
         <span className="map-name">{node.name}/</span>
-        {part && <PartInfo part={part} top={top} />}
+        {part && (
+          <PartInfo
+            part={part}
+            top={top}
+            label={top ? node.name : node.path}
+            disabled={busy}
+            onRole={(role) => onRole(part.key, role)}
+          />
+        )}
       </div>
       {part?.suggestion?.reasons?.length ? (
         <p className="map-reasons">{part.suggestion.reasons.join("; ")}</p>
@@ -170,7 +198,15 @@ function MapRow({
       {node.children.length > 0 && (
         <ul>
           {node.children.map((child) => (
-            <MapRow key={child.path} node={child} approved={approved} busy={busy} onApprove={onApprove} />
+            <MapRow
+              key={child.path}
+              node={child}
+              approved={approved}
+              roles={roles}
+              busy={busy}
+              onApprove={onApprove}
+              onRole={onRole}
+            />
           ))}
         </ul>
       )}
@@ -178,16 +214,41 @@ function MapRow({
   );
 }
 
-function PartInfo({ part, top }: { part: MapPartition; top: boolean }) {
-  const list = tags(part);
+function PartInfo({
+  part,
+  top,
+  label,
+  disabled,
+  onRole,
+}: {
+  part: MapPartition;
+  top: boolean;
+  label: string;
+  disabled: boolean;
+  onRole: (role: string) => void;
+}) {
+  // The first tag is the role: it is the one thing a person may correct, so it is the control.
+  const [, ...rest] = tags(part);
   return (
     <>
       <span className="map-tags">
-        {list.map((t, i) => (
+        <select
+          className="map-role"
+          aria-label={`Role of ${label}`}
+          value={part.role}
+          disabled={disabled}
+          onChange={(e) => onRole(e.target.value)}
+        >
+          {ROLE_ORDER.map((role) => (
+            <option key={role} value={role}>
+              {roleLabel(role)}
+            </option>
+          ))}
+        </select>
+        {rest.map((t) => (
           <span
             key={t}
             className={`map-tag${t.startsWith("cited") ? " map-tag-cited" : ""}${t === "no licence file" ? " map-tag-nolicence" : ""}`}
-            title={i === 0 ? roleLabel(part.role) : undefined}
           >
             {t}
           </span>

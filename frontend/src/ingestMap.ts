@@ -19,7 +19,11 @@ export type MapPartition = {
   bytes: number;
   suggestion?: Suggestion;
 };
-export type MapPlan = { root: string; partitions: MapPartition[] };
+/** What each role means for publication and licence labels. It comes from the scan (one source of truth). */
+export type RolePolicy = Record<string, { publication: "own" | "reference"; licence_applicable: boolean }>;
+export type MapPlan = { root: string; partitions: MapPartition[]; role_policy?: RolePolicy };
+/** A person's corrections: part key to the role chosen instead of the suggested one. */
+export type RoleOverrides = Record<string, string>;
 export type MapNode = {
   name: string;
   path: string;
@@ -39,6 +43,44 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export const roleLabel = (role: string) => ROLE_LABEL[role] ?? role.replace(/_/g, " ");
+
+/** The roles a part can be given, in the order they are offered. */
+export const ROLE_ORDER = [
+  "current",
+  "legacy",
+  "docs",
+  "transcripts",
+  "data",
+  "third_party",
+  "external_reference",
+  "research_docs",
+] as const;
+
+/** The part as it will be treated: the chosen role when there is one, with the publication and licence
+ * labels that role implies. The suggestion's own wording (reasons) is replaced by a plain statement that
+ * a person chose it. A role the scan did not describe (no policy) is left as the scan reported it. */
+export function withRole(p: MapPartition, role: string | undefined, policy?: RolePolicy): MapPartition {
+  if (!role || role === p.role) return p;
+  const rule = policy?.[role];
+  const files = p.suggestion?.licence_files ?? 0;
+  return {
+    ...p,
+    role,
+    suggestion: {
+      ...p.suggestion,
+      publication: rule?.publication ?? p.suggestion?.publication,
+      licence: rule ? (rule.licence_applicable ? (files ? "found" : "none_found") : "not_applicable") : p.suggestion?.licence,
+      reasons: [`you chose “${roleLabel(role)}”; the scan suggested “${roleLabel(p.role)}”`],
+    },
+  };
+}
+
+/** Only the corrections that differ from the suggestion, for the parts that will be ingested. */
+export function activeOverrides(plan: MapPlan, roles: RoleOverrides, approved: Record<string, boolean>): RoleOverrides {
+  const out: RoleOverrides = {};
+  for (const p of plan.partitions) if (approved[p.key] && roles[p.key] && roles[p.key] !== p.role) out[p.key] = roles[p.key];
+  return out;
+}
 
 export const fileTotal = (p: MapPartition) => Object.values(p.file_counts).reduce((a, b) => a + b, 0);
 
@@ -60,16 +102,20 @@ export function tags(p: MapPartition): string[] {
 
 const baseName = (path: string) => path.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || path;
 
-/** The root, then each partition at its own path. A folder that only leads to a partition is a plain node. */
-export function buildMap(plan: MapPlan): MapNode {
+/** The root, then each partition at its own path. A folder that only leads to a partition is a plain node.
+ * `roles` are a person's corrections; the map shows each part as it will be treated. */
+export function buildMap(plan: MapPlan, roles: RoleOverrides = {}): MapNode {
+  const shown = (p: MapPartition) => withRole(p, roles[p.key], plan.role_policy);
+  const residual = plan.partitions.find((p) => p.key === "residual");
   const root: MapNode = {
     name: baseName(plan.root),
     path: "",
-    partition: plan.partitions.find((p) => p.key === "residual"),
+    partition: residual && shown(residual),
     children: [],
   };
-  for (const part of plan.partitions) {
-    if (part.key === "residual" || !part.subtrees.length) continue;
+  for (const original of plan.partitions) {
+    if (original.key === "residual" || !original.subtrees.length) continue;
+    const part = shown(original);
     let node = root;
     let path = "";
     for (const segment of part.subtrees[0].split("/")) {
@@ -95,8 +141,8 @@ export const filesLabel = (p: MapPartition) => `${fileTotal(p)} file${fileTotal(
 const counts = (p?: MapPartition) => (p ? filesLabel(p) : "");
 
 /** The same tree as monospace text, for pasting into a note or an issue. */
-export function asciiMap(plan: MapPlan): string {
-  const root = buildMap(plan);
+export function asciiMap(plan: MapPlan, roles: RoleOverrides = {}): string {
+  const root = buildMap(plan, roles);
   const rows: { left: string; label: string; count: string }[] = [];
   const walk = (node: MapNode, prefix: string, last: boolean, top: boolean) => {
     const left = top ? `${node.name}/` : `${prefix}${last ? "└─ " : "├─ "}${node.name}/`;

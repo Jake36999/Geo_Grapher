@@ -71,16 +71,51 @@ test('box-select nodes, prune: a derived graph appears and the source is unchang
  await page.getByRole('button',{name:'Wider',exact:true}).click();
  const canvas=page.locator('canvas');await canvas.scrollIntoViewIfNeeded();const box=await canvas.boundingBox();
  await page.getByRole('button',{name:'Box select',exact:true}).click();
- await page.mouse.move(box.x+64,box.y+80);await page.mouse.down();
- await page.mouse.move(box.x+box.width-12,box.y+box.height-48,{steps:5});await page.mouse.up();
- await expect(page.getByTestId('layout-selection-status')).not.toHaveText('0 selected');
- await page.getByRole('button',{name:'Prune selection…'}).click();
- const form=page.getByRole('form',{name:'Prune selection'});await expect(form).toBeVisible();
- await form.getByLabel('New graph label').fill('Alpha pruned');
- await form.getByRole('button',{name:'Create pruned graph'}).click();
- await expect(form.getByRole('status')).toContainText('Created derived graph',{timeout:60000});
+ // the function `util`, found by its own label: it lives in one of Alpha's two files, so the selection is a part
+ // of the graph and there is something to cut (a fixed rectangle would depend on how many graphs are showing)
+ const label=await page.getByText('util',{exact:true}).first().boundingBox();expect(label).toBeTruthy();
+ const centre=label.x+label.width/2;
+ await page.mouse.move(centre-40,label.y+label.height+4);await page.mouse.down();
+ await page.mouse.move(centre+40,label.y+label.height+84,{steps:5});await page.mouse.up();
+ await expect(page.getByTestId('layout-selection-status')).not.toHaveText('0 selected'); // util and its module scope: both in util.py
+ await page.getByRole('button',{name:'Keep only or remove selection…'}).click();
+ // the choice is made in the Build tab, which opens by itself
+ await expect(page.getByRole('tab',{name:'Build',exact:true})).toHaveAttribute('aria-selected','true');
+ const form=page.getByRole('form',{name:'Keep only or remove the selection'});await expect(form).toBeVisible();
+ // the counts come first, from the source graph, before anything is made
+ await expect(form.getByTestId('derive-preview')).toContainText(/^Keeps 1 of 2 files/);
+ await form.getByRole('radio',{name:'Remove these'}).check();
+ await expect(form.getByTestId('derive-preview')).toContainText(/^Removes 1 of 2 files/);
+ await form.getByRole('radio',{name:'Keep only these'}).check();
+ await expect(form.getByTestId('derive-preview')).toContainText(/^Keeps 1 of 2 files/);
+ await expect(form.getByRole('button',{name:'Create graph of only these'})).toBeDisabled(); // no name yet
+ await form.getByLabel('New graph name').fill('Alpha pruned');
+ await form.getByRole('button',{name:'Create graph of only these'}).click();
+ await expect(form.getByRole('status')).toContainText('Made “Alpha pruned”',{timeout:60000});
  const after=(await(await request.get('/api/graphs')).json()).graphs;
  expect(after.find(g=>g.label==='Alpha pruned')).toBeTruthy();
  expect(after.find(g=>g.graph_id===alpha.graph_id).snapshot_id).toBe(alpha.snapshot_id);
  expect(errors).toEqual([]);
+});
+
+test('selecting every file cannot make a graph: the counts say nothing would change and the button stays off',async({page})=>{
+ const graphs=(await(await page.request.get('/api/graphs')).json()).graphs;const alpha=graphs.find(g=>g.label==='Alpha');
+ await page.goto(`/graphs/${alpha.graph_id}/?view=spatial&debug`);
+ await expect(page.getByRole('searchbox',{name:'Search entities'})).toBeEnabled();
+ await page.getByRole('button',{name:'Wider',exact:true}).click();
+ const box=await page.locator('canvas').boundingBox();
+ await page.getByRole('button',{name:'Box select',exact:true}).click();
+ await page.mouse.move(box.x+64,box.y+80);await page.mouse.down();
+ await page.mouse.move(box.x+box.width-12,box.y+box.height-48,{steps:5});await page.mouse.up();
+ await page.getByRole('button',{name:'Keep only or remove selection…'}).click();
+ const form=page.getByRole('form',{name:'Keep only or remove the selection'});
+ await form.getByLabel('New graph name').fill('Everything');
+ await expect(form.getByTestId('derive-preview')).toContainText('covers every file, so keeping only it would change nothing');
+ await expect(form.getByRole('button',{name:'Create graph of only these'})).toBeDisabled();
+ await form.getByRole('radio',{name:'Remove these'}).check();
+ await expect(form.getByTestId('derive-preview')).toContainText('nothing would be left');
+ await expect(form.getByRole('button',{name:'Create graph without these'})).toBeDisabled();
+ await form.getByRole('button',{name:'Clear selection'}).click();
+ await expect(page.getByRole('form',{name:'Keep only or remove the selection'})).toHaveCount(0);
+ expect((await(await page.request.get('/api/graphs')).json()).graphs.some(g=>g.label==='Everything')).toBe(false);
 });

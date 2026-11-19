@@ -46,7 +46,24 @@ So the scan **labels** and never **gates**:
 The folder map shows the labels as tags ("cited, not published as our own", "no licence file"). The labels are for the
 person (and for any later publish step) to read; nothing in the scan withholds a source.
 
+## Correcting a role
+
+The scan guesses a role for every part, and a guess can be wrong (a folder named `vendor` that is really your own
+code). In the review sheet the role tag of each part is a selector, so a person can correct it instead of only
+unticking the part.
+
+- A correction changes how the part is **labelled and filed**, not how it is read. The part is ingested the same way
+  and by the same files; only its federation stratum (role, trust tier, modality) and its publication label follow the
+  chosen role.
+- The labels a role implies come from one place, `workspace_init.role_policy()`. The plan carries it as
+  `role_policy`, and the sheet reads it, so the scan and the sheet cannot disagree about what "own" or "third-party"
+  means. Choosing a role that looks for a licence file (`third_party`, `external_reference`) looks again at the files
+  already counted for that part.
+- Only corrections that differ from the suggestion, for parts that will be ingested, are sent as `role_overrides`
+  (part key to role). The server refuses an unknown part or an unknown role before anything is ingested.
+- The sheet states plainly that a role was chosen by a person ("you chose “own”; the scan suggested
+  “third-party”"), and the text map shows the corrected role.
+
 ## Not decided here
 
-- A role override in the review sheet (a wrong guess can still only be unticked, not corrected).
 - Anything that enforces "not published as our own work" at publish time; that belongs to the publishing step.

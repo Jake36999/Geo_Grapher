@@ -36,7 +36,7 @@ import {
   type RuntimeStatus,
 } from "./edgeStyle";
 import { samples, type Lens } from "./curves";
-import { CROSSING_FADE, edgeFade, nodeColour } from "./nodeStyle";
+import { DECLARED_FADE, edgeFade, nodeColour } from "./nodeStyle";
 import {
   editedScene,
   editSelection,
@@ -60,7 +60,11 @@ export interface SceneHandle {
 export type SceneData = Pick<
   ViewportFrameData,
   "nodes" | "relationships" | "spheres" | "curves"
-> & { documentary_links?: DocumentaryLink[] };
+> & {
+  documentary_links?: DocumentaryLink[];
+  /** Enclosures that carry a graph's accent colour, by node id: [dark theme, light theme] hex. */
+  accents?: Record<string, [number, number]>;
+};
 const EDGE_VERTEX = `
 attribute float aT;
 attribute float aDist;
@@ -136,6 +140,8 @@ interface Props {
     target: Vec3;
     sourceNodeId?: string;
     targetNodeId?: string;
+    /** What the thread says when hovered: who it joins, how, and why. */
+    label?: string;
   }[];
   focusId: string;
   navigationKey: string;
@@ -318,11 +324,18 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     // direction gradient as backend curves.
     const declaredMaterial = lineMaterial;
     scene.add(declaredLayer);
+    // What hovering a declared thread needs: its curve (for the arrow and the highlight), the two bubbles it
+    // joins, the words to show, and an index the shader uses to keep it bright while the rest dim.
+    const declaredInfo = new Map<
+      string,
+      { points: Vec3[]; from: string; to: string; label: string; edge: number }
+    >();
     function updateDeclaredLinks() {
       for (const object of [...declaredLayer.children]) {
         (object as THREE.Line).geometry.dispose();
         declaredLayer.remove(object);
       }
+      declaredInfo.clear();
       for (const [index, link] of (
         propsRef.current.declaredLinks ?? []
       ).entries()) {
@@ -365,15 +378,22 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         );
         geometry.setAttribute(
           "aEdge",
-          new THREE.BufferAttribute(new Float32Array(n).fill(-2), 1),
+          new THREE.BufferAttribute(new Float32Array(n).fill(-2 - index), 1),
         );
         geometry.setAttribute(
           "aFade",
-          new THREE.BufferAttribute(new Float32Array(n).fill(CROSSING_FADE), 1),
+          new THREE.BufferAttribute(new Float32Array(n).fill(DECLARED_FADE), 1),
         );
         const line = new THREE.Line(geometry, declaredMaterial);
         line.userData.declared_bridge_id = link.id;
         declaredLayer.add(line);
+        declaredInfo.set(link.id, {
+          points: pts.map((v) => v.toArray() as Vec3),
+          from: link.sourceNodeId ?? "",
+          to: link.targetNodeId ?? "",
+          label: link.label ?? "Declared link",
+          edge: -2 - index,
+        });
       }
     }
     const selectedMaterial = new THREE.LineBasicMaterial({
@@ -543,6 +563,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       tween = undefined;
     });
     let hoverEdge = "",
+      hoverDeclared = "",
       hoverNode = "",
       lastHover = 0;
     const tooltip = document.createElement("div");
@@ -702,12 +723,15 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     function updateSelection() {
       const p = propsRef.current,
         selected = spheres.get(p.selectedId);
+      const declared = declaredInfo.get(hoverDeclared);
       const hoveredRelation = relationLookup.get(hoverEdge),
-        hoverIds = hoveredRelation
-          ? [hoveredRelation.source, hoveredRelation.target]
-          : hoverNode
-            ? [hoverNode]
-            : [];
+        hoverIds = declared
+          ? [declared.from, declared.to]
+          : hoveredRelation
+            ? [hoveredRelation.source, hoveredRelation.target]
+            : hoverNode
+              ? [hoverNode]
+              : [];
       hoverRings.forEach((mark, i) => {
         const s = spheres.get(hoverIds[i]);
         mark.visible = Boolean(s);
@@ -722,12 +746,12 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         ring.scale.setScalar(selected.radius * 1.035);
       }
       const activeEdge = hoverEdge || p.selectedEdge;
-      const points = edgePoints.get(activeEdge);
+      // A hovered declared thread is handled like an edge: it is drawn over, gets its arrow, and the rest dim.
+      const points = declared ? declared.points : edgePoints.get(activeEdge);
+      const activeIndex = declared ? declared.edge : edgeIndex.get(activeEdge);
       // Hovering or pinning an edge dims every other edge to 0.35 alpha.
-      lineMaterial.uniforms.uHover.value = edgeIndex.get(activeEdge) ?? -1;
-      lineMaterial.uniforms.uDimOthers.value = edgeIndex.has(activeEdge)
-        ? 1
-        : 0;
+      lineMaterial.uniforms.uHover.value = activeIndex ?? -1;
+      lineMaterial.uniforms.uDimOthers.value = activeIndex === undefined ? 0 : 1;
       selectedLine.visible = Boolean(points);
       arrow.visible = Boolean(points && points.length > 1);
       if (points) {
@@ -825,11 +849,15 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           matrix.setPosition(...s.center);
           bucket.mesh.setMatrixAt(i, matrix);
           const n = nodes.get(s.node_id);
-          // Colour by content (file type, symbol kind, test/generated); containers stay quiet.
+          // Colour by content (file type, symbol kind, test/generated); containers stay quiet, except a
+          // graph's own enclosure, which wears that graph's accent so graphs can be told apart.
+          const accent = data.accents?.[s.node_id];
           color.setHex(
             selection.includes(s.node_id)
               ? 0xa7bccd
-              : nodeColour(n, p.theme, n?.parent_id ?? s.node_id),
+              : accent
+                ? accent[p.theme === "dark" ? 0 : 1]
+                : nodeColour(n, p.theme, n?.parent_id ?? s.node_id),
           );
           bucket.mesh.setColorAt(i, color);
         });
@@ -1297,6 +1325,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       const hit = intersect(e)[0];
       let text = "";
       hoverEdge = "";
+      hoverDeclared = "";
       hoverNode = "";
       if (hit) {
         const bucket = Object.values(buckets).find(
@@ -1323,6 +1352,15 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           text = `${nodes.get(r.source)?.qualified_name ?? r.source} → ${nodes.get(r.target)?.qualified_name ?? r.target} · ${r.subtype} · ${r.resolution_status} · ${r.witness_count} witnesses · ${r.weight_unit}`;
         else if (doc)
           text = `${nodes.get(doc.fragment_rep)?.qualified_name ?? doc.fragment_rep} → ${nodes.get(doc.entity_rep)?.qualified_name ?? doc.entity_rep} · documentary ${doc.role} · ${doc.incidence_count} incidences`;
+        else {
+          // A thread a person declared between two graphs: same arrow and words as any other thread.
+          const declaredHit = ray.intersectObjects(declaredLayer.children, false)[0];
+          const id = declaredHit?.object.userData.declared_bridge_id as string | undefined;
+          if (id && declaredInfo.has(id)) {
+            hoverDeclared = id;
+            text = declaredInfo.get(id)!.label;
+          }
+        }
       }
       tooltip.textContent = text;
       tooltip.hidden = !text;
@@ -1344,6 +1382,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
     const leave = () => {
       tooltip.hidden = true;
       hoverEdge = "";
+      hoverDeclared = "";
       hoverNode = "";
       updateSelection();
     };
@@ -1401,6 +1440,14 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
           [...spheres.keys()].map(projected).filter(Boolean),
         );
         canvas.dataset.layoutTargetsRevision = String(sceneRevision);
+        // Where each declared thread is on screen (its middle), so a test can hover it.
+        const box = renderer.domElement.getBoundingClientRect();
+        canvas.dataset.declaredThreads = JSON.stringify(
+          [...declaredInfo].map(([id, info]) => {
+            const mid = new THREE.Vector3(...info.points[Math.floor(info.points.length / 2)]).project(camera);
+            return { id, x: box.left + ((mid.x + 1) * box.width) / 2, y: box.top + ((1 - mid.y) * box.height) / 2 };
+          }),
+        );
       }
       ring.quaternion.copy(camera.quaternion);
       for (const mark of hoverRings) mark.quaternion.copy(camera.quaternion);
@@ -1534,8 +1581,8 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
             {props.onPrune && (
               <button
                 className="rail-button"
-                aria-label="Prune selection…"
-                title="Prune selection…: make a new graph from what is selected"
+                aria-label="Keep only or remove selection…"
+                title="Keep only or remove selection…: make a new graph from what is selected"
                 onClick={() => {
                   const frame = props.frame;
                   if (!frame) return;

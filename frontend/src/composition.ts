@@ -25,6 +25,8 @@ export interface Composition {
   composition: "display_only";
   frames: GraphFrame[];
 }
+/** Each graph's accent colour, as [dark theme, light theme] hex. */
+export type GraphAccents = Record<string, { dark: number; light: number }>;
 
 export function renderId(
   graph: string,
@@ -37,7 +39,7 @@ export function renderId(
 
 // This is render data, never an analysis graph or a valid query envelope.
 // Originals and scope addresses stay outside the flattened GPU collections.
-export function composeScene(input: Composition) {
+export function composeScene(input: Composition, accents: GraphAccents = {}) {
   const data: SceneData = {
     nodes: [],
     relationships: [],
@@ -63,6 +65,13 @@ export function composeScene(input: Composition) {
     const repositories = item.frame.nodes.filter(
       (n) => n.kind === "repository",
     );
+    // A graph's accent marks its own enclosure: the root and the repositories directly under it. What is
+    // inside keeps the colour of its content.
+    const accent = accents[item.graph_id];
+    for (const node of item.frame.nodes) {
+      if (accent && (node.id === item.root_id || (node.kind === "repository" && node.parent_id === item.root_id)))
+        (data.accents ??= {})[id(node.id)] = [accent.dark, accent.light];
+    }
     for (const node of item.frame.nodes)
       data.nodes.push({
         ...node,

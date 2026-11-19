@@ -168,8 +168,8 @@ def quotient_cycle_delta(
     }
 
 
-def diff_graphs(catalog, graph_a: str, graph_b: str) -> dict:
-    """Diff two graphs in a catalog."""
+def diff_graphs(catalog, graph_a: str, graph_b: str, *, rows_out: dict | None = None) -> dict:
+    """Diff two graphs in a catalog. `rows_out`, when given, receives each side's entity rows (keys a, b)."""
     def load_graph(gid):
         row = catalog.graph(gid)
         store = SnapshotStore(row["code_database"])
@@ -218,6 +218,8 @@ def diff_graphs(catalog, graph_a: str, graph_b: str) -> dict:
                 "start_line": entity.start_line
             }
             
+    if rows_out is not None:
+        rows_out.update(a=rows_a, b=rows_b)
     diff_result = diff_rows(rows_a, rows_b)
     delta = quotient_cycle_delta(cycles_a, cycles_b)
     
@@ -228,6 +230,42 @@ def diff_graphs(catalog, graph_a: str, graph_b: str) -> dict:
     })
     
     return diff_result
+
+
+def compare_graphs(catalog, graph_a: str, graph_b: str, sample: int = 30) -> dict:
+    """A read-only comparison of two graphs for people: counts first, then a bounded sample of each group.
+
+    It compares functions, methods and classes by their fingerprints (see `diff_rows`); nothing is written
+    and neither graph changes."""
+    if graph_a == graph_b:
+        raise ValueError("Choose two different graphs to compare")
+    if not isinstance(sample, int) or isinstance(sample, bool) or not 1 <= sample <= 200:
+        raise ValueError("sample must be 1..200")
+    rows: dict = {}
+    diff = diff_graphs(catalog, graph_a, graph_b, rows_out=rows)
+    side_a, side_b = rows["a"], rows["b"]
+
+    def named(row):
+        return {"name": row["qualified_name"], "kind": row["kind"], "rel_path": row["rel_path"], "line": row["start_line"]}
+
+    pairs: dict[str, list] = {}
+    for pair in diff["pairs"]:
+        bucket = pairs.setdefault(pair["class"], [])
+        if len(bucket) < sample:
+            bucket.append({"a": named(side_a[pair["entity_a"]]), "b": named(side_b[pair["entity_b"]])})
+    classes = diff["classes"]
+    return {
+        "graph_a": graph_a,
+        "graph_b": graph_b,
+        "scope": "functions, methods and classes",
+        "compared": {"a": len(side_a), "b": len(side_b)},
+        "matched": sum(v for k, v in classes.items() if k != "STRATUM_EXCLUSIVE"),
+        "classes": classes,
+        "only_a": {"count": len(diff["exclusive_a"]), "sample": [named(side_a[e]) for e in diff["exclusive_a"][:sample]]},
+        "only_b": {"count": len(diff["exclusive_b"]), "sample": [named(side_b[e]) for e in diff["exclusive_b"][:sample]]},
+        "pairs": pairs,
+        "cycles": diff["quotient_cycle_delta"]["counts"],
+    }
 
 
 def clone_pairs(catalog, graph_ids: list[str], limit: int = 200) -> dict:

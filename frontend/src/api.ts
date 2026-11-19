@@ -529,6 +529,88 @@ export const deleteGraph = (graphId: string, confirmLabel: string) =>
     { confirm_label: confirmLabel },
   );
 
+// --- Build operators: keep only / remove, compare, declared links -----------------------------------
+
+export type DeriveMode = "keep" | "exclude";
+
+/** What a keep-only or remove would do, counted from the source graph before anything is made. */
+export interface DerivePreview {
+  mode: DeriveMode;
+  source_graph: string;
+  files: { total: number; kept: number; removed: number };
+  entities: { total: number; kept: number; removed: number };
+  relationships: { total: number; kept: number; dropped: number };
+  paths: number;
+  unmatched_paths: string[];
+  note: string;
+}
+
+const deriveBody = (mode: DeriveMode, paths: string[]) =>
+  mode === "keep" ? { keep_rel_paths: paths } : { exclude_rel_paths: paths };
+
+export const previewDerive = (graphId: string, mode: DeriveMode, paths: string[], signal?: AbortSignal) =>
+  json<DerivePreview>(`/api/graphs/${encodeURIComponent(graphId)}/derive-preview`, deriveBody(mode, paths), signal);
+
+export const deriveGraph = (graphId: string, mode: DeriveMode, paths: string[], label: string) =>
+  json<{ graph_id: string; mode: DeriveMode }>(`/api/graphs/${encodeURIComponent(graphId)}/prune`, {
+    ...deriveBody(mode, paths),
+    label,
+  });
+
+export interface CompareItem {
+  name: string;
+  kind: string;
+  rel_path: string | null;
+  line: number | null;
+}
+/** A read-only comparison of two graphs: counts first, then a bounded sample of each group. */
+export interface CompareResult {
+  graph_a: string;
+  graph_b: string;
+  scope: string;
+  compared: { a: number; b: number };
+  matched: number;
+  classes: Record<string, number>;
+  only_a: { count: number; sample: CompareItem[] };
+  only_b: { count: number; sample: CompareItem[] };
+  pairs: Record<string, { a: CompareItem; b: CompareItem }[]>;
+  cycles: Record<string, number>;
+}
+
+export const compareGraphs = (a: string, b: string, signal?: AbortSignal) =>
+  json<CompareResult>("/api/graphs/compare", { graph_a: a, graph_b: b }, signal);
+
+/** A link a person declared between two graphs. It is kept apart from extracted facts. */
+export interface DeclaredLink {
+  bridge_id: string;
+  source_graph: string;
+  source_ref: string;
+  target_graph: string;
+  target_ref: string;
+  kind: string;
+  rationale: string;
+  created_at: string;
+  state: string;
+}
+
+export const listLinks = (graphIds: string[], signal?: AbortSignal) =>
+  json<{ bridges: DeclaredLink[] }>("/api/graphs/bridges", { graph_ids: graphIds }, signal).then((r) => r.bridges);
+
+export const declareLink = (link: {
+  source_graph: string;
+  source_ref: string;
+  target_graph: string;
+  target_ref: string;
+  kind: string;
+  rationale: string;
+}) => json<DeclaredLink>("/api/graphs/links", link);
+
+export const removeLink = (bridgeId: string) =>
+  lifecycleRequest<{ removed: string; source_graph: string; target_graph: string }>(
+    "DELETE",
+    `/api/graphs/links/${encodeURIComponent(bridgeId)}`,
+  );
+
 export const getActiveGraphs = () =>
   lifecycleRequest<{ graph_ids: string[] }>("GET", "/api/workspace/active-graphs");
 

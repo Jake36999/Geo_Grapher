@@ -301,14 +301,16 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
             body=await request.json();plan=previews[body['plan_id']];keys=set(body['approved_keys'])
             if not isinstance(body['approved_keys'],list) or not keys or not all(isinstance(k,str) for k in keys):raise ValueError('approved_keys must be a non-empty list')
         except (ValueError,KeyError,TypeError,AttributeError):return JSONResponse({'error':'Unknown plan_id (preview first) or invalid approved_keys'},status_code=400)
+        try:overrides=workspace_init.validate_role_overrides(plan,keys,body.get('role_overrides'))
+        except ValueError as e:return JSONResponse({'error':str(e)[:300]},status_code=400)
         if browsable(plan['root']) is None:return JSONResponse({'error':'PATH_NOT_BROWSABLE'},status_code=403)
         with job_lock:
             if any(j['state'] in ('queued','running') for j in jobs.values()):return JSONResponse({'error':'JOB_RUNNING'},status_code=409)
-            job_id='job_'+digest(plan['plan_id'],sorted(keys),len(jobs))[:16];jobs[job_id]=dict(state='running',reports=[],error=None)
+            job_id='job_'+digest(plan['plan_id'],sorted(keys),sorted(overrides.items()),len(jobs))[:16];jobs[job_id]=dict(state='running',reports=[],error=None)
         def run():
             try:
                 if browsable(plan['root']) is None:raise ValueError('PATH_NOT_BROWSABLE: preview root changed before job start')
-                jobs[job_id].update(state='done',reports=workspace_init.apply(router.catalog,plan,approved_keys=keys))
+                jobs[job_id].update(state='done',reports=workspace_init.apply(router.catalog,plan,approved_keys=keys,role_overrides=overrides))
             except Exception as e:jobs[job_id].update(state='failed',error=str(e)[:500])
         threading.Thread(target=run,name='geographer-ingest-job',daemon=True).start()
         return JSONResponse(dict(job_id=job_id))
@@ -318,8 +320,28 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     async def prune(request):
         try:
             body=await request.json();gid=router.resolve(request.path_params['graph_id']);router.permit(gid)
-            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.catalog.derive_graph(gid,exclude_rel_paths=body['exclude_rel_paths'],label=body['label'])))
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.catalog.derive_graph(gid,exclude_rel_paths=body.get('exclude_rel_paths'),keep_rel_paths=body.get('keep_rel_paths'),label=body['label'])))
         except (ValueError,KeyError,TypeError,AttributeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+    async def derive_preview(request):
+        try:
+            body=await request.json();gid=router.resolve(request.path_params['graph_id']);router.permit(gid)
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.catalog.derive_preview(gid,exclude_rel_paths=body.get('exclude_rel_paths'),keep_rel_paths=body.get('keep_rel_paths'))))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=400)
+    async def compare(request):
+        try:
+            body=await request.json()
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.compare(body['graph_a'],body['graph_b'])))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:
+            text=str(e)
+            return JSONResponse({'error':'These graphs have no code fingerprints yet, so they cannot be compared' if text.startswith('FINGERPRINTS_NOT_COMPUTED') else text[:200]},status_code=400)
+    async def link_declare(request):
+        try:
+            body=await request.json()
+            return JSONResponse(await anyio.to_thread.run_sync(lambda:router.declare_link(body['source_graph'],body['source_ref'],body['target_graph'],body['target_ref'],body['kind'],body['rationale'])))
+        except (ValueError,KeyError,TypeError,AttributeError) as e:return JSONResponse({'error':str(e)[:300]},status_code=400)
+    async def link_remove(request):
+        try:return JSONResponse(await anyio.to_thread.run_sync(lambda:router.remove_link(request.path_params['bridge_id'])))
+        except (ValueError,KeyError,TypeError) as e:return JSONResponse({'error':str(e)[:200]},status_code=404 if 'Unknown bridge_id' in str(e) else 400)
     async def proposals_get(request):
         try:
             ids=[g for g in request.query_params.get('graph_ids','').split(',') if g]
@@ -436,6 +458,8 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         return HTMLResponse(html.replace('<head>','<head>'+marker,1))
     async def collection(request):return RedirectResponse((ui_origin or '')+'/'+('?'+request.url.query if request.url.query else ''))
     app.router.routes.extend([Route('/api/graphs',graphs),Route('/api/graphs/bridges',bridges,methods=['POST']),
+        Route('/api/graphs/compare',compare,methods=['POST']),Route('/api/graphs/links',link_declare,methods=['POST']),
+        Route('/api/graphs/links/{bridge_id}',link_remove,methods=['DELETE']),
         Route('/api/graphs/frame',composition,methods=['POST']),
         Route('/api/graphs/merge/plan',merge_plan,methods=['POST']),Route('/api/graphs/merge/execute',merge_execute,methods=['POST']),
         Route('/api/graphs/plan',plan,methods=['POST']),
@@ -445,6 +469,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
         Route('/api/workspace/close',workspace_close,methods=['POST']),
         Route('/api/workspace/ingest-preview',ingest_preview,methods=['POST']),Route('/api/workspace/ingest-execute',ingest_execute,methods=['POST']),
         Route('/api/workspace/jobs/{job_id}',job_status),Route('/api/graphs/{graph_id}/prune',prune,methods=['POST']),
+        Route('/api/graphs/{graph_id}/derive-preview',derive_preview,methods=['POST']),
         Route('/api/graphs/{graph_id}/copy',copy,methods=['POST']),Route('/api/graphs/{graph_id}',delete,methods=['DELETE']),
         Route('/api/workspace/active-graphs',active_get),Route('/api/workspace/active-graphs',active_put,methods=['PUT']),Route('/',index),Route('/collection/',collection),
         Route('/favicon.svg',lambda request:FileResponse(frontend/'favicon.svg')),
