@@ -146,7 +146,7 @@ test('declare a link between two graphs and take it back: the graphs do not chan
  await form.getByRole('button',{name:'Declare link'}).click();
  await expect(section.getByRole('status')).toContainText('Link declared');
  await expect(links).toHaveCount(already+1);
- const mine=links.filter({hasText:'Alpha documents Beta'});await expect(mine).toContainText('in force');
+ const mine=links.filter({hasText:'Alpha documents Beta'});await expect(mine).toContainText('in force');await expect(mine).toContainText('declared by a person, not checked against the code');
  // taking it back asks first, and keeping it changes nothing
  await mine.getByRole('button',{name:/Take back the link/}).click();
  await mine.getByRole('button',{name:'Keep it'}).click();await expect(links).toHaveCount(already+1);
@@ -194,4 +194,55 @@ test('each graph has its own colour beside its name, which can be changed and is
  await page.locator('.workspace-graph-picker > summary').click();
  await expect(page.getByRole('combobox',{name:'Colour of Alpha'})).toHaveValue(other);
  await page.evaluate(()=>localStorage.removeItem('geographer.accents.v1')); // leave the next test as it found it
+});
+
+test('an empty catalogue shows a way to add the first folder, not a loading message that never ends',async({page})=>{
+ await page.route('**/api/graphs',route=>route.request().method()==='GET'?route.fulfill({json:{graphs:[]}}):route.continue());
+ await page.goto('/');
+ await expect(page.getByRole('heading',{name:'Geo Grapher'})).toBeVisible();
+ await expect(page.getByText('There are no graphs yet.')).toBeVisible();
+ await expect(page.getByText('Opening project graphs…')).toHaveCount(0);
+ await page.getByRole('button',{name:'Add folder…'}).click();
+ const panel=page.getByRole('region',{name:'Add folder'});await expect(panel.getByTestId('ingest-path')).toContainText('ws');
+ await expect(panel.getByRole('button',{name:'Read this folder'})).toBeEnabled();
+});
+
+test('a file selected in the hierarchy can start a cut without the box tool, and says how to use the tool',async({page})=>{
+ await page.goto('/');await ready(page);
+ await page.getByRole('tab',{name:'Graphs',exact:true}).click();
+ await page.locator('.hierarchy-tree').getByRole('button',{name:'app.py',exact:true}).click();
+ await showBuildMode(page);
+ const section=page.getByRole('region',{name:'Keep only or remove'});
+ await expect(section).toContainText('Box select');
+ await section.getByRole('button',{name:/^Use the selected file or folder: app\.py/}).click();
+ const form=section.getByRole('form',{name:'Keep only or remove the selection'});
+ await expect(form.getByTestId('derive-preview')).toContainText(/^Keeps 1 of 2 files/);
+ await form.getByRole('button',{name:'Clear selection'}).click();
+ await expect(form).toHaveCount(0);
+});
+
+test('Reveal nearby detail never sits on the canvas help text, at any width',async({page,request})=>{
+ const alpha=(await(await request.get('/api/graphs')).json()).graphs.find(g=>g.label==='Alpha');
+ // one graph on show (the button only appears then), whatever else the library holds
+ await page.addInitScript(id=>localStorage.setItem('geographer.graphs.v1',JSON.stringify([id])),alpha.graph_id);
+ for(const [width,height] of [[1440,1000],[768,1024],[375,812]]){
+  await page.setViewportSize({width,height});
+  await page.goto(`/graphs/${alpha.graph_id}/?view=spatial`);await ready(page);
+  await page.getByRole('button',{name:'Path',exact:true}).click();
+  const reveal=page.getByRole('button',{name:'Reveal nearby detail'});await expect(reveal).toBeVisible();
+  const [a,b]=await Promise.all([reveal.boundingBox(),page.locator('.scene-edit-help').first().boundingBox()]);
+  const apart=a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y;
+  expect(apart,`${width}px: reveal ${JSON.stringify(a)} vs help ${JSON.stringify(b)}`).toBe(true);
+ }
+});
+
+test('in a library\'s Geo, an empty folder picker says how to attach a folder instead of naming a command-line flag',async({page})=>{
+ await page.route('**/api/fs/roots',route=>route.fulfill({json:{roots:[]}}));
+ await page.route('**/api/workspace/context',route=>route.fulfill({json:{library_name:'Parallax',librarian_url:'http://127.0.0.1:1/',can_close:false,max_graphs:3}}));
+ await page.goto('/');await ready(page);await showBuildMode(page);
+ await page.getByRole('button',{name:'Add folder…'}).click();
+ const panel=page.getByRole('region',{name:'Add folder'});
+ await expect(panel).toContainText('Settings → Project folders');
+ await expect(panel).toContainText('Parallax');
+ await expect(panel).not.toContainText('--browse-root');
 });

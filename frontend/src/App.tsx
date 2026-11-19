@@ -619,6 +619,17 @@ export default function App({
   useDismissPopovers([
     { open: rulesOpen, close: () => setRulesOpen(false) },
     { open: coverageOpen, close: () => setCoverageOpen(false) },
+    {
+      open: legendOpen,
+      close: () => {
+        setLegendOpen(false);
+        try {
+          localStorage.setItem("geographer.legend", "closed");
+        } catch {
+          /* a private window: the choice just is not kept */
+        }
+      },
+    },
   ]);
   async function more() {
     if (!cursor.current || !request.current) return;
@@ -1076,6 +1087,15 @@ export default function App({
     workspace && current?.entity_id
       ? { graph_id: workspace.active, ref: `entity:${current.entity_id}`, label: shortName(current) }
       : undefined;
+  // A file or folder selected in the hierarchy can start a cut without the canvas box tool.
+  const selectedPath =
+    workspace && current && (current.kind === "file" || current.kind === "directory")
+      ? {
+          graph: workspace.active,
+          path: current.source?.rel_path || current.qualified_name,
+          label: shortName(current),
+        }
+      : undefined;
   const buildPanel = (
     <section
       id="panel-mode-build"
@@ -1091,6 +1111,8 @@ export default function App({
         value={{
           selection: linkSelection,
           derive,
+          selectedPath,
+          startDerive: (graph, paths) => setDerive({ graph, paths }),
           clearDerive: () => setDerive(undefined),
           derived: () => void workspace?.reloadGraphs(),
         }}
@@ -2120,7 +2142,7 @@ export default function App({
                   aria-label="Camera controls"
                 >
                   {contextRadius === 0 && !composition && (
-                    <button onClick={() => changeDetail(1)}>
+                    <button className="reveal-detail" onClick={() => changeDetail(1)}>
                       Reveal nearby detail
                     </button>
                   )}
@@ -2400,9 +2422,11 @@ export default function App({
                 frame?.data.spheres.length ??
                 0}{" "}
               groups ·{" "}
-              {composition?.data.curves.length ??
+              {(composition?.data.curves.length ??
                 frame?.data.curves.length ??
-                0}{" "}
+                0) +
+                (((composition?.data ?? frame?.data) as { documentary_links?: unknown[] } | undefined)
+                  ?.documentary_links?.length ?? 0)}{" "}
               curves
             </span>
             {snapshot && (

@@ -26,7 +26,7 @@ test('add folder: read it, review the folder map, untick a part, ingest; the new
  await map.getByRole('checkbox',{name:'Ingest docs',exact:true}).uncheck();
  await sheet.getByRole('button',{name:`Ingest ${total-1} selected part${total-1===1?'':'s'}`}).click();
  await expect(sheet).toBeHidden();
- await expect(panel.getByTestId('ingest-job-state')).toHaveText(/Job done/,{timeout:60000});
+ await expect(panel.getByTestId('ingest-job-state')).toHaveText(/Job done: added \d+ graphs?\. They are in the Graphs tab/,{timeout:60000});
  await expect.poll(async()=>(await(await request.get('/api/graphs')).json()).graphs.length).toBe(before+total-1);
  expect(errors).toEqual([]);
 });

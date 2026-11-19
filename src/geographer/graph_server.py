@@ -41,7 +41,25 @@ def _inline_tool_schema(schema):
 from .graph_router import CODE_OPERATIONS,PAPER_OPERATIONS
 
 
-def create_graph_mcp(router,host='127.0.0.1',port=8765):
+# What a flat-argument tool really accepts, said in the hub's own terms. The strict-form guidance (shared with the
+# single-graph server) names arguments the flat form does not have, which sent agents into schema errors.
+FLAT_GUIDANCE_REWRITES={
+    'search_entities':[('get_entity_content(content_kind="documentation")','get_entity_content(entity_id=<fragment id>), which returns the documentary text for a fragment')],
+    'find_dependants':[('Traverse incoming callers/importers or outgoing dependencies using the explicit direction and filters.',
+                        'Traverse the incoming callers/importers of an entity (this form is incoming only; max_depth 1..32).')],
+}
+
+
+def flat_guidance(op,guidance):
+    for old,new in FLAT_GUIDANCE_REWRITES.get(op,[]):guidance=guidance.replace(old,new)
+    return guidance
+
+
+def create_graph_mcp(router,host='127.0.0.1',port=8765,text_content=False):
+    """`text_content`: also put the result's JSON in a text block. Off by default, because it doubles the tokens a client
+    that reads structuredContent already has; turn it on for a client that only shows text (`--text-content`)."""
+    def text_blocks(result):
+        return [types.TextContent(type='text',text=canonical(result))] if text_content else []
     mcp=FastMCP('Geo Grapher independent graphs',host=host,port=port,streamable_http_path='/mcp',
         transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=True,
             allowed_hosts=['127.0.0.1:*','localhost:*','[::1]:*'],allowed_origins=['http://127.0.0.1:*','http://localhost:*']),
@@ -73,7 +91,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
         from .server import TOOL_GUIDANCE
         tools=[types.Tool(name=op,description='Minimal flat arguments; protocol defaults are server-owned. '
             'Search returns entities[].entity_id and cite_as for content/context calls. '+
-            ("Pass the user's question (or its key sentence) verbatim as query; add identifier guesses in also (at most two). Repeat with offset=next_offset to page omitted hits. " if op=='search_entities' else '')+TOOL_GUIDANCE[op],
+            ("Pass the user's question (or its key sentence) verbatim as query; add identifier guesses in also (at most two). Repeat with offset=next_offset to page omitted hits. " if op=='search_entities' else '')+flat_guidance(op,TOOL_GUIDANCE[op]),
             inputSchema=flat_schemas[op],outputSchema={'type':'object'},annotations=types.ToolAnnotations(readOnlyHint=True)) for op in sorted(CODE_OPERATIONS-{'viewport_frame'})]
         try:
             from pipeline import mcp_doc_graph as paper
@@ -131,7 +149,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
                     result=await anyio.to_thread.run_sync(agent_requests.call_code_connection,router,name,arguments,context.session,metadata)
                 result=agent_requests.enforce_cap(router,name,result)
                 failed='error' in result or 'error' in result.get('result',{})
-                return types.CallToolResult(content=[],structuredContent=result,isError=failed)
+                return types.CallToolResult(content=text_blocks(result),structuredContent=result,isError=failed)
             jsonschema.validate(arguments,schemas[name])
             if name=='list_graphs':result=await anyio.to_thread.run_sync(router.summary)
             elif name=='compile_task_packet':
@@ -164,7 +182,7 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765):
             access = response_metadata(router, arguments)
         except (ValueError, KeyError, TypeError):
             access = dict(authorship=None, authorship_resolution='unclassified')
-        return types.CallToolResult(content=[],structuredContent=result,isError=failed, _meta={'access': access})
+        return types.CallToolResult(content=text_blocks(result),structuredContent=result,isError=failed, _meta={'access': access})
 
     @mcp._mcp_server.list_resources()
     async def list_resources():return [types.Resource(uri='geographer://graphs',name='Independent project graphs',mimeType='application/json')]
@@ -204,7 +222,7 @@ def _loopback_url(url):
 
 
 def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui=False,primary_graph_id=None,browse_roots=(),
-                      access_token=None,librarian_url=None,library_name=None,on_close=None):
+                      access_token=None,librarian_url=None,library_name=None,on_close=None,text_content=False):
     """`access_token`: a per-library token set by the owning Librarian Core. Programs send it as
     X-Geo-Token; a browser opens `/?geo_token=...` once and receives an HttpOnly cookie instead,
     so the token leaves the address bar. Without a token the server is unchanged."""
@@ -212,7 +230,7 @@ def create_graph_http(router,host='127.0.0.1',port=8765,ui_origin=None,legacy_ui
     from starlette.responses import RedirectResponse
     from .server import create_http_app
     if librarian_url is not None:librarian_url=_loopback_url(librarian_url)
-    mcp=create_graph_mcp(router,host,port);app=mcp.streamable_http_app();children={}
+    mcp=create_graph_mcp(router,host,port,text_content=text_content);app=mcp.streamable_http_app();children={}
     router.on_evict.append(lambda key:children.pop(key,None))   # the child app holds its service, so its graph
     security=TransportSecurityMiddleware(mcp.settings.transport_security)
     def _token_ok(value):

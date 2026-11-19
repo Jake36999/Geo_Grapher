@@ -234,7 +234,7 @@ export default function LinkSection({
                 {name(l.target_graph)} <code title={l.target_ref}>{shortRef(l.target_ref)}</code>
               </span>
               <small>
-                {kindLabel(l.kind)} · {linkStateLabel(l.state)}
+                {kindLabel(l.kind)} · {linkStateLabel(l.state)} · declared by a person, not checked against the code
               </small>
               <p className="link-why">{l.rationale}</p>
               {confirming === l.bridge_id ? (

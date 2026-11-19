@@ -104,6 +104,8 @@ def main():
     graphserver.add_argument('--librarian-url',help="The owning library's Librarian address (http loopback), for the UI's way back")
     graphserver.add_argument('--library-name',help="The owning library's name, shown in the UI")
     graphserver.add_argument('--create-catalog',action='store_true',help='Create an empty catalog if missing (a new library before its first accepted folder); never implicit')
+    graphserver.add_argument('--text-content',action='store_true',default=bool(os.environ.get('GEOGRAPHER_MCP_TEXT_CONTENT')),
+        help='Also return each tool result as JSON text, for an MCP client that shows only text content (default: structured content only, to save tokens). Env: GEOGRAPHER_MCP_TEXT_CONTENT=1')
     graphserver.add_argument('--browse-root',action='append',type=Path,default=[],metavar='DIR',help='Folder the UI directory picker may browse (repeatable; none disables the picker)')
     env_graphs=[g.strip() for g in os.environ.get('GEOGRAPHER_GRAPHS','').split(',') if g.strip()]
     graphserver.add_argument('--graph-id',action='append',dest='allow_graph',metavar='GRAPH_ID',default=None,
@@ -192,7 +194,7 @@ def main():
                     if not Path(args.semantic_cache).is_file():raise ValueError('Semantic cache missing; explicitly backfill before serving')
                 router=GraphRouter(catalog,allowed=args.allow_graph or env_graphs or None,max_result_chars=args.max_result_chars,tools=args.tools,semantic=semantic,consumer_role=args.consumer_role)
                 try:
-                    if args.transport=='stdio':create_graph_mcp(router,port=args.port).run(transport='stdio')
+                    if args.transport=='stdio':create_graph_mcp(router,port=args.port,text_content=args.text_content).run(transport='stdio')
                     else:
                         import socket,uvicorn
                         # Bind first so --port 0 yields a real port before anything is announced.
@@ -204,7 +206,7 @@ def main():
                         app=create_graph_http(router,port=bound,ui_origin=args.ui_origin,browse_roots=args.browse_root,
                             access_token=os.environ.get('GEOGRAPHER_ACCESS_TOKEN') or None,
                             librarian_url=args.librarian_url,library_name=args.library_name,
-                            on_close=close if args.parent_pid else None)
+                            on_close=close if args.parent_pid else None,text_content=args.text_content)
                         server=uvicorn.Server(uvicorn.Config(app,host='127.0.0.1',port=bound,log_level='warning'))
                         running['server']=server
                         if args.ready_file:

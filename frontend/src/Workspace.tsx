@@ -22,6 +22,8 @@ export default function Workspace() {
     [active, setActive] = useState(""),
     [selected, setSelected] = useState<string[]>([]),
     [error, setError] = useState("");
+  // The catalogue has been read (it may be empty): an empty one is not "still loading".
+  const [loaded, setLoaded] = useState(false);
   const [pending, setPending] = useState<GraphPick>(),
     [settings, setSettings] = useState<WorkspaceSettings>();
   const [showBridges, setShowBridges] = useState(true);
@@ -39,6 +41,8 @@ export default function Workspace() {
   );
   // Graphs the server keeps loaded at once (each is held in memory); /api/workspace/context says.
   const [maxGraphs, setMaxGraphs] = useState(DEFAULT_MAX_GRAPHS);
+  // Set when a library's Librarian runs this Geo-Grapher; the folder picker then says how that library opens folders.
+  const [managedBy, setManagedBy] = useState("");
   const [focus, setFocus] = useState<
     Record<string, { snapshot: string; id: string }>
   >({});
@@ -63,10 +67,12 @@ export default function Workspace() {
             ? (context.max_graphs as number)
             : DEFAULT_MAX_GRAPHS;
         setMaxGraphs(max);
+        setManagedBy(typeof context?.library_name === "string" ? context.library_name : "");
         const available: WorkspaceGraph[] = data.graphs.filter(
           (g: WorkspaceGraph) => g.availability !== "unavailable",
         );
         setGraphs(data.graphs);
+        setLoaded(true);
         const requested = new URLSearchParams(location.search).get("graph");
         const first =
           available.find((g) => g.graph_id === (requested ?? primary)) ??
@@ -179,6 +185,31 @@ export default function Workspace() {
     });
   }
   const graph = graphs.find((g) => g.graph_id === active);
+  if (!graph && loaded && graphs.length === 0 && !error)
+    return (
+      <main className="build-panel workspace-empty">
+        <h1>Geo Grapher</h1>
+        <p>
+          There are no graphs yet. Add a folder to read it into your first graph; you can add more later from the
+          Build tab.
+        </p>
+        <WorkspaceIngest
+          managedBy={managedBy}
+          onIngested={async () => {
+            try {
+              const next = await reloadGraphs();
+              const first = next.find((g) => g.availability !== "unavailable");
+              if (first) {
+                setActive(first.graph_id);
+                setSelected([first.graph_id]);
+              }
+            } catch (e) {
+              setError((e as Error).message);
+            }
+          }}
+        />
+      </main>
+    );
   if (!graph)
     return (
       <main>
@@ -332,6 +363,7 @@ export default function Workspace() {
           Read a folder, see how it splits into parts, and choose which become graphs.
         </p>
         <WorkspaceIngest
+          managedBy={managedBy}
           onIngested={() => {
             fetch("/api/graphs")
               .then((r) => r.json())

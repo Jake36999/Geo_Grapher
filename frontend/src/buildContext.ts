@@ -25,10 +25,18 @@ export interface BuildContextValue {
   /** The item selected in the active graph, when it is something a link can point at. */
   selection?: Endpoint;
   derive?: DeriveRequest;
+  /** The file or folder selected in the active graph, when it can start a keep-only or remove. */
+  selectedPath?: { graph: string; path: string; label: string };
+  /** Begin a keep-only or remove from paths a person chose without the canvas box tool. */
+  startDerive: (graph: string, paths: string[]) => void;
   clearDerive: () => void;
   /** A graph was made from a selection: the graph list needs to be read again. */
   derived: () => void;
 }
 
-export const BuildContext = createContext<BuildContextValue>({ clearDerive: () => {}, derived: () => {} });
+export const BuildContext = createContext<BuildContextValue>({
+  startDerive: () => {},
+  clearDerive: () => {},
+  derived: () => {},
+});
 export const useBuild = () => useContext(BuildContext);

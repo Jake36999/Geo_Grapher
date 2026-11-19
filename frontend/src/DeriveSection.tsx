@@ -8,7 +8,7 @@ import { useBuild } from "./buildContext";
  * the source graph, so the result is known before anything is made. The source graph is never changed.
  */
 export default function DeriveSection() {
-  const { derive, clearDerive, derived } = useBuild();
+  const { derive, selectedPath, startDerive, clearDerive, derived } = useBuild();
   const [mode, setMode] = useState<DeriveMode>("keep"),
     [label, setLabel] = useState("");
   const [preview, setPreview] = useState<DerivePreview>(),
@@ -53,10 +53,18 @@ export default function DeriveSection() {
     <section aria-labelledby="build-derive">
       <h2 id="build-derive">Keep only or remove</h2>
       <p className="build-hint">
-        Select files or folders on the canvas, then press the scissors. Choose here whether to keep only them or to
-        leave them out.
+        Choose what to cut: pick the Box select tool in the canvas tool rail, drag around the files or folders, then
+        press the scissors that appears. Or select one file or folder in the hierarchy and use it here. Then choose
+        whether to keep only it or to leave it out.
       </p>
-      {!derive && <p className="muted">Nothing is selected for this yet.</p>}
+      {!derive && selectedPath && (
+        <p>
+          <button type="button" onClick={() => startDerive(selectedPath.graph, [selectedPath.path])}>
+            Use the selected file or folder: {selectedPath.label}
+          </button>
+        </p>
+      )}
+      {!derive && !selectedPath && <p className="muted">Nothing is selected for this yet.</p>}
       {derive && !paths.length && <p role="status">{derive.message || "The selection holds no files of this graph."}</p>}
       {derive && paths.length > 0 && (
         <form

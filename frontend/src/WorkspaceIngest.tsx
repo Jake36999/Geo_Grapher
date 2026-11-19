@@ -11,7 +11,7 @@ type Job = { state: "queued" | "running" | "done" | "failed"; reports: unknown[]
  * wide sheet, then apply the chosen parts as a background job. The panel keeps the browser and the
  * job's status; the review itself is in the sheet.
  */
-export default function WorkspaceIngest({ onIngested }: { onIngested: () => void }) {
+export default function WorkspaceIngest({ onIngested, managedBy = "" }: { onIngested: () => void; managedBy?: string }) {
   const [open, setOpen] = useState(false);
   const [roots, setRoots] = useState<string[]>([]);
   const [path, setPath] = useState(""),
@@ -116,7 +116,15 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
           ×
         </button>
       </header>
-      {!roots.length && <p>No folders are browsable. Start the server with --browse-root DIR.</p>}
+      {!roots.length &&
+        (managedBy ? (
+          <p>
+            No folders can be browsed yet. In the Librarian, open Settings → Project folders, turn on project access and
+            attach a folder to “{managedBy}”, then reopen Geo-Grapher from the Librarian.
+          </p>
+        ) : (
+          <p>No folders are browsable. Start the server with --browse-root DIR.</p>
+        ))}
       {roots.length > 0 && (
         <>
           <p>
@@ -150,6 +158,9 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
         <p aria-live="polite" data-testid="ingest-job-state">
           Job {job.state}
           {job.error ? `: ${job.error}` : ""}
+          {job.state === "done" && job.reports.length > 0
+            ? `: added ${job.reports.length} graph${job.reports.length === 1 ? "" : "s"}. They are in the Graphs tab; check one to show it.`
+            : ""}
         </p>
       )}
       {!job && busy && plan && !sheet && (

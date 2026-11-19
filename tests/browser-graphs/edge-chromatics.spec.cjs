@@ -52,7 +52,8 @@ test('hovering a declared link between two graphs says who it joins, how, and wh
  await expect(tooltip).toContainText('Alpha → Beta');
  await expect(tooltip).toContainText('declared reference');
  await expect(tooltip).toContainText('in force');
- await expect(tooltip).toContainText('Synthetic QA reference');
+ // two declared links join Alpha and Beta by now (the fixture's, and the one an earlier spec accepted) and they draw on top of each other
+ await expect(tooltip).toContainText(/Synthetic QA reference|Reviewed: same helper in both fixtures/);
  // leaving the thread takes the words away
  await page.mouse.move(threads[0].x,threads[0].y+300);await page.waitForTimeout(150);
  await expect(tooltip).toBeHidden();

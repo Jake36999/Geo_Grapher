@@ -51,3 +51,12 @@ test('Settings closes with Escape or a press outside, and holds the theme and pa
  await openSettings(page);await page.locator('.workspace-heading h1').click();
  await expect(menu).not.toHaveAttribute('open','');
 });
+
+test('the Legend closes with Escape like every other floating panel',async({page})=>{
+ await page.goto('/');await ready(page);
+ const toggle=page.getByRole('button',{name:/^(Legend|Hide legend)$/});
+ if((await toggle.getAttribute('aria-expanded'))!=='true')await toggle.click();
+ await expect(toggle).toHaveAttribute('aria-expanded','true');
+ await page.keyboard.press('Escape');
+ await expect(toggle).toHaveAttribute('aria-expanded','false');
+});
