@@ -394,6 +394,7 @@ export default function Workspace() {
       </section>
       <CompareSection
         graphIds={selected}
+        fingerprinted={Object.fromEntries(graphs.map((g) => [g.graph_id, g.fingerprints !== false]))}
         labels={labels}
         accents={accents}
         state={compare}

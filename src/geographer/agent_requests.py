@@ -341,6 +341,13 @@ def call_code(router,op,args):
                     if node['entity_id'] in hits:
                         node['summary']=descriptions.card(node['entity_id'],args['query'],node.get('summary',{}),hits[node['entity_id']])
                 data['hits']=[{k:v for k,v in hit.items() if k in {'entity_id','score','match'}} for hit in data['hits']]
+                # Each hit says what it is and where (AR-F06, 2026-11-19): two hits named
+                # GeoService could not be told apart without reading both.
+                by_id={node['entity_id']:node for node in data['nodes']}
+                for hit in data['hits']:
+                    node=by_id.get(hit['entity_id'],{})
+                    if node.get('kind'):hit['kind']=node['kind']
+                    if (node.get('source') or {}).get('rel_path'):hit['rel_path']=node['source']['rel_path']
                 data.pop('coverage',None)
                 for key in ('view_id','relationships','witnesses','evidence_handles'):
                     if not data.get(key):data.pop(key,None)

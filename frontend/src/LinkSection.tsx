@@ -43,7 +43,7 @@ export default function LinkSection({
   /** Reviewed suggestions for links, shown after the person's own. */
   children?: ReactNode;
 }) {
-  const { selection } = useBuild();
+  const { selection, jumpTo } = useBuild();
   const [links, setLinks] = useState<DeclaredLink[]>([]),
     [error, setError] = useState(""),
     [note, setNote] = useState(""),
@@ -237,6 +237,24 @@ export default function LinkSection({
                 {kindLabel(l.kind)} · {linkStateLabel(l.state)} · declared by a person, not checked against the code
               </small>
               <p className="link-why">{l.rationale}</p>
+              {jumpTo && (
+                <span className="link-jump" role="group" aria-label="Follow this link">
+                  {(["source", "target"] as const).map((side) => (
+                    <button
+                      key={side}
+                      type="button"
+                      onClick={() => {
+                        const why = jumpTo(side === "source" ? l.source_graph : l.target_graph,
+                          side === "source" ? l.source_ref : l.target_ref);
+                        setError(why ?? "");
+                        if (!why) setNote(`Showing the link's ${side === "source" ? "start" : "end"} in ${name(side === "source" ? l.source_graph : l.target_graph)}.`);
+                      }}
+                    >
+                      {side === "source" ? "Go to start" : "Go to end"}
+                    </button>
+                  ))}
+                </span>
+              )}{" "}
               {confirming === l.bridge_id ? (
                 <span role="group" aria-label="Confirm taking the link back">
                   Take this link back?{" "}

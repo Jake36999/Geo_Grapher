@@ -277,7 +277,9 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
       transparent: true,
       depthWrite: false,
       side: THREE.BackSide,
-      uniforms: { strength: { value: 1 } },
+      // `light`: on the light background a pale bubble all but vanished (AR-F20, 2026-11-19); the
+      // light theme darkens it and strengthens its rim.
+      uniforms: { strength: { value: 1 }, light: { value: 0 } },
       vertexShader: `varying vec3 shellNormal;varying vec3 shellView;varying vec3 shellColor;
         void main(){vec4 mv=modelViewMatrix*instanceMatrix*vec4(position,1.0);shellNormal=normalize(normalMatrix*mat3(instanceMatrix)*normal);
         shellView=-mv.xyz;
@@ -287,10 +289,11 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         shellColor=vec3(0.66,0.68,0.71);
         #endif
         gl_Position=projectionMatrix*mv;}`,
-      fragmentShader: `uniform float strength;varying vec3 shellNormal;varying vec3 shellView;varying vec3 shellColor;
+      fragmentShader: `uniform float strength;uniform float light;varying vec3 shellNormal;varying vec3 shellView;varying vec3 shellColor;
         void main(){float rim=pow(1.0-abs(dot(normalize(shellNormal),normalize(shellView))),3.0);
         float sat=max(max(shellColor.r,shellColor.g),shellColor.b)-min(min(shellColor.r,shellColor.g),shellColor.b);
-        gl_FragColor=vec4(shellColor,strength*(0.025+0.9*sat+0.7*rim));
+        vec3 tone=mix(shellColor,shellColor*0.55,light);
+        gl_FragColor=vec4(tone,strength*(0.025+0.045*light+0.9*sat+(0.7+0.6*light)*rim));
         #include <colorspace_fragment>
         }`,
     });
@@ -795,6 +798,7 @@ export default forwardRef<SceneHandle, Props>(function Scene(props, ref) {
         p.theme === "dark" ? 0x17191c : 0xf3f2ef,
       );
       selectedMaterial.color.set(p.theme === "dark" ? 0xa7bccd : 0x385d76);
+      shellMaterial.uniforms.light.value = p.theme === "light" ? 1 : 0;
       arrow.setColor(selectedMaterial.color);
       nodes = new Map(data.nodes.map((n) => [n.id, n]));
       spheres = new Map(data.spheres.map((s) => [s.node_id, s]));

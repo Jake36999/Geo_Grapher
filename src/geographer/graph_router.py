@@ -211,6 +211,18 @@ class GraphRouter:
             if count_snapshot is not None:
                 return check.execute('SELECT count(*) FROM entities WHERE snapshot_id=?',(count_snapshot,)).fetchone()[0]
 
+    @staticmethod
+    def _fingerprinted(row):
+        """Whether the graph's current snapshot has code fingerprints, which Compare needs
+        (AR-F16, 2026-11-19: Compare was offered for paper graphs and failed). Read each listing,
+        since fingerprints can be computed after the graph was first listed."""
+        try:
+            with closing(sqlite3.connect(Path(row['code_database']).resolve().as_uri()+'?mode=ro',uri=True)) as check:
+                return check.execute('SELECT 1 FROM entity_fingerprints WHERE snapshot_id=? LIMIT 1',
+                                     (row['snapshot_id'],)).fetchone() is not None
+        except (sqlite3.Error,OSError):
+            return False
+
     def _evict_idle(self,keep=()):
         """Drop the least recently used idle graphs until at most `max_loaded` are resident.
 
@@ -349,7 +361,7 @@ class GraphRouter:
         for graph in self.catalog.graphs():
             if json.loads(graph['profile_json']).get('disabled'):continue
             if self.allowed is not None and graph['graph_id'] not in self.allowed:continue
-            availability='available';error=None;count=None
+            availability='available';error=None;count=None;printed=False
             try:
                 # The listing must answer while a frame request is loading a big graph (which holds
                 # that graph's service lock for up to minutes), so it opens no service at all. The
@@ -359,6 +371,7 @@ class GraphRouter:
                 counted=self._verify_store(graph,None if (graph['graph_id'],graph['snapshot_id']) in self._counts else graph['snapshot_id'])
                 if counted is not None:self._counts[(graph['graph_id'],graph['snapshot_id'])]=counted
                 count=self._counts[(graph['graph_id'],graph['snapshot_id'])]
+                printed=self._fingerprinted(graph)
             except (ValueError,sqlite3.DatabaseError,OSError) as exc:
                 availability='unavailable';error=str(exc)[:300]
             profile=json.loads(graph['profile_json'])
@@ -370,7 +383,7 @@ class GraphRouter:
                             if isinstance(s,dict) and s.get('repo_id') and s.get('root')},
                 source_graph_ids=[s['graph_id'] for s in profile.get('source_graphs',[])],
                 owned_store=self.catalog.owns_store(graph),bridge_count=self.catalog.bridge_count(graph['graph_id']),copied_from=profile.get('copied_from'),
-                snapshot_id=graph['snapshot_id'],entity_count=count,papers_available=bool(graph['paper_database']),availability=availability,error=error,
+                snapshot_id=graph['snapshot_id'],entity_count=count,fingerprints=printed,papers_available=bool(graph['paper_database']),availability=availability,error=error,
                 stratum=stratum(graph), **metadata(graph)))
         return dict(graphs=rows,scope_policy='one_graph_per_call; explicit federation only',composition='display_only')
 
@@ -651,8 +664,19 @@ class GraphRouter:
             out=deepcopy(response) if agent else response
             if agent:
                 from .agent_requests import canonical_flat
+                # An agent reads each graph's hits in order: graphs by how useful their hits
+                # were, each hit with its position and an entities list like search_entities'
+                # (AR-F06, 2026-11-19: formal_rank, a component of the score, read as the order).
+                out['results'].sort(key=lambda r:(-response['selection']['utility'].get(r['graph_id'],0),r['graph_id']))
                 for env in out['results']:
                     canonical_flat(self,env['graph_id'],self.catalog.graph(env['graph_id']),env)
+                    data=env.get('result',{}).get('data',{})
+                    nodes={n['entity_id']:n for n in data.get('nodes',[]) if 'entity_id' in n}
+                    for position,hit in enumerate(data.get('hits',[]),1):hit['rank']=position
+                    env['entities']=[dict(entity_id=h['entity_id'],cite_as=nodes.get(h['entity_id'],{}).get('cite_as'),
+                        kind=nodes.get(h['entity_id'],{}).get('kind'),
+                        rel_path=(nodes.get(h['entity_id'],{}).get('source') or {}).get('rel_path'))
+                        for h in data.get('hits',[]) if 'entity_id' in h]
                     for _ in range(12):
                         count=counter.count(env)
                         if env['routing_budget']['used_tokens']==count:break

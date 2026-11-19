@@ -16,12 +16,15 @@ const where = (i: CompareItem) => (i.rel_path ? `${i.rel_path}${i.line ? `:${i.l
  */
 export default function CompareSection({
   graphIds,
+  fingerprinted,
   labels,
   accents,
   state,
   setState,
 }: {
   graphIds: string[];
+  /** Whether each graph's snapshot has code fingerprints (absent: unknown, assumed yes). */
+  fingerprinted?: Record<string, boolean>;
   labels: Record<string, string>;
   accents: Record<string, Accent>;
   state: CompareState;
@@ -32,6 +35,8 @@ export default function CompareSection({
   const b = graphIds.includes(state.b) && state.b !== a ? state.b : (graphIds.find((g) => g !== a) ?? "");
   const result = state.result && state.result.graph_a === a && state.result.graph_b === b ? state.result : undefined;
   const ready = graphIds.length >= 2 && a && b && a !== b;
+  // AR-F16: Compare needs code fingerprints; a graph without them is named before the click.
+  const unprinted = ready ? [a, b].filter((g) => fingerprinted?.[g] === false) : [];
   async function run() {
     if (!ready) return;
     setState((s) => ({ ...s, a, b, busy: true, error: "", result: undefined }));
@@ -86,10 +91,18 @@ export default function CompareSection({
                 ))}
               </select>
             </label>
-            <button type="button" disabled={state.busy || !ready} onClick={() => void run()}>
+            <button type="button" disabled={state.busy || !ready || unprinted.length > 0}
+              aria-describedby={unprinted.length ? "compare-unavailable" : undefined} onClick={() => void run()}>
               {state.busy ? "Comparing…" : "Compare"}
             </button>
           </div>
+          {unprinted.length > 0 && (
+            <p id="compare-unavailable" className="muted">
+              {unprinted.map(name).join(" and ")} {unprinted.length === 1 ? "has" : "have"} no code fingerprints
+              (a paper or document graph, or one not fingerprinted yet), so {unprinted.length === 1 ? "it" : "they"} cannot
+              be compared. Choose a code graph.
+            </p>
+          )}
           {state.error && <p role="alert">{state.error}</p>}
           {result && (
             <div className="compare-result" data-testid="compare-result" aria-live="polite">

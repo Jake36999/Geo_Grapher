@@ -92,6 +92,27 @@ def _paper(row, ref):
                 source=dict(rel_path=None, start_line=None, end_line=None), text=text or ''), []
 
 
+ANCHOR_KINDS = ('entity:', 'doc:', 'concept:')
+
+
+def anchor_ref(label, ref, resolves=lambda ref: True):
+    """An anchor as search gave it: its `cite_as` (`<label>/entity:<id>`), its `entity_id`, or
+    the documented `entity:<id>`. Each becomes the reference form (AR-F06, 2026-11-19: a packet
+    refused the ids search returns, in both forms). A canonical id itself starts `entity:`, so
+    the reference is `entity:entity:<hash>`; the form that resolves is kept."""
+    if not isinstance(ref, str):
+        return ref
+    ref = ref.strip()
+    if label and ref.startswith(label + '/'):
+        ref = ref[len(label) + 1:]
+    if ref == 'root':
+        return ref
+    for candidate in (ref, 'entity:' + ref, 'entity:entity:' + ref):
+        if candidate.startswith(ANCHOR_KINDS) and resolves(candidate):
+            return candidate
+    return ref if ref.startswith(ANCHOR_KINDS) else 'entity:' + ref
+
+
 def compile_packet(router, graph_id, anchors, instruction, *, profile='tier3_leaf', upstream=()):
     check_profile(profile, 0)
     if profile is None:
@@ -101,6 +122,13 @@ def compile_packet(router, graph_id, anchors, instruction, *, profile='tier3_lea
     if not isinstance(upstream, (list, tuple)):
         raise ValueError('PACKET_SHAPE')
     gid = router.resolve(graph_id); router.permit(gid)
+    def resolves(ref):
+        try:
+            resolve_ref(router.catalog, gid, ref)
+            return True
+        except (ValueError, TypeError):
+            return False
+    anchors = [anchor_ref(router.catalog.graph(gid)['label'], ref, resolves) for ref in anchors]
     from .provenance import enforce_reader, metadata, third_party
     enforce_reader(router.catalog.graph(gid), consumer_role=router.consumer_role, profile=profile)
     counter = TokenCounter(); limit = PROFILE_CEILINGS[profile]

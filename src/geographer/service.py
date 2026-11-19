@@ -96,7 +96,11 @@ class QueryService:
                     # The last match wins, as in the full scan, which visits source rows in entity-id order.
                     if not (isinstance(key,tuple) and len(key)==2):return MISSING
                     found=MISSING
-                    for (eid,) in con.execute('SELECT entity_id FROM entities WHERE snapshot_id=? AND repo_id=? AND rel_path=? ORDER BY entity_id',(sid,key[0],key[1])):
+                    # Sorted here, not in SQL: ORDER BY entity_id made SQLite walk the primary key over
+                    # the whole snapshot (300 ms a file on a 65k-entity graph, 62 of a first search's
+                    # 71 s, AR-F07 2026-11-19) instead of using the entities_path index (3 ms).
+                    rows=con.execute('SELECT entity_id FROM entities WHERE snapshot_id=? AND repo_id=? AND rel_path=?',(sid,key[0],key[1])).fetchall()
+                    for eid in sorted(row[0] for row in rows):
                         r=con.execute("SELECT scope_json,result_json FROM analysis_results WHERE snapshot_id=? AND analysis_id=? AND algorithm_version='source-bytes-v1'",(sid,'source:'+eid)).fetchone()
                         if r is not None:
                             result=json.loads(r['result_json'])

@@ -2498,3 +2498,32 @@ dialog input {
     grid-column: 2;
   }
 }
+
+/* Matrix headers (AR-F20, 2026-11-19): column names ran down four lines, cut mid-word
+   ("ce_librari"). Columns read upward on one line, rows on one line; each is cut with an
+   ellipsis and the full name is the button's title. */
+.matrix-scroll thead th:not(:first-child) {
+  max-width: none;
+  vertical-align: bottom;
+}
+.matrix-scroll thead th:not(:first-child) .text-button {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+  max-height: 140px;
+  min-width: 0;
+}
+.matrix-scroll tbody th {
+  max-width: 180px;
+}
+.matrix-scroll tbody th .text-button {
+  display: block;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+}

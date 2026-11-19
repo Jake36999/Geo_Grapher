@@ -350,7 +350,9 @@ export default function App({
         workspace.consume();
         return;
       }
-      const id = node?.entity_id ?? node?.parent_id;
+      // An entity outside the frame (a declared link's end, AR-F08) is entered by its own id;
+      // the frame for it is fetched like any focus.
+      const id = node ? (node.entity_id ?? node.parent_id) : pending.local_id;
       if (id) {
         setFocus(id);
         setRevealed((old) => [...new Set([...old, id])]);
@@ -1082,6 +1084,27 @@ export default function App({
     ...(buildTools ? ([["build", "Build", <IconBuild key="b" />]] as const) : []),
   ] as readonly (readonly [PanelMode, string, React.ReactNode])[];
   const mode: PanelMode = panelMode === "build" && !buildTools ? "inspect" : panelMode;
+  /** Go to one end of a declared link (AR-F08): enter that item in its graph, or say why not.
+   *  Returns a message when it cannot go there. */
+  function jumpTo(graphId: string, ref: string): string | undefined {
+    if (!workspace) return "Links are followed in a workspace.";
+    const entity = ref.startsWith("entity:") ? ref.slice("entity:".length) : "";
+    if (!entity) return ref === "root" ? "This end is the whole graph." : "Only an item in a code or document graph can be opened here.";
+    if (!workspace.selected.includes(graphId)) return "Check that graph in the Graphs tab first, then follow the link.";
+    if (graphId === workspace.active) {
+      setFocus(entity);
+      setRevealed((old) => [...new Set([...old, entity])]);
+      setContextRadius(1);
+      setNavigation((n) => n + 1);
+      void select(entity);
+      return undefined;
+    }
+    const source = composition?.frames.find((f) => f.graph_id === graphId);
+    if (!source?.frame || !source.snapshot_id) return "That graph is still loading; try again in a moment.";
+    workspace.pick({ graph_id: graphId, snapshot_id: source.snapshot_id, local_id: entity, edge: false,
+      enter: true, frame: source.frame, camera: scene.current?.capture() });
+    return undefined;
+  }
   // The item selected in the active graph, as something a declared link can point at.
   const linkSelection: Endpoint | undefined =
     workspace && current?.entity_id
@@ -1115,6 +1138,7 @@ export default function App({
           startDerive: (graph, paths) => setDerive({ graph, paths }),
           clearDerive: () => setDerive(undefined),
           derived: () => void workspace?.reloadGraphs(),
+          jumpTo,
         }}
       >
         {buildTools}

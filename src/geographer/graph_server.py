@@ -109,8 +109,8 @@ def create_graph_mcp(router,host='127.0.0.1',port=8765,text_content=False):
         for name,description,schema in [
             ('list_graphs','Discover graph IDs and their latest project snapshots.',dict(type='object',properties={},additionalProperties=False)),
             ('compile_task_packet','Compile a snapshot-bound, cited task packet with structured upstream port contracts. '
-             'Anchors use entity:<canonical ID> (prefix entity: even when the ID itself begins entity:). '
-             'Use entities[].entity_id from flat search to obtain canonical IDs; scoped aliases alone are not bridge refs.',
+             'Anchors: pass entities[].entity_id or cite_as exactly as search returned them '
+             '(entity:<canonical ID> is accepted too); scoped aliases alone are not bridge refs.',
              dict(type='object',properties={'graph_id':graph_schema,'anchors':dict(type='array',items={'type':'string'},minItems=1,maxItems=8),
                 'instruction':{'type':'string'},'profile':dict(enum=['tier3_leaf','tier2_forager','tier1_lead']),
                 'upstream':dict(type='array',items={'type':'object'})},required=['graph_id','anchors','instruction'],additionalProperties=False)),

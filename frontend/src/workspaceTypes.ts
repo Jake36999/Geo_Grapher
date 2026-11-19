@@ -18,6 +18,8 @@ export interface WorkspaceGraph {
   bridge_count?: number;
   graph_kind?: string;
   copied_from?: string | null;
+  /** The snapshot has code fingerprints, which Compare needs (AR-F16). */
+  fingerprints?: boolean;
 }
 export interface WorkspaceSettings {
   view: "spatial" | "list" | "matrix";

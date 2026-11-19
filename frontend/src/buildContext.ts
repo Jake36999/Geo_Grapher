@@ -32,6 +32,8 @@ export interface BuildContextValue {
   clearDerive: () => void;
   /** A graph was made from a selection: the graph list needs to be read again. */
   derived: () => void;
+  /** Go to one end of a declared link; a message says why it cannot (AR-F08). */
+  jumpTo?: (graphId: string, ref: string) => string | undefined;
 }
 
 export const BuildContext = createContext<BuildContextValue>({
