@@ -43,6 +43,8 @@ export interface WorkspaceControls {
   graphs: WorkspaceGraph[];
   selected: string[];
   tools: ReactNode;
+  /** The right panel's Build tab: add a folder, combine, link. */
+  build?: ReactNode;
   settings?: WorkspaceSettings;
   showBridges: boolean;
   restoreGraphs: (ids: string[]) => void;

@@ -281,35 +281,58 @@ export default function Workspace() {
             />
             Show declared bridges
           </label>
-          <GraphMergeReview
-            graphIds={selected}
-            onMerged={(id) => {
-              fetch("/api/graphs")
-                .then((r) => r.json())
-                .then((data) => {
-                  setGraphs(data.graphs);
-                  setSelected([id]);
-                  setActive(id);
-                })
-                .catch((e) => setError(e.message));
-            }}
-          />
-          <WorkspaceIngest
-            onIngested={() => {
-              fetch("/api/graphs")
-                .then((r) => r.json())
-                .then((data) => setGraphs(data.graphs))
-                .catch((e) => setError(e.message));
-            }}
-          />
-          <BridgeReview
-            graphIds={selected}
-            labels={Object.fromEntries(graphs.map((g) => [g.graph_id, g.label]))}
-            onDecided={() => setSelected((s) => [...s])}
-          />
           {error && <p role="alert">{error}</p>}
         </div>
       </details>
+    </>
+  );
+  // The Build tab of the right-hand panel: what makes something new. Each result is a new graph or a
+  // declared link; the source graphs are never changed.
+  const build = (
+    <>
+      <section aria-labelledby="build-add">
+        <h2 id="build-add">Add a folder</h2>
+        <p className="build-hint">
+          Read a folder, see how it splits into parts, and choose which become graphs.
+        </p>
+        <WorkspaceIngest
+          onIngested={() => {
+            fetch("/api/graphs")
+              .then((r) => r.json())
+              .then((data) => setGraphs(data.graphs))
+              .catch((e) => setError(e.message));
+          }}
+        />
+      </section>
+      <section aria-labelledby="build-combine">
+        <h2 id="build-combine">Combine graphs</h2>
+        <p className="build-hint">
+          Works on the graphs checked in the Graphs tab ({selected.length} checked). The sources stay as they are.
+        </p>
+        <GraphMergeReview
+          graphIds={selected}
+          onMerged={(id) => {
+            fetch("/api/graphs")
+              .then((r) => r.json())
+              .then((data) => {
+                setGraphs(data.graphs);
+                setSelected([id]);
+                setActive(id);
+              })
+              .catch((e) => setError(e.message));
+          }}
+        />
+      </section>
+      <section aria-labelledby="build-link">
+        <h2 id="build-link">Link graphs</h2>
+        <p className="build-hint">Declare how two checked graphs relate. Links are kept apart from extracted facts.</p>
+        <BridgeReview
+          graphIds={selected}
+          labels={Object.fromEntries(graphs.map((g) => [g.graph_id, g.label]))}
+          onDecided={() => setSelected((s) => [...s])}
+        />
+      </section>
+      {error && <p role="alert">{error}</p>}
     </>
   );
   return (
@@ -320,6 +343,7 @@ export default function Workspace() {
         graphs,
         selected,
         tools,
+        build,
         settings,
         pending,
         consume,

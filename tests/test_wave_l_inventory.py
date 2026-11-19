@@ -44,6 +44,56 @@ def test_suggestions_are_explained_and_third_party_is_bronze(tmp_path):
     assert {'graphify-out', 'librarian-app', 'test-results'} <= {p['rel'] for p in result['excluded']}
 
 
+def _repo(path, licence=False):
+    (path / '.git').mkdir(parents=True)
+    (path / 'lib.py').write_text('B = 2\n')
+    if licence: (path / 'LICENSE').write_text('MIT')
+
+
+def _tree_with_unlicensed_and_licensed_repos(tmp_path):
+    (tmp_path / 'own').mkdir(); (tmp_path / 'own/app.py').write_text('A = 1\n')
+    _repo(tmp_path / 'vendor/no-licence-repo')                    # a folder of repositories, none licensed
+    _repo(tmp_path / 'external/with-licence-repo', licence=True)  # a repository that has a licence file
+    (tmp_path / 'papers').mkdir(); (tmp_path / 'papers/a.pdf').write_bytes(b'synthetic-pdf')
+    return tmp_path
+
+
+def test_unlicensed_third_party_is_labelled_not_withheld(tmp_path):
+    """Owner decision 2026-11-19: an unlicensed source is ingested and copied like any other; it is only
+    kept out of what is published as our own work (where it is cited). The scan labels it, nothing more."""
+    parts = {p['key']: p for p in scan(_tree_with_unlicensed_and_licensed_repos(tmp_path))['partitions']}
+    unlicensed = parts['vendor']
+    assert unlicensed['suggestion']['publication'] == 'reference'
+    assert unlicensed['suggestion']['licence'] == 'none_found'
+    assert unlicensed['suggestion']['licence_files'] == 0
+    assert any('no licence file found' in r and 'ingested and copied' in r for r in unlicensed['suggestion']['reasons'])
+    # the label changes nothing about how it is treated: same trust tier, still only a suggestion
+    assert unlicensed['stratum']['trust_tier'] == 'bronze' and unlicensed['suggestion']['accepted'] is False
+    licensed = parts['external']['suggestion']
+    assert licensed['licence'] == 'found' and licensed['licence_files'] == 1 and licensed['publication'] == 'reference'
+    assert not any('no licence file' in r for r in licensed['reasons'])
+    assert parts['residual']['suggestion']['publication'] == 'own'
+    assert parts['residual']['suggestion']['licence'] == 'not_applicable'
+    assert parts['papers']['suggestion']['publication'] == 'reference'  # someone else's papers are cited too
+    assert parts['papers']['suggestion']['licence'] == 'not_applicable'  # but a paper has no licence file to look for
+
+
+def test_a_folder_of_repositories_counts_a_licence_anywhere_inside_it(tmp_path):
+    _repo(tmp_path / 'vendor_mixed/a')
+    _repo(tmp_path / 'vendor_mixed/b', licence=True)
+    suggestion = {p['key']: p for p in scan(tmp_path)['partitions']}['vendor_mixed']['suggestion']
+    assert suggestion['licence'] == 'found' and suggestion['licence_files'] == 1
+
+
+def test_unlicensed_source_is_ingested_when_approved(tmp_path):
+    from geographer.graph_catalog import GraphCatalog
+    from geographer.workspace_init import apply
+    (tmp_path / 'tree').mkdir()
+    root = _tree_with_unlicensed_and_licensed_repos(tmp_path / 'tree')
+    reports = apply(GraphCatalog(tmp_path / 'catalog.sqlite'), scan(root), approved_keys={'vendor'})
+    assert len(reports) == 1 and reports[0]['graph_id']
+
+
 def test_inventory_rejects_escape_and_wrong_root(tmp_path):
     for root, name in [(str(tmp_path), '../elsewhere.md'), (str(tmp_path / 'other'), 'x.md')]:
         with pytest.raises(ValueError, match='INVENTORY'):

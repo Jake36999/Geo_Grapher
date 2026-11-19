@@ -6,6 +6,7 @@ import { useDismissPopovers } from "./useDismiss";
 import {
   IconBack,
   IconFit,
+  IconBuild,
   IconGraphs,
   IconHierarchy,
   IconHome,
@@ -179,15 +180,17 @@ export default function App({
   // The right-hand panel shows the selected thing (Inspect) or the workspace (Graphs: which graph,
   // which revision, saved views). The choice is kept for the tab, so switching graphs, which
   // remounts this component, does not drop a person back to Inspect.
-  const [panelMode, setPanelModeState] = useState<"inspect" | "graphs">(() => {
+  type PanelMode = "inspect" | "graphs" | "build";
+  const [panelMode, setPanelModeState] = useState<PanelMode>(() => {
       try {
-        return sessionStorage.getItem("geographer.panel") === "graphs" ? "graphs" : "inspect";
+        const stored = sessionStorage.getItem("geographer.panel");
+        return stored === "graphs" || stored === "build" ? stored : "inspect";
       } catch {
         return "inspect";
       }
     }),
     [zoomLevel, setZoomLevel] = useState(0);
-  const setPanelMode = useCallback((mode: "inspect" | "graphs") => {
+  const setPanelMode = useCallback((mode: PanelMode) => {
     setPanelModeState(mode);
     try {
       sessionStorage.setItem("geographer.panel", mode);
@@ -1057,6 +1060,29 @@ export default function App({
   ) {
     setFilter((old) => ({ ...old, [key]: !old[key] }));
   }
+  // Build is offered where the workspace can build (it supplies the tools); a saved "build" choice
+  // in a view without them falls back to Inspect.
+  const buildTools = workspace?.build;
+  const modes = [
+    ["inspect", "Inspect", null],
+    ["graphs", "Graphs", <IconGraphs key="g" />],
+    ...(buildTools ? ([["build", "Build", <IconBuild key="b" />]] as const) : []),
+  ] as readonly (readonly [PanelMode, string, React.ReactNode])[];
+  const mode: PanelMode = panelMode === "build" && !buildTools ? "inspect" : panelMode;
+  const buildPanel = (
+    <section
+      id="panel-mode-build"
+      role="tabpanel"
+      aria-labelledby="mode-build"
+      className="graphs-panel build-panel"
+    >
+      <p className="build-intro">
+        Make something new from your graphs. Sources are never changed: each result is a new graph or a declared
+        link.
+      </p>
+      {buildTools}
+    </section>
+  );
   const graphsPanel = (
     <section
       id="panel-mode-graphs"
@@ -2424,24 +2450,20 @@ export default function App({
             Close inspector
           </button>
           <div className="panel-modes" role="tablist" aria-label="Right panel">
-            {(
-              [
-                ["inspect", "Inspect", null],
-                ["graphs", "Graphs", <IconGraphs key="g" />],
-              ] as const
-            ).map(([key, label, glyph]) => (
+            {modes.map(([key, label, glyph], at) => (
               <button
                 key={key}
                 role="tab"
                 id={`mode-${key}`}
-                aria-selected={panelMode === key}
-                aria-controls={key === "graphs" ? "panel-mode-graphs" : undefined}
-                tabIndex={panelMode === key ? 0 : -1}
+                aria-selected={mode === key}
+                aria-controls={key === "inspect" ? undefined : `panel-mode-${key}`}
+                tabIndex={mode === key ? 0 : -1}
                 onClick={() => setPanelMode(key)}
                 onKeyDown={(e) => {
-                  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                  const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+                  if (step) {
                     e.preventDefault();
-                    const next = key === "inspect" ? "graphs" : "inspect";
+                    const next = modes[(at + step + modes.length) % modes.length][0];
                     setPanelMode(next);
                     document.getElementById(`mode-${next}`)?.focus();
                   }
@@ -2451,8 +2473,10 @@ export default function App({
               </button>
             ))}
           </div>
-          {panelMode === "graphs" ? (
+          {mode === "graphs" ? (
             graphsPanel
+          ) : mode === "build" ? (
+            buildPanel
           ) : snapshot && (
             <Inspector
               snapshot={snapshot}

@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  Hammer,
   Layers,
   ListTree,
   Maximize2,
@@ -53,5 +54,6 @@ export const IconFit = icon(Scan);
 export const IconHierarchy = icon(ListTree);
 export const IconInspector = icon(PanelRight);
 export const IconGraphs = icon(Layers);
+export const IconBuild = icon(Hammer);
 export const IconSun = icon(Sun);
 export const IconMoon = icon(Moon);

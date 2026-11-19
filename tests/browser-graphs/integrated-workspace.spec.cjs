@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 const fs=require('node:fs'),ts=require('typescript');
 const AxeBuilder=require('@axe-core/playwright').default;
-const {showGraphsMode,showInspectMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
+const {showGraphsMode,showInspectMode,showBuildMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
 async function ready(page){await expect(page.getByRole('searchbox',{name:'Search entities'})).toBeEnabled();await expect(page.locator('.view-content')).toHaveAttribute('aria-busy','false');await expect(page.getByText('Loading selected graphs…',{exact:true})).toHaveCount(0);await expect(page.getByRole('alert')).toHaveCount(0);await expect(page.locator('.filter-count')).toHaveText(/[1-9]\d* groups/);}
 async function graphs(page){await showGraphsMode(page);const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
 
@@ -63,7 +63,7 @@ test('graph checklist and centre selection do not navigate to another viewer',as
 });
 
 test('reviewed merge remains an integrated tool; stale source plans are rejected',async({page,request})=>{
- await page.goto('/');await ready(page);await graphs(page);
+ await page.goto('/');await ready(page);await graphs(page);await showBuildMode(page);
  await page.getByText('Create a physically merged graph',{exact:true}).click();await page.getByLabel('New graph name').fill('Integrated union');
  await page.getByRole('button',{name:'Review merge plan'}).click();await expect(page.getByRole('region',{name:'Merge plan review'})).toBeVisible();
  expect((await request.post('/__qa/advance',{data:{}})).ok()).toBeTruthy();

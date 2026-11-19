@@ -1,4 +1,4 @@
-// Where controls live now: the right panel has two modes (Inspect, Graphs), the theme and panel
+// Where controls live now: the right panel has three modes (Inspect, Graphs, Build), the theme and panel
 // widths are in the Settings menu in the top bar, and Configure rules and the QI grouping are in
 // the Scope & filters panel. Each helper returns `page` so a call can sit in front of a locator:
 // `(await showGraphsMode(page)).getByRole(...)`.
@@ -10,6 +10,12 @@ async function showGraphsMode(page) {
 
 async function showInspectMode(page) {
   const tab = page.getByRole('tab', { name: 'Inspect', exact: true });
+  if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
+  return page;
+}
+
+async function showBuildMode(page) {
+  const tab = page.getByRole('tab', { name: 'Build', exact: true });
   if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
   return page;
 }
@@ -33,4 +39,4 @@ async function useTheme(page, theme) {
   return page;
 }
 
-module.exports = { showGraphsMode, showInspectMode, openSettings, openScope, useTheme };
+module.exports = { showGraphsMode, showInspectMode, showBuildMode, openSettings, openScope, useTheme };

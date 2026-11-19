@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- UI: one top bar, a canvas tool rail, a zoom slider, and a right panel with Inspect, Graphs and **Build** modes.
+- Build mode: Add a folder (with a folder map and a Copy as ASCII text version), Combine graphs and Link graphs now live in the Build tab. The ingest review is a wide sheet that shows how the folder was read down to the depth it is split into separate graphs.
+- Ingest policy: a source with no licence file is labelled "cited, not published as our own work" and still ingested and copied like any other. It is a label, never a gate. See [the ingestion policy](docs/INGESTION_POLICY.md).
+
 ## 0.2.0 — prepared 2026-11-14, awaiting owner acceptance
 
 Phase 6–7 waves 1–4 and the closed code-quality track are integrated locally. No release tag or push has occurred.

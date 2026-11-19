@@ -1,31 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { json } from "./api";
+import IngestSheet, { type SheetPlan } from "./IngestSheet";
 
-type Partition = {
-  key: string;
-  role: string;
-  subtrees: string[];
-  file_counts: Record<string, number>;
-  bytes: number;
-};
-type Plan = {
-  plan_id: string;
-  plan_version: string;
-  root: string;
-  archetype: string;
-  partitions: Partition[];
-  manual_steps: { kind: string; dir: string; command: string }[];
-};
+type Plan = SheetPlan & { plan_id: string; plan_version: string };
 type Job = { state: "queued" | "running" | "done" | "failed"; reports: unknown[]; error: string | null };
 
-/** Add folder…: browse an allowed root, preview workspace-init partitions, apply the chosen ones as a background job. */
+/**
+ * Add folder…: browse an allowed root, read it (workspace-init partitions), review the folder map in a
+ * wide sheet, then apply the chosen parts as a background job. The panel keeps the browser and the
+ * job's status; the review itself is in the sheet.
+ */
 export default function WorkspaceIngest({ onIngested }: { onIngested: () => void }) {
   const [open, setOpen] = useState(false);
   const [roots, setRoots] = useState<string[]>([]);
   const [path, setPath] = useState(""),
     [dirs, setDirs] = useState<string[]>([]);
   const [plan, setPlan] = useState<Plan>(),
-    [approved, setApproved] = useState<Record<string, boolean>>({});
+    [approved, setApproved] = useState<Record<string, boolean>>({}),
+    [sheet, setSheet] = useState(false);
   const [job, setJob] = useState<Job>(),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
@@ -43,6 +35,7 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
   async function browse(target: string) {
     setError("");
     setPlan(undefined);
+    setSheet(false);
     try {
       const listed = await json<{ path: string; dirs: string[] }>(`/api/fs/list?path=${encodeURIComponent(target)}`);
       setPath(listed.path);
@@ -63,7 +56,10 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
     try {
       const p = await json<Plan>("/api/workspace/ingest-preview", { root: path });
       setPlan(p);
+      // Every part starts ticked, unlicensed ones included: they are ingested and copied like any
+      // other; the sheet only labels them as cited, not published as our own.
       setApproved(Object.fromEntries(p.partitions.map((x) => [x.key, true])));
+      setSheet(true);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -74,6 +70,7 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
     if (!plan) return;
     setBusy(true);
     setError("");
+    setSheet(false);
     try {
       const started = await json<{ job_id: string }>("/api/workspace/ingest-execute", {
         plan_id: plan.plan_id,
@@ -134,57 +131,37 @@ export default function WorkspaceIngest({ onIngested }: { onIngested: () => void
             ))}
           </ul>
           <button disabled={busy || !path} onClick={preview}>
-            Preview this folder
+            Read this folder
           </button>
         </>
       )}
       {error && <p role="alert">{error}</p>}
-      {plan && (
-        <table aria-label="Ingest preview">
-          <caption>
-            {plan.archetype} · {plan.partitions.length} partition(s)
-          </caption>
-          <thead>
-            <tr>
-              <th>Ingest</th>
-              <th>Partition</th>
-              <th>Role</th>
-              <th>Files</th>
-            </tr>
-          </thead>
-          <tbody>
-            {plan.partitions.map((p) => (
-              <tr key={p.key}>
-                <td>
-                  <input
-                    type="checkbox"
-                    aria-label={`Ingest partition ${p.key}`}
-                    checked={!!approved[p.key]}
-                    disabled={busy}
-                    onChange={(e) => setApproved((a) => ({ ...a, [p.key]: e.target.checked }))}
-                  />
-                </td>
-                <td>{p.key}</td>
-                <td>{p.role}</td>
-                <td>{Object.values(p.file_counts).reduce((a, b) => a + b, 0)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {plan && plan.manual_steps.length > 0 && (
-        <p>{plan.manual_steps.length} paper corpus folder(s) need the paper pipeline; they are not ingested here.</p>
-      )}
-      {plan && (
-        <button disabled={busy || !Object.values(approved).some(Boolean)} onClick={apply}>
-          {busy ? "Ingesting…" : "Ingest selected partitions"}
-        </button>
+      {plan && !sheet && !job && (
+        <p>
+          Read {plan.partitions.length} part{plan.partitions.length === 1 ? "" : "s"}.{" "}
+          <button onClick={() => setSheet(true)}>Review the folder map</button>
+        </p>
       )}
       {job && (
         <p aria-live="polite" data-testid="ingest-job-state">
           Job {job.state}
           {job.error ? `: ${job.error}` : ""}
         </p>
+      )}
+      {!job && busy && plan && !sheet && (
+        <p aria-live="polite" data-testid="ingest-job-state">
+          Starting…
+        </p>
+      )}
+      {plan && sheet && (
+        <IngestSheet
+          plan={plan}
+          approved={approved}
+          busy={busy}
+          onApprove={(key, on) => setApproved((a) => ({ ...a, [key]: on }))}
+          onApply={apply}
+          onClose={() => setSheet(false)}
+        />
       )}
     </section>
   );

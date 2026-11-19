@@ -1,5 +1,5 @@
 const {test,expect}=require('@playwright/test');
-const {showGraphsMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
+const {showGraphsMode,showBuildMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
 async function graphsMenu(page){await showGraphsMode(page);const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
 // Other specs expect only the fixture's Alpha/Beta graphs: delete every graph this file creates.
 let baseline=null;
@@ -10,21 +10,56 @@ test.afterAll(async({request})=>{
 });
 const watch=page=>{const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});return errors;};
 
-test('add folder: browse, toggle a partition off, ingest; the new graph appears',async({page,request})=>{
+test('add folder: read it, review the folder map, untick a part, ingest; the new graph appears',async({page,request})=>{
  const errors=watch(page);
  const before=(await(await request.get('/api/graphs')).json()).graphs.length;
  await page.goto('/');await expect(page.getByRole('searchbox',{name:'Search entities'})).toBeEnabled();
- await graphsMenu(page);
+ await showBuildMode(page);
  await page.getByRole('button',{name:'Add folder…'}).click();
  const panel=page.getByRole('region',{name:'Add folder'});
  await expect(panel.getByTestId('ingest-path')).toContainText('ws');
- await panel.getByRole('button',{name:'Preview this folder'}).click();
- const table=panel.getByRole('table',{name:'Ingest preview'});await expect(table).toBeVisible();
- const boxes=table.getByRole('checkbox');expect(await boxes.count()).toBeGreaterThan(1);
- await table.getByRole('checkbox',{name:'Ingest partition docs'}).uncheck();
- await panel.getByRole('button',{name:'Ingest selected partitions'}).click();
+ await panel.getByRole('button',{name:'Read this folder'}).click();
+ const sheet=page.getByRole('dialog',{name:'How this folder was read'});await expect(sheet).toBeVisible();
+ const map=sheet.getByRole('list',{name:'Folder map'});
+ const boxes=map.getByRole('checkbox');const total=await boxes.count();expect(total).toBeGreaterThan(2);
+ for(let i=0;i<total;i++)await expect(boxes.nth(i)).toBeChecked(); // every part starts ticked, the unlicensed one too
+ await map.getByRole('checkbox',{name:'Ingest docs',exact:true}).uncheck();
+ await sheet.getByRole('button',{name:`Ingest ${total-1} selected part${total-1===1?'':'s'}`}).click();
+ await expect(sheet).toBeHidden();
  await expect(panel.getByTestId('ingest-job-state')).toHaveText(/Job done/,{timeout:60000});
- await expect.poll(async()=>(await(await request.get('/api/graphs')).json()).graphs.length).toBe(before+(await boxes.count())-1);
+ await expect.poll(async()=>(await(await request.get('/api/graphs')).json()).graphs.length).toBe(before+total-1);
+ expect(errors).toEqual([]);
+});
+
+test('the folder map labels an unlicensed source as cited, never withholds it; the text version copies',async({page,request,context})=>{
+ const errors=watch(page);
+ await context.grantPermissions(['clipboard-read','clipboard-write']);
+ await page.goto('/');await expect(page.getByRole('searchbox',{name:'Search entities'})).toBeEnabled();
+ await showBuildMode(page);
+ await page.getByRole('button',{name:'Add folder…'}).click();
+ const panel=page.getByRole('region',{name:'Add folder'});await expect(panel.getByTestId('ingest-path')).toContainText('ws');
+ await panel.getByRole('button',{name:'Read this folder'}).click();
+ const sheet=page.getByRole('dialog',{name:'How this folder was read'});await expect(sheet).toBeVisible();
+ const map=sheet.getByRole('list',{name:'Folder map'});
+ // the innermost list item holding the vendor checkbox is the vendor row (the root item holds it too)
+ const vendor=map.getByRole('listitem').filter({has:page.getByRole('checkbox',{name:'Ingest vendor',exact:true})}).last();
+ await expect(vendor).toContainText('third-party');
+ await expect(vendor).toContainText('cited, not published as our own');
+ await expect(vendor).toContainText('no licence file');
+ await expect(map.getByRole('checkbox',{name:'Ingest vendor',exact:true})).toBeChecked(); // labelled, not left out
+ await expect(sheet).toContainText('is still brought in and copied');
+ // the text version
+ await sheet.getByText('Text version',{exact:true}).click();
+ const text=sheet.locator('#ingest-map-text');await expect(text).toBeVisible();
+ await expect(text).toContainText('├─ docs/');
+ await expect(text).toContainText('third-party · cited, not published as our own · no licence file');
+ await sheet.getByRole('button',{name:'Copy as ASCII'}).click();
+ await expect(sheet.getByRole('status')).toHaveText('Copied the text map.');
+ const pasted=await page.evaluate(()=>navigator.clipboard.readText());
+ expect(pasted.replace(/\r\n/g,'\n')).toBe((await text.innerText()).replace(/\n$/,'')); // Windows' clipboard stores CRLF
+ // Escape closes the sheet without ingesting
+ await page.keyboard.press('Escape');await expect(sheet).toBeHidden();
+ await expect(panel.getByRole('button',{name:'Review the folder map'})).toBeVisible();
  expect(errors).toEqual([]);
 });
 

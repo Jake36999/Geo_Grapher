@@ -1,5 +1,5 @@
 const {test,expect}=require('@playwright/test');
-const {showGraphsMode,openScope}=require('../browser/panel-helpers.cjs');
+const {showGraphsMode,showBuildMode,openScope}=require('../browser/panel-helpers.cjs');
 const path=require('path');
 const root=path.resolve(process.env.QA_REAL_ROOT||'output/phase67-gates/wave4/application-r1');
 let baseline=[];
@@ -123,6 +123,7 @@ test('real code pair bridge review decides one candidate',async({page})=>{
  // unrelated ToolSet/Librarian snapshots need not yield bridge candidates.
  await selectGraphs(page,['librarian-v2','librarian-survey-worktree']);
  await expect(page.locator('.workspace-graph-picker > summary')).toHaveText('Graphs (2)');
+ await showBuildMode(page);
  const panel=page.locator('.bridge-review');
  if(!await panel.evaluate(e=>e.open))await panel.locator(':scope > summary').click();
  await expect(panel.getByRole('button',{name:'Find candidates',exact:true})).toBeEnabled();
@@ -138,14 +139,15 @@ test('real code pair bridge review decides one candidate',async({page})=>{
 });
 test('real workspace adds a folder and ingests one selected partition',async({page,request})=>{
  await open(page,'librarian-v2');
- await menu(page);
+ await showBuildMode(page);
  await page.getByRole('button',{name:'Add folder…',exact:true}).click();
  const panel=page.getByRole('region',{name:'Add folder',exact:true});
  await panel.getByRole('button',{name:'project',exact:true}).click();
- await panel.getByRole('button',{name:'Preview this folder',exact:true}).click();
- const choices=panel.getByRole('checkbox');await expect(choices).toHaveCount(2);
+ await panel.getByRole('button',{name:'Read this folder',exact:true}).click();
+ const sheet=page.getByRole('dialog',{name:'How this folder was read'});
+ const choices=sheet.getByRole('checkbox');await expect(choices).toHaveCount(2);
  await choices.nth(1).uncheck();
- await panel.getByRole('button',{name:'Ingest selected partitions',exact:true}).click();
+ await sheet.getByRole('button',{name:'Ingest 1 selected part',exact:true}).click();
  await expect(page.getByTestId('ingest-job-state')).toHaveText('Job done',{timeout:90000});
  const now=(await(await request.get('/api/graphs')).json()).graphs;
  expect(now.filter(g=>!baseline.some(b=>b.graph_id===g.graph_id)&&g.label!=='qa-real-pruned')).toHaveLength(1);

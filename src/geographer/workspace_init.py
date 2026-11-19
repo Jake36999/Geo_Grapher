@@ -24,6 +24,16 @@ HYGIENE_DIRS = source.EXCLUDED | {
 }
 
 
+# Roles whose content is someone else's work: cited, never published as our own. Roles whose licence
+# status is worth showing: code-like third-party folders (a paper has no licence file to look for).
+REFERENCE_ROLES = frozenset({'third_party', 'external_reference', 'research_docs'})
+LICENCE_ROLES = frozenset({'third_party', 'external_reference'})
+
+
+def _is_licence_name(name: str) -> bool:
+    return name.lower().startswith(('license', 'licence', 'copying'))
+
+
 def scan(root, catalog=None, *, inventory=None) -> dict:
     """Scan a directory and return a plan."""
     root = Path(root).resolve()
@@ -98,7 +108,8 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
             role = 'third_party'; reasons.append('third-party folder-name signal')
         if dir_rel and (dir_rel + '/.git/' in metadata or dir_rel + '/.git' in metadata):
             role = 'third_party'; reasons.append('nested Git repository; ownership unconfirmed (remote credentials are not read)')
-        if dir_rel and any(name.lower().startswith(('license', 'licence', 'copying')) for name in filenames):
+        has_licence_file = bool(dir_rel) and any(_is_licence_name(name) for name in filenames)
+        if has_licence_file:
             reasons.append('licence file; review upstream ownership')
             if role == 'current': role = 'third_party'
         suffixes = [Path(name).suffix.lower() for name in filenames if not credential_path(name)]
@@ -130,6 +141,7 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
                 "subtrees": [dir_rel],
                 "role": role,
                 "suggestion_reasons": reasons or [f'folder-name signal: {role}'],
+                "licence_files": 0,
                 "file_counts": {},
                 "bytes": 0,
                 "exclude_globs": [],
@@ -140,6 +152,9 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
                 if anc in partition_roots:
                     partition_key = partition_roots[anc]["key"]
                     break
+        if partition_key and any(_is_licence_name(name) for name in filenames):
+            # counted anywhere in the partition's subtree: a folder of repositories is "found" if any has one
+            next(p for p in partition_roots.values() if p["key"] == partition_key)["licence_files"] += 1
 
         # Process files in this directory
         for fname in filenames:
@@ -354,7 +369,18 @@ def scan(root, catalog=None, *, inventory=None) -> dict:
         purposes = {'current': 'own-current', 'legacy': 'own-legacy', 'docs': 'own-docs',
                     'third_party': 'third-party', 'research_docs': 'research-docs', 'data': 'data',
                     'transcripts': 'logs/transcripts', 'external_reference': 'third-party'}
-        part['suggestion'] = dict(purpose=purposes[role], reasons=part.pop('suggestion_reasons', ['residual content; ownership requires review']), accepted=False)
+        reasons = part.pop('suggestion_reasons', ['residual content; ownership requires review'])
+        licence_files = part.pop('licence_files', 0)
+        # A labelling policy, never a gate (owner decision 2026-11-19): a source without a licence file is
+        # still ingested, copied and graphed like any other. It is only kept out of what is published as our
+        # own work, where it is cited. So these two fields are informational: they do not change `accepted`,
+        # the trust tier or what apply() ingests.
+        licence = 'not_applicable' if role not in LICENCE_ROLES else ('found' if licence_files else 'none_found')
+        if licence == 'none_found':
+            reasons = reasons + ['no licence file found; ingested and copied as usual, cited and not published as our own work']
+        part['suggestion'] = dict(purpose=purposes[role], reasons=reasons, accepted=False,
+                                  publication='reference' if role in REFERENCE_ROLES else 'own', licence=licence,
+                                  licence_files=licence_files)
 
     # Finalize partitions list
     partitions_list = sorted(partitions.values(), key=lambda x: x["key"])

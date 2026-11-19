@@ -1,5 +1,5 @@
 const {test,expect}=require('@playwright/test');
-const {showGraphsMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
+const {showGraphsMode,showBuildMode,openSettings,useTheme}=require('../browser/panel-helpers.cjs');
 async function graphsMenu(page){await showGraphsMode(page);const menu=page.locator('.workspace-graph-picker');if(!await menu.evaluate(e=>e.open))await menu.locator(':scope > summary').click();return page.getByRole('group',{name:'Graphs to display'});}
 
 test('review bridge candidates: accept one with a rationale creates exactly one bridge',async({page,request})=>{
@@ -11,6 +11,7 @@ test('review bridge candidates: accept one with a rationale creates exactly one 
  const before=await count();
  const menu=await graphsMenu(page);
  for(const label of ['Alpha','Beta']){const box=menu.getByRole('checkbox',{name:label,exact:true});if(!await box.isChecked())await box.check();}
+ await showBuildMode(page);
  const panel=page.locator('details.bridge-review');await panel.locator(':scope > summary').click();
  await panel.getByRole('button',{name:'Find candidates'}).click();
  const list=panel.getByRole('list',{name:'Bridge candidates'});await expect(list.getByRole('listitem').first()).toBeVisible();

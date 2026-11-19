@@ -25,6 +25,7 @@ with tempfile.TemporaryDirectory(prefix='geographer-merge-qa-',ignore_cleanup_er
     ws=base/'ws';(ws/'src').mkdir(parents=True);(ws/'docs').mkdir()
     (ws/'src'/'tool.py').write_text('def tool():\n    return 2\n',encoding='utf-8');(ws/'docs'/'guide.md').write_text('# Guide\n',encoding='utf-8')
     (ws/'README.md').write_text('Picker fixture.\n',encoding='utf-8')
+    (ws/'vendor').mkdir();(ws/'vendor'/'lib.py').write_text('def lib():\n    return 3\n',encoding='utf-8')  # someone else's code, no licence file
     router=GraphRouter(catalog);app=create_graph_http(router,port=8775,browse_roots=[ws])
     async def advance(request):
         row=next(g for g in catalog.graphs() if g['label']=='Alpha')
