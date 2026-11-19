@@ -1669,3 +1669,53 @@ dialog input {
   margin-right: 4px;
   vertical-align: -1px;
 }
+
+
+/* Room for the canvas, and floating panels that open where they were asked for.
+   At 1440x900 the controls around the canvas took 347px of a 731px column (the canvas was 26%
+   of the window): labels now sit beside their selects, the heading and header are tighter, and
+   the legend waits behind a toggle until it is wanted. */
+@media (min-width: 721px) {
+  .filter-bar > label {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .workspace-heading {
+    padding: 12px 24px 8px;
+  }
+  .workspace-heading h1 {
+    margin: 2px 0 0;
+  }
+  .graph-pane .app-header .local-badge {
+    display: none;
+  }
+}
+/* A popover opens under its own trigger, not at the corner of the bar that holds it. */
+.filter-bar > details.popover {
+  position: relative;
+}
+.filter-bar > details.popover > .filter-popover {
+  top: calc(100% + 4px);
+  left: 0;
+  max-height: min(65dvh, calc(100dvh - 200px));
+}
+.legend-toggle {
+  position: absolute;
+  top: var(--layout-tools-bottom, 12px);
+  left: 16px;
+  z-index: 6;
+  font-size: 11px;
+  padding: 3px 8px;
+}
+.legend {
+  top: calc(var(--layout-tools-bottom, 12px) + 36px);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  padding: 6px 10px;
+  border-radius: 6px;
+  max-width: min(640px, calc(100% - 32px));
+}
+.legend[hidden] {
+  display: none;
+}

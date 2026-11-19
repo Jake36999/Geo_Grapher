@@ -21,6 +21,8 @@ test('edge legend explains colour, direction, pattern and size laws; edges show 
  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  await page.goto('/');await ready(page);
  await page.getByRole('button',{name:'3D space',exact:true}).click();await expect(page.locator('canvas')).toBeVisible();
+ // The legend waits behind a toggle until it is wanted.
+ await expect(page.locator('.legend')).toBeHidden();await page.getByRole('button',{name:'Legend',exact:true}).click();
  const legend=page.locator('.legend');
  await expect(legend).toContainText('Colour = relationship: orange call/data · violet hierarchy · cyan design rationale · sky describes · teal cites · gold bridge · red violation');
  await expect(legend).toContainText('Direction: bright at the source, fading into the target');

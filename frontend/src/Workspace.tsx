@@ -195,7 +195,7 @@ export default function Workspace() {
         </select>
       </label>
       <details
-        className="workspace-graph-picker"
+        className="workspace-graph-picker popover"
         open={pickerOpen}
         onToggle={(e) => setPickerOpen(e.currentTarget.open)}
       >

@@ -2,6 +2,7 @@ import { LibraryLink } from "./LibraryLink";
 import { LEGEND, categoryColour } from "./nodeStyle";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QiControl, { type QiMode } from "./QiControl";
+import { useDismissPopovers } from "./useDismiss";
 import { frameQI, type QiOptions } from "./api";
 import type {
   Filter,
@@ -138,6 +139,14 @@ export default function App({
       workspace?.settings?.panelSizes ?? [235, 330],
     ),
     [coverageOpen, setCoverageOpen] = useState(false),
+    // The legend explains the encodings; it stays out of the way until asked for (and stays asked for).
+    [legendOpen, setLegendOpen] = useState(() => {
+      try {
+        return localStorage.getItem("geographer.legend") === "open";
+      } catch {
+        return false;
+      }
+    }),
     [coverageFailures, setCoverageFailures] = useState<
       { repo_id: string; rel_path: string; language: string; message: string }[]
     >([]);
@@ -563,6 +572,11 @@ export default function App({
       });
     return () => abort.abort();
   }, [coverageOpen, frame?.data.coverage.report_handle]);
+  // Escape closes the top-most floating panel; a press outside closes a popover.
+  useDismissPopovers([
+    { open: rulesOpen, close: () => setRulesOpen(false) },
+    { open: coverageOpen, close: () => setCoverageOpen(false) },
+  ]);
   async function more() {
     if (!cursor.current || !request.current) return;
     const generation = sequence.current;
@@ -1486,7 +1500,7 @@ export default function App({
                 <p role="status">{rulesMessage}</p>
               </section>
             )}
-            <details>
+            <details className="popover">
               <summary>Scope & filters</summary>
               <div className="filter-popover">
                 <strong>Dependency scope</strong>
@@ -1926,7 +1940,25 @@ export default function App({
                     {pruneDraft.message && <p role="status">{pruneDraft.message}</p>}
                   </form>
                 )}
-                <div className="legend">
+                <button
+                  type="button"
+                  className="legend-toggle"
+                  aria-expanded={legendOpen}
+                  aria-controls="scene-legend"
+                  onClick={() =>
+                    setLegendOpen((open) => {
+                      try {
+                        localStorage.setItem("geographer.legend", open ? "closed" : "open");
+                      } catch {
+                        /* a private window: the choice just is not kept */
+                      }
+                      return !open;
+                    })
+                  }
+                >
+                  {legendOpen ? "Hide legend" : "Legend"}
+                </button>
+                <div className="legend" id="scene-legend" hidden={!legendOpen}>
                   <span>○ enclosure / summary</span>
                   <span className="node-legend" aria-label="Node colour by content">
                     ● Node colour = content:

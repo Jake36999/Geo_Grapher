@@ -588,9 +588,13 @@ export default function Inspector({
                 </span>
               )}
             </h2>
-            <p className="qualified-name" title={node.qualified_name}>
-              {node.qualified_name}
-            </p>
+            {/* A graph or repository root is named by an opaque id: it is not a name to read, and
+                "Copy ID" below has it. */}
+            {!/^g_[0-9a-f]{16,}(:[0-9a-f]+)?$/.test(node.qualified_name) && (
+              <p className="qualified-name" title={node.qualified_name}>
+                {node.qualified_name}
+              </p>
+            )}
             {node.flags.is_test && (
               <span className="tiny-badge">Test code</span>
             )}
